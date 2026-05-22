@@ -1,0 +1,25 @@
+{layout '../layout/default.latte'}
+{block content}
+<nav class="meta"><a href="/">トップ</a> / <a href="/categories/{$article['category_slug']}">{$article['category_name']}</a> / {$article['title']}</nav>
+<article class="prose">
+  <span class="label">{$article['category_name']}</span>
+  <h1>{$article['title']}</h1>
+  <p class="meta">公開 {$article['published_at']} / 更新 {$article['updated_at']} / {$article['author_name']}</p>
+  <div class="thumb"></div>
+  <div>{$article['body_html']|noescape}</div>
+  <hr>
+  <p>タグ:
+    {foreach $article['tags'] as $tag}
+      <a class="label" href="/tags/{$tag['slug']}">{$tag['name']}</a>
+    {/foreach}
+  </p>
+</article>
+<section style="margin-top:24px">
+  <h2>関連記事</h2>
+  <div class="article-list">
+    {foreach $related as $item}
+      {include '../partials/article-card.latte', article: $item}
+    {/foreach}
+  </div>
+</section>
+{/block}

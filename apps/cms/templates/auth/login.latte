@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CMSログイン</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body class="admin-body">
+<main class="login-wrap">
+  <section class="card login-card">
+    <h1>CMSログイン</h1>
+    {if isset($error)}<p class="error">{$error}</p>{/if}
+    <form class="form-stack" method="post" action="/admin/login">
+      <input type="hidden" name="_csrf" value="{$csrf}">
+      <label>メールアドレス<input type="email" name="email" required></label>
+      <label>パスワード<input type="password" name="password" required></label>
+      <button type="submit">ログイン</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

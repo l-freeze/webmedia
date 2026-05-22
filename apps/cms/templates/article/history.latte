@@ -1,0 +1,23 @@
+{layout '../layout/default.latte'}
+{block content}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>版</th><th>タイトル</th><th>状態</th><th>保存日時</th><th>操作</th></tr></thead>
+    <tbody>
+    {foreach $versions as $version}
+      <tr>
+        <td>{$version['version_no']}</td>
+        <td>{$version['title']}</td>
+        <td>{$version['status']}</td>
+        <td>{$version['created_at']}</td>
+        <td>
+          <form method="post" action="/admin/articles/{$articleId}/restore/{$version['version_no']}">
+            <button class="secondary" data-confirm="この版へ復元しますか？">復元</button>
+          </form>
+        </td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+</div>
+{/block}

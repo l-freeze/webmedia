@@ -1,0 +1,9 @@
+{layout '../layout/default.latte'}
+{block content}
+<article class="prose">
+  <span class="label status-{$article['status']}">{$article['status_label']}</span>
+  <h1>{$article['title']}</h1>
+  <p class="meta">公開 {$article['published_at']}</p>
+  <div>{$article['body_html']|noescape}</div>
+</article>
+{/block}

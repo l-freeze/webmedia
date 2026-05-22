@@ -1,0 +1,9 @@
+<article class="card article-card">
+  <div class="thumb" role="img" aria-label="{$article['title']}"></div>
+  <div>
+    <span class="label">{$article['category_name'] ?? '未分類'}</span>
+    <h2><a href="/articles/{$article['slug']}">{$article['title']}</a></h2>
+    <p>{$article['excerpt']}</p>
+    <p class="meta">公開 {$article['published_at']} / 更新 {$article['updated_at']}</p>
+  </div>
+</article>

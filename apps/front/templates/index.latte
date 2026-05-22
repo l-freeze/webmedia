@@ -1,0 +1,23 @@
+{layout 'layout/default.latte'}
+{block content}
+<div class="front-grid">
+  <section>
+    <div class="card">
+      <p class="label">新着記事</p>
+      <h1>読みやすく、探しやすいWEBメディア</h1>
+      <p class="muted">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
+    </div>
+    <div class="article-list" style="margin-top:16px">
+      {foreach $articles as $article}
+        {include 'partials/article-card.latte', article: $article}
+      {/foreach}
+    </div>
+  </section>
+  <aside class="card">
+    <h2>カテゴリ</h2>
+    {foreach $categories as $category}
+      <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+    {/foreach}
+  </aside>
+</div>
+{/block}

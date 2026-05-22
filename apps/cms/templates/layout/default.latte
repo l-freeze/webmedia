@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{$title} | CMS</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="/assets/js/app.js" defer></script>
+</head>
+<body class="admin-body">
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <h1>CMS</h1>
+    <a href="/admin">ダッシュボード</a>
+    <a href="/admin/articles">記事管理</a>
+    <a href="/admin/pages">固定ページ</a>
+    <a href="/admin/taxonomy">カテゴリ/タグ</a>
+    <a href="/admin/media">メディア</a>
+    <a href="/admin/inquiries">問い合わせ</a>
+    <a href="/admin/settings">サイト設定</a>
+    <a href="/admin/trash">ゴミ箱</a>
+    <form method="post" action="/admin/logout" style="margin-top:16px">
+      <button class="secondary" type="submit">ログアウト</button>
+    </form>
+  </aside>
+  <div>
+    <header class="admin-topbar">
+      <strong>{$title}</strong>
+      <span class="muted">{$flash ?? ''}</span>
+    </header>
+    <main class="admin-main">
+      {include content}
+    </main>
+  </div>
+</div>
+</body>
+</html>

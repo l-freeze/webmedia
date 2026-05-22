@@ -1,0 +1,34 @@
+{layout '../layout/default.latte'}
+{block content}
+<form method="post" action="{$action}" class="admin-content-grid">
+  <input type="hidden" name="_csrf" value="{$csrf}">
+  <section class="card form-stack">
+    <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>
+    <label>スラッグ<input name="slug" value="{$article['slug'] ?? ''}" required></label>
+    <label>本文<textarea name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea></label>
+    <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
+  </section>
+  <aside class="card form-stack">
+    <label>ステータス
+      <select name="status">
+        {foreach $statuses as $value => $label}
+          <option value="{$value}" {if ($article['status'] ?? 'draft') === $value}selected{/if}>{$label}</option>
+        {/foreach}
+      </select>
+    </label>
+    <label>カテゴリ
+      <select name="category_id">
+        <option value="">未分類</option>
+        {foreach $categories as $category}
+          <option value="{$category['id']}" {if (string)($article['category_id'] ?? '') === (string)$category['id']}selected{/if}>{$category['name']}</option>
+        {/foreach}
+      </select>
+    </label>
+    <label>公開日時<input name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS"></label>
+    <label>予約公開日時<input name="scheduled_at" value="{$article['scheduled_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS"></label>
+    <label>SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
+    <label>meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
+    <button type="submit">保存</button>
+  </aside>
+</form>
+{/block}

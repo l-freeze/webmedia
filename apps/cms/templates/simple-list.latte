@@ -1,0 +1,24 @@
+{layout 'layout/default.latte'}
+{block content}
+<section class="card">
+  <h1>{$heading}</h1>
+  {if isset($form)}
+    <form method="post" class="form-stack" style="margin-bottom:20px">
+      {foreach $form as $field}
+        <label>{$field['label']}<input name="{$field['name']}" value=""></label>
+      {/foreach}
+      <button>保存</button>
+    </form>
+  {/if}
+  <div class="table-wrap">
+    <table>
+      <thead><tr>{foreach $columns as $column}<th>{$column}</th>{/foreach}</tr></thead>
+      <tbody>
+      {foreach $rows as $row}
+        <tr>{foreach $row as $value}<td>{$value}</td>{/foreach}</tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div>
+</section>
+{/block}
