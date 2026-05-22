@@ -1,0 +1,38 @@
+# WEB Media
+
+Laravel / WordPress を使わない、小規模WEBメディア + CMS の軽量 PHP アプリケーションです。
+
+## 開発環境
+
+```bash
+cp .env.example .env
+make up
+make install
+make migrate
+make seed
+```
+
+フロント:
+
+- `http://localhost:8080/`
+
+CMS:
+
+- `http://localhost:8080/admin/login`
+- 初期メールアドレス: `admin@example.test`
+- 初期パスワード: `password`
+
+## テスト
+
+```bash
+make test
+```
+
+## 構成
+
+- `src/Framework`: DI、HTTP、Routing、View、Security、DB 接続などのアプリ非依存な軽量基盤
+- `apps/front`: 読者向けフロント。公開済み記事の Query 中心
+- `apps/cms`: 管理画面。認証、記事保存、履歴、管理機能
+- `database/migrations`: Phinx マイグレーション
+- `database/seeds`: ローカル確認用シード
+- `public`: Web 公開ディレクトリ
