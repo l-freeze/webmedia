@@ -19,6 +19,7 @@
   },
   "autoload": {
     "psr-4": {
+      "App\\Framework\\": "src/Framework/",
       "App\\Front\\": "apps/front/src/",
       "App\\Cms\\": "apps/cms/src/"
     }

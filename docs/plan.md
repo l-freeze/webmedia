@@ -6,7 +6,8 @@
 - Laravel / WordPress は使わず、自前の軽量 PHP アプリケーション基盤を作る。
 - Composer、Docker、Docker Compose を必須とする。
 - PHP は技術資料の指定に合わせて `8.5` 系を目標にする。ただし公式 Docker イメージの入手性を考慮し、開発環境では `dunglas/frankenphp:latest-php8.4` を使用し、`composer.json` は `>=8.4` として将来 `8.5` に上げやすくする。
-- `apps/cms` と `apps/front` を完全に分離し、曖昧な shared/common/core/utils/helpers 層は作らない。
+- `apps/cms` と `apps/front` の業務ロジックは完全に分離し、曖昧な shared/common/core/utils/helpers 層は作らない。
+- DI、HTTP、Routing、View、Security などフレームワークレベルの機能は、Laravel のコア機能と同じ位置付けで `App\Framework` として共通利用する。
 - フロントは SSR を基本とし、必要な UI 状態のみ Stimulus、部分更新余地に htmx を導入する。
 - 初回実装は、小規模メディアとして動作確認できる縦割り MVP を完成範囲にする。
 
@@ -63,8 +64,8 @@
 
 ### 3. 軽量フレームワーク基盤
 
-- CMS と Front それぞれに、DI コンテナ、HTTP、ルーティング、ビュー、セッション、CSRF、DB 接続を実装する。
-- Front と CMS は共通コードを置かず、同等の基盤クラスを各アプリ内へ意図的に重複配置する。
+- DI コンテナ、HTTP、ルーティング、ビュー、セッション、CSRF、DB 接続を `src/Framework` に実装する。
+- CMS と Front には業務機能、設定、ルート、テンプレートを分離して配置する。
 - `public/` 配下に Front / CMS のエントリポイントを置く。
 - コミット: `軽量PHP基盤を追加`
 
