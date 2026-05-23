@@ -3,6 +3,9 @@
 ## 前提
 
 - 本ディレクトリをプロジェクトルートとする。
+- 作業を開始する前に必ず `docs/current_status.md` を確認し、現在の完了地点・再開地点・既知の課題を把握する。
+- 作業を中断または完了するときは、必ず `docs/current_status.md` を更新し、次に再開すべき地点を明記する。
+- ホスト側に PHP / Composer をインストールする前提にはしない。PHP / Composer コマンドは Docker コンテナ内で実行する。
 - Laravel / WordPress は使わず、自前の軽量 PHP アプリケーション基盤を作る。
 - Composer、Docker、Docker Compose を必須とする。
 - PHP は技術資料の指定に合わせて `8.5` 系を目標にする。ただし公式 Docker イメージの入手性を考慮し、開発環境では `dunglas/frankenphp:latest-php8.4` を使用し、`composer.json` は `>=8.4` として将来 `8.5` に上げやすくする。
@@ -99,7 +102,7 @@
 
 ### 8. 最終確認
 
-- `composer test`、マイグレーション、Docker Compose 起動確認を行う。
+- Docker コンテナ内で `composer install`、`composer test`、マイグレーション、Docker Compose 起動確認を行う。
 - `git status` で未コミットの作業を確認する。
 - 必要なら README に起動方法を追記する。
 - コミット: 必要に応じて `開発手順を追加`
