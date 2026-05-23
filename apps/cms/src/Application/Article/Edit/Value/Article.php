@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Cms\Application\Article\Edit\Value;
+
+final readonly class Article
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+        public string $slug,
+        public string $bodyMarkdown,
+        public string $excerpt,
+        public string $status,
+        public ?int $categoryId,
+        public string $publishedAt,
+        public string $scheduledAt,
+        public string $seoTitle,
+        public string $metaDescription,
+    ) {
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'body_markdown' => $this->bodyMarkdown,
+            'excerpt' => $this->excerpt,
+            'status' => $this->status,
+            'category_id' => $this->categoryId,
+            'published_at' => $this->publishedAt,
+            'scheduled_at' => $this->scheduledAt,
+            'seo_title' => $this->seoTitle,
+            'meta_description' => $this->metaDescription,
+        ];
+    }
+}

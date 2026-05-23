@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Front\Article\Infrastructure\Http\Controller\ArticleController;
-use App\Front\Article\Infrastructure\Http\Controller\HomeController;
-use App\Front\Article\Infrastructure\Http\Controller\SearchController;
-use App\Front\Article\Infrastructure\Http\Controller\StateController;
-use App\Front\Category\Infrastructure\Http\Controller\CategoryController;
-use App\Front\Inquiry\Infrastructure\Http\Controller\ContactController;
-use App\Front\Page\Infrastructure\Http\Controller\PageController;
-use App\Front\Tag\Infrastructure\Http\Controller\TagController;
+use App\Front\Infrastructure\Http\Controller\ArticleController;
+use App\Front\Infrastructure\Http\Controller\HomeController;
+use App\Front\Infrastructure\Http\Controller\SearchController;
+use App\Front\Infrastructure\Http\Controller\StateController;
+use App\Front\Infrastructure\Http\Controller\CategoryController;
+use App\Front\Infrastructure\Http\Controller\ContactController;
+use App\Front\Infrastructure\Http\Controller\PageController;
+use App\Front\Infrastructure\Http\Controller\TagController;
 
 return [
     ['GET', '/', HomeController::class],

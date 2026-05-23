@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Auth\Infrastructure\Http\Controller;
 
-use App\Cms\Auth\Domain\UserRepository;
+use App\Cms\Auth\Domain\IUserRepository;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
@@ -17,7 +17,7 @@ final readonly class AuthController
         private Renderer $renderer,
         private Csrf $csrf,
         private Session $session,
-        private UserRepository $users,
+        private IUserRepository $users,
     ) {
     }
 
@@ -35,13 +35,13 @@ final readonly class AuthController
         }
 
         $user = $this->users->findByEmail($request->input('email'));
-        if ($user === null || !password_verify($request->input('password'), $user['password_hash'])) {
+        if ($user === null || !password_verify($request->input('password'), $user->passwordHash)) {
             return $this->form('メールアドレスまたはパスワードが違います。');
         }
 
         $this->session->regenerate();
-        $this->session->set('cms.user_id', (int) $user['id']);
-        $this->session->set('cms.role', $user['role']);
+        $this->session->set('cms.user_id', $user->id);
+        $this->session->set('cms.role', $user->role);
         return Response::redirect('/admin');
     }
 

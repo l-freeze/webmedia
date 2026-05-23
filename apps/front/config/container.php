@@ -8,22 +8,28 @@ use App\Framework\Database\ConnectionFactory;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 use App\Framework\View\Renderer;
-use App\Front\Article\Domain\ArticleQueryService;
-use App\Front\Article\Infrastructure\Persistence\PdoArticleQueryService;
-use App\Front\Category\Domain\CategoryQueryService;
-use App\Front\Category\Infrastructure\Persistence\PdoCategoryQueryService;
-use App\Front\Inquiry\Domain\InquiryRepository;
-use App\Front\Inquiry\Infrastructure\Persistence\PdoInquiryRepository;
-use App\Front\Page\Domain\PageQueryService;
-use App\Front\Page\Infrastructure\Persistence\PdoPageQueryService;
-use App\Front\Tag\Domain\TagQueryService;
-use App\Front\Tag\Infrastructure\Persistence\PdoTagQueryService;
-use PDO;
+use App\Front\Application\Article\Search\Query\IArticleQuery as SearchArticleQuery;
+use App\Front\Application\Article\Show\Query\IArticleQuery as ShowArticleQuery;
+use App\Front\Application\Category\List\Query\ICategoryQuery as ListCategoryQuery;
+use App\Front\Application\Category\Show\Query\IArticleQuery as ShowCategoryArticleQuery;
+use App\Front\Application\Category\Show\Query\ICategoryQuery as ShowCategoryQuery;
+use App\Front\Application\Home\Show\Query\IArticleQuery as HomeArticleQuery;
+use App\Front\Application\Home\Show\Query\ICategoryQuery as HomeCategoryQuery;
+use App\Front\Application\Page\Show\Query\IPageQuery;
+use App\Front\Application\Tag\List\Query\ITagQuery as ListTagQuery;
+use App\Front\Application\Tag\Show\Query\IArticleQuery as ShowTagArticleQuery;
+use App\Front\Application\Tag\Show\Query\ITagQuery as ShowTagQuery;
+use App\Front\Domain\Repository\IInquiryRepository;
+use App\Front\Infrastructure\Persistence\PdoArticleQuery;
+use App\Front\Infrastructure\Persistence\PdoCategoryQuery;
+use App\Front\Infrastructure\Persistence\PdoInquiryRepository;
+use App\Front\Infrastructure\Persistence\PdoPageQuery;
+use App\Front\Infrastructure\Persistence\PdoTagQuery;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
 
-$container->singleton(PDO::class, fn (): PDO => (new ConnectionFactory())->create());
+$container->singleton(\PDO::class, fn (): \PDO => (new ConnectionFactory())->create());
 $container->singleton(Renderer::class, fn (): Renderer => new Renderer($root . '/apps/front/templates', $root . '/storage/cache'));
 $container->singleton(Session::class, function (): Session {
     $session = new Session();
@@ -33,10 +39,17 @@ $container->singleton(Session::class, function (): Session {
 $container->singleton(Csrf::class, fn (): Csrf => new Csrf());
 $container->singleton(Markdown::class, fn (): Markdown => new Markdown());
 
-$container->bind(ArticleQueryService::class, PdoArticleQueryService::class);
-$container->bind(CategoryQueryService::class, PdoCategoryQueryService::class);
-$container->bind(TagQueryService::class, PdoTagQueryService::class);
-$container->bind(PageQueryService::class, PdoPageQueryService::class);
-$container->bind(InquiryRepository::class, PdoInquiryRepository::class);
+$container->bind(HomeArticleQuery::class, PdoArticleQuery::class);
+$container->bind(ShowArticleQuery::class, PdoArticleQuery::class);
+$container->bind(SearchArticleQuery::class, PdoArticleQuery::class);
+$container->bind(HomeCategoryQuery::class, PdoCategoryQuery::class);
+$container->bind(ListCategoryQuery::class, PdoCategoryQuery::class);
+$container->bind(ShowCategoryQuery::class, PdoCategoryQuery::class);
+$container->bind(ShowCategoryArticleQuery::class, PdoCategoryQuery::class);
+$container->bind(ListTagQuery::class, PdoTagQuery::class);
+$container->bind(ShowTagQuery::class, PdoTagQuery::class);
+$container->bind(ShowTagArticleQuery::class, PdoTagQuery::class);
+$container->bind(IPageQuery::class, PdoPageQuery::class);
+$container->bind(IInquiryRepository::class, PdoInquiryRepository::class);
 
 return $container;

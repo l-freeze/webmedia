@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Cms;
 
-use App\Cms\Article\Infrastructure\Persistence\PdoArticleRepository;
+use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use PHPUnit\Framework\TestCase;
 
 final class ArticleStatusTest extends TestCase

@@ -1,0 +1,16 @@
+# 各資料について
+- 技術スタックについて
+  - ./docs/webmedia_technical_stack.mdを参照する事
+- アーキテクチャーについて
+  - `front` / `cms` をアプリケーション単位で分離する
+  - Application は `<対象>/<ユースケース>` 配下に `Input` / `Interactor` / `Output` を置く
+  - Query interface は各ユースケース配下、Repository interface は Domain 配下に置く
+  - 詳細は ./docs/webmedia_architecture_rules.md を参照する事
+- 要件について
+  - ユーザーフロントについて
+    - ./docs/webmedia_ui_requirements_final_markdown/webmedia_front_ui_requirements_final.mdを参照する事
+  - CMSについて
+    - ./docs/webmedia_ui_requirements_final_markdown/webmedia_cms_ui_requirements_final.mdを参照する事
+- デザインについて
+  - ./docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/README.mdを参照する事
+  - 機能を実装するために必要な改変や、ベターなUI/UXのための改変であれば許可する

@@ -12,14 +12,14 @@
 - `apps/cms` と `apps/front` の業務ロジックは完全に分離し、曖昧な shared/common/core/utils/helpers 層は作らない。
 - DI、HTTP、Routing、View、Security などフレームワークレベルの機能は、Laravel のコア機能と同じ位置付けで `App\Framework` として共通利用する。
 - フロントは SSR を基本とし、必要な UI 状態のみ Stimulus、部分更新余地に htmx を導入する。
-- 初回実装は、小規模メディアとして動作確認できる縦割り MVP を完成範囲にする。
+- 初回実装は、小規模メディアとして動作確認できる MVP を完成範囲にする。
 
 ## 完成範囲
 
 1. Composer / Docker / Docker Compose による開発基盤
 2. FastRoute、Latte、PDO、Phinx、Dotenv、CommonMark、HTMLPurifier、Symfony Mailer、Intervention Image の導入
 3. PSR-11 風 DI コンテナ、HTTP Request / Response、ルーター、テンプレートレンダラー、CSRF、セッション、DB 接続基盤
-4. `apps/front` と `apps/cms` の機能別縦割りディレクトリ
+4. `apps/front` と `apps/cms` のアプリケーション分離、および `Application/<対象>/<ユースケース>` 構造
 5. 既存モックを参考にしたフロント/CMS の HTML/CSS/JS
 6. フロント主要画面
    - トップ
@@ -74,7 +74,7 @@
 
 ### 4. アーキテクチャに沿ったディレクトリとDB
 
-- `apps/front/src` と `apps/cms/src` に機能別縦割り構造を作成する。
+- `apps/front/src` と `apps/cms/src` に `Application/<対象>/<ユースケース>/{Input,Interactor,Output}`、`Domain/Repository`、`Infrastructure` の構造を作成する。
 - `database/migrations` に主要テーブルを作成するマイグレーションを追加する。
 - `database/seeds` にローカル確認用データを追加する。
 - コミット: `アプリ構造とデータベース定義を追加`
@@ -88,8 +88,8 @@
 
 ### 6. プログラム開発
 
-- Front の読み取り QueryService と Controller を実装する。
-- CMS の認証、記事、固定ページ、分類、メディア、問い合わせ、設定、ゴミ箱の Command / Query と Controller を実装する。
+- Front の読み取り UseCase、Application Query interface、Controller を実装する。
+- CMS の認証、記事、固定ページ、分類、メディア、問い合わせ、設定、ゴミ箱の UseCase、Application Query interface、Domain Repository interface、Controller を実装する。
 - Markdown 変換、HTML サニタイズ、CSRF、セッション認証、バリデーションを適用する。
 - コミット: `主要機能を実装`
 

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Cms\Article\Infrastructure\Http\Controller\ArticleController;
+use App\Cms\Infrastructure\Http\Controller\ArticleController;
 use App\Cms\Auth\Infrastructure\Http\Controller\AuthController;
-use App\Cms\Dashboard\Infrastructure\Http\Controller\DashboardController;
-use App\Cms\Inquiry\Infrastructure\Http\Controller\InquiryController;
-use App\Cms\Media\Infrastructure\Http\Controller\MediaController;
-use App\Cms\Page\Infrastructure\Http\Controller\PageController;
-use App\Cms\Setting\Infrastructure\Http\Controller\SettingController;
-use App\Cms\Taxonomy\Infrastructure\Http\Controller\TaxonomyController;
-use App\Cms\Trash\Infrastructure\Http\Controller\TrashController;
+use App\Cms\Infrastructure\Http\Controller\DashboardController;
+use App\Cms\Infrastructure\Http\Controller\InquiryController;
+use App\Cms\Infrastructure\Http\Controller\MediaController;
+use App\Cms\Infrastructure\Http\Controller\PageController;
+use App\Cms\Infrastructure\Http\Controller\SettingController;
+use App\Cms\Infrastructure\Http\Controller\TaxonomyController;
+use App\Cms\Infrastructure\Http\Controller\TrashController;
 
 return [
     ['GET', '/admin/login', [AuthController::class, 'loginForm']],

@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-05-23
+- 2026-05-24
 
 ## 運用ルール
 
@@ -49,6 +49,20 @@
    - `codex mcp get github` で GitHub MCP サーバー登録済みを確認
    - `GITHUB_PAT_TOKEN` が非対話シェルで読まれない位置にあったため、`~/.bashrc` の先頭へ移動
    - GitHub API で指定 private repository と指定 branch が HTTP 200 で参照可能なことを確認
+12. アーキテクチャ規約の更新
+   - `Application/<対象>/<ユースケース>/{Input,Interactor,Output}` を標準構造として明記
+   - Query interface は各 UseCase 配下、Repository interface は Domain 配下に置く方針へ更新
+   - `QueryService` / UseCase `Handler` 命名を廃止し、`I...Query` / `I...Repository` / `Interactor` に統一する方針を明記
+13. アーキテクチャ規約に沿ったコード再配置
+   - `front` / `cms` の Controller を Application Interactor 呼び出しへ変更
+   - `QueryService` interface を廃止し、UseCase 配下の `I...Query` へ移行
+   - Domain Repository interface を `Domain/Repository/I...Repository` へ移行
+   - PDO 実装を `Pdo...Query` と `Pdo...Repository` に分離
+14. Value / Entity ルールへの追従
+   - Query の戻り値を UseCase 配下の Value DTO、または `array<Article>` など phpdoc 付きの Value DTO 配列へ変更
+   - `...List` Value DTO を廃止し、一覧は要素 Value の配列で表現
+   - CMS `Article` Entity を `Domain/Value` の ValueObject で構成
+   - Repository interface の戻り値を Domain Entity / Domain Value に寄せ、Auth User も Entity 化
 
 ## 検証結果
 
@@ -60,6 +74,32 @@
 - `docker compose run --rm app composer test`: 成功
   - PHP: 8.5.6
   - PHPUnit: 9 tests, 14 assertions
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 9 tests, 14 assertions
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 9 tests, 14 assertions
+  - Value / Entity ルール追従後に再実行
+- `docker compose exec app sh -lc 'find apps/front/src apps/cms/src apps/front/config apps/cms/config tests -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+- Application Interactor 経由の主要 URL 確認: 成功
+  - `/`: 200 OK
+  - `/articles/start-small-webmedia`: 200 OK
+  - `/categories`: 200 OK
+  - `/categories/development`: 200 OK
+  - `/tags/php`: 200 OK
+  - `/search?q=PHP`: 200 OK
+  - `/pages/about`: 200 OK
+  - `/contact`: 200 OK
+  - `/admin/login`: 200 OK
+  - `/admin`: 未ログイン時 302、ログイン後 200 OK
+  - `/admin/articles`: ログイン後 200 OK
+  - `/admin/articles/1`: ログイン後 200 OK
+  - `/admin/articles/1/preview`: ログイン後 200 OK
+  - `/admin/articles/1/history`: ログイン後 200 OK
+  - `/admin/pages`: ログイン後 200 OK
+  - `/admin/taxonomy`: ログイン後 200 OK
+  - `/admin/settings`: ログイン後 200 OK
 - `curl -I http://localhost:8080/`: 200 OK
 - `curl -I http://localhost:8080/admin/login`: 200 OK
 - `curl -I http://localhost:8080/articles/start-small-webmedia`: 200 OK
@@ -71,8 +111,8 @@
 ## 未完了・要検証
 
 - ブラウザでの目視確認は未実施。
-- CMS ログイン後の操作確認は未実施。
-- 問い合わせ POST、記事保存、履歴復元などのブラウザ操作系は未実施。
+- CMS ログイン後の主要 GET 画面確認は実施済み。
+- 問い合わせ POST、記事保存、履歴復元などの更新系操作確認は未実施。
 
 ## 次回再開地点
 
