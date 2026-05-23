@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:latest-php8.4
+FROM dunglas/frankenphp:php8.5
 
 WORKDIR /app
 
@@ -10,4 +10,4 @@ RUN install-php-extensions \
     opcache
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY .docker/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY .docker/caddy/Caddyfile /etc/frankenphp/Caddyfile

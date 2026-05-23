@@ -34,26 +34,48 @@
    - コミット: `ed25ca3 テストケースを追加`
 8. README に開発手順を追加
    - コミット: `49a91cb 開発手順を追加`
+9. 作業状況の記録ルール追加
+   - コミット: `cc993cc 作業状況の記録ルールを追加`
+10. Docker 検証と PHP 8.5 対応
+   - `dunglas/frankenphp:php8.5` へ変更
+   - Docker イメージビルド成功
+   - `composer install` 成功、`composer.lock` 生成
+   - Phinx マイグレーション成功
+   - 初期シード成功
+   - PHPUnit 成功
+   - フロント/CMS主要URLの HTTP 200 確認成功
+   - コミット: この後 `PHP8.5環境でDocker検証を完了`
+
+## 検証結果
+
+- `docker compose config`: 成功
+- `docker compose build`: 成功
+- `docker compose run --rm app composer install`: 成功
+- `docker compose run --rm app composer migrate`: 成功
+- `docker compose run --rm app composer seed`: 成功
+- `docker compose run --rm app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 9 tests, 14 assertions
+- `curl -I http://localhost:8080/`: 200 OK
+- `curl -I http://localhost:8080/admin/login`: 200 OK
+- `curl -I http://localhost:8080/articles/start-small-webmedia`: 200 OK
 
 ## 未完了・要検証
 
-- Docker コンテナ内で依存ライブラリを導入する。
-- Docker コンテナ内で PHPUnit を実行する。
-- Docker Compose で DB 起動、マイグレーション、シードを実行する。
-- Web アプリを起動し、フロントと CMS の主要画面を確認する。
-- 検証で見つかった PHP 構文エラー、依存解決エラー、テンプレートエラー、SQL エラーを修正する。
-- `composer.lock` はアプリケーションとして生成後にコミット対象にする。
+- ブラウザでの目視確認は未実施。
+- CMS ログイン後の操作確認は未実施。
+- 問い合わせ POST、記事保存、履歴復元などのブラウザ操作系は未実施。
 
 ## 次回再開地点
 
-1. `docker compose config` で Compose 設定を確認する。
-2. `docker compose build` または `make build` を実行する。
-3. `docker compose run --rm app composer install` を実行する。
-4. `docker compose up -d db` 後、`docker compose run --rm app composer migrate` と `composer seed` を実行する。
-5. `docker compose run --rm app composer test` を実行する。
-6. 失敗があれば修正し、機能単位で日本語コミットを作成する。
+1. ブラウザで `http://localhost:8080/` と `http://localhost:8080/admin/login` を目視確認する。
+2. CMS に `admin@example.test` / `password` でログインし、記事作成・編集・プレビュー・履歴を確認する。
+3. フロントのカテゴリ、タグ、検索、問い合わせを確認する。
+4. 見つかった不具合を機能単位で修正し、日本語コミットを作成する。
 
 ## 現在の注意点
 
 - `docs/` 配下の元資料は未追跡のまま存在する。今回の実装コミットには含めていない。
-- `docs/current_status.md` と `docs/plan.md` の運用ルール追記は、この後コミットする。
+- `dunglas/frankenphp:php8.5` と `dunglas/frankenphp:1-php8.5` は manifest 存在確認済み。`latest-php8.5` は存在しない。
+- Caddy の 308 リダイレクトは解消済み。原因は Dockerfile が Caddyfile を `/etc/caddy/Caddyfile` にコピーしていたこと。
+- 開発用 Caddyfile は `/etc/frankenphp/Caddyfile` に配置し、`auto_https off` を設定している。

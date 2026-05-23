@@ -8,7 +8,7 @@
 - ホスト側に PHP / Composer をインストールする前提にはしない。PHP / Composer コマンドは Docker コンテナ内で実行する。
 - Laravel / WordPress は使わず、自前の軽量 PHP アプリケーション基盤を作る。
 - Composer、Docker、Docker Compose を必須とする。
-- PHP は技術資料の指定に合わせて `8.5` 系を目標にする。ただし公式 Docker イメージの入手性を考慮し、開発環境では `dunglas/frankenphp:latest-php8.4` を使用し、`composer.json` は `>=8.4` として将来 `8.5` に上げやすくする。
+- PHP は技術資料の指定に合わせて `8.5` 系を採用し、開発環境では `dunglas/frankenphp:php8.5` を使用する。
 - `apps/cms` と `apps/front` の業務ロジックは完全に分離し、曖昧な shared/common/core/utils/helpers 層は作らない。
 - DI、HTTP、Routing、View、Security などフレームワークレベルの機能は、Laravel のコア機能と同じ位置付けで `App\Framework` として共通利用する。
 - フロントは SSR を基本とし、必要な UI 状態のみ Stimulus、部分更新余地に htmx を導入する。
