@@ -41,7 +41,10 @@ final class Container
 
     public function has(string $id): bool
     {
-        return isset($this->factories[$id], $this->instances[$id], $this->bindings[$id]) || class_exists($id);
+        return isset($this->factories[$id])
+            || isset($this->instances[$id])
+            || isset($this->bindings[$id])
+            || class_exists($id);
     }
 
     public function get(string $id): mixed

@@ -27,6 +27,19 @@ final class ContainerTest extends TestCase
         self::assertSame($container->get(Dependency::class), $container->get(Dependency::class));
     }
 
+    public function testHasReturnsTrueForFactoriesAndBindings(): void
+    {
+        $container = new Container();
+        $container->set('factory', fn (): Dependency => new Dependency());
+        $container->singleton('singleton', fn (): Dependency => new Dependency());
+        $container->bind(Contract::class, Implementation::class);
+
+        self::assertTrue($container->has('factory'));
+        self::assertTrue($container->has('singleton'));
+        self::assertTrue($container->has(Contract::class));
+        self::assertFalse($container->has('missing'));
+    }
+
     public function testThrowsWhenBuiltinParameterCannotBeResolved(): void
     {
         $this->expectException(RuntimeException::class);
@@ -51,4 +64,12 @@ final readonly class NeedsScalar
     public function __construct(public string $name)
     {
     }
+}
+
+interface Contract
+{
+}
+
+final readonly class Implementation implements Contract
+{
 }

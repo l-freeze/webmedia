@@ -63,6 +63,10 @@
    - `...List` Value DTO を廃止し、一覧は要素 Value の配列で表現
    - CMS `Article` Entity を `Domain/Value` の ValueObject で構成
    - Repository interface の戻り値を Domain Entity / Domain Value に寄せ、Auth User も Entity 化
+15. PSR 関連の再検証と修正
+   - `composer dump-autoload -o --strict-psr` で PSR-4 autoload 違反がないことを確認
+   - `Container::has()` の factory / singleton / binding 判定を PSR-11 風の期待挙動に修正
+   - `Container::has()` の factory / singleton / binding 用テストを追加
 
 ## 検証結果
 
@@ -81,6 +85,19 @@
   - PHP: 8.5.6
   - PHPUnit: 9 tests, 14 assertions
   - Value / Entity ルール追従後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 10 tests, 18 assertions
+  - PSR 関連の再検証後に再実行
+- `docker compose exec app composer validate --strict`: 成功
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - PSR-4 autoload 違反なし
+- PHP ファイル先頭形式チェック: 成功
+  - `<?php`
+  - 空行
+  - `declare(strict_types=1);`
+- PHP ファイルの閉じタグ、タブ、行末空白チェック: 成功
+  - 検出なし
 - `docker compose exec app sh -lc 'find apps/front/src apps/cms/src apps/front/config apps/cms/config tests -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
