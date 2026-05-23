@@ -44,7 +44,11 @@
    - 初期シード成功
    - PHPUnit 成功
    - フロント/CMS主要URLの HTTP 200 確認成功
-   - コミット: この後 `PHP8.5環境でDocker検証を完了`
+   - コミット: `3bb9bc7 PHP8.5環境でDocker検証を完了`
+11. GitHub MCP 設定確認
+   - `codex mcp get github` で GitHub MCP サーバー登録済みを確認
+   - `GITHUB_PAT_TOKEN` が非対話シェルで読まれない位置にあったため、`~/.bashrc` の先頭へ移動
+   - GitHub API で指定 private repository と指定 branch が HTTP 200 で参照可能なことを確認
 
 ## 検証結果
 
@@ -59,6 +63,10 @@
 - `curl -I http://localhost:8080/`: 200 OK
 - `curl -I http://localhost:8080/admin/login`: 200 OK
 - `curl -I http://localhost:8080/articles/start-small-webmedia`: 200 OK
+- `codex mcp get github`: 成功
+- GitHub API private repository 確認: 成功
+  - `l-freeze/laravel10-clean-architecture` / `develop`: 200 OK
+  - `l-freeze/learning-topics-php` / `learn/extra001-shared-module`: 200 OK
 
 ## 未完了・要検証
 
@@ -79,3 +87,4 @@
 - `dunglas/frankenphp:php8.5` と `dunglas/frankenphp:1-php8.5` は manifest 存在確認済み。`latest-php8.5` は存在しない。
 - Caddy の 308 リダイレクトは解消済み。原因は Dockerfile が Caddyfile を `/etc/caddy/Caddyfile` にコピーしていたこと。
 - 開発用 Caddyfile は `/etc/frankenphp/Caddyfile` に配置し、`auto_https off` を設定している。
+- GitHub MCP の設定は完了済み。ただし、現在実行中の Codex セッションには後から MCP ツールが露出しないため、GitHub MCP ツールとして利用するには Codex セッションの再起動が必要。
