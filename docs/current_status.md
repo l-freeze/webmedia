@@ -15,7 +15,7 @@
 
 1. `docs/plan.md` 作成
    - コミット: `e9aaffe 計画書を追加`
-2. Composer / Docker Compose / FrankenPHP / MariaDB 開発基盤
+2. Composer / Docker Compose / FrankenPHP / PostgreSQL 開発基盤
    - コミット: `3ac1671 ComposerとDocker開発基盤を追加`
 3. 共通軽量フレームワーク基盤
    - `src/Framework` に DI、HTTP、Routing、View、Security、DB、Markdown を配置
@@ -328,6 +328,27 @@
 - GitHub API private repository 確認: 成功
   - `l-freeze/laravel10-clean-architecture` / `develop`: 200 OK
   - `l-freeze/learning-topics-php` / `learn/extra001-shared-module`: 200 OK
+- PostgreSQL移行: 成功
+  - `docker-compose.yml` のDB serviceを `postgres:17-alpine3.22` に変更
+  - appコンテナは `pdo_pgsql` を使用
+  - Phinx adapterを `pgsql` に変更
+  - PDO DSNを `pgsql` に変更
+  - `REPLACE INTO`、MySQLのダブルクォート文字列、`UPDATE ... JOIN`、`lastInsertId()` 依存をPostgreSQL互換へ修正
+  - `docker manifest inspect postgres:17-alpine3.22`: 成功
+  - `docker compose up -d --build`: 成功
+  - `docker compose exec app php -m`: `pdo_pgsql` を確認
+  - `docker compose exec app composer migrate`: 成功、adapter `pgsql`
+  - `docker compose exec app composer seed`: 成功、adapter `pgsql`
+  - `docker compose exec app composer test`: 成功、12 tests / 24 assertions
+  - `curl http://localhost:8080/`: 200 OK
+  - `curl http://localhost:8080/articles/start-small-webmedia`: 200 OK
+  - CMSログイン後 `/admin/articles/1`: 200 OK
+  - CMSログイン後 `/admin`: 200 OK
+  - CMSログイン後 `/admin/settings`: 200 OK
+  - CMS記事保存: 302、`/admin/articles/1` へ redirect
+  - `/admin/articles/1/history`: 200 OK
+  - `articles.current_version_no = 2` と `article_versions.version_no = 2` の保存をPostgreSQL上で確認
+  - 旧MariaDB volumeは参照せず、PostgreSQL用 `postgres_data` volumeを使用
 
 ## 未完了・要検証
 

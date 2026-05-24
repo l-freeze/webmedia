@@ -17,7 +17,7 @@ final readonly class PdoPageQuery implements IPageQuery
 
     public function findPublishedBySlug(string $slug): ?PageDetail
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM pages WHERE slug = :slug AND status = "published" LIMIT 1');
+        $stmt = $this->pdo->prepare("SELECT * FROM pages WHERE slug = :slug AND status = 'published' LIMIT 1");
         $stmt->execute(['slug' => $slug]);
         $row = $stmt->fetch();
         if (!$row) {

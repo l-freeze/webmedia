@@ -3,7 +3,7 @@ FROM dunglas/frankenphp:php8.5
 WORKDIR /app
 
 RUN install-php-extensions \
-    pdo_mysql \
+    pdo_pgsql \
     gd \
     intl \
     zip \

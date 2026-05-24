@@ -9,6 +9,7 @@ use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleVersionNo;
 use PDO;
+use Throwable;
 
 final readonly class PdoArticleRepository implements IArticleRepository
 {
@@ -17,6 +18,20 @@ final readonly class PdoArticleRepository implements IArticleRepository
     }
 
     public function save(Article $article): ArticleId
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $articleId = $this->saveWithinTransaction($article);
+            $this->pdo->commit();
+            return $articleId;
+        } catch (Throwable $exception) {
+            $this->pdo->rollBack();
+            throw $exception;
+        }
+    }
+
+    private function saveWithinTransaction(Article $article): ArticleId
     {
         $now = date('Y-m-d H:i:s');
         $payload = [
@@ -35,9 +50,10 @@ final readonly class PdoArticleRepository implements IArticleRepository
 
         if ($article->id === null) {
             $payload['created_at'] = $now;
-            $stmt = $this->pdo->prepare('INSERT INTO articles (title, slug, body_markdown, excerpt, status, category_id, published_at, published_ends_at, seo_title, meta_description, author_name, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :excerpt, :status, :category_id, :published_at, :published_ends_at, :seo_title, :meta_description, "編集部", :created_at, :updated_at)');
+            $payload['author_name'] = '編集部';
+            $stmt = $this->pdo->prepare('INSERT INTO articles (title, slug, body_markdown, excerpt, status, category_id, published_at, published_ends_at, seo_title, meta_description, author_name, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :excerpt, :status, :category_id, :published_at, :published_ends_at, :seo_title, :meta_description, :author_name, :created_at, :updated_at) RETURNING id');
             $stmt->execute($payload);
-            $id = (int) $this->pdo->lastInsertId();
+            $id = (int) $stmt->fetchColumn();
         } else {
             $id = $article->id->value;
             $payload['id'] = $article->id->value;
@@ -45,7 +61,10 @@ final readonly class PdoArticleRepository implements IArticleRepository
             $stmt->execute($payload);
         }
 
-        $this->snapshot($id, $payload);
+        $versionNo = $article->id === null ? 1 : $this->nextVersionNo($id);
+        $this->snapshot($id, $versionNo, $payload);
+        $this->updateCurrentVersionNo($id, $versionNo);
+
         return new ArticleId($id);
     }
 
@@ -59,33 +78,58 @@ final readonly class PdoArticleRepository implements IArticleRepository
         }
         $this->save(Article::fromInput($articleId->value, [
             'title' => $version['title'],
-            'slug' => $this->find($articleId->value)['slug'] ?? ('article-' . $articleId->value),
+            'slug' => $version['slug'],
             'body_markdown' => $version['body_markdown'],
-            'excerpt' => '',
+            'excerpt' => $version['excerpt'] ?? '',
             'status' => $version['status'],
-            'category_id' => '',
-            'published_at' => '',
-            'published_ends_at' => '',
+            'category_id' => $version['category_id'] ?? '',
+            'published_at' => $version['published_at'] ?? '',
+            'published_ends_at' => $version['published_ends_at'] ?? '',
+            'seo_title' => $version['seo_title'] ?? '',
+            'meta_description' => $version['meta_description'] ?? '',
         ]));
     }
 
     /** @param array<string, mixed> $payload */
-    private function snapshot(int $articleId, array $payload): void
+    private function snapshot(int $articleId, int $versionNo, array $payload): void
     {
-        $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(version_no), 0) + 1 FROM article_versions WHERE article_id = :id');
-        $stmt->execute(['id' => $articleId]);
-        $versionNo = (int) $stmt->fetchColumn();
-        $insert = $this->pdo->prepare('INSERT INTO article_versions (article_id, version_no, title, body_markdown, status, note, created_by, created_at) VALUES (:article_id, :version_no, :title, :body_markdown, :status, :note, :created_by, :created_at)');
+        $insert = $this->pdo->prepare('INSERT INTO article_versions (article_id, version_no, title, slug, body_markdown, excerpt, status, category_id, published_at, published_ends_at, seo_title, meta_description, note, created_by, created_at) VALUES (:article_id, :version_no, :title, :slug, :body_markdown, :excerpt, :status, :category_id, :published_at, :published_ends_at, :seo_title, :meta_description, :note, :created_by, :created_at)');
         $insert->execute([
             'article_id' => $articleId,
             'version_no' => $versionNo,
             'title' => $payload['title'],
+            'slug' => $payload['slug'],
             'body_markdown' => $payload['body_markdown'],
+            'excerpt' => $payload['excerpt'],
             'status' => $payload['status'],
+            'category_id' => $payload['category_id'],
+            'published_at' => $payload['published_at'],
+            'published_ends_at' => $payload['published_ends_at'],
+            'seo_title' => $payload['seo_title'],
+            'meta_description' => $payload['meta_description'],
             'note' => '保存',
             'created_by' => '編集部',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+    }
+
+    private function nextVersionNo(int $articleId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT current_version_no FROM articles WHERE id = :id FOR UPDATE');
+        $stmt->execute(['id' => $articleId]);
+        $currentVersionNo = (int) $stmt->fetchColumn();
+
+        $maxStmt = $this->pdo->prepare('SELECT COALESCE(MAX(version_no), 0) FROM article_versions WHERE article_id = :id');
+        $maxStmt->execute(['id' => $articleId]);
+        $maxVersionNo = (int) $maxStmt->fetchColumn();
+
+        return max($currentVersionNo, $maxVersionNo) + 1;
+    }
+
+    private function updateCurrentVersionNo(int $articleId, int $versionNo): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE articles SET current_version_no = :version_no WHERE id = :id');
+        $stmt->execute(['version_no' => $versionNo, 'id' => $articleId]);
     }
 
     public static function statusLabel(string $status, ?string $publishedAt = null, ?string $publishedEndsAt = null, ?\DateTimeImmutable $now = null): string
@@ -112,12 +156,4 @@ final readonly class PdoArticleRepository implements IArticleRepository
         };
     }
 
-    /** @return array<string, mixed>|null */
-    private function find(int $id): ?array
-    {
-        $stmt = $this->pdo->prepare('SELECT * FROM articles WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-        return $row ?: null;
-    }
 }

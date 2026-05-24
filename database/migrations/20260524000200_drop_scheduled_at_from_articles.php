@@ -18,7 +18,7 @@ final class DropScheduledAtFromArticles extends AbstractMigration
     {
         $table = $this->table('articles');
         if (!$table->hasColumn('scheduled_at')) {
-            $table->addColumn('scheduled_at', 'datetime', ['null' => true, 'after' => 'published_ends_at'])->update();
+            $table->addColumn('scheduled_at', 'datetime', ['null' => true])->update();
         }
     }
 }

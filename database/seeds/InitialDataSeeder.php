@@ -39,6 +39,7 @@ final class InitialDataSeeder extends AbstractSeed
                 'body_markdown' => "## はじめに\n\n小規模メディアでは、読みやすさと更新しやすさが重要です。\n\n- 記事を探しやすくする\n- 公開事故を防ぐ\n- 履歴を残す",
                 'excerpt' => '小規模メディアを継続するための基本方針を整理します。',
                 'status' => 'published',
+                'current_version_no' => 1,
                 'category_id' => 1,
                 'published_at' => $now,
                 'seo_title' => '小さく始めるWEBメディア運営',
@@ -54,11 +55,45 @@ final class InitialDataSeeder extends AbstractSeed
                 'body_markdown' => "## 公開前確認\n\nタイトル、本文、カテゴリ、タグ、SEO設定を確認します。",
                 'excerpt' => '公開前に確認したい項目をまとめます。',
                 'status' => 'published',
+                'current_version_no' => 1,
                 'category_id' => 2,
                 'published_at' => $now,
                 'author_name' => '編集部',
                 'created_at' => $now,
                 'updated_at' => $now,
+            ],
+        ])->saveData();
+
+        $this->table('article_versions')->insert([
+            [
+                'article_id' => 1,
+                'version_no' => 1,
+                'title' => '小さく始めるWEBメディア運営',
+                'slug' => 'start-small-webmedia',
+                'body_markdown' => "## はじめに\n\n小規模メディアでは、読みやすさと更新しやすさが重要です。\n\n- 記事を探しやすくする\n- 公開事故を防ぐ\n- 履歴を残す",
+                'excerpt' => '小規模メディアを継続するための基本方針を整理します。',
+                'status' => 'published',
+                'category_id' => 1,
+                'published_at' => $now,
+                'seo_title' => '小さく始めるWEBメディア運営',
+                'meta_description' => '小規模メディア運営の基本方針。',
+                'note' => '初期データ',
+                'created_by' => '編集部',
+                'created_at' => $now,
+            ],
+            [
+                'article_id' => 2,
+                'version_no' => 1,
+                'title' => '記事編集で確認したいチェックポイント',
+                'slug' => 'editorial-checklist',
+                'body_markdown' => "## 公開前確認\n\nタイトル、本文、カテゴリ、タグ、SEO設定を確認します。",
+                'excerpt' => '公開前に確認したい項目をまとめます。',
+                'status' => 'published',
+                'category_id' => 2,
+                'published_at' => $now,
+                'note' => '初期データ',
+                'created_by' => '編集部',
+                'created_at' => $now,
             ],
         ])->saveData();
 
@@ -69,8 +104,31 @@ final class InitialDataSeeder extends AbstractSeed
         ])->saveData();
 
         $this->table('pages')->insert([
-            ['id' => 1, 'title' => '運営者情報', 'slug' => 'about', 'body_markdown' => 'このサイトは小規模WEBメディアのデモです。', 'status' => 'published', 'created_at' => $now, 'updated_at' => $now],
-            ['id' => 2, 'title' => 'プライバシーポリシー', 'slug' => 'privacy', 'body_markdown' => '個人情報は問い合わせ対応の目的で利用します。', 'status' => 'published', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 1, 'title' => '運営者情報', 'slug' => 'about', 'body_markdown' => 'このサイトは小規模WEBメディアのデモです。', 'status' => 'published', 'current_version_no' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'title' => 'プライバシーポリシー', 'slug' => 'privacy', 'body_markdown' => '個人情報は問い合わせ対応の目的で利用します。', 'status' => 'published', 'current_version_no' => 1, 'created_at' => $now, 'updated_at' => $now],
+        ])->saveData();
+
+        $this->table('page_versions')->insert([
+            [
+                'page_id' => 1,
+                'version_no' => 1,
+                'title' => '運営者情報',
+                'slug' => 'about',
+                'body_markdown' => 'このサイトは小規模WEBメディアのデモです。',
+                'status' => 'published',
+                'created_by' => '編集部',
+                'created_at' => $now,
+            ],
+            [
+                'page_id' => 2,
+                'version_no' => 1,
+                'title' => 'プライバシーポリシー',
+                'slug' => 'privacy',
+                'body_markdown' => '個人情報は問い合わせ対応の目的で利用します。',
+                'status' => 'published',
+                'created_by' => '編集部',
+                'created_at' => $now,
+            ],
         ])->saveData();
 
         $this->table('site_settings')->insert([
@@ -78,5 +136,9 @@ final class InitialDataSeeder extends AbstractSeed
             ['setting_key' => 'site_description', 'setting_value' => '読みやすく運用しやすい小規模WEBメディア'],
             ['setting_key' => 'contact_email', 'setting_value' => 'admin@example.test'],
         ])->saveData();
+
+        foreach (['categories', 'tags', 'articles', 'pages'] as $table) {
+            $this->execute("SELECT setval(pg_get_serial_sequence('{$table}', 'id'), COALESCE((SELECT MAX(id) FROM {$table}), 1), true)");
+        }
     }
 }

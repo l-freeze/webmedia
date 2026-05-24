@@ -51,7 +51,7 @@ AIまたは開発者が実装作業を行う際は、この文書を前提とし
 | DIコンテナ | 自作PSR-11風DIコンテナ |
 | ルーティング | FastRoute または Symfony Routing |
 | テンプレートエンジン | Latte |
-| データベース | MySQL 8 または MariaDB |
+| データベース | PostgreSQL |
 | DBアクセス | PDO |
 | マイグレーション | Phinx |
 | JavaScript | htmx + Stimulus |
@@ -320,7 +320,7 @@ apps/
 
 ### 10.1 採用技術
 
-MySQL 8またはMariaDBを使用する。
+PostgreSQLを使用する。
 
 ### 10.2 DBアクセス
 
@@ -361,13 +361,40 @@ operation_logs
 page_id       対象固定ページID
 version_no    固定ページごとの版番号
 title         保存時点のタイトル
+slug          保存時点のスラッグ
 body_markdown 保存時点の本文
 status        保存時点の状態
+seo_title     保存時点のSEOタイトル
+meta_description 保存時点のmeta description
 created_by    保存者
 created_at    保存日時
 ```
 
 `page_id` と `version_no` の組み合わせは一意である。
+
+`article_versions` は記事編集画面の入力項目を保存時点のスナップショットとして保持する。
+
+```text
+article_id     対象記事ID
+version_no     記事ごとの版番号
+title          保存時点のタイトル
+slug           保存時点のスラッグ
+body_markdown  保存時点の本文
+excerpt        保存時点の抜粋
+status         保存時点の表示設定
+category_id    保存時点のカテゴリID
+published_at   保存時点の公開日時
+published_ends_at 保存時点の公開終了日時
+seo_title      保存時点のSEOタイトル
+meta_description 保存時点のmeta description
+note           保存理由
+created_by     保存者
+created_at     保存日時
+```
+
+`articles.current_version_no` と `pages.current_version_no` は現在版番号を保持する。保存時は本体テーブルの更新、履歴テーブルへのスナップショット追加、現在版番号の更新を同一トランザクションで行う。
+
+記事履歴の対象は記事編集画面の入力項目であり、カテゴリーやタグのマスタ定義そのもの、記事とタグの当時の関連付けは復元対象に含めない。
 
 ### 10.5 記事ステータス
 
@@ -704,7 +731,7 @@ Caddy + php-fpm または nginx + php-fpm に移行できる構成を維持す�
 
 ```text
 app       PHPアプリケーション / FrankenPHP
-mysql     MySQL または MariaDB
+db        PostgreSQL
 mailpit   開発用メール確認
 ```
 
@@ -871,7 +898,7 @@ Composer
 FastRoute
 Latte
 PDO
-MySQL 8 または MariaDB
+PostgreSQL
 Phinx
 league/commonmark
 HTMLPurifier または Symfony HtmlSanitizer
@@ -923,12 +950,7 @@ AIまたは開発者が実装する際は、以下を必ず守ること。
 
 ### 30.1 DB
 
-以下のどちらを使うかを決める。
-
-- MySQL 8
-- MariaDB
-
-未決定の場合はMySQL 8を優先する。
+PostgreSQLを採用済み。
 
 ### 30.2 ルーター
 

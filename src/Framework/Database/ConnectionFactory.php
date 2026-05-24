@@ -11,13 +11,13 @@ final class ConnectionFactory
     public function create(): PDO
     {
         $host = getenv('DB_HOST') ?: 'db';
-        $port = getenv('DB_PORT') ?: '3306';
+        $port = getenv('DB_PORT') ?: '5432';
         $database = getenv('DB_DATABASE') ?: 'webmedia';
         $username = getenv('DB_USERNAME') ?: 'webmedia';
         $password = getenv('DB_PASSWORD') ?: 'webmedia';
 
         $pdo = new PDO(
-            "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4",
+            "pgsql:host={$host};port={$port};dbname={$database}",
             $username,
             $password,
             [

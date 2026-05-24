@@ -21,6 +21,6 @@ final readonly class PdoTrashQuery implements ITrashQuery
             title: (string) $row['title'],
             slug: (string) $row['slug'],
             updatedAt: (string) $row['updated_at'],
-        ), $this->pdo->query('SELECT title, slug, updated_at FROM articles WHERE status = "trashed" UNION ALL SELECT title, slug, updated_at FROM pages WHERE status = "trashed" ORDER BY updated_at DESC')->fetchAll());
+        ), $this->pdo->query("SELECT title, slug, updated_at FROM articles WHERE status = 'trashed' UNION ALL SELECT title, slug, updated_at FROM pages WHERE status = 'trashed' ORDER BY updated_at DESC")->fetchAll());
     }
 }

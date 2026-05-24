@@ -743,6 +743,12 @@ UseCase 名は画面表示なら `Edit`、作成/更新の永続化なら `Save`
 
 更新履歴のプレビューは読み取り処理であり、`Application/ArticleVersion/Preview` として扱う。`ArticleVersion` は `article_versions` の1つの版を表す対象名であり、不自然な短縮名を使ってはならない。
 
+記事と固定ページの履歴は、編集画面で保存できる項目のスナップショットとして扱う。保存時は本体テーブル、履歴テーブル、`current_version_no` を同一トランザクションで更新する。
+
+`article_versions` は記事のタイトル、スラッグ、本文、抜粋、表示設定、カテゴリID、公開日時、公開終了日時、SEOタイトル、meta description を保存する。カテゴリーやタグのマスタ定義、記事とタグの当時の関連付けは履歴復元の対象外とする。
+
+`page_versions` は固定ページのタイトル、スラッグ、本文、状態、SEOタイトル、meta description を保存する。
+
 ## 12. DI ルール
 
 DI はアプリケーションごとに設定する。

@@ -11,12 +11,12 @@ final class AddPublishedEndsAtToArticles extends AbstractMigration
         $table = $this->table('articles');
         if (!$table->hasColumn('published_ends_at')) {
             $table
-                ->addColumn('published_ends_at', 'datetime', ['null' => true, 'after' => 'published_at'])
+                ->addColumn('published_ends_at', 'datetime', ['null' => true])
                 ->update();
         }
 
-        $this->execute('UPDATE articles SET published_at = scheduled_at, status = "published" WHERE status = "scheduled" AND scheduled_at IS NOT NULL');
-        $this->execute('UPDATE articles SET status = "published" WHERE status = "scheduled"');
+        $this->execute("UPDATE articles SET published_at = scheduled_at, status = 'published' WHERE status = 'scheduled' AND scheduled_at IS NOT NULL");
+        $this->execute("UPDATE articles SET status = 'published' WHERE status = 'scheduled'");
     }
 
     public function down(): void

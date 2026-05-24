@@ -30,7 +30,7 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
 
     public function save(array $data): void
     {
-        $stmt = $this->pdo->prepare('REPLACE INTO site_settings (setting_key, setting_value) VALUES (:key, :value)');
+        $stmt = $this->pdo->prepare('INSERT INTO site_settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value');
         foreach (['site_name', 'site_description', 'contact_email'] as $key) {
             $stmt->execute(['key' => $key, 'value' => (string) ($data[$key] ?? '')]);
         }

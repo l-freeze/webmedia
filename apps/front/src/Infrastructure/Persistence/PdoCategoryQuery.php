@@ -72,6 +72,6 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
 
     private function publicCondition(): string
     {
-        return 'a.status = "published" AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())';
+        return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
     }
 }

@@ -8,7 +8,15 @@
 <article class="prose">
   <span class="label status-{$articleVersion['status']}">{$articleVersion['status_label']}</span>
   <h1>{$articleVersion['title']}</h1>
-  <p class="meta">保存日時 {$articleVersion['created_at']} / 版 {$articleVersion['version_no']}</p>
+  <p class="meta">
+    保存日時 {$articleVersion['created_at']} / 版 {$articleVersion['version_no']} /
+    スラッグ {$articleVersion['slug']}
+    {if $articleVersion['published_at'] !== ''} / 公開日時 {$articleVersion['published_at']}{/if}
+    {if $articleVersion['published_ends_at'] !== ''} / 公開終了日時 {$articleVersion['published_ends_at']}{/if}
+  </p>
+  {if $articleVersion['excerpt'] !== ''}
+    <p>{$articleVersion['excerpt']}</p>
+  {/if}
   <div>{$articleVersion['body_html']|noescape}</div>
 </article>
 {/block}

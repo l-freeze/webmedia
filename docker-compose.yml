@@ -13,7 +13,7 @@ services:
       APP_ENV: local
       APP_DEBUG: "true"
       DB_HOST: db
-      DB_PORT: 3306
+      DB_PORT: 5432
       DB_DATABASE: webmedia
       DB_USERNAME: webmedia
       DB_PASSWORD: webmedia
@@ -22,18 +22,17 @@ services:
         condition: service_healthy
 
   db:
-    image: mariadb:11.4
+    image: postgres:17-alpine3.22
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${DB_PORT:-5432}:5432"
     environment:
-      MARIADB_DATABASE: webmedia
-      MARIADB_USER: webmedia
-      MARIADB_PASSWORD: webmedia
-      MARIADB_ROOT_PASSWORD: root
+      POSTGRES_DB: webmedia
+      POSTGRES_USER: webmedia
+      POSTGRES_PASSWORD: webmedia
     volumes:
-      - db_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U webmedia -d webmedia"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -41,4 +40,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  db_data:
+  postgres_data:
