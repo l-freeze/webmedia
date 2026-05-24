@@ -93,6 +93,9 @@
    - PHP技術系カテゴリを10件登録
    - PHP技術系タグを10件登録
    - 各ダミー記事へタグを2件ずつ紐づけ
+22. フロント記事詳細のPDOプレースホルダ不具合修正
+   - 記事詳細の関連記事取得で同名プレースホルダを重複利用していたSQLを修正
+   - 検索SQLの同名プレースホルダ重複も同時に修正
 
 ## 検証結果
 
@@ -186,6 +189,20 @@
   - ダミーデータ投入後に再実行
 - `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
   - ダミーデータ投入後に再実行
+- フロント記事詳細確認: 成功
+  - `/articles/dummy-php-article-01`: 200 OK
+  - 記事本文、タグ、関連記事を表示
+- フロント検索確認: 成功
+  - `/search?q=PDO`: 200 OK
+  - `3件の記事が見つかりました。` を表示
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - フロント記事詳細のPDOプレースホルダ修正後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - フロント記事詳細のPDOプレースホルダ修正後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 11 tests, 22 assertions
+  - フロント記事詳細のPDOプレースホルダ修正後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK

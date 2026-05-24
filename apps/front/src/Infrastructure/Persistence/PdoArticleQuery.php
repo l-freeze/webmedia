@@ -49,15 +49,22 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     /** @return array<int, SearchArticle> */
     public function search(string $keyword): array
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND (a.title LIKE :q OR a.body_markdown LIKE :q) ORDER BY a.published_at DESC');
-        $stmt->execute(['q' => '%' . $keyword . '%']);
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND (a.title LIKE :title_q OR a.body_markdown LIKE :body_q) ORDER BY a.published_at DESC');
+        $likeKeyword = '%' . $keyword . '%';
+        $stmt->execute(['title_q' => $likeKeyword, 'body_q' => $likeKeyword]);
         return array_map($this->searchArticle(...), $stmt->fetchAll());
     }
 
     /** @return array<int, ShowArticle> */
     public function related(int $articleId, ?int $categoryId): array
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.id <> :id AND (:category_id IS NULL OR a.category_id = :category_id) ORDER BY a.published_at DESC LIMIT 3');
+        if ($categoryId === null) {
+            $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.id <> :id ORDER BY a.published_at DESC LIMIT 3');
+            $stmt->execute(['id' => $articleId]);
+            return array_map(fn (array $row): ShowArticle => $this->showArticle($row), $stmt->fetchAll());
+        }
+
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT 3');
         $stmt->execute(['id' => $articleId, 'category_id' => $categoryId]);
         return array_map(fn (array $row): ShowArticle => $this->showArticle($row), $stmt->fetchAll());
     }
