@@ -13,6 +13,7 @@
           {/foreach}
         </select>
       </label>
+      <label>表示順<input type="number" name="display_order" value="{$page['display_order'] ?? 0}" min="0" step="1"></label>
       <label>SEOタイトル<input name="seo_title" value="{$page['seo_title'] ?? ''}"></label>
       <label class="article-edit-meta-grid__wide">meta description<textarea name="meta_description">{$page['meta_description'] ?? ''}</textarea></label>
     </div>

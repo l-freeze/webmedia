@@ -17,7 +17,7 @@ final readonly class PdoPageLinkQuery implements IPageLinkQuery
     /** @return array<int, PageLink> */
     public function publishedPageLinks(): array
     {
-        $stmt = $this->pdo->query("SELECT title, slug FROM pages WHERE status = 'published' ORDER BY id");
+        $stmt = $this->pdo->query("SELECT title, slug FROM pages WHERE status = 'published' ORDER BY display_order, id");
 
         return array_map(fn (array $row): PageLink => new PageLink(
             title: (string) $row['title'],

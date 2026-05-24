@@ -12,6 +12,7 @@ final readonly class Page
         public string $slug,
         public string $bodyMarkdown,
         public string $status,
+        public int $displayOrder,
         public string $seoTitle,
         public string $metaDescription,
     ) {
@@ -26,6 +27,7 @@ final readonly class Page
             'slug' => $this->slug,
             'body_markdown' => $this->bodyMarkdown,
             'status' => $this->status,
+            'display_order' => $this->displayOrder,
             'seo_title' => $this->seoTitle,
             'meta_description' => $this->metaDescription,
         ];

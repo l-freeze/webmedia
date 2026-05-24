@@ -6,6 +6,7 @@ namespace App\Cms\Domain\Entity;
 
 use App\Cms\Domain\Value\MetaDescription;
 use App\Cms\Domain\Value\PageBodyMarkdown;
+use App\Cms\Domain\Value\PageDisplayOrder;
 use App\Cms\Domain\Value\PageId;
 use App\Cms\Domain\Value\PageSlug;
 use App\Cms\Domain\Value\PageStatus;
@@ -20,6 +21,7 @@ final readonly class Page
         public PageSlug $slug,
         public PageBodyMarkdown $bodyMarkdown,
         public PageStatus $status,
+        public PageDisplayOrder $displayOrder,
         public SeoTitle $seoTitle,
         public MetaDescription $metaDescription,
     ) {
@@ -34,6 +36,7 @@ final readonly class Page
             slug: new PageSlug((string) $data['slug']),
             bodyMarkdown: new PageBodyMarkdown((string) ($data['body_markdown'] ?? '')),
             status: new PageStatus((string) ($data['status'] ?? 'draft')),
+            displayOrder: new PageDisplayOrder((int) ($data['display_order'] ?? 0)),
             seoTitle: new SeoTitle((string) ($data['seo_title'] ?? '')),
             metaDescription: new MetaDescription((string) ($data['meta_description'] ?? '')),
         );

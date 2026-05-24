@@ -8,10 +8,11 @@
 </div>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>タイトル</th><th>スラッグ</th><th>状態</th><th>更新日</th><th>操作</th></tr></thead>
+    <thead><tr><th>表示順</th><th>タイトル</th><th>スラッグ</th><th>状態</th><th>更新日</th><th>操作</th></tr></thead>
     <tbody>
     {foreach $pages as $page}
       <tr>
+        <td>{$page['display_order']}</td>
         <td><a href="/admin/pages/{$page['id']}">{$page['title']}</a></td>
         <td>{$page['slug']}</td>
         <td><span class="label status-{$page['status']}">{$page['status']}</span></td>

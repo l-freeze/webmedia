@@ -29,6 +29,7 @@ final readonly class PdoPageEditQuery implements IPageQuery
             slug: (string) $row['slug'],
             bodyMarkdown: (string) $row['body_markdown'],
             status: (string) $row['status'],
+            displayOrder: (int) ($row['display_order'] ?? 0),
             seoTitle: (string) ($row['seo_title'] ?? ''),
             metaDescription: (string) ($row['meta_description'] ?? ''),
         );

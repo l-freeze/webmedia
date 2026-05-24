@@ -368,6 +368,15 @@
   - 固定ページの表示やリンク追加のためにHTMLを直接編集しない方針を仕様書へ追記
   - `/`: 200 OK、`/pages/about` と `/pages/privacy` のリンク表示を確認
   - `/pages/about`: 200 OK、共通レイアウト内の固定ページリンク表示を確認
+- 固定ページ表示順: 成功
+  - `pages.display_order` と `page_versions.display_order` を追加
+  - CMS固定ページ編集画面に表示順入力を追加
+  - CMS固定ページ一覧とフロント固定ページリンクは `display_order` 昇順、同値は `id` 昇順
+  - `docker compose exec app composer migrate`: 成功
+  - `docker compose exec app composer test`: 成功、12 tests / 24 assertions
+  - `/admin/pages/2` 保存で `display_order = 0` を確認
+  - `page_versions` の新しい履歴にも `display_order = 0` が保存されることを確認
+  - `/`: 200 OK、`/pages/privacy` が `/pages/about` より前に表示されることを確認
 
 ## 未完了・要検証
 

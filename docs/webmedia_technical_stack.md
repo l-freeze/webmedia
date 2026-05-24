@@ -364,6 +364,7 @@ title         保存時点のタイトル
 slug          保存時点のスラッグ
 body_markdown 保存時点の本文
 status        保存時点の状態
+display_order 保存時点の表示順
 seo_title     保存時点のSEOタイトル
 meta_description 保存時点のmeta description
 created_by    保存者
@@ -420,7 +421,7 @@ private     非公開
 trashed     ゴミ箱
 ```
 
-公開中の固定ページは、フロント共通レイアウトのナビゲーションリンクとして自動表示する。固定ページ本文やリンク表示のためにHTMLを直接編集してはならない。CMSで固定ページを作成し、状態を `published` にすることで `/pages/{slug}` の表示とフロントのリンク表示対象になる。
+公開中の固定ページは、フロント共通レイアウトのナビゲーションリンクとして自動表示する。固定ページ本文やリンク表示のためにHTMLを直接編集してはならない。CMSで固定ページを作成し、状態を `published` にすることで `/pages/{slug}` の表示とフロントのリンク表示対象になる。リンク表示順は `pages.display_order` の昇順、同値の場合は `id` の昇順で決定する。
 
 ---
 

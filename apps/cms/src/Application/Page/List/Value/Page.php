@@ -11,6 +11,7 @@ final readonly class Page
         public string $title,
         public string $slug,
         public string $status,
+        public int $displayOrder,
         public string $updatedAt,
     ) {
     }
@@ -23,6 +24,7 @@ final readonly class Page
             'title' => $this->title,
             'slug' => $this->slug,
             'status' => $this->status,
+            'display_order' => $this->displayOrder,
             'updated_at' => $this->updatedAt,
         ];
     }

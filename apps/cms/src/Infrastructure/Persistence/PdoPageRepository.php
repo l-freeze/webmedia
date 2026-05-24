@@ -38,6 +38,7 @@ final readonly class PdoPageRepository implements IPageRepository
             'slug' => $page->slug->value,
             'body_markdown' => $page->bodyMarkdown->value,
             'status' => $page->status->value,
+            'display_order' => $page->displayOrder->value,
             'seo_title' => $page->seoTitle->value,
             'meta_description' => $page->metaDescription->value,
             'updated_at' => $now,
@@ -45,13 +46,13 @@ final readonly class PdoPageRepository implements IPageRepository
 
         if ($page->id === null) {
             $payload['created_at'] = $now;
-            $stmt = $this->pdo->prepare('INSERT INTO pages (title, slug, body_markdown, status, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
+            $stmt = $this->pdo->prepare('INSERT INTO pages (title, slug, body_markdown, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
             $stmt->execute($payload);
             $id = (int) $stmt->fetchColumn();
         } else {
             $id = $page->id->value;
             $payload['id'] = $id;
-            $stmt = $this->pdo->prepare('UPDATE pages SET title = :title, slug = :slug, body_markdown = :body_markdown, status = :status, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
+            $stmt = $this->pdo->prepare('UPDATE pages SET title = :title, slug = :slug, body_markdown = :body_markdown, status = :status, display_order = :display_order, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
             $stmt->execute($payload);
         }
 
@@ -65,7 +66,7 @@ final readonly class PdoPageRepository implements IPageRepository
     /** @param array<string, mixed> $payload */
     private function snapshot(int $pageId, int $versionNo, array $payload): void
     {
-        $insert = $this->pdo->prepare('INSERT INTO page_versions (page_id, version_no, title, slug, body_markdown, status, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body_markdown, :status, :seo_title, :meta_description, :created_by, :created_at)');
+        $insert = $this->pdo->prepare('INSERT INTO page_versions (page_id, version_no, title, slug, body_markdown, status, display_order, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_by, :created_at)');
         $insert->execute([
             'page_id' => $pageId,
             'version_no' => $versionNo,
@@ -73,6 +74,7 @@ final readonly class PdoPageRepository implements IPageRepository
             'slug' => $payload['slug'],
             'body_markdown' => $payload['body_markdown'],
             'status' => $payload['status'],
+            'display_order' => $payload['display_order'],
             'seo_title' => $payload['seo_title'],
             'meta_description' => $payload['meta_description'],
             'created_by' => '編集部',

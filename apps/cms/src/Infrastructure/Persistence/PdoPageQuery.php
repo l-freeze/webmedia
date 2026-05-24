@@ -22,7 +22,8 @@ final readonly class PdoPageQuery implements IPageQuery
             title: (string) $row['title'],
             slug: (string) $row['slug'],
             status: (string) $row['status'],
+            displayOrder: (int) $row['display_order'],
             updatedAt: (string) $row['updated_at'],
-        ), $this->pdo->query('SELECT id, title, slug, status, updated_at FROM pages ORDER BY updated_at DESC')->fetchAll());
+        ), $this->pdo->query('SELECT id, title, slug, status, display_order, updated_at FROM pages ORDER BY display_order, id')->fetchAll());
     }
 }
