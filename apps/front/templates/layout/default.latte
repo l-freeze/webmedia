@@ -17,7 +17,9 @@
     <nav class="nav" aria-label="グローバルナビ">
       <a href="/categories">カテゴリ</a>
       <a href="/tags">タグ</a>
-      <a href="/pages/about">運営者情報</a>
+      {foreach $publishedPages as $pageLink}
+        <a href="/pages/{$pageLink['slug']}">{$pageLink['title']}</a>
+      {/foreach}
       <a href="/contact">問い合わせ</a>
       <a href="/menu">メニュー</a>
     </nav>
@@ -34,7 +36,9 @@
   <div class="site-footer__inner nav">
     <strong>{$siteName}</strong>
     <span class="muted">© {date('Y')} WEB Media</span>
-    <a href="/pages/privacy">プライバシーポリシー</a>
+    {foreach $publishedPages as $pageLink}
+      <a href="/pages/{$pageLink['slug']}">{$pageLink['title']}</a>
+    {/foreach}
     <a href="/contact">問い合わせ</a>
   </div>
 </footer>

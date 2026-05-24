@@ -362,6 +362,12 @@
   - `/admin/articles`: 200 OK
   - `/`: 200 OK
   - `/articles/php-typed-input-handling`: 200 OK
+- フロント固定ページ自動リンク: 成功
+  - `pages.status = published` の固定ページをFront Layout用Queryで取得
+  - ヘッダーとフッターに公開中固定ページへのリンクを自動表示
+  - 固定ページの表示やリンク追加のためにHTMLを直接編集しない方針を仕様書へ追記
+  - `/`: 200 OK、`/pages/about` と `/pages/privacy` のリンク表示を確認
+  - `/pages/about`: 200 OK、共通レイアウト内の固定ページリンク表示を確認
 
 ## 未完了・要検証
 

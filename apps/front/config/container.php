@@ -15,6 +15,7 @@ use App\Front\Application\Category\Show\Query\IArticleQuery as ShowCategoryArtic
 use App\Front\Application\Category\Show\Query\ICategoryQuery as ShowCategoryQuery;
 use App\Front\Application\Home\Show\Query\IArticleQuery as HomeArticleQuery;
 use App\Front\Application\Home\Show\Query\ICategoryQuery as HomeCategoryQuery;
+use App\Front\Application\Layout\Query\IPageLinkQuery;
 use App\Front\Application\Page\Show\Query\IPageQuery;
 use App\Front\Application\Tag\List\Query\ITagQuery as ListTagQuery;
 use App\Front\Application\Tag\Show\Query\IArticleQuery as ShowTagArticleQuery;
@@ -23,6 +24,7 @@ use App\Front\Domain\Repository\IInquiryRepository;
 use App\Front\Infrastructure\Persistence\PdoArticleQuery;
 use App\Front\Infrastructure\Persistence\PdoCategoryQuery;
 use App\Front\Infrastructure\Persistence\PdoInquiryRepository;
+use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
 
@@ -30,7 +32,16 @@ $root = dirname(__DIR__, 3);
 $container = new Container();
 
 $container->singleton(\PDO::class, fn (): \PDO => (new ConnectionFactory())->create());
-$container->singleton(Renderer::class, fn (): Renderer => new Renderer($root . '/apps/front/templates', $root . '/storage/cache'));
+$container->singleton(Renderer::class, function () use (&$container, $root): Renderer {
+    $renderer = new Renderer($root . '/apps/front/templates', $root . '/storage/cache');
+    $renderer->addGlobalProvider(function () use (&$container): array {
+        $pages = $container->get(IPageLinkQuery::class)->publishedPageLinks();
+        return [
+            'publishedPages' => array_map(fn ($page): array => $page->toArray(), $pages),
+        ];
+    });
+    return $renderer;
+});
 $container->singleton(Session::class, function (): Session {
     $session = new Session();
     $session->start();
@@ -50,6 +61,7 @@ $container->bind(ListTagQuery::class, PdoTagQuery::class);
 $container->bind(ShowTagQuery::class, PdoTagQuery::class);
 $container->bind(ShowTagArticleQuery::class, PdoTagQuery::class);
 $container->bind(IPageQuery::class, PdoPageQuery::class);
+$container->bind(IPageLinkQuery::class, PdoPageLinkQuery::class);
 $container->bind(IInquiryRepository::class, PdoInquiryRepository::class);
 
 return $container;

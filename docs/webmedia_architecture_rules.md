@@ -749,6 +749,8 @@ UseCase 名は画面表示なら `Edit`、作成/更新の永続化なら `Save`
 
 `page_versions` は固定ページのタイトル、スラッグ、本文、状態、SEOタイトル、meta description を保存する。
 
+公開中固定ページのフロントリンクは、HTMLを直接編集して追加してはならない。Front ApplicationのLayout用Queryで `published` な固定ページを取得し、共通レイアウトへ渡して表示する。
+
 ## 12. DI ルール
 
 DI はアプリケーションごとに設定する。
