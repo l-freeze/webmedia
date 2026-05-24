@@ -107,6 +107,11 @@
    - 右カラムを廃止し、記事編集フォームを1つの入力エリアに統合
    - 表示設定、カテゴリ、公開日時、公開終了日時、SEO項目をタイトルより上に配置
    - 旧 `admin-content-grid` 用の2カラム指定を削除
+25. CMS記事編集画面の右カラムを更新履歴一覧として復活
+   - 記事編集フォームの右カラムを復活
+   - 右カラムには保存履歴の日時一覧を新しい順で表示
+   - 履歴がない記事では空履歴メッセージを表示
+   - 本文入力項目は左カラムに維持し、右カラムへ編集入力項目は置かない
 
 ## 検証結果
 
@@ -251,6 +256,18 @@
   - PHP: 8.5.6
   - PHPUnit: 12 tests, 24 assertions
   - CMS記事編集画面1カラム化後に再実行
+- CMS記事編集画面の更新履歴右カラム確認: 成功
+  - `/admin/articles/3`: 右カラムに `更新履歴` と保存日時一覧を表示
+  - `/admin/articles/create`: 右カラムに空履歴メッセージを表示
+  - 保存日時リンクから `/admin/articles/{id}/history` へ遷移するHTMLを確認
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - CMS記事編集画面の更新履歴右カラム復活後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - CMS記事編集画面の更新履歴右カラム復活後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 12 tests, 24 assertions
+  - CMS記事編集画面の更新履歴右カラム復活後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK

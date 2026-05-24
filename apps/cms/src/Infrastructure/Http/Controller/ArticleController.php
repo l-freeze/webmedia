@@ -132,6 +132,11 @@ final readonly class ArticleController
     private function editForm(EditOutput $output, string $action): Response
     {
         $article = $output->article?->toArray();
+        $versions = $article === null ? [] : array_map(
+            fn ($version): array => $version->toArray(),
+            $this->history->execute(new HistoryInput((int) $article['id']))->versions,
+        );
+
         return new Response($this->renderer->render('article/edit.latte', [
             'title' => $article ? '記事編集' : '記事作成',
             'action' => $action,
@@ -139,6 +144,7 @@ final readonly class ArticleController
             'article' => $article ?? ['status' => 'draft'],
             'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
             'flash' => $this->session->pullFlash('success'),
+            'versions' => $versions,
             'statuses' => [
                 'draft' => '下書き',
                 'published' => '表示',
