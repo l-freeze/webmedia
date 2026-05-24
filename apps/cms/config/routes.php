@@ -24,6 +24,7 @@ return [
     ['POST', '/admin/articles/{id:\d+}', [ArticleController::class, 'update']],
     ['GET', '/admin/articles/{id:\d+}/preview', [ArticleController::class, 'preview']],
     ['GET', '/admin/articles/{id:\d+}/history', [ArticleController::class, 'history']],
+    ['GET', '/admin/articles/{id:\d+}/history/{version:\d+}/preview', [ArticleController::class, 'previewArticleVersion']],
     ['POST', '/admin/articles/{id:\d+}/restore/{version:\d+}', [ArticleController::class, 'restore']],
     ['GET', '/admin/pages', PageController::class],
     ['POST', '/admin/pages', [PageController::class, 'store']],

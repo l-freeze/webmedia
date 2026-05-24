@@ -1,0 +1,14 @@
+{layout '../layout/default.latte'}
+{block content}
+<nav class="meta">
+  <a href="/admin/articles/{$articleVersion['article_id']}">記事編集</a> /
+  <a href="/admin/articles/{$articleVersion['article_id']}/history">更新履歴</a> /
+  版 {$articleVersion['version_no']}
+</nav>
+<article class="prose">
+  <span class="label status-{$articleVersion['status']}">{$articleVersion['status_label']}</span>
+  <h1>{$articleVersion['title']}</h1>
+  <p class="meta">保存日時 {$articleVersion['created_at']} / 版 {$articleVersion['version_no']}</p>
+  <div>{$articleVersion['body_html']|noescape}</div>
+</article>
+{/block}

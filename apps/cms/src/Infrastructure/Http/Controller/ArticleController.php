@@ -17,6 +17,8 @@ use App\Cms\Application\Article\Restore\Input as RestoreInput;
 use App\Cms\Application\Article\Restore\Interactor as RestoreInteractor;
 use App\Cms\Application\Article\Save\Input as SaveInput;
 use App\Cms\Application\Article\Save\Interactor as SaveInteractor;
+use App\Cms\Application\ArticleVersion\Preview\Input as PreviewArticleVersionInput;
+use App\Cms\Application\ArticleVersion\Preview\Interactor as PreviewArticleVersionInteractor;
 use App\Cms\Infrastructure\Http\AuthGuard;
 use App\Framework\Content\Markdown;
 use App\Framework\Http\Request;
@@ -38,6 +40,7 @@ final readonly class ArticleController
         private EditInteractor $edit,
         private SaveInteractor $save,
         private PreviewInteractor $preview,
+        private PreviewArticleVersionInteractor $articleVersionPreview,
         private HistoryInteractor $history,
         private RestoreInteractor $restore,
     ) {
@@ -116,6 +119,23 @@ final readonly class ArticleController
             'title' => '更新履歴',
             'articleId' => $output->articleId,
             'versions' => array_map(fn ($version): array => $version->toArray(), $output->versions),
+        ]));
+    }
+
+    /** @param array<string, string> $vars */
+    public function previewArticleVersion(Request $request, array $vars = []): Response
+    {
+        if ($response = $this->requireAuth($this->session)) {
+            return $response;
+        }
+        $articleVersion = $this->articleVersionPreview->execute(new PreviewArticleVersionInput((int) $vars['id'], (int) $vars['version']))->articleVersion;
+        if ($articleVersion === null) {
+            return new Response('Not Found', 404);
+        }
+
+        return new Response($this->renderer->render('article/version-preview.latte', [
+            'title' => '履歴プレビュー',
+            'articleVersion' => $articleVersion->toArray($this->markdown->toSafeHtml($articleVersion->bodyMarkdown)),
         ]));
     }
 

@@ -183,6 +183,13 @@ button.is-submitting, input[type="submit"].is-submitting {
 .history-date-list li { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .history-date-list li:last-child { border-bottom: 0; padding-bottom: 0; }
 .history-date-list a { display: block; font-weight: 700; }
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.table-actions form { margin: 0; }
 .table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }

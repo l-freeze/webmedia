@@ -252,6 +252,13 @@ apps/cms/
           Input.php
           Interactor.php
           Output.php
+      ArticleVersion/
+        Preview/
+          Input.php
+          Interactor.php
+          Output.php
+          Query/
+            IArticleVersionQuery.php
       Page/
         List/
         Save/
@@ -718,6 +725,8 @@ GET /admin/articles/{id}
 ```
 
 UseCase 名は画面表示なら `Edit`、作成/更新の永続化なら `Save` を使ってよい。HTTP メソッド名に合わせる目的だけで `Post`、`Update` を機械的に増やす必要はない。
+
+更新履歴のプレビューは読み取り処理であり、`Application/ArticleVersion/Preview` として扱う。`ArticleVersion` は `article_versions` の1つの版を表す対象名であり、不自然な短縮名を使ってはならない。
 
 ## 12. DI ルール
 

@@ -11,9 +11,12 @@
         <td>{$version['status']}</td>
         <td>{$version['created_at']}</td>
         <td>
-          <form method="post" action="/admin/articles/{$articleId}/restore/{$version['version_no']}">
-            <button class="secondary" data-confirm="この版へ復元しますか？">復元</button>
-          </form>
+          <div class="table-actions">
+            <a class="button secondary" href="/admin/articles/{$articleId}/history/{$version['version_no']}/preview">プレビュー</a>
+            <form method="post" action="/admin/articles/{$articleId}/restore/{$version['version_no']}">
+              <button class="secondary" data-confirm="この版へ復元しますか？">復元</button>
+            </form>
+          </div>
         </td>
       </tr>
     {/foreach}

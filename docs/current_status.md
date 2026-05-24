@@ -112,6 +112,11 @@
    - 右カラムには保存履歴の日時一覧を新しい順で表示
    - 履歴がない記事では空履歴メッセージを表示
    - 本文入力項目は左カラムに維持し、右カラムへ編集入力項目は置かない
+26. CMS記事更新履歴のプレビュー対応
+   - 更新履歴一覧に `プレビュー` ボタンを追加
+   - 履歴プレビュー用に `Application/ArticleVersion/Preview` を追加
+   - `ArticleVersion` は単数の版を表す対象名として使い、不自然な短縮名は使わない
+   - 履歴プレビュー画面では保存日時、版番号、状態、本文HTMLを表示
 
 ## 検証結果
 
@@ -268,6 +273,18 @@
   - PHP: 8.5.6
   - PHPUnit: 12 tests, 24 assertions
   - CMS記事編集画面の更新履歴右カラム復活後に再実行
+- CMS記事更新履歴プレビュー確認: 成功
+  - `/admin/articles/3/history`: 各履歴行に `プレビュー` と `復元` を表示
+  - `/admin/articles/3/history/9/preview`: 200 OK、保存日時、版番号、本文を表示
+  - `/admin/articles/3/history/999/preview`: 404 Not Found
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - CMS記事更新履歴プレビュー対応後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - CMS記事更新履歴プレビュー対応後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 12 tests, 24 assertions
+  - CMS記事更新履歴プレビュー対応後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK
