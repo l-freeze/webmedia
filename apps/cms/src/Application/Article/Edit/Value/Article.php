@@ -15,7 +15,7 @@ final readonly class Article
         public string $status,
         public ?int $categoryId,
         public string $publishedAt,
-        public string $scheduledAt,
+        public string $publishedEndsAt,
         public string $seoTitle,
         public string $metaDescription,
     ) {
@@ -33,7 +33,7 @@ final readonly class Article
             'status' => $this->status,
             'category_id' => $this->categoryId,
             'published_at' => $this->publishedAt,
-            'scheduled_at' => $this->scheduledAt,
+            'published_ends_at' => $this->publishedEndsAt,
             'seo_title' => $this->seoTitle,
             'meta_description' => $this->metaDescription,
         ];

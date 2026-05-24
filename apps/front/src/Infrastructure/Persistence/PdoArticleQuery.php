@@ -23,7 +23,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     /** @return array<int, HomeArticle> */
     public function latest(int $limit, int $offset): array
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" ORDER BY a.published_at DESC, a.id DESC LIMIT :limit OFFSET :offset');
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE ' . $this->publicCondition() . ' ORDER BY a.published_at DESC, a.id DESC LIMIT :limit OFFSET :offset');
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -32,12 +32,12 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
 
     public function countPublished(): ArticleCount
     {
-        return new ArticleCount((int) $this->pdo->query('SELECT COUNT(*) FROM articles WHERE status = "published"')->fetchColumn());
+        return new ArticleCount((int) $this->pdo->query('SELECT COUNT(*) FROM articles a WHERE ' . $this->publicCondition())->fetchColumn());
     }
 
     public function findPublishedBySlug(string $slug): ?ShowArticle
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.slug = :slug LIMIT 1');
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.slug = :slug LIMIT 1');
         $stmt->execute(['slug' => $slug]);
         $row = $stmt->fetch();
         if (!$row) {
@@ -49,7 +49,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     /** @return array<int, SearchArticle> */
     public function search(string $keyword): array
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND (a.title LIKE :title_q OR a.body_markdown LIKE :body_q) ORDER BY a.published_at DESC');
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title LIKE :title_q OR a.body_markdown LIKE :body_q) ORDER BY a.published_at DESC');
         $likeKeyword = '%' . $keyword . '%';
         $stmt->execute(['title_q' => $likeKeyword, 'body_q' => $likeKeyword]);
         return array_map($this->searchArticle(...), $stmt->fetchAll());
@@ -59,12 +59,12 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     public function related(int $articleId, ?int $categoryId): array
     {
         if ($categoryId === null) {
-            $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.id <> :id ORDER BY a.published_at DESC LIMIT 3');
+            $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id ORDER BY a.published_at DESC LIMIT 3');
             $stmt->execute(['id' => $articleId]);
             return array_map(fn (array $row): ShowArticle => $this->showArticle($row), $stmt->fetchAll());
         }
 
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT 3');
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT 3');
         $stmt->execute(['id' => $articleId, 'category_id' => $categoryId]);
         return array_map(fn (array $row): ShowArticle => $this->showArticle($row), $stmt->fetchAll());
     }
@@ -72,6 +72,11 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     private function baseSql(): string
     {
         return 'SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a LEFT JOIN categories c ON c.id = a.category_id';
+    }
+
+    private function publicCondition(): string
+    {
+        return 'a.status = "published" AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())';
     }
 
     /** @param array<string, mixed> $row */

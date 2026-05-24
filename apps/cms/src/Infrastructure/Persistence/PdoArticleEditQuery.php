@@ -32,7 +32,7 @@ final readonly class PdoArticleEditQuery implements IArticleQuery
             status: (string) $row['status'],
             categoryId: $row['category_id'] === null ? null : (int) $row['category_id'],
             publishedAt: (string) ($row['published_at'] ?? ''),
-            scheduledAt: (string) ($row['scheduled_at'] ?? ''),
+            publishedEndsAt: (string) ($row['published_ends_at'] ?? ''),
             seoTitle: (string) ($row['seo_title'] ?? ''),
             metaDescription: (string) ($row['meta_description'] ?? ''),
         );

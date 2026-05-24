@@ -26,7 +26,7 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
             name: (string) $row['name'],
             slug: (string) $row['slug'],
             articleCount: (int) $row['article_count'],
-        ), $this->pdo->query('SELECT t.*, COUNT(at.article_id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id GROUP BY t.id ORDER BY t.name')->fetchAll());
+        ), $this->pdo->query('SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')->fetchAll());
     }
 
     public function find(string $slug): ?TagDetail
@@ -43,7 +43,7 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     /** @return array<int, ShowArticle> */
     public function articles(string $slug): array
     {
-        $stmt = $this->pdo->prepare('SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND a.status = "published" ORDER BY a.published_at DESC');
+        $stmt = $this->pdo->prepare('SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
         $stmt->execute(['slug' => $slug]);
         return array_map(fn (array $row): ShowArticle => new ShowArticle(
             id: (int) $row['id'],
@@ -59,5 +59,10 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     private function date(mixed $value): string
     {
         return $value ? date('Y-m-d', strtotime((string) $value)) : '';
+    }
+
+    private function publicCondition(): string
+    {
+        return 'a.status = "published" AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())';
     }
 }

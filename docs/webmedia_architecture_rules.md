@@ -838,9 +838,9 @@ CMS は編集上の関心を扱う。
 
 ```text
 draft
-published
-private
-scheduled publication
+published visibility
+private visibility
+publication period
 history
 revision
 editor
@@ -853,12 +853,22 @@ Front は公開済みコンテンツ projection を扱う。
 public title
 public body
 published date
+published ends date
 slug
 category
 tag
 SEO
 related articles
 ```
+
+記事の公開状態は `status` だけで表現しない。
+
+- `published`: 表示対象
+- `private`: 非表示
+- `draft`: 下書き
+- `trashed`: ゴミ箱
+
+`公開中`、`公開予約`、`公開終了` は保存ステータスではなく、`status = published` と `published_at` / `published_ends_at` から導出する表示状態である。CMS の記事編集画面で `公開予約` をステータスとして選択させてはならない。
 
 禁止:
 

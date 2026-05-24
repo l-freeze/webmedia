@@ -23,7 +23,7 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     /** @return array<int, HomeCategory|ListCategory> */
     public function all(): array
     {
-        return array_map($this->category(...), $this->pdo->query('SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND a.status = "published" GROUP BY c.id ORDER BY c.sort_order, c.name')->fetchAll());
+        return array_map($this->category(...), $this->pdo->query('SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publicCondition() . ' GROUP BY c.id ORDER BY c.sort_order, c.name')->fetchAll());
     }
 
     public function find(string $slug): ?CategoryDetail
@@ -40,7 +40,7 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     /** @return array<int, ShowArticle> */
     public function articles(string $slug): array
     {
-        $stmt = $this->pdo->prepare('SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND a.status = "published" ORDER BY a.published_at DESC');
+        $stmt = $this->pdo->prepare('SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
         $stmt->execute(['slug' => $slug]);
         return array_map(fn (array $row): ShowArticle => new ShowArticle(
             id: (int) $row['id'],
@@ -68,5 +68,10 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     private function date(mixed $value): string
     {
         return $value ? date('Y-m-d', strtotime((string) $value)) : '';
+    }
+
+    private function publicCondition(): string
+    {
+        return 'a.status = "published" AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())';
     }
 }

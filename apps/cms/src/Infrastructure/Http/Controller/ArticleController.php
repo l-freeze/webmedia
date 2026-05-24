@@ -141,9 +141,8 @@ final readonly class ArticleController
             'flash' => $this->session->pullFlash('success'),
             'statuses' => [
                 'draft' => '下書き',
-                'published' => '公開中',
-                'scheduled' => '公開予約',
-                'private' => '非公開',
+                'published' => '表示',
+                'private' => '非表示',
                 'trashed' => 'ゴミ箱',
             ],
         ]));

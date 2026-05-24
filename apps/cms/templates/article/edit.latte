@@ -18,7 +18,7 @@
     <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
   </section>
   <aside class="card form-stack">
-    <label>ステータス
+    <label>表示設定
       <select name="status">
         {foreach $statuses as $value => $label}
           <option value="{$value}" {if ($article['status'] ?? 'draft') === $value}selected{/if}>{$label}</option>
@@ -34,7 +34,7 @@
       </select>
     </label>
     <label>公開日時<input class="datetime-picker" type="text" name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
-    <label>予約公開日時<input class="datetime-picker" type="text" name="scheduled_at" value="{$article['scheduled_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
+    <label>公開終了日時<input class="datetime-picker" type="text" name="published_ends_at" value="{$article['published_ends_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
     <label>SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
     <label>meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
     <button type="submit">保存</button>

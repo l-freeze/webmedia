@@ -16,14 +16,10 @@ final readonly class PdoDashboardQuery implements IDashboardQuery
 
     public function stats(): Stats
     {
-        $rows = $this->pdo->query('SELECT status, COUNT(*) AS count FROM articles GROUP BY status')->fetchAll();
-        $stats = ['published' => 0, 'draft' => 0, 'scheduled' => 0];
-        foreach ($rows as $row) {
-            if (array_key_exists((string) $row['status'], $stats)) {
-                $stats[(string) $row['status']] = (int) $row['count'];
-            }
-        }
+        $published = (int) $this->pdo->query('SELECT COUNT(*) FROM articles WHERE status = "published" AND published_at IS NOT NULL AND published_at <= NOW() AND (published_ends_at IS NULL OR published_ends_at > NOW())')->fetchColumn();
+        $draft = (int) $this->pdo->query('SELECT COUNT(*) FROM articles WHERE status = "draft"')->fetchColumn();
+        $scheduled = (int) $this->pdo->query('SELECT COUNT(*) FROM articles WHERE status = "published" AND published_at IS NOT NULL AND published_at > NOW()')->fetchColumn();
         $inquiries = (int) $this->pdo->query('SELECT COUNT(*) FROM inquiries WHERE status <> "closed"')->fetchColumn();
-        return new Stats($stats['published'], $stats['draft'], $stats['scheduled'], $inquiries);
+        return new Stats($published, $draft, $scheduled, $inquiries);
     }
 }

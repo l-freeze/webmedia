@@ -69,7 +69,7 @@
    - `Container::has()` の factory / singleton / binding 用テストを追加
 16. CMS 記事管理 UI の改善
    - 記事一覧のタイトルリンクから編集画面へ遷移できるように変更
-   - 記事編集画面の公開日時 / 予約公開日時に flatpickr の日時 picker を追加
+   - 記事編集画面の日時入力に flatpickr の picker を追加
    - CMS layout に画面単位の head / scripts block を追加
 17. CMS 保存フィードバックと taxonomy 保存エラー修正
    - 保存ボタン押下時に `保存中...` 表示と disabled 状態へ切り替える UI を追加
@@ -96,6 +96,13 @@
 22. フロント記事詳細のPDOプレースホルダ不具合修正
    - 記事詳細の関連記事取得で同名プレースホルダを重複利用していたSQLを修正
    - 検索SQLの同名プレースホルダ重複も同時に修正
+23. 記事公開状態の扱いを表示設定と公開期間へ整理
+   - CMS記事編集のステータス選択肢から `公開中` / `公開予約` を廃止
+   - 編集上のステータスは `下書き` / `表示` / `非表示` / `ゴミ箱` に整理
+   - `予約公開日時` 入力を削除し、`公開終了日時` 入力を追加
+   - `published_ends_at` を追加し、旧 `scheduled_at` はmigrationで削除
+   - フロント公開判定を `status = published` かつ公開期間内に変更
+   - `公開中` / `公開予約` / `公開終了` は保存ステータスではなく表示状態として導出
 
 ## 検証結果
 
@@ -203,6 +210,30 @@
   - PHP: 8.5.6
   - PHPUnit: 11 tests, 22 assertions
   - フロント記事詳細のPDOプレースホルダ修正後に再実行
+- `docker compose exec app composer migrate`: 成功
+  - `published_ends_at` 追加
+  - 旧 `scheduled_at` 削除
+- 記事公開状態整理後の DB 確認: 成功
+  - `articles.published_ends_at` が存在することを確認
+  - `articles.scheduled_at` が存在しないことを確認
+  - `articles.status` に `scheduled` が存在しないことを確認
+- CMS 記事編集画面確認: 成功
+  - `表示設定` の選択肢が `下書き` / `表示` / `非表示` / `ゴミ箱` であることを確認
+  - `公開予約` の選択肢がないことを確認
+  - `予約公開日時` 入力がないことを確認
+  - `公開終了日時` 入力があることを確認
+- フロント公開期間判定確認: 成功
+  - 未来の `published_at` を持つ表示記事はトップに出ず、記事詳細も 404
+  - 過去の `published_ends_at` を持つ表示記事はトップに出ず、記事詳細も 404
+  - 検証用に追加した一時記事は確認後に削除
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - 記事公開状態整理後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - 記事公開状態整理後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 12 tests, 24 assertions
+  - 記事公開状態整理後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK

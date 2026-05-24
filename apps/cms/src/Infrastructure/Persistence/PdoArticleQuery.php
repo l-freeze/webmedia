@@ -36,7 +36,7 @@ final readonly class PdoArticleQuery implements ListArticleQuery
             id: (int) $row['id'],
             title: (string) $row['title'],
             status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel((string) $row['status']),
+            statusLabel: PdoArticleRepository::statusLabel((string) $row['status'], (string) ($row['published_at'] ?? ''), (string) ($row['published_ends_at'] ?? '')),
             categoryName: $row['category_name'] === null ? null : (string) $row['category_name'],
             updatedAt: date('Y-m-d H:i', strtotime((string) $row['updated_at'])),
         );

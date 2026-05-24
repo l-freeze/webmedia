@@ -27,7 +27,7 @@ final readonly class PdoArticleRepository implements IArticleRepository
             'status' => $article->status->value,
             'category_id' => $article->categoryId?->value,
             'published_at' => $article->publishedAt?->value,
-            'scheduled_at' => $article->scheduledAt?->value,
+            'published_ends_at' => $article->publishedEndsAt?->value,
             'seo_title' => $article->seoTitle->value,
             'meta_description' => $article->metaDescription->value,
             'updated_at' => $now,
@@ -35,13 +35,13 @@ final readonly class PdoArticleRepository implements IArticleRepository
 
         if ($article->id === null) {
             $payload['created_at'] = $now;
-            $stmt = $this->pdo->prepare('INSERT INTO articles (title, slug, body_markdown, excerpt, status, category_id, published_at, scheduled_at, seo_title, meta_description, author_name, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :excerpt, :status, :category_id, :published_at, :scheduled_at, :seo_title, :meta_description, "編集部", :created_at, :updated_at)');
+            $stmt = $this->pdo->prepare('INSERT INTO articles (title, slug, body_markdown, excerpt, status, category_id, published_at, published_ends_at, seo_title, meta_description, author_name, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :excerpt, :status, :category_id, :published_at, :published_ends_at, :seo_title, :meta_description, "編集部", :created_at, :updated_at)');
             $stmt->execute($payload);
             $id = (int) $this->pdo->lastInsertId();
         } else {
             $id = $article->id->value;
             $payload['id'] = $article->id->value;
-            $stmt = $this->pdo->prepare('UPDATE articles SET title = :title, slug = :slug, body_markdown = :body_markdown, excerpt = :excerpt, status = :status, category_id = :category_id, published_at = :published_at, scheduled_at = :scheduled_at, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
+            $stmt = $this->pdo->prepare('UPDATE articles SET title = :title, slug = :slug, body_markdown = :body_markdown, excerpt = :excerpt, status = :status, category_id = :category_id, published_at = :published_at, published_ends_at = :published_ends_at, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
             $stmt->execute($payload);
         }
 
@@ -65,7 +65,7 @@ final readonly class PdoArticleRepository implements IArticleRepository
             'status' => $version['status'],
             'category_id' => '',
             'published_at' => '',
-            'scheduled_at' => '',
+            'published_ends_at' => '',
         ]));
     }
 
@@ -88,12 +88,25 @@ final readonly class PdoArticleRepository implements IArticleRepository
         ]);
     }
 
-    public static function statusLabel(string $status): string
+    public static function statusLabel(string $status, ?string $publishedAt = null, ?string $publishedEndsAt = null, ?\DateTimeImmutable $now = null): string
     {
+        if ($status === 'published') {
+            $now ??= new \DateTimeImmutable();
+            if ($publishedAt === null || $publishedAt === '') {
+                return '表示（公開日時未設定）';
+            }
+            $publishedAtDate = new \DateTimeImmutable($publishedAt);
+            if ($publishedAtDate > $now) {
+                return '公開予約';
+            }
+            if ($publishedEndsAt !== null && $publishedEndsAt !== '' && new \DateTimeImmutable($publishedEndsAt) <= $now) {
+                return '公開終了';
+            }
+            return '公開中';
+        }
+
         return match ($status) {
-            'published' => '公開中',
-            'scheduled' => '公開予約',
-            'private' => '非公開',
+            'private' => '非表示',
             'trashed' => 'ゴミ箱',
             default => '下書き',
         };

@@ -357,15 +357,16 @@ operation_logs
 
 ### 10.5 記事ステータス
 
-記事には以下のステータスを持たせる。
+記事には編集上の表示設定として以下のステータスを持たせる。
 
 ```text
 draft       下書き
-published   公開中
-scheduled   公開予約
-private     非公開
+published   表示
+private     非表示
 trashed     ゴミ箱
 ```
+
+`公開中`、`公開予約`、`公開終了` はステータス値ではなく、`published` と `published_at` / `published_ends_at` の組み合わせから判定する。
 
 ### 10.6 固定ページステータス
 
@@ -741,11 +742,13 @@ mailpit   開発用メール確認
 
 ### 23.3 公開予約
 
-公開予約はcronで定期的に処理する。
+公開予約は保存ステータスではなく、表示対象の記事の `published_at` が未来である状態を指す。
 
 ```text
-5分ごとに scheduled 状態の記事を確認し、公開日時を過ぎていれば published に変更する
+status = published かつ published_at > 現在時刻
 ```
+
+公開時刻を過ぎた記事はステータス更新を行わず、その時点でフロントの公開対象になる。
 
 ---
 

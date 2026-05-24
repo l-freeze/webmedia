@@ -12,8 +12,8 @@ use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\CategoryId;
 use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\PublishedEndsAt;
 use App\Cms\Domain\Value\PublishedAt;
-use App\Cms\Domain\Value\ScheduledAt;
 use App\Cms\Domain\Value\SeoTitle;
 
 final readonly class Article
@@ -27,7 +27,7 @@ final readonly class Article
         public ArticleStatus $status,
         public ?CategoryId $categoryId,
         public ?PublishedAt $publishedAt,
-        public ?ScheduledAt $scheduledAt,
+        public ?PublishedEndsAt $publishedEndsAt,
         public SeoTitle $seoTitle,
         public MetaDescription $metaDescription,
     ) {
@@ -45,7 +45,7 @@ final readonly class Article
             status: new ArticleStatus((string) ($data['status'] ?? 'draft')),
             categoryId: ($data['category_id'] ?? '') === '' ? null : new CategoryId((int) $data['category_id']),
             publishedAt: ($data['published_at'] ?? '') === '' ? null : new PublishedAt((string) $data['published_at']),
-            scheduledAt: ($data['scheduled_at'] ?? '') === '' ? null : new ScheduledAt((string) $data['scheduled_at']),
+            publishedEndsAt: ($data['published_ends_at'] ?? '') === '' ? null : new PublishedEndsAt((string) $data['published_ends_at']),
             seoTitle: new SeoTitle((string) ($data['seo_title'] ?? '')),
             metaDescription: new MetaDescription((string) ($data['meta_description'] ?? '')),
         );
