@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Page\Save;
 
+use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 
 final readonly class Interactor
@@ -14,7 +15,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->pages->create($input->data);
-        return new Output(true);
+        return new Output($this->pages->save(Page::fromInput($input->id, $input->data)));
     }
 }

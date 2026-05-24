@@ -7,6 +7,7 @@ namespace App\Cms\Application\Page\List\Value;
 final readonly class Page
 {
     public function __construct(
+        public int $id,
         public string $title,
         public string $slug,
         public string $status,
@@ -14,9 +15,15 @@ final readonly class Page
     ) {
     }
 
-    /** @return array<int, string> */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return [$this->title, $this->slug, $this->status, $this->updatedAt];
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'status' => $this->status,
+            'updated_at' => $this->updatedAt,
+        ];
     }
 }

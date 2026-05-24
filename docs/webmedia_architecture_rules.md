@@ -261,7 +261,22 @@ apps/cms/
             IArticleVersionQuery.php
       Page/
         List/
+        Edit/
+          Input.php
+          Interactor.php
+          Output.php
+          Query/
+            IPageQuery.php
         Save/
+          Input.php
+          Interactor.php
+          Output.php
+        History/
+          Input.php
+          Interactor.php
+          Output.php
+          Query/
+            IPageHistoryQuery.php
       Taxonomy/
         List/
         Save/

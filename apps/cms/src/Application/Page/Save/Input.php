@@ -7,7 +7,7 @@ namespace App\Cms\Application\Page\Save;
 final readonly class Input
 {
     /** @param array<string, mixed> $data */
-    public function __construct(public array $data)
+    public function __construct(public ?int $id, public array $data)
     {
     }
 }

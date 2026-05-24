@@ -355,6 +355,20 @@ site_settings
 operation_logs
 ```
 
+`page_versions` は固定ページの保存履歴を保持する。
+
+```text
+page_id       対象固定ページID
+version_no    固定ページごとの版番号
+title         保存時点のタイトル
+body_markdown 保存時点の本文
+status        保存時点の状態
+created_by    保存者
+created_at    保存日時
+```
+
+`page_id` と `version_no` の組み合わせは一意である。
+
 ### 10.5 記事ステータス
 
 記事には編集上の表示設定として以下のステータスを持たせる。

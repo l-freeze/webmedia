@@ -1,0 +1,42 @@
+{layout '../layout/default.latte'}
+{block content}
+<div class="article-edit-layout">
+  <form method="post" action="{$action}" class="card form-stack article-edit-form">
+    {ifset $flash}
+      <div class="form-alert form-alert--success" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+    {/ifset}
+    <div class="article-edit-meta-grid">
+      <label>状態
+        <select name="status">
+          {foreach $statuses as $value => $label}
+            <option value="{$value}" {if ($page['status'] ?? 'draft') === $value}selected{/if}>{$label}</option>
+          {/foreach}
+        </select>
+      </label>
+      <label>SEOタイトル<input name="seo_title" value="{$page['seo_title'] ?? ''}"></label>
+      <label class="article-edit-meta-grid__wide">meta description<textarea name="meta_description">{$page['meta_description'] ?? ''}</textarea></label>
+    </div>
+    <label>タイトル<input name="title" value="{$page['title'] ?? ''}" required></label>
+    <label>スラッグ<input name="slug" value="{$page['slug'] ?? ''}" required></label>
+    <label>本文<textarea name="body_markdown" required>{$page['body_markdown'] ?? ''}</textarea></label>
+    <div class="article-edit-actions">
+      <button type="submit">保存</button>
+    </div>
+  </form>
+  <aside class="card article-edit-history">
+    <h2>更新履歴</h2>
+    {if count($versions) === 0}
+      <p class="muted">まだ保存履歴はありません。</p>
+    {else}
+      <ol class="history-date-list">
+        {foreach $versions as $version}
+          <li>
+            <span>{$version['created_at']}</span>
+            <span class="muted">版 {$version['version_no']}</span>
+          </li>
+        {/foreach}
+      </ol>
+    {/if}
+  </aside>
+</div>
+{/block}

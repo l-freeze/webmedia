@@ -18,10 +18,11 @@ final readonly class PdoPageQuery implements IPageQuery
     public function list(): array
     {
         return array_map(fn (array $row): Page => new Page(
+            id: (int) $row['id'],
             title: (string) $row['title'],
             slug: (string) $row['slug'],
             status: (string) $row['status'],
             updatedAt: (string) $row['updated_at'],
-        ), $this->pdo->query('SELECT title, slug, status, updated_at FROM pages ORDER BY updated_at DESC')->fetchAll());
+        ), $this->pdo->query('SELECT id, title, slug, status, updated_at FROM pages ORDER BY updated_at DESC')->fetchAll());
     }
 }

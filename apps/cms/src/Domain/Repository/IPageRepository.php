@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Repository;
 
+use App\Cms\Domain\Entity\Page;
+use App\Cms\Domain\Value\PageId;
+
 interface IPageRepository
 {
-    /** @param array<string, mixed> $data */
-    public function create(array $data): void;
+    public function save(Page $page): PageId;
 }

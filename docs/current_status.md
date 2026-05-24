@@ -117,6 +117,13 @@
    - 履歴プレビュー用に `Application/ArticleVersion/Preview` を追加
    - `ArticleVersion` は単数の版を表す対象名として使い、不自然な短縮名は使わない
    - 履歴プレビュー画面では保存日時、版番号、状態、本文HTMLを表示
+27. CMS固定ページ編集画面の追加
+   - 固定ページ一覧を専用テンプレート化し、タイトルから編集画面へ遷移できるように変更
+   - `Application/Page/Edit` と `Application/Page/History` を追加
+   - 固定ページ保存を `Domain/Entity/Page` と Domain Value 経由に変更
+   - 固定ページ保存時に `page_versions` へsnapshotを保存
+   - `page_versions(page_id, version_no)` に unique index を追加
+   - 固定ページ編集画面に状態、SEO、本文、更新履歴日時一覧を表示
 
 ## 検証結果
 
@@ -285,6 +292,17 @@
   - PHP: 8.5.6
   - PHPUnit: 12 tests, 24 assertions
   - CMS記事更新履歴プレビュー対応後に再実行
+- `docker compose exec app composer migrate`: 成功
+  - `page_versions(page_id, version_no)` unique index 追加
+- CMS固定ページ編集画面確認: 成功
+  - `/admin/pages`: 固定ページ一覧と編集リンクを表示
+  - `/admin/pages/1`: 固定ページ編集画面を表示
+  - `/admin/pages/create`: 固定ページ作成画面を表示
+  - `POST /admin/pages`: 302、`/admin/pages/{id}` へ redirect
+  - `POST /admin/pages/{id}`: 302、`/admin/pages/{id}` へ redirect
+  - 作成時に `page_versions` へ 版 1 を保存
+  - 更新時に `page_versions` へ 版 2 を保存
+  - 検証用に追加した一時固定ページと履歴は確認後に削除
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK
