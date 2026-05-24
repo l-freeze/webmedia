@@ -3,21 +3,15 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 {/block}
 {block content}
-<form method="post" action="{$action}" class="admin-content-grid">
+<form method="post" action="{$action}" class="card form-stack article-edit-form">
   {ifset $flash}
-    <div class="form-alert form-alert--success admin-content-grid__full" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+    <div class="form-alert form-alert--success" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
   {/ifset}
   {ifset $error}
-    <div class="form-alert form-alert--error admin-content-grid__full" role="alert" data-auto-dismiss>{$error}</div>
+    <div class="form-alert form-alert--error" role="alert" data-auto-dismiss>{$error}</div>
   {/ifset}
   <input type="hidden" name="_csrf" value="{$csrf}">
-  <section class="card form-stack">
-    <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>
-    <label>スラッグ<input name="slug" value="{$article['slug'] ?? ''}" required></label>
-    <label>本文<textarea name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea></label>
-    <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
-  </section>
-  <aside class="card form-stack">
+  <div class="article-edit-meta-grid">
     <label>表示設定
       <select name="status">
         {foreach $statuses as $value => $label}
@@ -35,10 +29,16 @@
     </label>
     <label>公開日時<input class="datetime-picker" type="text" name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
     <label>公開終了日時<input class="datetime-picker" type="text" name="published_ends_at" value="{$article['published_ends_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
-    <label>SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
-    <label>meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
+    <label class="article-edit-meta-grid__wide">SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
+    <label class="article-edit-meta-grid__wide">meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
+  </div>
+  <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>
+  <label>スラッグ<input name="slug" value="{$article['slug'] ?? ''}" required></label>
+  <label>本文<textarea name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea></label>
+  <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
+  <div class="article-edit-actions">
     <button type="submit">保存</button>
-  </aside>
+  </div>
 </form>
 {/block}
 {block scripts}

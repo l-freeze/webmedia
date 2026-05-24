@@ -103,6 +103,10 @@
    - `published_ends_at` を追加し、旧 `scheduled_at` はmigrationで削除
    - フロント公開判定を `status = published` かつ公開期間内に変更
    - `公開中` / `公開予約` / `公開終了` は保存ステータスではなく表示状態として導出
+24. CMS記事編集画面の1カラム化
+   - 右カラムを廃止し、記事編集フォームを1つの入力エリアに統合
+   - 表示設定、カテゴリ、公開日時、公開終了日時、SEO項目をタイトルより上に配置
+   - 旧 `admin-content-grid` 用の2カラム指定を削除
 
 ## 検証結果
 
@@ -234,6 +238,19 @@
   - PHP: 8.5.6
   - PHPUnit: 12 tests, 24 assertions
   - 記事公開状態整理後に再実行
+- CMS記事編集画面1カラム化確認: 成功
+  - `/admin/articles/5`: `article-edit-form` と `article-edit-meta-grid` を出力
+  - 旧 `admin-content-grid` が出力されないことを確認
+  - 表示設定、公開終了日時、SEO項目がタイトルより前に出力されることを確認
+  - flatpickr の読み込み継続を確認
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - CMS記事編集画面1カラム化後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - CMS記事編集画面1カラム化後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 12 tests, 24 assertions
+  - CMS記事編集画面1カラム化後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK
