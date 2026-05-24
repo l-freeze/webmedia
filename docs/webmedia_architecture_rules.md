@@ -694,6 +694,31 @@ Controller の責務:
 
 Controller に業務ルール、SQL、永続化処理を書いてはならない。
 
+### 11.1 PRG ルール
+
+CMS の更新系 HTTP 処理は、リロードによる重複登録を避けるため PRG、Post Redirect Get、を原則とする。
+
+ルール:
+
+- `POST` で作成、更新、復元などの変更処理を実行する
+- 変更処理が成功したら、必ず `Response::redirect()` で `GET` 画面へ遷移する
+- redirect 後の `GET` 画面で flash message を表示する
+- validation error など永続化前に失敗した場合は、同一画面を `422` で表示してよい
+- 成功した `POST` response で直接 template を描画してはならない
+
+例:
+
+```text
+POST /admin/articles
+  -> Application/Article/Save/Interactor
+  -> 302 Location: /admin/articles/{id}
+GET /admin/articles/{id}
+  -> Application/Article/Edit/Interactor
+  -> template
+```
+
+UseCase 名は画面表示なら `Edit`、作成/更新の永続化なら `Save` を使ってよい。HTTP メソッド名に合わせる目的だけで `Post`、`Update` を機械的に増やす必要はない。
+
 ## 12. DI ルール
 
 DI はアプリケーションごとに設定する。

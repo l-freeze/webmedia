@@ -75,6 +75,10 @@
    - 保存ボタン押下時に `保存中...` 表示と disabled 状態へ切り替える UI を追加
    - 保存後に `保存しました` の toast を表示し、数秒後に自動で消す UI を追加
    - taxonomy の未入力保存を DB 例外にせず、422 とエラーメッセージで返すように修正
+18. CMS PRG ルールの明文化と検証
+   - CMS 更新系 HTTP 処理は成功時に PRG、Post Redirect Get、を使うルールをアーキテクチャ規約へ追記
+   - 画面表示 UseCase は `Edit`、作成/更新の永続化 UseCase は `Save` を使ってよいことを明記
+   - HTTP メソッド名に合わせるだけの `Post` / `Update` UseCase 乱立は不要と整理
 
 ## 検証結果
 
@@ -130,6 +134,13 @@
   - `POST /admin/taxonomy`: 302
   - redirect 後に `保存しました` toast を表示
   - 検証用に追加した一時カテゴリは確認後に削除
+- CMS PRG 確認: 成功
+  - `POST /admin/articles`: 302、`/admin/articles/{id}` へ redirect
+  - `POST /admin/pages`: 302、`/admin/pages` へ redirect
+  - `POST /admin/taxonomy`: 302、`/admin/taxonomy` へ redirect
+  - `POST /admin/settings`: 302、`/admin/settings` へ redirect
+  - validation error の `POST /admin/taxonomy`: 422、永続化せず同一画面表示
+  - 検証用に追加した一時記事、固定ページ、カテゴリは確認後に削除
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK
