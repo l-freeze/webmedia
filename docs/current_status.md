@@ -67,6 +67,10 @@
    - `composer dump-autoload -o --strict-psr` で PSR-4 autoload 違反がないことを確認
    - `Container::has()` の factory / singleton / binding 判定を PSR-11 風の期待挙動に修正
    - `Container::has()` の factory / singleton / binding 用テストを追加
+16. CMS 記事管理 UI の改善
+   - 記事一覧のタイトルリンクから編集画面へ遷移できるように変更
+   - 記事編集画面の公開日時 / 予約公開日時に flatpickr の日時 picker を追加
+   - CMS layout に画面単位の head / scripts block を追加
 
 ## 検証結果
 
@@ -99,6 +103,16 @@
 - PHP ファイルの閉じタグ、タブ、行末空白チェック: 成功
   - 検出なし
 - `docker compose exec app sh -lc 'find apps/front/src apps/cms/src apps/front/config apps/cms/config tests -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 10 tests, 18 assertions
+  - CMS 記事管理 UI 改善後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - CMS 記事管理 UI 改善後に再実行
+- CMS 記事管理 UI 改善後の HTTP 確認: 成功
+  - `/admin/articles`: ログイン後 200 OK
+  - `/admin/articles/3`: ログイン後 200 OK
+  - 記事タイトルリンクと flatpickr 読み込みタグの出力を確認
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK

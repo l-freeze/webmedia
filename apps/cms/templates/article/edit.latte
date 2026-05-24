@@ -1,4 +1,7 @@
 {layout '../layout/default.latte'}
+{block head}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+{/block}
 {block content}
 <form method="post" action="{$action}" class="admin-content-grid">
   <input type="hidden" name="_csrf" value="{$csrf}">
@@ -24,11 +27,25 @@
         {/foreach}
       </select>
     </label>
-    <label>公開日時<input name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS"></label>
-    <label>予約公開日時<input name="scheduled_at" value="{$article['scheduled_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS"></label>
+    <label>公開日時<input class="datetime-picker" type="text" name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
+    <label>予約公開日時<input class="datetime-picker" type="text" name="scheduled_at" value="{$article['scheduled_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
     <label>SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
     <label>meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
     <button type="submit">保存</button>
   </aside>
 </form>
+{/block}
+{block scripts}
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ja.js"></script>
+  <script>
+    flatpickr('.datetime-picker', {
+      allowInput: true,
+      dateFormat: 'Y-m-d H:i:S',
+      enableSeconds: true,
+      enableTime: true,
+      locale: 'ja',
+      time_24hr: true
+    });
+  </script>
 {/block}
