@@ -341,7 +341,7 @@
   - `docker compose exec app composer seed`: 成功、adapter `pgsql`
   - `docker compose exec app composer test`: 成功、12 tests / 24 assertions
   - `curl http://localhost:8080/`: 200 OK
-  - `curl http://localhost:8080/articles/start-small-webmedia`: 200 OK
+  - `curl http://localhost:8080/articles/php-typed-input-handling`: 200 OK
   - CMSログイン後 `/admin/articles/1`: 200 OK
   - CMSログイン後 `/admin`: 200 OK
   - CMSログイン後 `/admin/settings`: 200 OK
@@ -349,17 +349,30 @@
   - `/admin/articles/1/history`: 200 OK
   - `articles.current_version_no = 2` と `article_versions.version_no = 2` の保存をPostgreSQL上で確認
   - 旧MariaDB volumeは参照せず、PostgreSQL用 `postgres_data` volumeを使用
+- 初期seed更新: 成功
+  - CMSテストアカウントを `admin@example.com` / `password` に変更
+  - seeder内ではテーブル初期化を行わない
+  - カテゴリは `PHP技術記事` / `日常生活の知恵` の2件
+  - タグ15件、記事15件、記事履歴15件、記事タグ紐づけ45件を投入
+  - ローカルPostgreSQLは検証のためschemaを再作成してからmigration/seedを実行
+  - `docker compose exec app composer migrate`: 成功
+  - `docker compose exec app composer seed`: 成功
+  - `docker compose exec app composer test`: 成功、12 tests / 24 assertions
+  - CMSログイン `admin@example.com` / `password`: 302、`/admin` へ redirect
+  - `/admin/articles`: 200 OK
+  - `/`: 200 OK
+  - `/articles/php-typed-input-handling`: 200 OK
 
 ## 未完了・要検証
 
 - ブラウザでの目視確認は未実施。
 - CMS ログイン後の主要 GET 画面確認は実施済み。
-- 問い合わせ POST、記事保存、履歴復元などの更新系操作確認は未実施。
+- 問い合わせ POST、履歴復元などの更新系操作確認は未実施。
 
 ## 次回再開地点
 
 1. ブラウザで `http://localhost:8080/` と `http://localhost:8080/admin/login` を目視確認する。
-2. CMS に `admin@example.test` / `password` でログインし、記事作成・編集・プレビュー・履歴を確認する。
+2. CMS に `admin@example.com` / `password` でログインし、記事作成・編集・プレビュー・履歴を確認する。
 3. フロントのカテゴリ、タグ、検索、問い合わせを確認する。
 4. 見つかった不具合を機能単位で修正し、日本語コミットを作成する。
 
