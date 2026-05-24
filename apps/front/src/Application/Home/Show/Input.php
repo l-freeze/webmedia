@@ -6,4 +6,10 @@ namespace App\Front\Application\Home\Show;
 
 final readonly class Input
 {
+    public int $page;
+
+    public function __construct(int $page = 1)
+    {
+        $this->page = max(1, $page);
+    }
 }

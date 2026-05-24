@@ -2,10 +2,13 @@
 {block content}
 <section class="card">
   <h1>{$heading}</h1>
-  {ifset $error}
-    <p class="error">{$error}</p>
-  {/ifset}
   {if isset($form)}
+    {ifset $flash}
+      <div class="form-alert form-alert--success" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+    {/ifset}
+    {ifset $error}
+      <div class="form-alert form-alert--error" role="alert" data-auto-dismiss>{$error}</div>
+    {/ifset}
     <form method="post" class="form-stack" style="margin-bottom:20px">
       {foreach $form as $field}
         <label>{$field['label']}<input name="{$field['name']}" value="{$formValues[$field['name']] ?? ''}"></label>

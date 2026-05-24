@@ -28,16 +28,12 @@
   <div>
     <header class="admin-topbar">
       <strong>{$title}</strong>
-      <span class="muted">{$flash ?? ''}</span>
     </header>
     <main class="admin-main">
       {include content}
     </main>
   </div>
 </div>
-{ifset $flash}
-  <div class="toast" role="status" aria-live="polite">{$flash}</div>
-{/ifset}
 {block scripts}{/block}
 </body>
 </html>

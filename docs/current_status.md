@@ -79,6 +79,20 @@
    - CMS 更新系 HTTP 処理は成功時に PRG、Post Redirect Get、を使うルールをアーキテクチャ規約へ追記
    - 画面表示 UseCase は `Edit`、作成/更新の永続化 UseCase は `Save` を使ってよいことを明記
    - HTTP メソッド名に合わせるだけの `Post` / `Update` UseCase 乱立は不要と整理
+19. CMS 保存メッセージ表示位置の改善
+   - 保存成功メッセージを固定 toast ではなく入力フォーム上部に薄い緑の背景で表示するように変更
+   - 保存失敗メッセージを入力フォーム上部に薄いピンクの背景で表示するように変更
+   - 自動消去の挙動は `data-auto-dismiss` で継続
+20. フロントトップ新着記事のページング対応
+   - トップの新着記事を公開済み記事の一覧として確認
+   - 1ページあたりの記事数を `Home/Show/Interactor` の定数に定義
+   - Query は `limit` / `offset` を受け取り、件数は `ArticleCount` Value で返すように変更
+   - 公開中の記事が0件の場合の空表示メッセージを追加
+21. フロントトップページング検証用ダミーデータ投入
+   - PHP技術記事のダミー公開記事を21件登録
+   - PHP技術系カテゴリを10件登録
+   - PHP技術系タグを10件登録
+   - 各ダミー記事へタグを2件ずつ紐づけ
 
 ## 検証結果
 
@@ -141,6 +155,37 @@
   - `POST /admin/settings`: 302、`/admin/settings` へ redirect
   - validation error の `POST /admin/taxonomy`: 422、永続化せず同一画面表示
   - 検証用に追加した一時記事、固定ページ、カテゴリは確認後に削除
+- CMS フォーム上部メッセージ確認: 成功
+  - taxonomy 正常保存後、フォーム直上に `form-alert--success` と `保存しました` を表示
+  - taxonomy 未入力保存時、フォーム直上に `form-alert--error` と validation message を表示
+  - 検証用に追加した一時カテゴリは確認後に削除
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - フロントトップページング対応後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - フロントトップページング対応後に再実行
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 11 tests, 22 assertions
+  - フロントトップページング対応後に再実行
+- フロントトップ新着記事確認: 成功
+  - `/`: 公開済み記事2件を表示
+  - `/?page=2`: 公開済み記事2件、総ページ数1のため1ページ目相当に正規化して表示
+  - DB上の直近記事 `id=3` は `draft` のためトップ公開一覧の対象外
+- フロントトップページング用ダミーデータ確認: 成功
+  - ダミーカテゴリ: 10件
+  - ダミータグ: 10件
+  - ダミー公開記事: 21件
+  - ダミー記事タグ紐づけ: 42件
+  - タグ未紐づけのダミー記事: 0件
+  - `/`: `dummy-php-article-01` から `dummy-php-article-10` まで10件表示、pagination `1 / 3`
+  - `/?page=2`: `dummy-php-article-11` から `dummy-php-article-20` まで10件表示、pagination `2 / 3`
+  - `/?page=3`: `dummy-php-article-21` と既存公開記事を表示、pagination `3 / 3`
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 11 tests, 22 assertions
+  - ダミーデータ投入後に再実行
+- `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - ダミーデータ投入後に再実行
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK

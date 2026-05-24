@@ -10,6 +10,7 @@ use App\Front\Application\Article\Show\Query\IArticleQuery as ShowArticleQuery;
 use App\Front\Application\Article\Show\Value\Article as ShowArticle;
 use App\Front\Application\Home\Show\Query\IArticleQuery as HomeArticleQuery;
 use App\Front\Application\Home\Show\Value\Article as HomeArticle;
+use App\Front\Application\Home\Show\Value\ArticleCount;
 use App\Framework\Content\Markdown;
 use PDO;
 
@@ -20,12 +21,18 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     }
 
     /** @return array<int, HomeArticle> */
-    public function latest(int $limit = 10): array
+    public function latest(int $limit, int $offset): array
     {
-        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" ORDER BY a.published_at DESC, a.id DESC LIMIT :limit');
+        $stmt = $this->pdo->prepare($this->baseSql() . ' WHERE a.status = "published" ORDER BY a.published_at DESC, a.id DESC LIMIT :limit OFFSET :offset');
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         return array_map($this->homeArticle(...), $stmt->fetchAll());
+    }
+
+    public function countPublished(): ArticleCount
+    {
+        return new ArticleCount((int) $this->pdo->query('SELECT COUNT(*) FROM articles WHERE status = "published"')->fetchColumn());
     }
 
     public function findPublishedBySlug(string $slug): ?ShowArticle

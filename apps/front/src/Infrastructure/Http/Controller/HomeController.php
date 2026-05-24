@@ -19,13 +19,14 @@ final readonly class HomeController
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(new Input());
+        $output = $this->interactor->execute(new Input((int) $request->input('page', '1')));
 
         return new Response($this->renderer->render('index.latte', [
             'title' => 'トップ',
             'siteName' => 'WEB Media',
             'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
             'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
+            'pagination' => $output->pagination->toArray(),
         ]));
     }
 }

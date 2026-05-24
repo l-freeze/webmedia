@@ -8,10 +8,29 @@
       <p class="muted">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
     </div>
     <div class="article-list" style="margin-top:16px">
-      {foreach $articles as $article}
-        {include 'partials/article-card.latte', article: $article}
-      {/foreach}
+      {if count($articles) === 0}
+        <p class="card muted">公開中の記事はありません。</p>
+      {else}
+        {foreach $articles as $article}
+          {include 'partials/article-card.latte', article: $article}
+        {/foreach}
+      {/if}
     </div>
+    {if $pagination['total_pages'] > 1}
+      <nav class="pagination" aria-label="記事ページ">
+        {if $pagination['previous_page'] !== null}
+          <a class="button secondary" href="/?page={$pagination['previous_page']}">前へ</a>
+        {else}
+          <span class="button secondary is-disabled" aria-disabled="true">前へ</span>
+        {/if}
+        <span class="pagination__status">{$pagination['current_page']} / {$pagination['total_pages']}</span>
+        {if $pagination['next_page'] !== null}
+          <a class="button secondary" href="/?page={$pagination['next_page']}">次へ</a>
+        {else}
+          <span class="button secondary is-disabled" aria-disabled="true">次へ</span>
+        {/if}
+      </nav>
+    {/if}
   </section>
   <aside class="card">
     <h2>カテゴリ</h2>

@@ -4,6 +4,12 @@
 {/block}
 {block content}
 <form method="post" action="{$action}" class="admin-content-grid">
+  {ifset $flash}
+    <div class="form-alert form-alert--success admin-content-grid__full" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+  {/ifset}
+  {ifset $error}
+    <div class="form-alert form-alert--error admin-content-grid__full" role="alert" data-auto-dismiss>{$error}</div>
+  {/ifset}
   <input type="hidden" name="_csrf" value="{$csrf}">
   <section class="card form-stack">
     <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>

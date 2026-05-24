@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.querySelectorAll('.toast').forEach((toast) => {
+  document.querySelectorAll('[data-auto-dismiss]').forEach((toast) => {
     window.setTimeout(() => {
       toast.classList.add('is-hiding');
     }, 2800);
