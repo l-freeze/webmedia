@@ -39,6 +39,7 @@ final readonly class SettingController
             'columns' => ['項目', '値'],
             'rows' => [['サイト名', $settings->siteName], ['説明', $settings->siteDescription], ['通知先', $settings->contactEmail]],
             'form' => [['label' => 'サイト名', 'name' => 'site_name'], ['label' => '説明', 'name' => 'site_description'], ['label' => '通知先メール', 'name' => 'contact_email']],
+            'flash' => $this->session->pullFlash('success'),
         ]));
     }
 
@@ -49,6 +50,7 @@ final readonly class SettingController
             return $response;
         }
         $this->save->execute(new SaveInput($request->body));
+        $this->session->flash('success', '保存しました');
         return Response::redirect('/admin/settings');
     }
 }

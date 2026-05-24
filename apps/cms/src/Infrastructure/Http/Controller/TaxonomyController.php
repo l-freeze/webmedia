@@ -32,15 +32,7 @@ final readonly class TaxonomyController
         if ($response = $this->requireAuth($this->session)) {
             return $response;
         }
-        $output = $this->list->execute(new ListInput());
-
-        return new Response($this->renderer->render('simple-list.latte', [
-            'title' => 'カテゴリ/タグ管理',
-            'heading' => 'カテゴリ/タグ管理',
-            'columns' => ['名前', 'スラッグ', '説明'],
-            'rows' => array_map(fn ($row): array => $row->toArray(), $output->rows),
-            'form' => [['label' => 'カテゴリ名', 'name' => 'name'], ['label' => 'スラッグ', 'name' => 'slug'], ['label' => '説明', 'name' => 'description']],
-        ]));
+        return $this->listResponse();
     }
 
     /** @param array<string, string> $vars */
@@ -49,7 +41,29 @@ final readonly class TaxonomyController
         if ($response = $this->requireAuth($this->session)) {
             return $response;
         }
-        $this->save->execute(new SaveInput($request->body));
+        $output = $this->save->execute(new SaveInput($request->body));
+        if (!$output->saved) {
+            return $this->listResponse($output->error, $request->body, 422);
+        }
+
+        $this->session->flash('success', '保存しました');
         return Response::redirect('/admin/taxonomy');
+    }
+
+    /** @param array<string, mixed> $formValues */
+    private function listResponse(?string $error = null, array $formValues = [], int $status = 200): Response
+    {
+        $output = $this->list->execute(new ListInput());
+
+        return new Response($this->renderer->render('simple-list.latte', [
+            'title' => 'カテゴリ/タグ管理',
+            'heading' => 'カテゴリ/タグ管理',
+            'columns' => ['名前', 'スラッグ', '説明'],
+            'rows' => array_map(fn ($row): array => $row->toArray(), $output->rows),
+            'form' => [['label' => 'カテゴリ名', 'name' => 'name'], ['label' => 'スラッグ', 'name' => 'slug'], ['label' => '説明', 'name' => 'description']],
+            'formValues' => $formValues,
+            'error' => $error,
+            'flash' => $this->session->pullFlash('success'),
+        ]), $status);
     }
 }

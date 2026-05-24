@@ -40,6 +40,7 @@ final readonly class PageController
             'columns' => ['タイトル', 'スラッグ', '状態', '更新日'],
             'rows' => array_map(fn ($row): array => $row->toArray(), $output->rows),
             'form' => [['label' => 'ページタイトル', 'name' => 'title'], ['label' => 'スラッグ', 'name' => 'slug']],
+            'flash' => $this->session->pullFlash('success'),
         ]));
     }
 
@@ -50,6 +51,7 @@ final readonly class PageController
             return $response;
         }
         $this->save->execute(new SaveInput($request->body));
+        $this->session->flash('success', '保存しました');
         return Response::redirect('/admin/pages');
     }
 }

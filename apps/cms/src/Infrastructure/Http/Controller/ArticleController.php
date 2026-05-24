@@ -54,6 +54,7 @@ final readonly class ArticleController
             'title' => '記事管理',
             'query' => $output->keyword,
             'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
+            'flash' => $this->session->pullFlash('success'),
         ]));
     }
 
@@ -137,6 +138,7 @@ final readonly class ArticleController
             'csrf' => $this->csrf->token(),
             'article' => $article ?? ['status' => 'draft'],
             'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
+            'flash' => $this->session->pullFlash('success'),
             'statuses' => [
                 'draft' => '下書き',
                 'published' => '公開中',
@@ -156,6 +158,7 @@ final readonly class ArticleController
             return new Response('Invalid CSRF token', 422);
         }
         $articleId = $this->save->execute(new SaveInput($id, $request->body))->articleId;
+        $this->session->flash('success', '保存しました');
         return Response::redirect('/admin/articles/' . $articleId->value);
     }
 }

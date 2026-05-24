@@ -14,6 +14,10 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
+        if (trim((string) ($input->data['name'] ?? '')) === '' || trim((string) ($input->data['slug'] ?? '')) === '') {
+            return new Output(false, 'カテゴリ名とスラッグを入力してください。');
+        }
+
         $this->taxonomy->createCategory($input->data);
         return new Output(true);
     }

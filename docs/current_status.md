@@ -71,6 +71,10 @@
    - 記事一覧のタイトルリンクから編集画面へ遷移できるように変更
    - 記事編集画面の公開日時 / 予約公開日時に flatpickr の日時 picker を追加
    - CMS layout に画面単位の head / scripts block を追加
+17. CMS 保存フィードバックと taxonomy 保存エラー修正
+   - 保存ボタン押下時に `保存中...` 表示と disabled 状態へ切り替える UI を追加
+   - 保存後に `保存しました` の toast を表示し、数秒後に自動で消す UI を追加
+   - taxonomy の未入力保存を DB 例外にせず、422 とエラーメッセージで返すように修正
 
 ## 検証結果
 
@@ -113,6 +117,19 @@
   - `/admin/articles`: ログイン後 200 OK
   - `/admin/articles/3`: ログイン後 200 OK
   - 記事タイトルリンクと flatpickr 読み込みタグの出力を確認
+- `docker compose exec app composer test`: 成功
+  - PHP: 8.5.6
+  - PHPUnit: 10 tests, 18 assertions
+  - CMS 保存フィードバック / taxonomy エラー修正後に再実行
+- `docker compose exec app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功
+  - CMS 保存フィードバック / taxonomy エラー修正後に再実行
+- taxonomy 未入力保存確認: 成功
+  - `POST /admin/taxonomy`: 422
+  - `カテゴリ名とスラッグを入力してください。` を表示
+- taxonomy 正常保存後の toast 確認: 成功
+  - `POST /admin/taxonomy`: 302
+  - redirect 後に `保存しました` toast を表示
+  - 検証用に追加した一時カテゴリは確認後に削除
 - Application Interactor 経由の主要 URL 確認: 成功
   - `/`: 200 OK
   - `/articles/start-small-webmedia`: 200 OK
