@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Framework\Application;
 
 use App\Framework\Container\Container;
+use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
+use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
@@ -15,6 +17,7 @@ use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
 use RuntimeException;
+use Throwable;
 
 final class Application
 {
@@ -32,6 +35,7 @@ final class Application
         private readonly string $root,
         private readonly NativeSessionRuntime $sessionRuntime = new NativeSessionRuntime(),
         private readonly MiddlewarePipeline $middlewarePipeline = new MiddlewarePipeline(),
+        private readonly ExceptionHandlerInterface $exceptionHandler = new RethrowingExceptionHandler(),
     ) {
         $this->cmsRouter = new Router(routes: $this->loadRoutes(path: '/apps/cms/config/routes.php'));
         $this->frontRouter = new Router(routes: $this->loadRoutes(path: '/apps/front/config/routes.php'));
@@ -52,7 +56,7 @@ final class Application
                 runtime: $this->sessionRuntime,
             );
 
-            $this->handle(request: $request, session: $session)->send();
+            $this->handleWithExceptionHandling(request: $request, session: $session)->send();
         } finally {
             $this->sessionRuntime->close();
         }
@@ -72,7 +76,7 @@ final class Application
                 runtime: $this->sessionRuntime,
             );
 
-            $response = $this->handle(request: $request, session: $session);
+            $response = $this->handleWithExceptionHandling(request: $request, session: $session);
             $cookieHeader = $this->sessionRuntime->cookieHeader();
 
             return $cookieHeader === null ? $response : $response->withHeader(name: 'Set-Cookie', value: $cookieHeader);
@@ -101,6 +105,15 @@ final class Application
                 ),
             ),
         );
+    }
+
+    private function handleWithExceptionHandling(Request $request, Session $session): Response
+    {
+        try {
+            return $this->handle(request: $request, session: $session);
+        } catch (Throwable $throwable) {
+            return $this->exceptionHandler->handle(throwable: $throwable, request: $request);
+        }
     }
 
     private function loadContainer(string $path): Container

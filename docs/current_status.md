@@ -13,6 +13,12 @@
   - middleware は Container から解決し、Controller 実行前後の処理や short-circuit response を実装できる。
   - `src/Framework/Http/Middleware/README.md` に middleware の作り方、差し込み方、DI の扱いを記載。
   - `tests/Framework/MiddlewarePipelineTest.php` で実行順と short-circuit を検証。
+- Framework に例外ハンドリングの差し込み口を追加。
+  - `src/Framework/Http/ExceptionHandling` に `ExceptionHandlerInterface` / `RethrowingExceptionHandler` / `PlainTextExceptionHandler` を追加。
+  - `Application` は HTTP 処理中の `Throwable` を `ExceptionHandlerInterface` へ渡し、`Response` へ変換できるように変更。
+  - デフォルトは `RethrowingExceptionHandler` とし、既存の例外再 throw 挙動を維持。
+  - `src/Framework/Http/ExceptionHandling/README.md` にハンドラの作り方、差し込み方、用意済みハンドラを記載。
+  - `tests/Framework/ExceptionHandlerTest.php` で Controller 例外を注入ハンドラが response に変換できることを検証。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。
