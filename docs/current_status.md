@@ -26,6 +26,14 @@
   - `ApplicationBootstrapConfig` から session runtime、middleware pipeline、exception handler を外側で差し替えられる。
   - `src/Framework/Bootstrap/README.md` に基本起動、差し替え、テスト用生成の使い方を記載。
   - `tests/Framework/BootstrapTest.php` で config から `Application` を生成できることを検証。
+- `apps/shared` を追加。
+  - CMS/Front 両方で使うアプリケーション側の共通層として `apps/shared` を追加。
+  - `apps/shared/config/container.php` に `PDO` / `Csrf` / `Markdown` / PSR-3 logger / audit logger の共通DI定義を移動。
+  - `apps/cms/config/container.php` と `apps/front/config/container.php` は shared container を読み込んでから各アプリ固有の定義を追加する形へ変更。
+  - `apps/shared/config/middleware.php` を追加し、CMS/Front の `config/middleware.php` は shared middleware を展開する形へ変更。
+  - `composer.json` に `App\Shared\` の PSR-4 autoload を追加。
+  - `apps/shared/README.md` に目的、依存ルール、container/middleware の使い方を記載。
+  - `tests/Shared/SharedConfigTest.php` で shared container と middleware config を検証。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。

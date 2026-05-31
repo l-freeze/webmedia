@@ -46,19 +46,15 @@ use App\Cms\Infrastructure\Persistence\PdoTaxonomyRepository;
 use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Framework\Container\Container;
-use App\Framework\Content\Markdown;
-use App\Framework\Database\ConnectionFactory;
-use App\Framework\Logging\AuditLoggerInterface;
-use App\Framework\Logging\PlaceholderAuditLogger;
-use App\Framework\Logging\PlaceholderLogger;
 use App\Framework\Security\Csrf;
 use App\Framework\View\Renderer;
-use Psr\Log\LoggerInterface;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
 
-$container->singleton(id: \PDO::class, factory: fn (): \PDO => (new ConnectionFactory())->create());
+$sharedContainer = require $root . '/apps/shared/config/container.php';
+$sharedContainer($container, $root);
+
 $container->singleton(id: Renderer::class, factory: function () use (&$container, $root): Renderer {
     $renderer = new Renderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
@@ -72,17 +68,6 @@ $container->singleton(id: Renderer::class, factory: function () use (&$container
 
     return $renderer;
 });
-$container->singleton(id: Csrf::class, factory: function (Container $container): Csrf {
-    $session = $container->get(id: \App\Framework\Security\Session::class);
-    if (!$session instanceof \App\Framework\Security\Session) {
-        throw new \RuntimeException('Session service is not registered.');
-    }
-
-    return new Csrf(session: $session);
-});
-$container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
-$container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new PlaceholderLogger());
-$container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new PlaceholderAuditLogger());
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
