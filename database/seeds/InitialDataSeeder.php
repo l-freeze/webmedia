@@ -286,6 +286,8 @@ final class InitialDataSeeder extends AbstractSeed
             ['setting_key' => 'site_name', 'setting_value' => 'WEB Media'],
             ['setting_key' => 'site_description', 'setting_value' => 'PHP技術記事と日常生活の知恵を届ける小規模WEBメディア'],
             ['setting_key' => 'contact_email', 'setting_value' => 'admin@example.com'],
+            ['setting_key' => 'front_theme', 'setting_value' => 'cafe-clean'],
+            ['setting_key' => 'search_enabled', 'setting_value' => '1'],
         ])->saveData();
 
         foreach (['categories', 'tags', 'articles', 'pages'] as $table) {

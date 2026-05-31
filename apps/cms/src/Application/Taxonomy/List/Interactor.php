@@ -15,6 +15,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(array_merge($this->categories->categories(), $this->tags->tags()));
+        return new Output(rows: array_merge($this->categories->categories(), $this->tags->tags()));
     }
 }

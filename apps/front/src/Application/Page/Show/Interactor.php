@@ -14,6 +14,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output($this->pages->findPublishedBySlug($input->slug));
+        return new Output(page: $this->pages->findPublishedBySlug(slug: $input->slug));
     }
 }

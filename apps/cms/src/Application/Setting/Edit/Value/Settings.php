@@ -10,6 +10,8 @@ final readonly class Settings
         public string $siteName,
         public string $siteDescription,
         public string $contactEmail,
+        public string $frontTheme,
+        public bool $searchEnabled,
     ) {
     }
 }

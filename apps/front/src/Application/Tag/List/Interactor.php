@@ -14,6 +14,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output($this->tags->all());
+        return new Output(items: $this->tags->all());
     }
 }

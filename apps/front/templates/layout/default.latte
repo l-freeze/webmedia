@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{$title} | {$siteName}</title>
   <meta name="description" content="{$description ?? ''}">
-  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260526-search-toggle">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script type="module" src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"></script>
-  <script src="/assets/js/app.js" defer></script>
+  <script src="/assets/js/app.js?v=20260526-search-toggle" defer></script>
 </head>
-<body>
+<body data-front-theme="{$frontTheme ?? 'cafe-clean'}">
 <header class="site-header">
   <div class="site-header__inner">
     <a class="brand" href="/">{$siteName}</a>
@@ -23,10 +23,12 @@
       <a href="/contact">問い合わせ</a>
       <a href="/menu">メニュー</a>
     </nav>
-    <form class="search-inline" action="/search" method="get">
-      <input name="q" value="{$query ?? ''}" placeholder="記事を検索">
-      <button type="submit">検索</button>
-    </form>
+    {if $searchEnabled ?? true}
+      <form class="search-inline" action="/search" method="get">
+        <input name="q" value="{$query ?? ''}" placeholder="記事を検索">
+        <button type="submit">検索</button>
+      </form>
+    {/if}
   </div>
 </header>
 <main class="front-shell">
@@ -35,7 +37,7 @@
 <footer class="site-footer">
   <div class="site-footer__inner nav">
     <strong>{$siteName}</strong>
-    <span class="muted">© {date('Y')} WEB Media</span>
+    <span class="muted">© {date('Y')} {$siteName}</span>
     {foreach $publishedPages as $pageLink}
       <a href="/pages/{$pageLink['slug']}">{$pageLink['title']}</a>
     {/foreach}

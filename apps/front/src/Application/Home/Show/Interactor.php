@@ -23,9 +23,9 @@ final readonly class Interactor
         $offset = ($currentPage - 1) * self::ARTICLES_PER_PAGE;
 
         return new Output(
-            $this->articles->latest(self::ARTICLES_PER_PAGE, $offset),
-            $this->categories->all(),
-            new Value\Pagination($currentPage, self::ARTICLES_PER_PAGE, $totalArticles),
+            articles: $this->articles->latest(limit: self::ARTICLES_PER_PAGE, offset: $offset),
+            categories: $this->categories->all(),
+            pagination: new Value\Pagination(currentPage: $currentPage, perPage: self::ARTICLES_PER_PAGE, totalItems: $totalArticles),
         );
     }
 }

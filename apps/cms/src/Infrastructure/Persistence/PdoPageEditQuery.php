@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Page\Edit\Query\IPageQuery;
 use App\Cms\Application\Page\Edit\Value\Page;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoPageEditQuery implements IPageQuery
@@ -16,10 +17,10 @@ final readonly class PdoPageEditQuery implements IPageQuery
 
     public function find(int $id): ?Page
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM pages WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-        if (!$row) {
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT * FROM pages WHERE id = :id');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
             return null;
         }
 

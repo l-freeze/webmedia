@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Dashboard\Show\Query\IDashboardQuery;
 use App\Cms\Application\Dashboard\Show\Value\Stats;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoDashboardQuery implements IDashboardQuery
@@ -16,10 +17,10 @@ final readonly class PdoDashboardQuery implements IDashboardQuery
 
     public function stats(): Stats
     {
-        $published = (int) $this->pdo->query("SELECT COUNT(*) FROM articles WHERE status = 'published' AND published_at IS NOT NULL AND published_at <= NOW() AND (published_ends_at IS NULL OR published_ends_at > NOW())")->fetchColumn();
-        $draft = (int) $this->pdo->query("SELECT COUNT(*) FROM articles WHERE status = 'draft'")->fetchColumn();
-        $scheduled = (int) $this->pdo->query("SELECT COUNT(*) FROM articles WHERE status = 'published' AND published_at IS NOT NULL AND published_at > NOW()")->fetchColumn();
-        $inquiries = (int) $this->pdo->query("SELECT COUNT(*) FROM inquiries WHERE status <> 'closed'")->fetchColumn();
-        return new Stats($published, $draft, $scheduled, $inquiries);
+        $published = (int) PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM articles WHERE status = 'published' AND published_at IS NOT NULL AND published_at <= NOW() AND (published_ends_at IS NULL OR published_ends_at > NOW())"));
+        $draft = (int) PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM articles WHERE status = 'draft'"));
+        $scheduled = (int) PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM articles WHERE status = 'published' AND published_at IS NOT NULL AND published_at > NOW()"));
+        $inquiries = (int) PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM inquiries WHERE status <> 'closed'"));
+        return new Stats(published: $published, draft: $draft, scheduled: $scheduled, inquiries: $inquiries);
     }
 }

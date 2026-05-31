@@ -3,16 +3,16 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 {/block}
 {block content}
-<div class="article-edit-layout">
-  <form method="post" action="{$action}" class="card form-stack article-edit-form">
+<div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+  <form method="post" action="{$action}" class="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     {ifset $flash}
-      <div class="form-alert form-alert--success" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
     {/ifset}
     {ifset $error}
-      <div class="form-alert form-alert--error" role="alert" data-auto-dismiss>{$error}</div>
+      <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-700" role="alert" data-auto-dismiss>{$error}</div>
     {/ifset}
     <input type="hidden" name="_csrf" value="{$csrf}">
-    <div class="article-edit-meta-grid">
+    <div class="grid gap-4 md:grid-cols-2">
       <label>表示設定
         <select name="status">
           {foreach $statuses as $value => $label}
@@ -30,27 +30,51 @@
       </label>
       <label>公開日時<input class="datetime-picker" type="text" name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
       <label>公開終了日時<input class="datetime-picker" type="text" name="published_ends_at" value="{$article['published_ends_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
-      <label class="article-edit-meta-grid__wide">SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
-      <label class="article-edit-meta-grid__wide">meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
+      <label class="md:col-span-2">アイキャッチ画像
+        <select name="eyecatch_path">
+          <option value="">未設定</option>
+          {foreach $media as $item}
+            <option value="{$item['path']}" {if ($article['eyecatch_path'] ?? '') === $item['path']}selected{/if}>{$item['file_name']}</option>
+          {/foreach}
+        </select>
+      </label>
+      <div class="grid gap-3 md:col-span-2" data-eyecatch-preview>
+        {if ($article['eyecatch_path'] ?? '') !== ''}
+          <img class="max-h-56 rounded-lg border border-slate-200 object-contain" src="{$article['eyecatch_path']}" alt="{$article['title'] ?? 'アイキャッチ画像'}">
+        {else}
+          <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500">アイキャッチ未設定</div>
+        {/if}
+        <a class="inline-flex min-h-10 w-fit items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300" href="/admin/media">メディアを登録する</a>
+      </div>
+      <label class="md:col-span-2">SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
+      <label class="md:col-span-2">meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
     </div>
     <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>
     <label>スラッグ<input name="slug" value="{$article['slug'] ?? ''}" required></label>
     <label>本文<textarea name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea></label>
     <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
-    <div class="article-edit-actions">
-      <button type="submit">保存</button>
+    <div class="flex justify-end gap-2">
+      {if isset($article['id'])}
+        <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700" form="article-delete-form" data-confirm="この記事を削除してゴミ箱へ移動しますか？">削除</button>
+      {/if}
+      <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" type="submit">保存</button>
     </div>
   </form>
-  <aside class="card article-edit-history">
-    <h2>更新履歴</h2>
+  {if isset($article['id'])}
+    <form id="article-delete-form" method="post" action="/admin/articles/{$article['id']}/delete" hidden>
+      <input type="hidden" name="_csrf" value="{$csrf}">
+    </form>
+  {/if}
+  <aside class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="mb-4 text-lg font-bold">更新履歴</h2>
     {if count($versions) === 0}
-      <p class="muted">まだ保存履歴はありません。</p>
+      <p class="text-sm text-slate-500">まだ保存履歴はありません。</p>
     {else}
-      <ol class="history-date-list">
+      <ol class="grid list-decimal gap-3 pl-5">
         {foreach $versions as $version}
-          <li>
-            <a href="/admin/articles/{$article['id']}/history">{$version['created_at']}</a>
-            <span class="muted">版 {$version['version_no']}</span>
+          <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+            <a class="block font-bold text-blue-600 hover:text-blue-700" href="/admin/articles/{$article['id']}/history">{$version['created_at']}</a>
+            <span class="text-sm text-slate-500">版 {$version['version_no']}</span>
           </li>
         {/foreach}
       </ol>
@@ -69,6 +93,30 @@
       enableTime: true,
       locale: 'ja',
       time_24hr: true
+    });
+
+    const eyecatchSelect = document.querySelector('select[name="eyecatch_path"]');
+      const eyecatchPreview = document.querySelector('[data-eyecatch-preview]');
+    eyecatchSelect?.addEventListener('change', () => {
+      const path = eyecatchSelect.value;
+      const title = document.querySelector('input[name="title"]')?.value || 'アイキャッチ画像';
+      if (!eyecatchPreview) {
+        return;
+      }
+      const link = eyecatchPreview.querySelector('a');
+      const preview = path ? document.createElement('img') : document.createElement('div');
+      if (path) {
+        preview.src = path;
+        preview.alt = title;
+        preview.className = 'max-h-56 rounded-lg border border-slate-200 object-contain';
+      } else {
+        preview.className = 'rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500';
+        preview.textContent = 'アイキャッチ未設定';
+      }
+      eyecatchPreview.replaceChildren(preview);
+      if (link) {
+        eyecatchPreview.appendChild(link);
+      }
     });
   </script>
 {/block}

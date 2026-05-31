@@ -13,6 +13,7 @@ final readonly class Article
         public string $bodyMarkdown,
         public string $status,
         public string $statusLabel,
+        public string $eyecatchPath,
         public string $publishedAt,
     ) {
     }
@@ -28,6 +29,7 @@ final readonly class Article
             'body_html' => $bodyHtml,
             'status' => $this->status,
             'status_label' => $this->statusLabel,
+            'eyecatch_path' => $this->eyecatchPath,
             'published_at' => $this->publishedAt,
         ];
     }

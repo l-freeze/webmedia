@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\Edit\Query\IArticleQuery;
 use App\Cms\Application\Article\Edit\Value\Article;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoArticleEditQuery implements IArticleQuery
@@ -16,10 +17,10 @@ final readonly class PdoArticleEditQuery implements IArticleQuery
 
     public function find(int $id): ?Article
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM articles WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-        if (!$row) {
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT * FROM articles WHERE id = :id');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
             return null;
         }
 
@@ -31,6 +32,7 @@ final readonly class PdoArticleEditQuery implements IArticleQuery
             excerpt: (string) ($row['excerpt'] ?? ''),
             status: (string) $row['status'],
             categoryId: $row['category_id'] === null ? null : (int) $row['category_id'],
+            eyecatchPath: (string) ($row['eyecatch_path'] ?? ''),
             publishedAt: (string) ($row['published_at'] ?? ''),
             publishedEndsAt: (string) ($row['published_ends_at'] ?? ''),
             seoTitle: (string) ($row['seo_title'] ?? ''),

@@ -1,11 +1,15 @@
 {layout '../layout/default.latte'}
 {block content}
-<div class="article-edit-layout">
-  <form method="post" action="{$action}" class="card form-stack article-edit-form">
+<div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+  <form method="post" action="{$action}" class="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     {ifset $flash}
-      <div class="form-alert form-alert--success" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
     {/ifset}
-    <div class="article-edit-meta-grid">
+    {ifset $error}
+      <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-700" role="alert" data-auto-dismiss>{$error}</div>
+    {/ifset}
+    <input type="hidden" name="_csrf" value="{$csrf}">
+    <div class="grid gap-4 md:grid-cols-2">
       <label>状態
         <select name="status">
           {foreach $statuses as $value => $label}
@@ -15,25 +19,25 @@
       </label>
       <label>表示順<input type="number" name="display_order" value="{$page['display_order'] ?? 0}" min="0" step="1"></label>
       <label>SEOタイトル<input name="seo_title" value="{$page['seo_title'] ?? ''}"></label>
-      <label class="article-edit-meta-grid__wide">meta description<textarea name="meta_description">{$page['meta_description'] ?? ''}</textarea></label>
+      <label class="md:col-span-2">meta description<textarea name="meta_description">{$page['meta_description'] ?? ''}</textarea></label>
     </div>
     <label>タイトル<input name="title" value="{$page['title'] ?? ''}" required></label>
     <label>スラッグ<input name="slug" value="{$page['slug'] ?? ''}" required></label>
     <label>本文<textarea name="body_markdown" required>{$page['body_markdown'] ?? ''}</textarea></label>
-    <div class="article-edit-actions">
-      <button type="submit">保存</button>
+    <div class="flex justify-end">
+      <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" type="submit">保存</button>
     </div>
   </form>
-  <aside class="card article-edit-history">
-    <h2>更新履歴</h2>
+  <aside class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="mb-4 text-lg font-bold">更新履歴</h2>
     {if count($versions) === 0}
-      <p class="muted">まだ保存履歴はありません。</p>
+      <p class="text-sm text-slate-500">まだ保存履歴はありません。</p>
     {else}
-      <ol class="history-date-list">
+      <ol class="grid list-decimal gap-3 pl-5">
         {foreach $versions as $version}
-          <li>
+          <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
             <span>{$version['created_at']}</span>
-            <span class="muted">版 {$version['version_no']}</span>
+            <span class="text-sm text-slate-500">版 {$version['version_no']}</span>
           </li>
         {/foreach}
       </ol>

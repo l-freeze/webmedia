@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Value\PageId;
+use App\Framework\Database\PdoHelper;
 use PDO;
 use Throwable;
 
@@ -21,7 +22,7 @@ final readonly class PdoPageRepository implements IPageRepository
         $this->pdo->beginTransaction();
 
         try {
-            $pageId = $this->saveWithinTransaction($page);
+            $pageId = $this->saveWithinTransaction(page: $page);
             $this->pdo->commit();
             return $pageId;
         } catch (Throwable $exception) {
@@ -46,28 +47,28 @@ final readonly class PdoPageRepository implements IPageRepository
 
         if ($page->id === null) {
             $payload['created_at'] = $now;
-            $stmt = $this->pdo->prepare('INSERT INTO pages (title, slug, body_markdown, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
-            $stmt->execute($payload);
-            $id = (int) $stmt->fetchColumn();
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO pages (title, slug, body_markdown, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
+            PdoHelper::execute(statement: $stmt, params: $payload);
+            $id = (int) PdoHelper::fetchColumn(statement: $stmt);
         } else {
             $id = $page->id->value;
             $payload['id'] = $id;
-            $stmt = $this->pdo->prepare('UPDATE pages SET title = :title, slug = :slug, body_markdown = :body_markdown, status = :status, display_order = :display_order, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
-            $stmt->execute($payload);
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE pages SET title = :title, slug = :slug, body_markdown = :body_markdown, status = :status, display_order = :display_order, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
+            PdoHelper::execute(statement: $stmt, params: $payload);
         }
 
-        $versionNo = $page->id === null ? 1 : $this->nextVersionNo($id);
-        $this->snapshot($id, $versionNo, $payload);
-        $this->updateCurrentVersionNo($id, $versionNo);
+        $versionNo = $page->id === null ? 1 : $this->nextVersionNo(pageId: $id);
+        $this->snapshot(pageId: $id, versionNo: $versionNo, payload: $payload);
+        $this->updateCurrentVersionNo(pageId: $id, versionNo: $versionNo);
 
-        return new PageId($id);
+        return new PageId(value: $id);
     }
 
     /** @param array<string, mixed> $payload */
     private function snapshot(int $pageId, int $versionNo, array $payload): void
     {
-        $insert = $this->pdo->prepare('INSERT INTO page_versions (page_id, version_no, title, slug, body_markdown, status, display_order, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_by, :created_at)');
-        $insert->execute([
+        $insert = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO page_versions (page_id, version_no, title, slug, body_markdown, status, display_order, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_by, :created_at)');
+        PdoHelper::execute(statement: $insert, params: [
             'page_id' => $pageId,
             'version_no' => $versionNo,
             'title' => $payload['title'],
@@ -84,20 +85,20 @@ final readonly class PdoPageRepository implements IPageRepository
 
     private function nextVersionNo(int $pageId): int
     {
-        $stmt = $this->pdo->prepare('SELECT current_version_no FROM pages WHERE id = :id FOR UPDATE');
-        $stmt->execute(['id' => $pageId]);
-        $currentVersionNo = (int) $stmt->fetchColumn();
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT current_version_no FROM pages WHERE id = :id FOR UPDATE');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $pageId]);
+        $currentVersionNo = (int) PdoHelper::fetchColumn(statement: $stmt);
 
-        $maxStmt = $this->pdo->prepare('SELECT COALESCE(MAX(version_no), 0) FROM page_versions WHERE page_id = :id');
-        $maxStmt->execute(['id' => $pageId]);
-        $maxVersionNo = (int) $maxStmt->fetchColumn();
+        $maxStmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COALESCE(MAX(version_no), 0) FROM page_versions WHERE page_id = :id');
+        PdoHelper::execute(statement: $maxStmt, params: ['id' => $pageId]);
+        $maxVersionNo = (int) PdoHelper::fetchColumn(statement: $maxStmt);
 
         return max($currentVersionNo, $maxVersionNo) + 1;
     }
 
     private function updateCurrentVersionNo(int $pageId, int $versionNo): void
     {
-        $stmt = $this->pdo->prepare('UPDATE pages SET current_version_no = :version_no WHERE id = :id');
-        $stmt->execute(['version_no' => $versionNo, 'id' => $pageId]);
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE pages SET current_version_no = :version_no WHERE id = :id');
+        PdoHelper::execute(statement: $stmt, params: ['version_no' => $versionNo, 'id' => $pageId]);
     }
 }

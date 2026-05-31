@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Front\Application\Inquiry\Create;
 
 use App\Front\Domain\Repository\IInquiryRepository;
+use App\Framework\Validation\FormValidator;
+use App\Framework\Validation\ValidationInput;
 
 final readonly class Interactor
 {
@@ -14,7 +16,24 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->inquiries->create($input->name, $input->email, $input->subject, $input->message);
-        return new Output(true);
+        $validation = (new FormValidator(input: new ValidationInput(values: [
+            'name' => $input->name,
+            'email' => $input->email,
+            'subject' => $input->subject,
+            'message' => $input->message,
+        ])))
+            ->required(field: 'name', label: '名前')
+            ->required(field: 'email', label: 'メールアドレス')
+            ->email(field: 'email', label: 'メールアドレス')
+            ->required(field: 'subject', label: '件名')
+            ->required(field: 'message', label: '内容')
+            ->output();
+
+        if (!$validation->isValid()) {
+            return new Output(created: false, error: $validation->firstMessage());
+        }
+
+        $this->inquiries->create(name: $input->name, email: $input->email, subject: $input->subject, message: $input->message);
+        return new Output(created: true);
     }
 }

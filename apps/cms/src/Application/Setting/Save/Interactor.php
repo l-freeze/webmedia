@@ -14,7 +14,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->settings->save($input->data);
-        return new Output(true);
+        $this->settings->save(data: $input->data);
+        return new Output(saved: true);
     }
 }

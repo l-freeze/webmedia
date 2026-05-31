@@ -1,9 +1,12 @@
 {layout '../layout/default.latte'}
 {block content}
-<article class="prose">
-  <span class="label status-{$article['status']}">{$article['status_label']}</span>
-  <h1>{$article['title']}</h1>
-  <p class="meta">公開 {$article['published_at']}</p>
+<article class="max-w-3xl rounded-lg border border-slate-200 bg-white p-8 shadow-sm [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6">
+  <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$article['status_label']}</span>
+  <h1 class="mt-4 text-3xl font-bold text-slate-900">{$article['title']}</h1>
+  <p class="mt-2 text-sm text-slate-500">公開 {$article['published_at']}</p>
+  {if ($article['eyecatch_path'] ?? '') !== ''}
+    <img class="my-5 max-h-[420px] rounded-lg border border-slate-200 object-contain" src="{$article['eyecatch_path']}" alt="{$article['title']}">
+  {/if}
   <div>{$article['body_html']|noescape}</div>
 </article>
 {/block}

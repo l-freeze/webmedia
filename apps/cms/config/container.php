@@ -11,6 +11,7 @@ use App\Cms\Application\ArticleVersion\Preview\Query\IArticleVersionQuery as Pre
 use App\Cms\Application\Dashboard\Show\Query\IDashboardQuery;
 use App\Cms\Application\Inquiry\List\Query\IInquiryQuery;
 use App\Cms\Application\Media\List\Query\IMediaQuery;
+use App\Cms\Application\Article\Edit\Query\IMediaQuery as EditMediaQuery;
 use App\Cms\Application\Page\Edit\Query\IPageQuery as EditPageQuery;
 use App\Cms\Application\Page\History\Query\IPageHistoryQuery;
 use App\Cms\Application\Page\List\Query\IPageQuery;
@@ -18,22 +19,23 @@ use App\Cms\Application\Setting\Edit\Query\ISettingQuery;
 use App\Cms\Application\Taxonomy\List\Query\ICategoryQuery as TaxonomyCategoryQuery;
 use App\Cms\Application\Taxonomy\List\Query\ITagQuery as TaxonomyTagQuery;
 use App\Cms\Application\Trash\List\Query\ITrashQuery;
-use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
-use App\Cms\Auth\Domain\IUserRepository;
-use App\Cms\Auth\Infrastructure\Persistence\PdoUserRepository;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Repository\ISettingRepository;
 use App\Cms\Domain\Repository\ITaxonomyRepository;
+use App\Cms\Domain\Repository\IUserRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleEditCategoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleEditQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleHistoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticlePreviewQuery;
+use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoDashboardQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryQuery;
 use App\Cms\Infrastructure\Persistence\PdoMediaQuery;
+use App\Cms\Infrastructure\Persistence\PdoMediaRepository;
 use App\Cms\Infrastructure\Persistence\PdoPageEditQuery;
 use App\Cms\Infrastructure\Persistence\PdoPageHistoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoPageQuery;
@@ -42,46 +44,68 @@ use App\Cms\Infrastructure\Persistence\PdoSettingRepository;
 use App\Cms\Infrastructure\Persistence\PdoTaxonomyQuery;
 use App\Cms\Infrastructure\Persistence\PdoTaxonomyRepository;
 use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
+use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Framework\Container\Container;
 use App\Framework\Content\Markdown;
 use App\Framework\Database\ConnectionFactory;
+use App\Framework\Logging\AuditLoggerInterface;
+use App\Framework\Logging\LoggerInterface;
+use App\Framework\Logging\PlaceholderAuditLogger;
+use App\Framework\Logging\PlaceholderLogger;
 use App\Framework\Security\Csrf;
-use App\Framework\Security\Session;
 use App\Framework\View\Renderer;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
 
-$container->singleton(\PDO::class, fn (): \PDO => (new ConnectionFactory())->create());
-$container->singleton(Renderer::class, fn (): Renderer => new Renderer($root . '/apps/cms/templates', $root . '/storage/cache'));
-$container->singleton(Session::class, function (): Session {
-    $session = new Session();
-    $session->start();
-    return $session;
-});
-$container->singleton(Csrf::class, fn (): Csrf => new Csrf());
-$container->singleton(Markdown::class, fn (): Markdown => new Markdown());
+$container->singleton(id: \PDO::class, factory: fn (): \PDO => (new ConnectionFactory())->create());
+$container->singleton(id: Renderer::class, factory: function () use (&$container, $root): Renderer {
+    $renderer = new Renderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');
+    $renderer->addGlobalProvider(provider: function () use (&$container): array {
+        $csrf = $container->get(id: Csrf::class);
+        if (!$csrf instanceof Csrf) {
+            throw new \RuntimeException('CSRF service is not registered.');
+        }
 
-$container->bind(IUserRepository::class, PdoUserRepository::class);
-$container->bind(IArticleRepository::class, PdoArticleRepository::class);
-$container->bind(IPageRepository::class, PdoPageRepository::class);
-$container->bind(ITaxonomyRepository::class, PdoTaxonomyRepository::class);
-$container->bind(ISettingRepository::class, PdoSettingRepository::class);
-$container->bind(ListArticleQuery::class, PdoArticleQuery::class);
-$container->bind(EditArticleQuery::class, PdoArticleEditQuery::class);
-$container->bind(EditCategoryQuery::class, PdoArticleEditCategoryQuery::class);
-$container->bind(PreviewArticleQuery::class, PdoArticlePreviewQuery::class);
-$container->bind(PreviewArticleVersionQuery::class, PdoArticleVersionPreviewQuery::class);
-$container->bind(IArticleHistoryQuery::class, PdoArticleHistoryQuery::class);
-$container->bind(IDashboardQuery::class, PdoDashboardQuery::class);
-$container->bind(IInquiryQuery::class, PdoInquiryQuery::class);
-$container->bind(IMediaQuery::class, PdoMediaQuery::class);
-$container->bind(IPageQuery::class, PdoPageQuery::class);
-$container->bind(EditPageQuery::class, PdoPageEditQuery::class);
-$container->bind(IPageHistoryQuery::class, PdoPageHistoryQuery::class);
-$container->bind(ISettingQuery::class, PdoSettingRepository::class);
-$container->bind(TaxonomyCategoryQuery::class, PdoTaxonomyQuery::class);
-$container->bind(TaxonomyTagQuery::class, PdoTaxonomyQuery::class);
-$container->bind(ITrashQuery::class, PdoTrashQuery::class);
+        return ['csrf' => $csrf->token()];
+    });
+
+    return $renderer;
+});
+$container->singleton(id: Csrf::class, factory: function (Container $container): Csrf {
+    $session = $container->get(id: \App\Framework\Security\Session::class);
+    if (!$session instanceof \App\Framework\Security\Session) {
+        throw new \RuntimeException('Session service is not registered.');
+    }
+
+    return new Csrf(session: $session);
+});
+$container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
+$container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new PlaceholderLogger());
+$container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new PlaceholderAuditLogger());
+
+$container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
+$container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
+$container->bind(abstract: IMediaRepository::class, concrete: PdoMediaRepository::class);
+$container->bind(abstract: IPageRepository::class, concrete: PdoPageRepository::class);
+$container->bind(abstract: ITaxonomyRepository::class, concrete: PdoTaxonomyRepository::class);
+$container->bind(abstract: ISettingRepository::class, concrete: PdoSettingRepository::class);
+$container->bind(abstract: ListArticleQuery::class, concrete: PdoArticleQuery::class);
+$container->bind(abstract: EditArticleQuery::class, concrete: PdoArticleEditQuery::class);
+$container->bind(abstract: EditCategoryQuery::class, concrete: PdoArticleEditCategoryQuery::class);
+$container->bind(abstract: PreviewArticleQuery::class, concrete: PdoArticlePreviewQuery::class);
+$container->bind(abstract: PreviewArticleVersionQuery::class, concrete: PdoArticleVersionPreviewQuery::class);
+$container->bind(abstract: IArticleHistoryQuery::class, concrete: PdoArticleHistoryQuery::class);
+$container->bind(abstract: IDashboardQuery::class, concrete: PdoDashboardQuery::class);
+$container->bind(abstract: IInquiryQuery::class, concrete: PdoInquiryQuery::class);
+$container->bind(abstract: IMediaQuery::class, concrete: PdoMediaQuery::class);
+$container->bind(abstract: EditMediaQuery::class, concrete: PdoMediaQuery::class);
+$container->bind(abstract: IPageQuery::class, concrete: PdoPageQuery::class);
+$container->bind(abstract: EditPageQuery::class, concrete: PdoPageEditQuery::class);
+$container->bind(abstract: IPageHistoryQuery::class, concrete: PdoPageHistoryQuery::class);
+$container->bind(abstract: ISettingQuery::class, concrete: PdoSettingRepository::class);
+$container->bind(abstract: TaxonomyCategoryQuery::class, concrete: PdoTaxonomyQuery::class);
+$container->bind(abstract: TaxonomyTagQuery::class, concrete: PdoTaxonomyQuery::class);
+$container->bind(abstract: ITrashQuery::class, concrete: PdoTrashQuery::class);
 
 return $container;

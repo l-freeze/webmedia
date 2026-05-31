@@ -14,6 +14,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output($input->pageId, $this->pages->versions($input->pageId));
+        return new Output(pageId: $input->pageId, versions: $this->pages->versions(pageId: $input->pageId));
     }
 }

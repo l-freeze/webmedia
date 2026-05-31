@@ -12,6 +12,7 @@ final readonly class Article
         public string $slug,
         public string $excerpt,
         public string $categoryName,
+        public string $eyecatchPath,
         public string $publishedAt,
         public string $updatedAt,
     ) {
@@ -26,6 +27,7 @@ final readonly class Article
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'category_name' => $this->categoryName,
+            'eyecatch_path' => $this->eyecatchPath,
             'published_at' => $this->publishedAt,
             'updated_at' => $this->updatedAt,
         ];

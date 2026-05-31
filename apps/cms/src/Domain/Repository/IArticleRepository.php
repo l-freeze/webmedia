@@ -13,4 +13,6 @@ interface IArticleRepository
     public function save(Article $article): ArticleId;
 
     public function restore(ArticleId $articleId, ArticleVersionNo $versionNo): void;
+
+    public function trash(ArticleId $articleId): bool;
 }

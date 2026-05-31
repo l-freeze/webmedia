@@ -2,10 +2,17 @@
 {block content}
 <div class="front-grid">
   <section>
-    <div class="card">
-      <p class="label">新着記事</p>
-      <h1>読みやすく、探しやすいWEBメディア</h1>
-      <p class="muted">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
+    <div class="card front-hero">
+      <div class="front-hero__copy">
+        <p class="label">新着記事</p>
+        <h1>読みやすく、探しやすいWEBメディア</h1>
+        <p class="muted">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
+      </div>
+      <div class="front-hero__visual" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
     <div class="article-list" style="margin-top:16px">
       {if count($articles) === 0}
@@ -32,11 +39,13 @@
       </nav>
     {/if}
   </section>
-  <aside class="card">
-    <h2>カテゴリ</h2>
-    {foreach $categories as $category}
-      <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
-    {/foreach}
-  </aside>
+  {if ($frontTheme ?? '') !== 'tech-edge'}
+    <aside class="card category-panel">
+      <h2>カテゴリ</h2>
+      {foreach $categories as $category}
+        <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+      {/foreach}
+    </aside>
+  {/if}
 </div>
 {/block}

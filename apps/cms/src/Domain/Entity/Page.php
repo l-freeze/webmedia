@@ -31,14 +31,14 @@ final readonly class Page
     public static function fromInput(?int $id, array $data): self
     {
         return new self(
-            id: $id === null ? null : new PageId($id),
-            title: new PageTitle((string) $data['title']),
-            slug: new PageSlug((string) $data['slug']),
-            bodyMarkdown: new PageBodyMarkdown((string) ($data['body_markdown'] ?? '')),
-            status: new PageStatus((string) ($data['status'] ?? 'draft')),
-            displayOrder: new PageDisplayOrder((int) ($data['display_order'] ?? 0)),
-            seoTitle: new SeoTitle((string) ($data['seo_title'] ?? '')),
-            metaDescription: new MetaDescription((string) ($data['meta_description'] ?? '')),
+            id: $id === null ? null : new PageId(value: $id),
+            title: new PageTitle(value: (string) $data['title']),
+            slug: new PageSlug(value: (string) $data['slug']),
+            bodyMarkdown: new PageBodyMarkdown(value: (string) ($data['body_markdown'] ?? '')),
+            status: new PageStatus(value: (string) ($data['status'] ?? 'draft')),
+            displayOrder: new PageDisplayOrder(value: (int) ($data['display_order'] ?? 0)),
+            seoTitle: new SeoTitle(value: (string) ($data['seo_title'] ?? '')),
+            metaDescription: new MetaDescription(value: (string) ($data['meta_description'] ?? '')),
         );
     }
 }

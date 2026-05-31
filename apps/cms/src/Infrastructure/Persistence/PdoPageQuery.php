@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Page\List\Query\IPageQuery;
 use App\Cms\Application\Page\List\Value\Page;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoPageQuery implements IPageQuery
@@ -24,6 +25,6 @@ final readonly class PdoPageQuery implements IPageQuery
             status: (string) $row['status'],
             displayOrder: (int) $row['display_order'],
             updatedAt: (string) $row['updated_at'],
-        ), $this->pdo->query('SELECT id, title, slug, status, display_order, updated_at FROM pages ORDER BY display_order, id')->fetchAll());
+        ), PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, title, slug, status, display_order, updated_at FROM pages ORDER BY display_order, id')));
     }
 }

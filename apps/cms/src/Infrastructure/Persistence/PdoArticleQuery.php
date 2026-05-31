@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\List\Query\IArticleQuery as ListArticleQuery;
 use App\Cms\Application\Article\List\Value\Article;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoArticleQuery implements ListArticleQuery
@@ -17,16 +18,16 @@ final readonly class PdoArticleQuery implements ListArticleQuery
     /** @return array<int, Article> */
     public function list(string $keyword = ''): array
     {
-        $sql = 'SELECT a.*, c.name AS category_name FROM articles a LEFT JOIN categories c ON c.id = a.category_id';
-        $params = [];
+        $sql = 'SELECT a.*, c.name AS category_name FROM articles a LEFT JOIN categories c ON c.id = a.category_id WHERE a.status <> :trashed';
+        $params = ['trashed' => 'trashed'];
         if ($keyword !== '') {
-            $sql .= ' WHERE a.title LIKE :q';
+            $sql .= ' AND a.title LIKE :q';
             $params['q'] = '%' . $keyword . '%';
         }
         $sql .= ' ORDER BY a.updated_at DESC';
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return array_map($this->format(...), $stmt->fetchAll());
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
+        PdoHelper::execute(statement: $stmt, params: $params);
+        return array_map($this->format(...), PdoHelper::fetchAll(statement: $stmt));
     }
 
     /** @param array<string, mixed> $row */
@@ -36,7 +37,7 @@ final readonly class PdoArticleQuery implements ListArticleQuery
             id: (int) $row['id'],
             title: (string) $row['title'],
             status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel((string) $row['status'], (string) ($row['published_at'] ?? ''), (string) ($row['published_ends_at'] ?? '')),
+            statusLabel: PdoArticleRepository::statusLabel(status: (string) $row['status'], publishedAt: (string) ($row['published_at'] ?? ''), publishedEndsAt: (string) ($row['published_ends_at'] ?? '')),
             categoryName: $row['category_name'] === null ? null : (string) $row['category_name'],
             updatedAt: date('Y-m-d H:i', strtotime((string) $row['updated_at'])),
         );

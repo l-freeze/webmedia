@@ -16,7 +16,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->articles->restore(new ArticleId($input->articleId), new ArticleVersionNo($input->versionNo));
-        return new Output(true);
+        $this->articles->restore(articleId: new ArticleId(value: $input->articleId), versionNo: new ArticleVersionNo(value: $input->versionNo));
+        return new Output(restored: true);
     }
 }

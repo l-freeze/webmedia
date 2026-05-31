@@ -11,6 +11,7 @@ use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\CategoryId;
+use App\Cms\Domain\Value\EyecatchPath;
 use App\Cms\Domain\Value\MetaDescription;
 use App\Cms\Domain\Value\PublishedEndsAt;
 use App\Cms\Domain\Value\PublishedAt;
@@ -26,6 +27,7 @@ final readonly class Article
         public ArticleExcerpt $excerpt,
         public ArticleStatus $status,
         public ?CategoryId $categoryId,
+        public ?EyecatchPath $eyecatchPath,
         public ?PublishedAt $publishedAt,
         public ?PublishedEndsAt $publishedEndsAt,
         public SeoTitle $seoTitle,
@@ -37,17 +39,18 @@ final readonly class Article
     public static function fromInput(?int $id, array $data): self
     {
         return new self(
-            id: $id === null ? null : new ArticleId($id),
-            title: new ArticleTitle((string) $data['title']),
-            slug: new ArticleSlug((string) $data['slug']),
-            bodyMarkdown: new ArticleBodyMarkdown((string) $data['body_markdown']),
-            excerpt: new ArticleExcerpt((string) ($data['excerpt'] ?? '')),
-            status: new ArticleStatus((string) ($data['status'] ?? 'draft')),
-            categoryId: ($data['category_id'] ?? '') === '' ? null : new CategoryId((int) $data['category_id']),
-            publishedAt: ($data['published_at'] ?? '') === '' ? null : new PublishedAt((string) $data['published_at']),
-            publishedEndsAt: ($data['published_ends_at'] ?? '') === '' ? null : new PublishedEndsAt((string) $data['published_ends_at']),
-            seoTitle: new SeoTitle((string) ($data['seo_title'] ?? '')),
-            metaDescription: new MetaDescription((string) ($data['meta_description'] ?? '')),
+            id: $id === null ? null : new ArticleId(value: $id),
+            title: new ArticleTitle(value: (string) $data['title']),
+            slug: new ArticleSlug(value: (string) $data['slug']),
+            bodyMarkdown: new ArticleBodyMarkdown(value: (string) $data['body_markdown']),
+            excerpt: new ArticleExcerpt(value: (string) ($data['excerpt'] ?? '')),
+            status: new ArticleStatus(value: (string) ($data['status'] ?? 'draft')),
+            categoryId: ($data['category_id'] ?? '') === '' ? null : new CategoryId(value: (int) $data['category_id']),
+            eyecatchPath: ($data['eyecatch_path'] ?? '') === '' ? null : new EyecatchPath(value: (string) $data['eyecatch_path']),
+            publishedAt: ($data['published_at'] ?? '') === '' ? null : new PublishedAt(value: (string) $data['published_at']),
+            publishedEndsAt: ($data['published_ends_at'] ?? '') === '' ? null : new PublishedEndsAt(value: (string) $data['published_ends_at']),
+            seoTitle: new SeoTitle(value: (string) ($data['seo_title'] ?? '')),
+            metaDescription: new MetaDescription(value: (string) ($data['meta_description'] ?? '')),
         );
     }
 }

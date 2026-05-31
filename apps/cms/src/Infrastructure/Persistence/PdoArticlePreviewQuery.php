@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\Preview\Query\IArticleQuery;
 use App\Cms\Application\Article\Preview\Value\Article;
+use App\Framework\Database\PdoHelper;
 use PDO;
 
 final readonly class PdoArticlePreviewQuery implements IArticleQuery
@@ -16,10 +17,10 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
 
     public function find(int $id): ?Article
     {
-        $stmt = $this->pdo->prepare('SELECT id, title, slug, body_markdown, status, published_at, published_ends_at FROM articles WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-        if (!$row) {
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title, slug, body_markdown, status, eyecatch_path, published_at, published_ends_at FROM articles WHERE id = :id');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
             return null;
         }
 
@@ -29,7 +30,8 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
             slug: (string) $row['slug'],
             bodyMarkdown: (string) $row['body_markdown'],
             status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel((string) $row['status'], (string) ($row['published_at'] ?? ''), (string) ($row['published_ends_at'] ?? '')),
+            statusLabel: PdoArticleRepository::statusLabel(status: (string) $row['status'], publishedAt: (string) ($row['published_at'] ?? ''), publishedEndsAt: (string) ($row['published_ends_at'] ?? '')),
+            eyecatchPath: (string) ($row['eyecatch_path'] ?? ''),
             publishedAt: (string) ($row['published_at'] ?? ''),
         );
     }

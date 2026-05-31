@@ -14,6 +14,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output($this->versions->find($input->articleId, $input->versionNo));
+        return new Output(articleVersion: $this->versions->find(articleId: $input->articleId, versionNo: $input->versionNo));
     }
 }
