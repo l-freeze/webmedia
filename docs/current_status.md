@@ -2,10 +2,17 @@
 
 ## 更新日時
 
-- 2026-05-26
+- 2026-06-01
 
 ## 直近作業
 
+- Framework に middleware パイプライン機構を追加。
+  - `src/Framework/Http/Middleware` に `MiddlewareInterface` / `RequestHandlerInterface` / `CallableRequestHandler` / `MiddlewarePipeline` を追加。
+  - `Application` は `/admin` では `apps/cms/config/middleware.php`、それ以外では `apps/front/config/middleware.php` を任意で読み込むように変更。
+  - middleware 設定ファイルがない場合は空配列として扱い、既存アプリは設定なしで動作する。
+  - middleware は Container から解決し、Controller 実行前後の処理や short-circuit response を実装できる。
+  - `src/Framework/Http/Middleware/README.md` に middleware の作り方、差し込み方、DI の扱いを記載。
+  - `tests/Framework/MiddlewarePipelineTest.php` で実行順と short-circuit を検証。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。

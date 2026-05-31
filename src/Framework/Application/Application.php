@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Framework\Application;
 
 use App\Framework\Container\Container;
+use App\Framework\Http\Middleware\CallableRequestHandler;
+use App\Framework\Http\Middleware\MiddlewareInterface;
+use App\Framework\Http\Middleware\MiddlewarePipeline;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Routing\Router;
@@ -19,12 +22,21 @@ final class Application
 
     private Router $frontRouter;
 
+    /** @var array<int, class-string<MiddlewareInterface>> */
+    private array $cmsMiddleware;
+
+    /** @var array<int, class-string<MiddlewareInterface>> */
+    private array $frontMiddleware;
+
     public function __construct(
         private readonly string $root,
         private readonly NativeSessionRuntime $sessionRuntime = new NativeSessionRuntime(),
+        private readonly MiddlewarePipeline $middlewarePipeline = new MiddlewarePipeline(),
     ) {
         $this->cmsRouter = new Router(routes: $this->loadRoutes(path: '/apps/cms/config/routes.php'));
         $this->frontRouter = new Router(routes: $this->loadRoutes(path: '/apps/front/config/routes.php'));
+        $this->cmsMiddleware = $this->loadMiddleware(path: '/apps/cms/config/middleware.php');
+        $this->frontMiddleware = $this->loadMiddleware(path: '/apps/front/config/middleware.php');
     }
 
     public function handleGlobals(): void
@@ -76,9 +88,18 @@ final class Application
         $container->instance(id: Request::class, instance: $request);
         $container->instance(id: Session::class, instance: $session);
 
-        return ($isCms ? $this->cmsRouter : $this->frontRouter)->dispatch(
+        $router = $isCms ? $this->cmsRouter : $this->frontRouter;
+
+        return $this->middlewarePipeline->handle(
             request: $request,
             container: $container,
+            middleware: $isCms ? $this->cmsMiddleware : $this->frontMiddleware,
+            destination: new CallableRequestHandler(
+                handler: static fn (Request $request): Response => $router->dispatch(
+                    request: $request,
+                    container: $container,
+                ),
+            ),
         );
     }
 
@@ -104,5 +125,24 @@ final class Application
 
         /** @var array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string}> $routes */
         return $routes;
+    }
+
+    /**
+     * @return array<int, class-string<MiddlewareInterface>>
+     */
+    private function loadMiddleware(string $path): array
+    {
+        $fullPath = $this->root . $path;
+        if (!is_file($fullPath)) {
+            return [];
+        }
+
+        $middleware = require $fullPath;
+        if (!is_array($middleware)) {
+            throw new RuntimeException('Application middleware configuration is invalid.');
+        }
+
+        /** @var array<int, class-string<MiddlewareInterface>> $middleware */
+        return $middleware;
     }
 }
