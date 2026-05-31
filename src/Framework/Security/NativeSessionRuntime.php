@@ -41,6 +41,35 @@ final class NativeSessionRuntime
         session_write_close();
     }
 
+    public function cookieHeader(): ?string
+    {
+        $name = session_name();
+        if ($name === false) {
+            return null;
+        }
+
+        $id = session_id();
+        if ($id === false || $id === '') {
+            return null;
+        }
+
+        $params = session_get_cookie_params();
+        $parts = [$name . '=' . rawurlencode($id)];
+        $parts[] = 'Path=' . $params['path'];
+        if ($params['domain'] !== '') {
+            $parts[] = 'Domain=' . $params['domain'];
+        }
+        if ($params['secure']) {
+            $parts[] = 'Secure';
+        }
+        if ($params['httponly']) {
+            $parts[] = 'HttpOnly';
+        }
+        $parts[] = 'SameSite=' . $params['samesite'];
+
+        return implode('; ', $parts);
+    }
+
     public function destroy(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {

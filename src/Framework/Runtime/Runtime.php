@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Framework\Runtime;
 
+use App\Framework\Application\Application;
+
 interface Runtime
 {
-    /** @param callable(): void $handleRequest */
-    public function run(callable $handleRequest): void;
+    public function run(Application $application): void;
 }

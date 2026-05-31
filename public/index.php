@@ -15,6 +15,4 @@ if (is_file($root . '/.env')) {
 
 $application = new Application(root: $root);
 $runtime = RuntimeFactory::fromEnvironment();
-$runtime->run(handleRequest: static function () use ($application): void {
-    $application->handleGlobals();
-});
+$runtime->run(application: $application);

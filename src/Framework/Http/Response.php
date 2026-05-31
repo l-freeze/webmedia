@@ -29,6 +29,15 @@ final readonly class Response
         );
     }
 
+    public function withHeader(string $name, string $value): self
+    {
+        return new self(
+            body: $this->body,
+            status: $this->status,
+            headers: array_merge($this->headers, [$name => $value]),
+        );
+    }
+
     public function send(): void
     {
         http_response_code($this->status);

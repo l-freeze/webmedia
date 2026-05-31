@@ -46,6 +46,29 @@ final class Application
         }
     }
 
+    /** @param array<string, string> $cookies */
+    public function handleWorkerRequest(Request $request, array $cookies): Response
+    {
+        $_COOKIE = $cookies;
+        $this->sessionRuntime->start(secure: $request->isHttps());
+
+        try {
+            /** @var array<string, mixed> $_SESSION */
+            $sessionData = &$_SESSION;
+            $session = new Session(
+                state: new SessionState(data: $sessionData),
+                runtime: $this->sessionRuntime,
+            );
+
+            $response = $this->handle(request: $request, session: $session);
+            $cookieHeader = $this->sessionRuntime->cookieHeader();
+
+            return $cookieHeader === null ? $response : $response->withHeader(name: 'Set-Cookie', value: $cookieHeader);
+        } finally {
+            $this->sessionRuntime->close();
+        }
+    }
+
     public function handle(Request $request, Session $session): Response
     {
         $isCms = str_starts_with($request->path, '/admin');
