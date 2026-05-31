@@ -19,6 +19,13 @@
   - デフォルトは `RethrowingExceptionHandler` とし、既存の例外再 throw 挙動を維持。
   - `src/Framework/Http/ExceptionHandling/README.md` にハンドラの作り方、差し込み方、用意済みハンドラを記載。
   - `tests/Framework/ExceptionHandlerTest.php` で Controller 例外を注入ハンドラが response に変換できることを検証。
+- Framework に bootstrap 層を追加。
+  - `src/Framework/Bootstrap` に `ApplicationBootstrapConfig` / `ApplicationBootstrap` を追加。
+  - `.env` 読み込み、`Application` 生成、Runtime 選択を bootstrap 層へ集約。
+  - `public/index.php` は `ApplicationBootstrap::run()` に `ApplicationBootstrapConfig` を渡すだけの構成へ変更。
+  - `ApplicationBootstrapConfig` から session runtime、middleware pipeline、exception handler を外側で差し替えられる。
+  - `src/Framework/Bootstrap/README.md` に基本起動、差し替え、テスト用生成の使い方を記載。
+  - `tests/Framework/BootstrapTest.php` で config から `Application` を生成できることを検証。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。
