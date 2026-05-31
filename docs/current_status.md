@@ -2,7 +2,101 @@
 
 ## 更新日時
 
-- 2026-05-24
+- 2026-05-26
+
+## 直近作業
+
+- Form Validation I/O を追加。
+  - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
+  - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。
+  - 記事/固定ページ保存は validation error 時に永続化へ進まず、入力値を保持して 422 で編集画面を再表示するように変更。
+  - 固定ページ編集フォームに CSRF hidden と validation error 表示を追加。
+  - `phpstan-baseline.neon` は削除し、`phpstan.neon` の baseline include も削除。今回の検証では PHPStan 実行をスキップ。
+- CMS 記事削除機能を追加中。
+  - `POST /admin/articles/{id}/delete` を追加。
+  - 記事一覧と記事編集画面に削除ボタンを追加。
+  - 削除は既存の `trashed` ステータスを使うゴミ箱移動として実装。
+  - 記事一覧は `trashed` を除外し、削除後は通常一覧から消えるように変更。
+  - 記事編集の表示設定プルダウンから `ゴミ箱` を削除。
+  - 記事編集の削除ボタンを更新履歴エリアから保存ボタン左隣へ移動。
+  - 記事一覧の `編集` / `プレビュー` / `履歴` / `削除` を同じボタン形状に揃え、操作ごとに色を分けるように変更。
+  - 操作ボタン色は Tailwind class で、編集=blue-600、プレビュー=emerald-600、履歴=amber-600、削除=red-600 に変更。
+- CMS 画面の Tailwind CSS 置き換えを実施中。
+  - CMS layout と CMS login から `/assets/css/app.css` の読み込みを外し、Tailwind を読み込むように変更。
+  - 外部 `https://cdn.tailwindcss.com` は CSP の `script-src` で許可されておらず、ブラウザでブロックされて CSS が効かないため、`public/assets/js/tailwindcss-3.4.17.js` としてローカル配信へ変更。
+  - フロント側 layout は変更せず、既存 `app.css` のまま維持。
+  - CMS の layout / login / dashboard / article / page / taxonomy / media / simple-list テンプレートを Tailwind utility class ベースへ差し替え。
+  - 記事一覧操作ボタンは CSS 直接指定をやめ、Tailwind の `bg-blue-600` / `bg-emerald-600` / `bg-amber-600` / `bg-red-600` で色分け。
+  - メディアプレビューモーダルは Tailwind class ベースへ変更し、実寸表示の切り替えは JS で Tailwind class を切り替える方式に変更。
+- CMS カテゴリ/タグ削除機能を追加中。
+  - `POST /admin/taxonomy/categories/{id}/delete` を追加。
+  - `POST /admin/taxonomy/tags/{id}/delete` を追加。
+  - カテゴリ削除時は既存記事と履歴の `category_id` を `NULL` にしてからカテゴリを削除。
+  - タグ削除時は `article_tags` の紐づけを削除してからタグを削除。
+  - カテゴリ/タグ管理は専用テンプレート化し、一覧上に削除ボタンを表示。
+- CMS カテゴリ/タグ編集機能を追加。
+  - `POST /admin/taxonomy/categories/{id}` を追加。
+  - `POST /admin/taxonomy/tags/{id}` を追加。
+  - `Application/Taxonomy/Update` を追加し、カテゴリ/タグ更新処理を UseCase として分離。
+  - カテゴリ一覧は名前、スラッグ、説明をインライン編集して更新できるように変更。
+  - タグ一覧は名前、スラッグをインライン編集して更新できるように変更。
+  - 分類作成フォームに種別選択を追加し、タグも作成できるように変更。
+- PHPStan を導入。
+  - `phpstan/phpstan` 2.1.55 を dev 依存に追加。
+  - `phpstan.neon` を追加し、`level: max` で `apps` / `config` / `database` / `public` / `src` / `tests` を解析対象に設定。
+  - `composer analyse` を追加。
+  - 既存コード由来の 403 件は一度 baseline 化。その後スーパーグローバル周辺の型改善で baseline は 386 件へ減少。
+  - 今後の新規違反を検出できる状態にした。
+- スーパーグローバル参照をエントリーポイントに集約。
+  - `global` 演算子と `$GLOBALS` は未使用であることを確認。
+  - `$_GET` / `$_POST` / `$_SERVER` / `$_FILES` / `$_SESSION` の直接参照を `public/index.php` に集約。
+  - `Request::fromGlobals()` を廃止し、`public/index.php` でスーパーグローバルを `Request` へ変換する方式へ変更。
+  - `SessionState` / `NativeSessionRuntime` を追加し、`Session` は `$_SESSION` / `$_SERVER` に直接依存しない形へ変更。
+  - `Csrf` は `$_SESSION` 直接参照をやめ、`Session` 経由でトークンを扱う形へ変更。
+  - DI コンテナへ既存インスタンスを登録できる `Container::instance()` を追加し、`Request` と `Session` をエントリーポイントから注入。
+- 検証状況
+  - `git diff --check`: 成功。
+  - `/admin/articles`: 200 OK、一覧削除フォーム出力を確認。
+  - `/admin/articles/3`: 200 OK、編集画面削除フォーム出力を確認。
+  - `/admin/articles/3`: 表示設定プルダウンに `ゴミ箱` option が出力されないこと、削除ボタンが `article-delete-form` を参照していることを確認。
+  - `/admin/articles`: 操作ボタンに Tailwind の `bg-blue-600` / `bg-emerald-600` / `bg-amber-600` / `bg-red-600` が出力されることを確認。
+  - CMS テンプレート内に `app.css` 読み込み、旧 CMS CSS 依存クラス、`style=` が残っていないことを確認。
+  - `/admin/login`, `/admin`, `/admin/articles`, `/admin/articles/3`, `/admin/media`, `/admin/taxonomy`, `/admin/pages`, `/admin/inquiries`, `/admin/settings`: 200 OK。
+  - `/admin/articles`: Tailwind CDN と `bg-blue-600` / `bg-emerald-600` / `bg-amber-600` / `bg-red-600` の出力を確認。
+  - `/assets/js/tailwindcss-3.4.17.js`: 200 OK、`Content-Type: text/javascript` を確認。
+  - `/admin/login`, `/admin/articles`, `/admin/media`, `/admin`: ローカル Tailwind JS `/assets/js/tailwindcss-3.4.17.js` の出力を確認。
+  - `docker compose exec -T app composer dump-autoload -o --strict-psr`: 成功。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、PHPUnit 13 tests, 25 assertions。
+  - `/admin/taxonomy`: 200 OK、カテゴリ/タグの更新フォームとタグ作成 option の出力を確認。
+  - 一時カテゴリ `taxonomy-edit-test-category` を作成、`taxonomy-edit-test-category-updated` へ更新、削除まで確認。
+  - 一時タグ `taxonomy-edit-test-tag` を作成、`taxonomy-edit-test-tag-updated` へ更新、削除まで確認。
+  - 一時カテゴリ/タグが削除後の taxonomy 画面に残っていないことを確認。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan level max + baseline で No errors。
+  - `docker compose exec -T app composer validate --strict`: 成功。
+  - `docker compose exec -T app composer dump-autoload -o --strict-psr`: 成功。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、PHPUnit 13 tests, 25 assertions。
+  - スーパーグローバル検索: `public/index.php` のみで `$_GET` / `$_POST` / `$_SERVER` / `$_FILES` / `$_SESSION` を参照していることを確認。
+  - `global` 演算子、`$GLOBALS`: 検出なし。
+  - CMS ログイン: `GET /admin/login` 200、`POST /admin/login` 302、ログイン後 `/admin` 200 を確認。
+  - フロント問い合わせ: `/contact` 200 を確認。
+  - `docker compose exec -T app composer dump-autoload -o --strict-psr`: 成功、3857 classes。
+  - Form Validation I/O 追加後、`docker compose exec -T app composer dump-autoload -o --strict-psr`: 成功、3861 classes。
+  - Form Validation I/O 追加後、`docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - Form Validation I/O 追加後、`docker compose exec -T app composer test`: 成功、PHPUnit 14 tests, 29 assertions。
+  - `/admin/articles`, `/admin/pages`, `/contact`: 200 OK。
+  - 記事作成/固定ページ作成/問い合わせの invalid POST は 422 を確認。
+  - 記事作成/固定ページ作成の validation error 画面で `タイトルを入力してください。` と作成画面タイトルが表示されることを確認。
+  - `/admin/taxonomy`: 200 OK、カテゴリ/タグ削除フォーム出力を確認。
+  - invalid CSRF の削除 POST は記事/カテゴリ/タグとも 422 を確認。
+  - 存在しない記事 ID への valid CSRF 削除 POST は 302 で記事一覧へ戻ることを確認。
+  - 一時カテゴリ `delete-test-category-20260526` を作成し、削除 POST が 302、削除後の成功メッセージ表示を確認。
+  - `docker compose up -d`: 成功。
+  - `docker compose exec -T app composer dump-autoload -o --strict-psr`: 成功。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、PHPUnit 13 tests, 25 assertions。
+  - `/`: 200 OK。CMS Tailwind 化後もフロントトップが表示されることを確認。
 
 ## 運用ルール
 
@@ -377,11 +471,125 @@
   - `/admin/pages/2` 保存で `display_order = 0` を確認
   - `page_versions` の新しい履歴にも `display_order = 0` が保存されることを確認
   - `/`: 200 OK、`/pages/privacy` が `/pages/about` より前に表示されることを確認
+- フロントAPI化方針ドキュメント追加: 完了
+  - `docs/if_story_api.md` を追加
+  - 公開ウェブメディア API として認証不要で扱う場合の注意点を整理
+  - HTML Controller とは別に JSON Controller / `/api` route / `Response::json()` を追加する改修方針を整理
+  - お気に入りなど会員ページを作る場合の認証、DB、認可、Application / Domain 追加方針を整理
+- CMSメディア登録と記事アイキャッチ対応: 成功
+  - `/admin/media` に画像アップロードフォームと登録済みメディア一覧を追加
+  - アップロード画像は `public/uploads/media` に保存し、`media_files.path` に公開パスを保存
+  - 画像アップロードは JPEG / PNG / WebP / GIF、5MB以内に制限
+  - 記事編集画面で登録済みメディアからアイキャッチ画像を選択できるように変更
+  - `articles.eyecatch_path` を記事保存、プレビュー、フロント記事一覧、記事詳細へ反映
+  - `article_versions.eyecatch_path` を追加し、履歴プレビューと復元対象にも含めるように変更
+  - `docker compose exec app composer migrate`: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - PHP 構文チェックと `composer dump-autoload -o --strict-psr`: 成功
+  - CMSログイン、画像アップロード、記事1へのアイキャッチ保存、フロント記事詳細、履歴プレビューで画像表示を確認
+- CMSメディア削除対応: 成功
+  - `/admin/media/{id}/delete` を追加
+  - メディア一覧に削除フォームを追加
+  - 削除時は `media_files` の行と `public/uploads/media` の実ファイルを削除
+  - 削除対象が記事や記事履歴のアイキャッチに使われている場合は `eyecatch_path` を `NULL` に更新
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - PHP 構文チェックと `composer dump-autoload -o --strict-psr`: 成功
+  - CMSログイン、検証用画像アップロード、削除POST、DB行削除、実ファイル削除を確認
+- CMSメディアアップロード上限とエラー表示改善: 成功
+  - アプリ側の画像上限を20MBへ変更
+  - Docker PHP設定を `upload_max_filesize=20M` / `post_max_size=24M` に変更
+  - `UPLOAD_ERR_*` ごとに失敗理由を表示するように変更
+  - `post_max_size` 超過時もCSRFエラーではなくサイズ超過理由を表示するように変更
+  - `docker compose build app`: 成功
+  - `docker compose up -d app`: 成功
+  - PHP設定確認: `upload_max_filesize => 20M`、`post_max_size => 24M`
+  - PHP 構文チェック: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - 20MB未満の検証用PNGアップロード成功と、20MB超過時の `画像サイズは20MB以内にしてください。` 表示を確認
+- CMSメディア画像プレビューダイアログ対応: 成功
+  - メディア一覧の画像をクリックすると `dialog` で大きく表示するように変更
+  - ダイアログ内に `閉じる` ボタンを追加
+  - ダイアログ外の背景クリックでも閉じるように変更
+  - PHP 構文チェック: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - `/admin/media`: 200 OK、プレビュー用 data 属性と dialog 出力を確認
+- CMSメディアプレビューのライトボックス修正: 成功
+  - `dialog` API 依存をやめ、黒背景の固定オーバーレイで大きく画像表示する方式へ変更
+  - 閉じるボタン、背景クリック、Escキーで閉じるように変更
+  - JSキャッシュ回避のため `app.js?v=20260526-media-preview` を付与
+  - PHP 構文チェック: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - `docker compose exec app composer dump-autoload -o --strict-psr`: 成功
+  - `/admin/media`: 200 OK、プレビュー用 data 属性、固定オーバーレイ、キャッシュバスター付きJSの出力を確認
+- CMSメディアプレビュー画像のはみ出し修正: 成功
+  - モーダル本体をビューポート内の固定サイズにし、画像を `object-fit: contain` で枠内に収めるよう変更
+  - CSSキャッシュ回避のため `app.css?v=20260526-media-preview-size` を付与
+  - PHP 構文チェック: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - `/admin/media`: 200 OK、プレビューモーダル出力を確認
+- CMSメディアプレビュー画像の実寸表示切り替え対応: 成功
+  - モーダル内の画像クリックで縮小表示と実寸表示を切り替えるよう変更
+  - 実寸表示時は画像表示エリアにスクロールバーを表示し、再クリックで元の収まり表示へ戻すよう変更
+  - CSS / JS キャッシュ回避のため `app.css?v=20260526-media-preview-actual` と `app.js?v=20260526-media-preview-actual` を付与
+  - `node --check public/assets/js/app.js`: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - `/admin/media`: 200 OK、スクロール用 viewport とキャッシュバスター付きCSS / JSの出力を確認
+- CMSメディア動画アップロード対応: 成功
+  - 画像に加えて MP4 / WebM / Ogg / MOV / AVI をアップロード対象に追加
+  - 画像上限は20MB、動画上限は512MBとしてアプリ側で検証
+  - Docker PHP設定を `upload_max_filesize=512M` / `post_max_size=540M` に変更
+  - `post_max_size` 超過時にPHP起動時Warningが画面へ出てヘッダー送信を壊さないよう `display_errors=Off` / `display_startup_errors=Off` / `log_errors=On` を設定
+  - メディア一覧では画像は既存プレビュー、動画は `<video controls>` で表示
+  - 記事アイキャッチの選択肢は画像メディアのみに制限
+  - `docker compose build app`: 成功
+  - `docker compose up -d app`: 成功
+  - PHP設定確認: `upload_max_filesize => 512M`、`post_max_size => 540M`
+  - PHP 構文チェック: 成功
+  - `docker compose exec app composer test`: 成功、13 tests / 25 assertions
+  - 検証用MP4とAVIのアップロード成功、一覧表示確認、検証データ削除を確認
+  - 326,492,460 bytes の検証用AVIアップロード成功、一覧表示確認、検証データ削除を確認
+- Node.js / TypeScript リプレイス方針ドキュメント追加: 完了
+  - `docs/if_story_replace.md` を追加
+  - Fastify + TypeScript を第一候補とする理由を整理
+  - NestJS / Fastify / Hono の違いと採用判断を整理
+  - 既存の Controller / Interactor / Output / Repository 構造を Node.js 側へ写す方針を整理
+  - ディレクトリ構成、コードの書き方、推奨ライブラリ、動画変換ジョブ方針を整理
+- 20代・30代向け記事詳細レイアウト改善: 実装
+  - 記事詳細テンプレートに `article-detail-layout` を追加
+  - 20代・30代テーマでは記事詳細にもカテゴリサイドバーを表示し、一覧画面と近い本文幅を維持するよう変更
+  - 10代テーマではカテゴリサイドバーを追加せず、既存の記事詳細表示を維持
+  - グローバルテンプレート変数に `publishedCategories` を追加
+  - CSS / JS キャッシュ回避のため `app.css?v=20260526-article-detail-layout` と `app.js?v=20260526-article-detail-layout` を付与
+  - `/articles/php-performance-start-with-measurement`: 200 OK、20代テーマで記事詳細レイアウトとカテゴリサイドバー出力を確認
+  - PHP 構文チェックと PHPUnit は未実行。現在のWSL環境で `docker` / `php` / `composer` コマンドが見えないため
+- 20代・30代向けカテゴリ導線レイアウト再調整: 実装
+  - 20代テーマではトップと記事詳細のカテゴリ常時表示をやめるよう変更
+  - 30代テーマではカテゴリサイドバーを右側に配置し、本文・記事リストを左側で先に読ませる構成へ変更
+  - 記事詳細サイドバーは30代テーマのみ表示するよう変更
+  - CSS / JS キャッシュ回避のため `app.css?v=20260526-theme-category-flow` と `app.js?v=20260526-theme-category-flow` を付与
+  - `/`: 200 OK、現在の30代テーマで右側カテゴリサイドバー出力を確認
+  - `/articles/php-performance-start-with-measurement`: 200 OK、現在の30代テーマで記事左・カテゴリ右の詳細レイアウト出力を確認
+  - PHP 構文チェックと PHPUnit は未実行。現在のWSL環境で `docker` / `php` / `composer` コマンドが見えないため
+- フロント検索修正と検索機能ON/OFF設定追加: 成功
+  - PostgreSQL の `LIKE` で大文字小文字が区別され `q=php` が `PHP` に一致しなかったため、検索条件を `ILIKE` へ変更
+  - サイト設定に `検索機能` の有効/無効セレクトを追加
+  - `site_settings.search_enabled` を追加設定キーとして扱い、未設定時は有効として扱うよう変更
+  - 検索無効時はヘッダー検索フォームを非表示にし、`/search` は停止中ページを404で返すよう変更
+  - `simple-list.latte` の select 選択判定を文字列比較に修正し、`0` / `1` の選択状態が正しく出るよう変更
+  - `/search?q=php`: 200 OK、4件の記事表示を確認
+  - `/admin/settings`: 200 OK、検索機能の有効/無効項目表示と選択状態を確認
+  - 検索機能OFF時: `/` で検索フォーム非表示、`/search?q=php` で404停止中ページ表示を確認
+  - 検証後、検索機能は有効へ戻し、`/search?q=php` の4件表示を再確認
+  - PHP 構文チェックと PHPUnit は未実行。現在のWSL環境で Docker Desktop WSL integration エラーにより `docker compose` が実行できないため
 
 ## 未完了・要検証
 
 - ブラウザでの目視確認は未実施。
 - CMS ログイン後の主要 GET 画面確認は実施済み。
+- 20代・30代向け記事詳細レイアウトはブラウザでの目視確認が未実施。
+- 20代テーマのカテゴリ非表示はテンプレート条件とCSS上の確認のみ。現在の実データが30代テーマのため、実HTTP表示確認は未実施。
+- 検索機能ON/OFFはHTTP確認済み。PHPUnitはDocker連携復旧後に再実行する。
 - 問い合わせ POST、履歴復元などの更新系操作確認は未実施。
 
 ## 次回再開地点

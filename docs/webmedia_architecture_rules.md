@@ -392,11 +392,32 @@ Application/
 
 `Input.php` は Controller から Interactor へ渡す DTO である。
 
+`Input` は UseCase 専用型として、必ず `Application/<対象>/<ユースケース>/Input.php` に置く。複数の UseCase で共有する汎用 `Input`、`SaveInput`、`RequestInput` のような共通 DTO を作ってはならない。
+
 ルール:
 
 - フレームワーク型を持たない
 - `Request`、`Response`、`PDO`、`Container`、`Latte` を持たない
 - scalar、array、ValueObject は持ってよい
+- Controller でリクエストごとに `new` する
+- singleton service の property に保持しない
+- request 固有の状態を static property、global、shared service に退避しない
+
+`Input` の constructor 呼び出しでは named arguments を使う。
+
+```php
+new Input(
+    id: $id,
+    title: $request->input('title'),
+    bodyMarkdown: $request->input('body_markdown'),
+);
+```
+
+禁止:
+
+```php
+new Input($id, $request->input('title'), $request->input('body_markdown'));
+```
 
 ### 5.2 Interactor
 
@@ -751,6 +772,69 @@ UseCase 名は画面表示なら `Edit`、作成/更新の永続化なら `Save`
 
 公開中固定ページのフロントリンクは、HTMLを直接編集して追加してはならない。Front ApplicationのLayout用Queryで `published` な固定ページを取得し、`display_order` 昇順で共通レイアウトへ渡して表示する。
 
+### 11.2 UseCase import ルール
+
+Controller が Application UseCase を利用する場合、不要な `as` alias を使ってはならない。
+
+単一 UseCase だけを使う Controller では、`Input`、`Interactor`、`Output` をそのまま import する。
+
+```php
+use App\Cms\Application\Article\Save\Input;
+use App\Cms\Application\Article\Save\Interactor;
+
+final readonly class Controller
+{
+    public function __construct(private Interactor $save)
+    {
+    }
+
+    public function __invoke(Request $request): Response
+    {
+        $output = $this->save->execute(new Input(
+            id: null,
+            data: $request->body,
+        ));
+
+        // ...
+    }
+}
+```
+
+複数 UseCase を同じ Controller で使う場合は、UseCase の1つ上の階層までを `use` し、`Edit\Input`、`History\Input` のように参照する。
+
+```php
+use App\Cms\Application\Article\Edit;
+use App\Cms\Application\Article\History;
+
+final readonly class Controller
+{
+    public function __construct(
+        private Edit\Interactor $edit,
+        private History\Interactor $history,
+    ) {
+    }
+
+    private function editForm(Edit\Output $output, int $articleId): Response
+    {
+        $versions = $this->history->execute(new History\Input(
+            articleId: $articleId,
+        ))->versions;
+
+        // ...
+    }
+}
+```
+
+禁止:
+
+```php
+use App\Cms\Application\Article\Save\Input as SaveInput;
+use App\Cms\Application\Article\Edit\Input as EditInput;
+use App\Cms\Application\Article\History\Input as HistoryInput;
+```
+
+`as` alias は、同名 class を同じファイルでどうしても直接 import する必要があり、上位 namespace import では解決できない場合に限る。
+
 ## 12. DI ルール
 
 DI はアプリケーションごとに設定する。
@@ -771,7 +855,169 @@ IArticleRepository::class => PdoArticleRepository::class
 
 Domain と Application に Container を inject してはならない。
 
-## 13. Namespace ルール
+FrankenPHP Worker mode に移行しても安全に動かせるよう、DI では request 固有の状態を singleton として保持してはならない。
+
+request scope 扱いにするもの:
+
+- `Request`
+- `Session`
+- `Csrf`
+- 現在ログイン中のユーザー
+- flash message
+- validation error
+- request id / request context
+
+singleton にしてよいもの:
+
+- 設定
+- stateless な Interactor
+- stateless な Query / Repository
+- DB connection factory または connection pool 相当
+- template engine 本体
+
+`Renderer` などを singleton にする場合でも、global provider が特定リクエストの `Request`、`Session`、`Csrf` instance を固定保持してはならない。provider 実行時に request scope から取り出す。
+
+禁止:
+
+```php
+$container->singleton(Csrf::class, fn () => new Csrf($session));
+$container->singleton(CurrentUser::class, fn () => $userFromCurrentRequest);
+```
+
+許可:
+
+```php
+$requestScope->instance(Request::class, $request);
+$requestScope->instance(Session::class, $session);
+$requestScope->set(Csrf::class, fn (Container $container): Csrf => new Csrf(
+    session: $container->get(Session::class),
+));
+```
+
+## 13. PHP 呼び出しルール
+
+### 13.1 Named arguments
+
+プロジェクト内 class の object constructor、method、function 呼び出しでは、引数が1つ以上ある場合は原則として named arguments を使う。
+
+目的:
+
+- 引数順の読み違いを防ぐ
+- DTO / ValueObject の追加変更に強くする
+- UseCase `Input` の意味を Controller から読み取れるようにする
+
+許可:
+
+```php
+new Response(
+    body: $html,
+    status: 422,
+);
+
+new Article(
+    id: $id,
+    title: $title,
+    slug: $slug,
+    bodyMarkdown: $bodyMarkdown,
+);
+```
+
+禁止:
+
+```php
+new Response($html, 422);
+new Article($id, $title, $slug, $bodyMarkdown);
+```
+
+例外:
+
+- PHP 標準関数のように named arguments がかえって読みにくい呼び出し
+- 外部ライブラリで引数名の後方互換性が保証されない public API
+- `sprintf`、`in_array` など短く慣用的な関数
+- 引数がない呼び出し
+
+例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
+
+### 13.2 配列処理
+
+本プロジェクトでは、callback を受け取る配列処理関数を原則として使わない。
+
+対象:
+
+- `array_map`
+- `array_filter`
+- `array_reduce`
+- `array_walk`
+
+理由:
+
+- PHP は callback の純粋性を言語レベルで保証しない
+- callback は外側の変数、object、static、global、DB、file、session、log へ副作用を持てる
+- `array_reduce` は accumulator の型が読みにくく、PHPStan でも型が崩れやすい
+- DTO 生成、DB row 変換、`toArray()` 変換では named arguments と相性が悪くなりやすい
+- パフォーマンス面でも `foreach` の方が余計な callback 呼び出しを避けられる
+
+禁止:
+
+```php
+return array_map(fn (array $row): Article => new Article(
+    id: (int) $row['id'],
+    title: (string) $row['title'],
+), $rows);
+
+$published = array_filter($articles, fn (Article $article): bool => $article->isPublished());
+
+$grouped = array_reduce($rows, function (array $carry, array $row): array {
+    $carry[(string) $row['category']][] = $row;
+    return $carry;
+}, []);
+```
+
+許可:
+
+```php
+$articles = [];
+foreach ($rows as $row) {
+    $articles[] = new Article(
+        id: (int) $row['id'],
+        title: (string) $row['title'],
+    );
+}
+
+$published = [];
+foreach ($articles as $article) {
+    if (!$article->isPublished()) {
+        continue;
+    }
+
+    $published[] = $article;
+}
+
+$grouped = [];
+foreach ($rows as $row) {
+    $grouped[(string) $row['category']][] = $row;
+}
+```
+
+callback を受け取らず、操作の意味が明確な PHP 標準配列関数は許可する。
+
+許可例:
+
+- `array_values`
+- `array_keys`
+- `array_column`
+- `array_slice`
+- `array_reverse`
+- `array_shift`
+- `array_pop`
+- `count`
+- `in_array`
+
+ただし、`array_shift` と `array_pop` は配列を破壊的に変更する。破壊的操作が意図として明確な場合に限って使う。
+
+例外として、外部ライブラリが callback 形式の API を要求する場合は許可する。その場合でも、callback 内で副作用を起こしてはならない。
+
+## 14. Namespace ルール
 
 Composer PSR-4 root:
 
@@ -812,7 +1058,9 @@ namespace App\Front\WebMedia;
 namespace App\Cms\WebMedia;
 ```
 
-## 14. 命名規則
+## 15. 命名規則
+
+### 15.1 UseCase / Application
 
 UseCase file:
 
@@ -862,7 +1110,123 @@ Handler
 
 本プロジェクトでは UseCase に `Handler` を使わない。`Interactor` を使う。
 
-## 15. CMS と Front のモデル分離
+### 15.2 Controller
+
+Controller は HTTP アクション単位のディレクトリに置く。
+
+```text
+Infrastructure/Http/Controller/<対象>/<HTTPアクション>/Controller.php
+```
+
+例:
+
+```text
+Infrastructure/Http/Controller/Article/List/Controller.php
+Infrastructure/Http/Controller/Article/Create/Controller.php
+Infrastructure/Http/Controller/Article/Store/Controller.php
+Infrastructure/Http/Controller/Article/Edit/Controller.php
+Infrastructure/Http/Controller/Article/Update/Controller.php
+Infrastructure/Http/Controller/Article/Delete/Controller.php
+```
+
+Controller class 名は各ディレクトリ内で `Controller` とする。
+
+```php
+namespace App\Cms\Infrastructure\Http\Controller\Article\Store;
+
+final readonly class Controller
+{
+}
+```
+
+`ArticleStoreController`、`StoreArticleController` のようにアクション名と対象名を class 名へ詰め込まない。namespace と path で対象とアクションを表現する。
+
+### 15.3 HTTP アクション名
+
+HTTP Controller のアクション名は、画面と HTTP の意味を優先する。
+
+```text
+List    一覧表示
+Show    詳細表示
+Create  新規作成フォーム表示
+Store   新規作成 POST
+Edit    編集フォーム表示
+Update  更新 POST
+Delete  削除 POST
+Restore 復元 POST
+Preview プレビュー表示
+History 履歴表示
+```
+
+`Create` と `Store`、`Edit` と `Update` は分ける。
+
+```text
+GET  /admin/articles/create -> Article/Create/Controller.php
+POST /admin/articles        -> Article/Store/Controller.php
+GET  /admin/articles/{id}   -> Article/Edit/Controller.php
+POST /admin/articles/{id}   -> Article/Update/Controller.php
+```
+
+読み取り画面は `Show`、一覧は `List` を使う。`Index` は原則使わない。ただし、検索画面など対象概念に対して「一覧」より入口画面の意味が強い場合は `Index` を許可する。
+
+Application UseCase 名は HTTP アクション名と必ず一致させる必要はない。
+
+例:
+
+```text
+Article/Store/Controller.php
+  -> Application/Article/Save/Interactor
+
+Article/Update/Controller.php
+  -> Application/Article/Save/Interactor
+```
+
+HTTP アクションは「リクエストの入口」を表し、Application UseCase は「業務操作」を表す。
+
+### 15.4 Request / Response DTO
+
+Controller アクション配下には、必要になった時だけ `Request.php` や `Response.php` を追加してよい。
+
+```text
+Infrastructure/Http/Controller/Article/Store/
+  Controller.php
+  Request.php
+  Response.php
+```
+
+`Request.php` は HTTP 入力の取り出し、型変換、軽い形式検証を担当する。
+
+`Response.php` は template 変数の組み立て、redirect 先、HTTP status などの変換が複雑になった場合に使う。
+
+禁止:
+
+```text
+全アクションに空の Request.php / Response.php を機械的に作る
+Request.php に業務ルールを書く
+Response.php に Application の実行処理を書く
+```
+
+Controller が十分薄い場合は `Controller.php` だけでよい。
+
+### 15.5 Middleware / Guard
+
+CMS の認証チェックは、将来的に middleware または guard へ寄せる。
+
+`middleware` は HTTP request が Controller に到達する前後で処理する仕組みである。ルート単位の認証、認可、CSRF、request id、logging などに向いている。
+
+`guard` は「現在のリクエストが認証済みか」「現在のユーザーは誰か」を判定する認証境界である。middleware から guard を呼ぶ構成にしてよい。
+
+例:
+
+```text
+cms.auth middleware
+  -> CmsGuard
+      -> Session / CurrentUser
+```
+
+Controller ごとに `Session` を直接読んでログイン判定を繰り返してはならない。移行途中は許容するが、最終的には `cms.auth` middleware へ寄せる。
+
+## 16. CMS と Front のモデル分離
 
 CMS の記事と Front の記事は同じ application model として扱わない。
 
@@ -911,7 +1275,7 @@ front の Article Output を cms の編集に使う
 cms/front 共通の Article Entity を作る
 ```
 
-## 16. Persistence ルール
+## 17. Persistence ルール
 
 DB アクセスには PDO を使う。
 
@@ -929,7 +1293,7 @@ DB row から Domain object、Domain Value、Application Value DTO への変換�
 
 DB row を Query / Repository の戻り値としてそのまま返してはならない。
 
-## 17. Test ルール
+## 18. Test ルール
 
 テスト対象:
 
@@ -945,7 +1309,7 @@ Interactor の unit test では fake Query または fake Repository implementat
 
 PDO test では test database を使ってよい。
 
-## 18. 実装チェックリスト
+## 19. 実装チェックリスト
 
 実装完了前に必ず確認する。
 
@@ -963,17 +1327,23 @@ PDO test では test database を使ってよい。
 [ ] Repository の戻り値は Domain Entity または Domain Value である
 [ ] Repository implementation は Infrastructure/Persistence 配下にある
 [ ] Application use case は Input、Interactor、Output を持つ
+[ ] Application Input は UseCase 専用型であり、共通 Input DTO を使っていない
+[ ] UseCase Input の constructor 呼び出しは引数数に関わらず named arguments を使っている
 [ ] Application は Infrastructure に依存していない
 [ ] Domain は Application / Infrastructure に依存していない
 [ ] Controller に業務ルールを書いていない
+[ ] Controller の UseCase import で不要な `as` alias を使っていない
+[ ] 複数 UseCase を使う Controller は上位 namespace import と `Edit\Input` 形式で参照している
+[ ] `array_map` / `array_filter` / `array_reduce` / `array_walk` を使っていない
 [ ] PDO と SQL が Infrastructure 以外に出ていない
 [ ] QueryService 命名を使っていない
 [ ] UseCase に Handler 命名を使っていない
 [ ] namespace と path が一致している
 [ ] DI binding が明示されている
+[ ] request 固有の状態を singleton service に保持していない
 ```
 
-## 19. 最終原則
+## 20. 最終原則
 
 ファイル数削減を目的に責務を混ぜてはならない。
 
