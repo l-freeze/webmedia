@@ -10,6 +10,7 @@ final readonly class Request
      * @param array<string, string> $query
      * @param array<string, mixed> $body
      * @param array<string, string> $server
+     * @param array<string, mixed> $files
      */
     public function __construct(
         public string $method,
@@ -17,20 +18,51 @@ final readonly class Request
         public array $query,
         public array $body,
         public array $server,
+        public array $files = [],
     ) {
     }
 
-    public static function fromGlobals(): self
+    /**
+     * @param array<mixed> $values
+     * @return array<string, string>
+     */
+    public static function stringMap(array $values): array
     {
-        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        $strings = [];
+        foreach ($values as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            $strings[$key] = is_scalar($value) ? (string) $value : '';
+        }
 
-        return new self(
-            strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
-            $path,
-            array_map('strval', $_GET),
-            $_POST,
-            array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $_SERVER),
-        );
+        return $strings;
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return array<string, mixed>
+     */
+    public static function mixedMap(array $values): array
+    {
+        $mapped = [];
+        foreach ($values as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            $mapped[$key] = $value;
+        }
+
+        return $mapped;
+    }
+
+    public function isHttps(): bool
+    {
+        $https = $this->server['HTTPS'] ?? '';
+        $forwardedProto = $this->server['HTTP_X_FORWARDED_PROTO'] ?? '';
+
+        return ($https !== '' && $https !== 'off')
+            || strtolower($forwardedProto) === 'https';
     }
 
     public function input(string $key, string $default = ''): string

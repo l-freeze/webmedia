@@ -3,7 +3,9 @@
 /storage/cache/*
 /storage/logs/*
 /storage/uploads/*
+/storage/phpstan/
 !/storage/cache/.gitkeep
 !/storage/logs/.gitkeep
 !/storage/uploads/.gitkeep
 .phpunit.result.cache
+*:Zone.Identifier

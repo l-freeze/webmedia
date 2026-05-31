@@ -6,53 +6,72 @@ namespace App\Framework\Security;
 
 final class Session
 {
-    public function start(): void
+    public function __construct(private SessionState $state, private NativeSessionRuntime $runtime)
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
     }
 
     public function regenerate(): void
     {
-        session_regenerate_id(true);
+        $this->runtime->regenerate();
     }
 
     public function set(string $key, mixed $value): void
     {
-        $_SESSION[$key] = $value;
+        $this->state->set(key: $key, value: $value);
     }
 
     public function get(string $key, mixed $default = null): mixed
     {
-        return $_SESSION[$key] ?? $default;
+        return $this->state->get(key: $key, default: $default);
     }
 
     public function has(string $key): bool
     {
-        return isset($_SESSION[$key]);
+        return $this->state->has(key: $key);
     }
 
     public function remove(string $key): void
     {
-        unset($_SESSION[$key]);
+        $this->state->remove(key: $key);
     }
 
     public function destroy(): void
     {
-        $_SESSION = [];
-        session_destroy();
+        $this->state->clear();
+        $this->runtime->destroy();
     }
 
     public function flash(string $key, string $value): void
     {
-        $_SESSION['_flash'][$key] = $value;
+        $this->flashValue(key: $key, value: $value);
+    }
+
+    public function flashValue(string $key, mixed $value): void
+    {
+        $flash = $this->state->get(key: '_flash', default: []);
+        if (!is_array($flash)) {
+            $flash = [];
+        }
+        $flash[$key] = $value;
+        $this->state->set(key: '_flash', value: $flash);
     }
 
     public function pullFlash(string $key): ?string
     {
-        $value = $_SESSION['_flash'][$key] ?? null;
-        unset($_SESSION['_flash'][$key]);
+        $value = $this->pullFlashValue(key: $key);
         return is_string($value) ? $value : null;
+    }
+
+    public function pullFlashValue(string $key): mixed
+    {
+        $flash = $this->state->get(key: '_flash', default: []);
+        if (!is_array($flash)) {
+            return null;
+        }
+
+        $value = $flash[$key] ?? null;
+        unset($flash[$key]);
+        $this->state->set(key: '_flash', value: $flash);
+        return $value;
     }
 }

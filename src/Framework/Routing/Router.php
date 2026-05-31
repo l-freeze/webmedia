@@ -30,11 +30,11 @@ final readonly class Router
         $result = $dispatcher->dispatch($request->method, $request->path);
 
         if ($result[0] === Dispatcher::NOT_FOUND) {
-            return new Response('Not Found', 404);
+            return new Response(body: 'Not Found', status: 404);
         }
 
         if ($result[0] === Dispatcher::METHOD_NOT_ALLOWED) {
-            return new Response('Method Not Allowed', 405);
+            return new Response(body: 'Method Not Allowed', status: 405);
         }
 
         /** @var class-string|array{0:class-string,1:string} $handler */
@@ -44,11 +44,11 @@ final readonly class Router
 
         if (is_array($handler)) {
             [$controllerClass, $method] = $handler;
-            $controller = $this->container->get($controllerClass);
+            $controller = $this->container->get(id: $controllerClass);
             return $controller->{$method}($request, $vars);
         }
 
-        $controller = $this->container->get($handler);
+        $controller = $this->container->get(id: $handler);
         return $controller($request, $vars);
     }
 }

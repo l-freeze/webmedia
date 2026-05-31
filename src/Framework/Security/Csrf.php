@@ -6,17 +6,24 @@ namespace App\Framework\Security;
 
 final class Csrf
 {
+    public function __construct(private Session $session)
+    {
+    }
+
     public function token(): string
     {
-        if (!isset($_SESSION['_csrf'])) {
-            $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+        $token = $this->session->get(key: '_csrf');
+        if (!is_string($token)) {
+            $token = bin2hex(random_bytes(32));
+            $this->session->set(key: '_csrf', value: $token);
         }
 
-        return (string) $_SESSION['_csrf'];
+        return $token;
     }
 
     public function validate(string $token): bool
     {
-        return isset($_SESSION['_csrf']) && hash_equals((string) $_SESSION['_csrf'], $token);
+        $storedToken = $this->session->get(key: '_csrf');
+        return is_string($storedToken) && hash_equals($storedToken, $token);
     }
 }

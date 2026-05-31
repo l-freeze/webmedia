@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Framework\Container;
 
+use App\Framework\Container\Exception\ContainerBuildException;
+use App\Framework\Container\Exception\ServiceNotFoundException;
 use Closure;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
-use RuntimeException;
+use ReflectionNamedType;
 
-final class Container
+final class Container implements ContainerInterface
 {
     /** @var array<string, mixed> */
     private array $instances = [];
@@ -25,6 +28,11 @@ final class Container
     public function set(string $id, Closure $factory): void
     {
         $this->factories[$id] = $factory;
+    }
+
+    public function instance(string $id, mixed $instance): void
+    {
+        $this->instances[$id] = $instance;
     }
 
     public function singleton(string $id, Closure $factory): void
@@ -54,7 +62,7 @@ final class Container
         }
 
         if (isset($this->resolving[$id])) {
-            throw new RuntimeException("Circular dependency detected for {$id}");
+            throw new ContainerBuildException("Circular dependency detected for {$id}");
         }
 
         $this->resolving[$id] = true;
@@ -64,8 +72,15 @@ final class Container
                 return ($this->factories[$id])($this);
             }
 
-            $concrete = $this->bindings[$id] ?? $id;
-            return $this->build($concrete);
+            if (isset($this->bindings[$id])) {
+                return $this->build(class: $this->bindings[$id]);
+            }
+
+            if (!class_exists($id)) {
+                throw new ServiceNotFoundException("Service {$id} is not registered");
+            }
+
+            return $this->build(class: $id);
         } finally {
             unset($this->resolving[$id]);
         }
@@ -74,7 +89,7 @@ final class Container
     private function build(string $class): object
     {
         if (!class_exists($class)) {
-            throw new RuntimeException("Service {$class} is not resolvable");
+            throw new ServiceNotFoundException("Service {$class} is not registered");
         }
 
         $reflection = new ReflectionClass($class);
@@ -87,14 +102,14 @@ final class Container
         $arguments = [];
         foreach ($constructor->getParameters() as $parameter) {
             $type = $parameter->getType();
-            if ($type === null || $type->isBuiltin()) {
+            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
                 if ($parameter->isDefaultValueAvailable()) {
                     $arguments[] = $parameter->getDefaultValue();
                     continue;
                 }
-                throw new RuntimeException("Cannot resolve parameter {$parameter->getName()} for {$class}");
+                throw new ContainerBuildException("Cannot resolve parameter {$parameter->getName()} for {$class}");
             }
-            $arguments[] = $this->get($type->getName());
+            $arguments[] = $this->get(id: $type->getName());
         }
 
         return $reflection->newInstanceArgs($arguments);

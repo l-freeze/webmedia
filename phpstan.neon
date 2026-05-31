@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    paths:
+        - apps
+        - config
+        - database
+        - public
+        - src
+        - tests
+    tmpDir: storage/phpstan

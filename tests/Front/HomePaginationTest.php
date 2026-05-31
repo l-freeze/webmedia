@@ -32,7 +32,7 @@ final class HomePaginationTest extends TestCase
 
             public function countPublished(): ArticleCount
             {
-                return new ArticleCount(21);
+                return new ArticleCount(value: 21);
             }
         };
         $categories = new class implements ICategoryQuery {
@@ -43,7 +43,7 @@ final class HomePaginationTest extends TestCase
             }
         };
 
-        $output = (new Interactor($articles, $categories))->execute(new Input(2));
+        $output = (new Interactor(articles: $articles, categories: $categories))->execute(input: new Input(page: 2));
 
         self::assertSame(10, $articles->limit);
         self::assertSame(10, $articles->offset);
