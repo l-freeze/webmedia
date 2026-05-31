@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Cms;
 
 use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
+use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleStatus;
 use PHPUnit\Framework\TestCase;
 
@@ -23,5 +24,10 @@ final class ArticleStatusTest extends TestCase
     public function testScheduledIsNotPersistedAsArticleStatus(): void
     {
         self::assertSame('draft', (new ArticleStatus(value: 'scheduled'))->value);
+    }
+
+    public function testUnknownArticleBodyFormatFallsBackToMarkdown(): void
+    {
+        self::assertSame('markdown', (new ArticleBodyFormat(value: 'plain'))->value);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Entity;
 
 use App\Cms\Domain\Value\ArticleBodyMarkdown;
+use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleSlug;
@@ -24,6 +25,7 @@ final readonly class Article
         public ArticleTitle $title,
         public ArticleSlug $slug,
         public ArticleBodyMarkdown $bodyMarkdown,
+        public ArticleBodyFormat $bodyFormat,
         public ArticleExcerpt $excerpt,
         public ArticleStatus $status,
         public ?CategoryId $categoryId,
@@ -43,6 +45,7 @@ final readonly class Article
             title: new ArticleTitle(value: (string) $data['title']),
             slug: new ArticleSlug(value: (string) $data['slug']),
             bodyMarkdown: new ArticleBodyMarkdown(value: (string) $data['body_markdown']),
+            bodyFormat: new ArticleBodyFormat(value: (string) ($data['body_format'] ?? ArticleBodyFormat::MARKDOWN)),
             excerpt: new ArticleExcerpt(value: (string) ($data['excerpt'] ?? '')),
             status: new ArticleStatus(value: (string) ($data['status'] ?? 'draft')),
             categoryId: ($data['category_id'] ?? '') === '' ? null : new CategoryId(value: (int) $data['category_id']),

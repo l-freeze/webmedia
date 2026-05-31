@@ -31,4 +31,18 @@ final class Markdown
     {
         return $this->purifier->purify((string) $this->converter->convert($markdown));
     }
+
+    public function htmlToSafeHtml(string $html): string
+    {
+        return $this->purifier->purify($html);
+    }
+
+    public function bodyToSafeHtml(string $body, string $format): string
+    {
+        if ($format === 'html') {
+            return $this->htmlToSafeHtml(html: $body);
+        }
+
+        return $this->toSafeHtml(markdown: $body);
+    }
 }

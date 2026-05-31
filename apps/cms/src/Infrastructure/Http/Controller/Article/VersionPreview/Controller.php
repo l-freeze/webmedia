@@ -38,7 +38,7 @@ final readonly class Controller
 
         return new Response(body: $this->renderer->render(template: 'article/version-preview.latte', params: [
             'title' => '履歴プレビュー',
-            'articleVersion' => $articleVersion->toArray($this->markdown->toSafeHtml(markdown: $articleVersion->bodyMarkdown)),
+            'articleVersion' => $articleVersion->toArray($this->markdown->bodyToSafeHtml(body: $articleVersion->bodyMarkdown, format: $articleVersion->bodyFormat)),
         ]));
     }
 }

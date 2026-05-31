@@ -29,6 +29,7 @@ final readonly class PdoArticleEditQuery implements IArticleQuery
             title: (string) $row['title'],
             slug: (string) $row['slug'],
             bodyMarkdown: (string) $row['body_markdown'],
+            bodyFormat: (string) ($row['body_format'] ?? 'markdown'),
             excerpt: (string) ($row['excerpt'] ?? ''),
             status: (string) $row['status'],
             categoryId: $row['category_id'] === null ? null : (int) $row['category_id'],

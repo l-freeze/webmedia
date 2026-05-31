@@ -51,8 +51,21 @@
     </div>
     <label>タイトル<input name="title" value="{$article['title'] ?? ''}" required></label>
     <label>スラッグ<input name="slug" value="{$article['slug'] ?? ''}" required></label>
-    <label>本文<textarea name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea></label>
-    <label>抜粋<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
+    <div class="grid gap-2">
+      <label for="article-body">本文</label>
+      <div class="flex flex-wrap gap-2">
+        <label class="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300 has-[:checked]:bg-emerald-600 has-[:checked]:text-white has-[:checked]:hover:bg-emerald-700">
+          <input class="sr-only" type="radio" name="body_format" value="markdown" {if ($article['body_format'] ?? 'markdown') === 'markdown'}checked{/if}>
+          Markdown
+        </label>
+        <label class="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300 has-[:checked]:bg-emerald-600 has-[:checked]:text-white has-[:checked]:hover:bg-emerald-700">
+          <input class="sr-only" type="radio" name="body_format" value="html" {if ($article['body_format'] ?? 'markdown') === 'html'}checked{/if}>
+          HTML
+        </label>
+      </div>
+      <textarea id="article-body" name="body_markdown" required>{$article['body_markdown'] ?? ''}</textarea>
+    </div>
+    <label>概要<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>
     <div class="flex justify-end gap-2">
       {if isset($article['id'])}
         <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700" form="article-delete-form" data-confirm="この記事を削除してゴミ箱へ移動しますか？">削除</button>

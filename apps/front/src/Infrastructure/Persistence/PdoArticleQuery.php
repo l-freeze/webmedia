@@ -44,7 +44,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         if ($row === null) {
             return null;
         }
-        return $this->showArticle(row: $row, bodyHtml: $this->markdown->toSafeHtml(markdown: (string) $row['body_markdown']), tags: $this->tags(articleId: (int) $row['id']));
+        return $this->showArticle(row: $row, bodyHtml: $this->markdown->bodyToSafeHtml(body: (string) $row['body_markdown'], format: (string) ($row['body_format'] ?? 'markdown')), tags: $this->tags(articleId: (int) $row['id']));
     }
 
     /** @return array<int, SearchArticle> */

@@ -20,6 +20,7 @@ final readonly class Interactor
         $validation = (new FormValidator(input: new ValidationInput(values: $input->data)))
             ->required(field: 'title', label: 'タイトル')
             ->required(field: 'slug', label: 'スラッグ')
+            ->required(field: 'body_format', label: '入力種別')
             ->required(field: 'body_markdown', label: '本文')
             ->output();
 
