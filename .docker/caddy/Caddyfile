@@ -20,5 +20,8 @@
 			env APP_RUNTIME frankenphp-worker
 		}
 	}
+	# To run without FrankenPHP worker mode, comment out the php_server block above
+	# and uncomment this block.
+	# php_server
 	file_server
 }
