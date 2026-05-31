@@ -34,6 +34,12 @@
   - `composer.json` に `App\Shared\` の PSR-4 autoload を追加。
   - `apps/shared/README.md` に目的、依存ルール、container/middleware の使い方を記載。
   - `tests/Shared/SharedConfigTest.php` で shared container と middleware config を検証。
+- Shared に PSR-3 JSON ファイルロガーを追加。
+  - `apps/shared/src/Infrastructure/Logging/JsonFileLogger.php` を追加。
+  - 1行1JSONの構造化ログを `storage/logs/app.log` へ書き込む実装として、shared container の `Psr\Log\LoggerInterface` に登録。
+  - `Throwable` や `Stringable` を context 内で安全に構造化する normalization を追加。
+  - `apps/shared/src/Infrastructure/Logging/README.md` にログ形式、差し込み方、Monolog を使わない方針を記載。
+  - `tests/Shared/JsonFileLoggerTest.php` で JSON Lines 出力と例外 context の正規化を検証。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。

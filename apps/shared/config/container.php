@@ -7,9 +7,9 @@ use App\Framework\Content\Markdown;
 use App\Framework\Database\ConnectionFactory;
 use App\Framework\Logging\AuditLoggerInterface;
 use App\Framework\Logging\PlaceholderAuditLogger;
-use App\Framework\Logging\PlaceholderLogger;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
+use App\Shared\Infrastructure\Logging\JsonFileLogger;
 use Psr\Log\LoggerInterface;
 
 return static function (Container $container, string $root): void {
@@ -23,6 +23,6 @@ return static function (Container $container, string $root): void {
         return new Csrf(session: $session);
     });
     $container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
-    $container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new PlaceholderLogger());
+    $container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new JsonFileLogger($root . '/storage/logs/app.log'));
     $container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new PlaceholderAuditLogger());
 };
