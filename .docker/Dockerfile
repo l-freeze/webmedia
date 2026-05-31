@@ -7,7 +7,6 @@ RUN install-php-extensions \
     gd \
     intl \
     zip \
-    sockets \
     opcache
 
 RUN { \

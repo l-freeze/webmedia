@@ -10,15 +10,8 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Runtime\ClassicRuntime;
 use App\Framework\Runtime\FrankenWorkerRuntime;
-use App\Framework\Runtime\RoadRunnerRuntime;
 use App\Framework\Runtime\RuntimeFactory;
-use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Spiral\RoadRunner\Http\PSR7WorkerInterface;
-use Spiral\RoadRunner\Payload;
-use Spiral\RoadRunner\WorkerInterface;
 
 final class RuntimeTest extends TestCase
 {
@@ -59,25 +52,6 @@ final class RuntimeTest extends TestCase
         self::assertSame('runtimeruntime', $body);
     }
 
-    public function testRoadRunnerRuntimeMapsRequestAndResponds(): void
-    {
-        $application = $this->application();
-        $worker = new FakePsr7Worker([
-            new ServerRequest(method: 'GET', uri: 'https://example.test/runtime', serverParams: [
-                'REQUEST_METHOD' => 'GET',
-                'REQUEST_URI' => '/runtime',
-                'HTTPS' => 'on',
-            ]),
-        ]);
-
-        (new RoadRunnerRuntime(worker: $worker))->run(application: $application);
-
-        self::assertCount(1, $worker->responses);
-        self::assertSame(200, $worker->responses[0]->getStatusCode());
-        self::assertSame('runtime', (string) $worker->responses[0]->getBody());
-        self::assertSame([], $worker->errors);
-    }
-
     public function testRuntimeFactoryFallsBackToClassicWhenFrankenWorkerIsUnavailable(): void
     {
         $runtime = RuntimeFactory::fromRuntime(
@@ -99,27 +73,14 @@ final class RuntimeTest extends TestCase
         self::assertInstanceOf(FrankenWorkerRuntime::class, $runtime);
     }
 
-    public function testRuntimeFactoryFallsBackWhenRoadRunnerIsUnavailable(): void
+    public function testRuntimeFactoryFallsBackForUnsupportedWorkerRuntime(): void
     {
         $runtime = RuntimeFactory::fromRuntime(
             runtime: 'roadrunner-worker',
             frankenAvailable: false,
-            roadRunnerAvailable: false,
         );
 
         self::assertInstanceOf(ClassicRuntime::class, $runtime);
-    }
-
-    public function testRuntimeFactoryBuildsRoadRunnerWhenExplicitlyAvailable(): void
-    {
-        $runtime = RuntimeFactory::fromRuntime(
-            runtime: 'roadrunner-worker',
-            frankenAvailable: false,
-            roadRunnerAvailable: true,
-            roadRunnerRuntime: new RoadRunnerRuntime(worker: new FakePsr7Worker([])),
-        );
-
-        self::assertInstanceOf(RoadRunnerRuntime::class, $runtime);
     }
 
     private function application(): Application
@@ -163,72 +124,5 @@ final readonly class RuntimeController
     public function __invoke(Request $request, array $vars): Response
     {
         return new Response(body: 'runtime');
-    }
-}
-
-final class FakePsr7Worker implements PSR7WorkerInterface
-{
-    /** @var list<ResponseInterface> */
-    public array $responses = [];
-
-    /** @var list<string> */
-    public array $errors = [];
-
-    private FakeWorker $worker;
-
-    /** @param list<ServerRequestInterface> $requests */
-    public function __construct(private array $requests)
-    {
-        $this->worker = new FakeWorker(owner: $this);
-    }
-
-    public function waitRequest(): ?ServerRequestInterface
-    {
-        return array_shift($this->requests);
-    }
-
-    public function respond(ResponseInterface $response): void
-    {
-        $this->responses[] = $response;
-    }
-
-    public function getWorker(): WorkerInterface
-    {
-        return $this->worker;
-    }
-}
-
-final class FakeWorker implements WorkerInterface
-{
-    public function __construct(private FakePsr7Worker $owner)
-    {
-    }
-
-    public function waitPayload(): ?Payload
-    {
-        return null;
-    }
-
-    public function respond(Payload $payload): void
-    {
-    }
-
-    public function error(string $error): void
-    {
-        $this->owner->errors[] = $error;
-    }
-
-    public function stop(): void
-    {
-    }
-
-    public function hasPayload(?string $class = null): bool
-    {
-        return false;
-    }
-
-    public function getPayload(?string $class = null): ?Payload
-    {
-        return null;
     }
 }

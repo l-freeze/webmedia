@@ -10,9 +10,7 @@
     "latte/latte": "^3.0",
     "league/commonmark": "^2.5",
     "nikic/fast-route": "^1.3",
-    "nyholm/psr7": "^1.8",
     "robmorgan/phinx": "^0.16",
-    "spiral/roadrunner-http": "^4.1",
     "symfony/mailer": "^7.0",
     "vlucas/phpdotenv": "^5.6"
   },
