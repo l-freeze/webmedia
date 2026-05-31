@@ -37,7 +37,8 @@ final readonly class PdoHelper
     /** @param array<string, mixed> $params */
     public static function execute(PDOStatement $statement, array $params = []): void
     {
-        if (!$statement->execute($params)) {
+        $executed = $params === [] ? $statement->execute() : $statement->execute($params);
+        if (!$executed) {
             throw new RuntimeException('Failed to execute SQL statement.');
         }
     }
