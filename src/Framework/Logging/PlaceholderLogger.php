@@ -5,35 +5,14 @@ declare(strict_types=1);
 namespace App\Framework\Logging;
 
 use LogicException;
+use Psr\Log\AbstractLogger;
+use Stringable;
 
-final readonly class PlaceholderLogger implements LoggerInterface
+final class PlaceholderLogger extends AbstractLogger
 {
     /** @param array<string, mixed> $context */
-    public function debug(string $message, array $context = []): void
+    public function log($level, string|Stringable $message, array $context = []): void
     {
-        $this->notConfigured();
-    }
-
-    /** @param array<string, mixed> $context */
-    public function info(string $message, array $context = []): void
-    {
-        $this->notConfigured();
-    }
-
-    /** @param array<string, mixed> $context */
-    public function warning(string $message, array $context = []): void
-    {
-        $this->notConfigured();
-    }
-
-    /** @param array<string, mixed> $context */
-    public function error(string $message, array $context = []): void
-    {
-        $this->notConfigured();
-    }
-
-    private function notConfigured(): never
-    {
-        throw new LogicException('Logger is not configured. Bind LoggerInterface to a real logger before writing logs.');
+        throw new LogicException('Logger is not configured. Bind Psr\Log\LoggerInterface to a real logger before writing logs.');
     }
 }

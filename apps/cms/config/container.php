@@ -49,11 +49,11 @@ use App\Framework\Container\Container;
 use App\Framework\Content\Markdown;
 use App\Framework\Database\ConnectionFactory;
 use App\Framework\Logging\AuditLoggerInterface;
-use App\Framework\Logging\LoggerInterface;
 use App\Framework\Logging\PlaceholderAuditLogger;
 use App\Framework\Logging\PlaceholderLogger;
 use App\Framework\Security\Csrf;
 use App\Framework\View\Renderer;
+use Psr\Log\LoggerInterface;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
