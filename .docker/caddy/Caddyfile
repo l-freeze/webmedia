@@ -14,20 +14,20 @@
 		-X-Powered-By
 	}
 
-	handle {
-		request_header X-Webmedia-Runtime frankenphp-worker
-		php_server {
-			worker {
-				file /app/public/index.php
-				env APP_RUNTIME frankenphp-worker
-			}
-		}
-	}
+	# handle {
+	# 	request_header X-Webmedia-Runtime frankenphp-worker
+	# 	php_server {
+	# 		worker {
+	# 			file /app/public/index.php
+	# 			env APP_RUNTIME frankenphp-worker
+	# 		}
+	# 	}
+	# }
 	# To run without FrankenPHP worker mode, comment out the handle block above
 	# and uncomment this block.
-	# handle {
-	# 	request_header X-Webmedia-Runtime classic
-	# 	php_server
-	# }
+	handle {
+		request_header X-Webmedia-Runtime classic
+		php_server
+	}
 	file_server
 }
