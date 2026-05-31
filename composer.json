@@ -18,6 +18,10 @@
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^11.0"
   },
+  "suggest": {
+    "nyholm/psr7": "Required when enabling APP_RUNTIME=roadrunner-worker.",
+    "spiral/roadrunner-http": "Required when enabling APP_RUNTIME=roadrunner-worker."
+  },
   "autoload": {
     "psr-4": {
       "App\\Framework\\": "src/Framework/",

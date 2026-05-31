@@ -2,6 +2,8 @@ FROM dunglas/frankenphp:php8.5
 
 WORKDIR /app
 
+# RoadRunner worker runtime requires this extension when it is enabled later:
+# RUN install-php-extensions sockets
 RUN install-php-extensions \
     pdo_pgsql \
     gd \

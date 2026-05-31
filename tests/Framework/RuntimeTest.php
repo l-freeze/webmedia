@@ -83,6 +83,20 @@ final class RuntimeTest extends TestCase
         self::assertInstanceOf(ClassicRuntime::class, $runtime);
     }
 
+    public function testRuntimeFactoryCanSelectInjectedRoadRunnerRuntimeWhenAvailable(): void
+    {
+        $roadRunnerRuntime = new FakeRuntime();
+
+        $runtime = RuntimeFactory::fromRuntime(
+            runtime: 'roadrunner-worker',
+            frankenAvailable: false,
+            roadRunnerAvailable: true,
+            roadRunnerRuntime: $roadRunnerRuntime,
+        );
+
+        self::assertSame($roadRunnerRuntime, $runtime);
+    }
+
     private function application(): Application
     {
         $root = sys_get_temp_dir() . '/webmedia-runtime-test-' . bin2hex(random_bytes(4));
@@ -124,5 +138,12 @@ final readonly class RuntimeController
     public function __invoke(Request $request, array $vars): Response
     {
         return new Response(body: 'runtime');
+    }
+}
+
+final class FakeRuntime implements \App\Framework\Runtime\Runtime
+{
+    public function run(Application $application): void
+    {
     }
 }
