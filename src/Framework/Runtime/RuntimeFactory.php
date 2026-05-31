@@ -18,7 +18,7 @@ final readonly class RuntimeFactory
 
     public static function fromEnvironment(): Runtime
     {
-        $runtime = $_ENV['APP_RUNTIME'] ?? getenv('APP_RUNTIME') ?: 'classic';
+        $runtime = $_ENV['APP_RUNTIME'] ?? $_SERVER['APP_RUNTIME'] ?? getenv('APP_RUNTIME') ?: 'classic';
 
         return self::fromRuntime(
             runtime: is_string($runtime) ? $runtime : 'classic',

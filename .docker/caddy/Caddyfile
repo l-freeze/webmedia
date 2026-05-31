@@ -16,7 +16,8 @@
 	}
 	php_server {
 		worker {
-			file /app/bootstrap/franken-worker.php
+			file /app/public/index.php
+			env APP_RUNTIME frankenphp-worker
 		}
 	}
 	file_server
