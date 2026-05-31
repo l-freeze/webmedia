@@ -22,6 +22,23 @@ final readonly class Request
     ) {
     }
 
+    public static function fromGlobals(): self
+    {
+        $server = self::stringMap(values: $_SERVER);
+        $requestUri = $server['REQUEST_URI'] ?? '/';
+        $parsedPath = parse_url($requestUri, PHP_URL_PATH);
+        $path = is_string($parsedPath) && $parsedPath !== '' ? $parsedPath : '/';
+
+        return new self(
+            method: strtoupper($server['REQUEST_METHOD'] ?? 'GET'),
+            path: $path,
+            query: self::stringMap(values: $_GET),
+            body: self::mixedMap(values: $_POST),
+            server: $server,
+            files: self::mixedMap(values: $_FILES),
+        );
+    }
+
     /**
      * @param array<mixed> $values
      * @return array<string, string>

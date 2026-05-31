@@ -17,6 +17,7 @@ final class ContainerTest extends TestCase
 
         $service = $container->get(id: NeedsDependency::class);
 
+        self::assertInstanceOf(NeedsDependency::class, $service);
         self::assertInstanceOf(Dependency::class, $service->dependency);
     }
 

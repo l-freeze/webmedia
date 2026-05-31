@@ -8,26 +8,23 @@ use App\Framework\Container\Container;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
+use RuntimeException;
 use function FastRoute\simpleDispatcher;
 
-final readonly class Router
+final class Router
 {
+    private ?Dispatcher $dispatcher = null;
+
     /** @param array<int, array{0:string,1:string,2:class-string|array{0:class-string,1:string}}> $routes */
     public function __construct(
-        private Container $container,
         private array $routes,
     ) {
     }
 
-    public function dispatch(Request $request): Response
+    public function dispatch(Request $request, Container $container): Response
     {
-        $dispatcher = simpleDispatcher(function ($collector): void {
-            foreach ($this->routes as [$method, $path, $controller]) {
-                $collector->addRoute($method, $path, $controller);
-            }
-        });
-
-        $result = $dispatcher->dispatch($request->method, $request->path);
+        $result = $this->dispatcher()->dispatch($request->method, $request->path);
 
         if ($result[0] === Dispatcher::NOT_FOUND) {
             return new Response(body: 'Not Found', status: 404);
@@ -44,11 +41,38 @@ final readonly class Router
 
         if (is_array($handler)) {
             [$controllerClass, $method] = $handler;
-            $controller = $this->container->get(id: $controllerClass);
-            return $controller->{$method}($request, $vars);
+            $controller = $container->get(id: $controllerClass);
+            if (!is_object($controller) || !method_exists($controller, $method)) {
+                throw new RuntimeException("Controller {$controllerClass}::{$method} is not callable.");
+            }
+
+            $response = $controller->{$method}($request, $vars);
+            if (!$response instanceof Response) {
+                throw new RuntimeException("Controller {$controllerClass}::{$method} did not return a response.");
+            }
+
+            return $response;
         }
 
-        $controller = $this->container->get(id: $handler);
-        return $controller($request, $vars);
+        $controller = $container->get(id: $handler);
+        if (!is_callable($controller)) {
+            throw new RuntimeException("Controller {$handler} is not callable.");
+        }
+
+        $response = $controller($request, $vars);
+        if (!$response instanceof Response) {
+            throw new RuntimeException("Controller {$handler} did not return a response.");
+        }
+
+        return $response;
+    }
+
+    private function dispatcher(): Dispatcher
+    {
+        return $this->dispatcher ??= simpleDispatcher(function (RouteCollector $collector): void {
+            foreach ($this->routes as [$method, $path, $controller]) {
+                $collector->addRoute($method, $path, $controller);
+            }
+        });
     }
 }

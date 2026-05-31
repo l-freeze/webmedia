@@ -22,4 +22,36 @@ final class RequestTest extends TestCase
 
         self::assertSame('fallback', $request->input(key: 'missing', default: 'fallback'));
     }
+
+    public function testFromGlobalsBuildsRequestFromSuperglobals(): void
+    {
+        $previousServer = $_SERVER;
+        $previousGet = $_GET;
+        $previousPost = $_POST;
+        $previousFiles = $_FILES;
+
+        try {
+            $_SERVER = [
+                'REQUEST_METHOD' => 'post',
+                'REQUEST_URI' => '/admin/articles?status=draft',
+                'HTTPS' => 'on',
+            ];
+            $_GET = ['status' => 'draft'];
+            $_POST = ['title' => 'Example'];
+            $_FILES = [];
+
+            $request = Request::fromGlobals();
+
+            self::assertSame('POST', $request->method);
+            self::assertSame('/admin/articles', $request->path);
+            self::assertSame('draft', $request->query['status']);
+            self::assertSame('Example', $request->body['title']);
+            self::assertTrue($request->isHttps());
+        } finally {
+            $_SERVER = $previousServer;
+            $_GET = $previousGet;
+            $_POST = $previousPost;
+            $_FILES = $previousFiles;
+        }
+    }
 }

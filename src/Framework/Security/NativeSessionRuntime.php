@@ -32,6 +32,15 @@ final class NativeSessionRuntime
         session_regenerate_id(true);
     }
 
+    public function close(): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        session_write_close();
+    }
+
     public function destroy(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
