@@ -37,6 +37,22 @@ make test
 - `database/seeds`: ローカル確認用シード
 - `public`: Web 公開ディレクトリ
 
+## 設計思想
+
+Framework は意図的に小さく保ちます。
+
+Framework は最小の実行基盤だけを提供します。アプリケーション要件は Kernel、Shared、各 App に置きます。機能は、理解しやすく、差し替えやすく、削除しやすい場合にだけ追加します。
+
+賢い抽象より、退屈で明示的で読みやすいコードを優先します。
+
+## Design Philosophy
+
+The Framework is intentionally kept small.
+
+The Framework provides only the minimum execution foundation. Application concerns belong to Kernel, Shared, or each App. A feature is added only when it keeps the system easier to understand, replace, or delete.
+
+We prefer boring, explicit, readable code over clever abstractions.
+
 ## PSR
 
 このプロジェクトは Composer autoload と相性のよい範囲で PSR を採用します。
