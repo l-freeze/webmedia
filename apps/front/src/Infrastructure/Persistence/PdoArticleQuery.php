@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Front\Infrastructure\Persistence;
 
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use App\Front\Application\Article\Search\Query\IArticleQuery as SearchArticleQuery;
 use App\Front\Application\Article\Search\Value\Article as SearchArticle;
 use App\Front\Application\Article\Show\Query\IArticleQuery as ShowArticleQuery;
@@ -33,7 +34,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
 
     public function countPublished(): ArticleCount
     {
-        return new ArticleCount(value: (int) PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM articles a WHERE ' . $this->publicCondition())));
+        return new ArticleCount(value: PdoRow::from(['count' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM articles a WHERE ' . $this->publicCondition()))])->int(key: 'count'));
     }
 
     public function findPublishedBySlug(string $slug): ?ShowArticle
@@ -44,7 +45,16 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         if ($row === null) {
             return null;
         }
-        return $this->showArticle(row: $row, bodyHtml: $this->markdown->bodyToSafeHtml(body: (string) $row['body_markdown'], format: (string) ($row['body_format'] ?? 'markdown')), tags: $this->tags(articleId: (int) $row['id']));
+        $pdoRow = PdoRow::from(values: $row);
+
+        return $this->showArticle(
+            row: $row,
+            bodyHtml: $this->markdown->bodyToSafeHtml(
+                body: $pdoRow->string(key: 'body_markdown'),
+                format: $pdoRow->string(key: 'body_format', default: 'markdown'),
+            ),
+            tags: $this->tags(articleId: $pdoRow->int(key: 'id')),
+        );
     }
 
     /** @return array<int, SearchArticle> */
@@ -80,40 +90,69 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
     }
 
+    /**
+     * @param array<string, mixed> $row
+     * @param array<int, array{name:string,slug:string}> $tags
+     */
+    private function showArticle(array $row, ?string $bodyHtml = null, array $tags = []): ShowArticle
+    {
+        $pdoRow = PdoRow::from(values: $row);
+
+        return new ShowArticle(
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            excerpt: $this->excerpt(row: $pdoRow),
+            categoryId: $pdoRow->nullableInt(key: 'category_id'),
+            categoryName: $pdoRow->string(key: 'category_name', default: '未分類') ?: '未分類',
+            categorySlug: $pdoRow->string(key: 'category_slug'),
+            eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+            publishedAt: $pdoRow->date(key: 'published_at'),
+            updatedAt: $pdoRow->date(key: 'updated_at'),
+            authorName: $pdoRow->string(key: 'author_name', default: '編集部') ?: '編集部',
+            bodyHtml: $bodyHtml,
+            tags: $tags,
+        );
+    }
+
     /** @param array<string, mixed> $row */
     private function homeArticle(array $row): HomeArticle
     {
-        return new HomeArticle(...$this->articleArgs(row: $row));
+        $pdoRow = PdoRow::from(values: $row);
+
+        return new HomeArticle(
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            excerpt: $this->excerpt(row: $pdoRow),
+            categoryId: $pdoRow->nullableInt(key: 'category_id'),
+            categoryName: $pdoRow->string(key: 'category_name', default: '未分類') ?: '未分類',
+            categorySlug: $pdoRow->string(key: 'category_slug'),
+            eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+            publishedAt: $pdoRow->date(key: 'published_at'),
+            updatedAt: $pdoRow->date(key: 'updated_at'),
+            authorName: $pdoRow->string(key: 'author_name', default: '編集部') ?: '編集部',
+        );
     }
 
     /** @param array<string, mixed> $row */
     private function searchArticle(array $row): SearchArticle
     {
-        return new SearchArticle(...$this->articleArgs(row: $row));
-    }
+        $pdoRow = PdoRow::from(values: $row);
 
-    /** @param array<string, mixed> $row @param array<int, array{name:string,slug:string}> $tags */
-    private function showArticle(array $row, ?string $bodyHtml = null, array $tags = []): ShowArticle
-    {
-        return new ShowArticle(...$this->articleArgs(row: $row), bodyHtml: $bodyHtml, tags: $tags);
-    }
-
-    /** @param array<string, mixed> $row @return array<string, mixed> */
-    private function articleArgs(array $row): array
-    {
-        return [
-            'id' => (int) $row['id'],
-            'title' => (string) $row['title'],
-            'slug' => (string) $row['slug'],
-            'excerpt' => (string) ($row['excerpt'] ?: mb_substr(strip_tags((string) $row['body_markdown']), 0, 120)),
-            'categoryId' => $row['category_id'] !== null ? (int) $row['category_id'] : null,
-            'categoryName' => (string) ($row['category_name'] ?: '未分類'),
-            'categorySlug' => (string) ($row['category_slug'] ?: ''),
-            'eyecatchPath' => (string) ($row['eyecatch_path'] ?? ''),
-            'publishedAt' => $this->date(value: $row['published_at'] ?? null),
-            'updatedAt' => $this->date(value: $row['updated_at'] ?? null),
-            'authorName' => (string) ($row['author_name'] ?? '編集部'),
-        ];
+        return new SearchArticle(
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            excerpt: $this->excerpt(row: $pdoRow),
+            categoryId: $pdoRow->nullableInt(key: 'category_id'),
+            categoryName: $pdoRow->string(key: 'category_name', default: '未分類') ?: '未分類',
+            categorySlug: $pdoRow->string(key: 'category_slug'),
+            eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+            publishedAt: $pdoRow->date(key: 'published_at'),
+            updatedAt: $pdoRow->date(key: 'updated_at'),
+            authorName: $pdoRow->string(key: 'author_name', default: '編集部') ?: '編集部',
+        );
     }
 
     /** @return array<int, array{name:string,slug:string}> */
@@ -121,13 +160,24 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT t.name, t.slug FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id WHERE at.article_id = :id ORDER BY t.name');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
-        /** @var array<int, array{name: string, slug: string}> $rows */
-        $rows = PdoHelper::fetchAll(statement: $stmt);
-        return $rows;
+
+        return array_map(static function (array $row): array {
+            $pdoRow = PdoRow::from(values: $row);
+
+            return [
+                'name' => $pdoRow->string(key: 'name'),
+                'slug' => $pdoRow->string(key: 'slug'),
+            ];
+        }, PdoHelper::fetchAll(statement: $stmt));
     }
 
-    private function date(mixed $value): string
+    private function excerpt(PdoRow $row): string
     {
-        return $value ? date('Y-m-d', strtotime((string) $value)) : '';
+        $excerpt = $row->string(key: 'excerpt');
+        if ($excerpt !== '') {
+            return $excerpt;
+        }
+
+        return mb_substr(strip_tags($row->string(key: 'body_markdown')), 0, 120);
     }
 }

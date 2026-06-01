@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Front\Infrastructure\Persistence;
 
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use App\Front\Application\Layout\Query\ISiteSettingQuery;
 use App\Front\Application\Layout\Value\SiteSettings;
 use PDO;
@@ -24,7 +25,8 @@ final readonly class PdoSiteSettingQuery implements ISiteSettingQuery
     {
         $settings = [];
         foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT setting_key, setting_value FROM site_settings')) as $row) {
-            $settings[(string) $row['setting_key']] = (string) $row['setting_value'];
+            $pdoRow = PdoRow::from(values: $row);
+            $settings[$pdoRow->string(key: 'setting_key')] = $pdoRow->string(key: 'setting_value');
         }
 
         $frontTheme = $settings['front_theme'] ?? self::DEFAULT_THEME;

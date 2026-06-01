@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Front\Infrastructure\Persistence;
 
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use App\Front\Application\Tag\List\Query\ITagQuery as ListTagQuery;
 use App\Front\Application\Tag\List\Value\Tag as ListTag;
 use App\Front\Application\Tag\Show\Query\IArticleQuery as ShowArticleQuery;
@@ -22,12 +23,16 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     /** @return array<int, ListTag> */
     public function all(): array
     {
-        return array_map(fn (array $row): ListTag => new ListTag(
-            id: (int) $row['id'],
-            name: (string) $row['name'],
-            slug: (string) $row['slug'],
-            articleCount: (int) $row['article_count'],
-        ), PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')));
+        return array_map(static function (array $row): ListTag {
+            $pdoRow = PdoRow::from(values: $row);
+
+            return new ListTag(
+                id: $pdoRow->int(key: 'id'),
+                name: $pdoRow->string(key: 'name'),
+                slug: $pdoRow->string(key: 'slug'),
+                articleCount: $pdoRow->int(key: 'article_count'),
+            );
+        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')));
     }
 
     public function find(string $slug): ?TagDetail
@@ -38,7 +43,9 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
         if ($row === null) {
             return null;
         }
-        return new TagDetail(name: (string) $row['name'], slug: (string) $row['slug']);
+        $pdoRow = PdoRow::from(values: $row);
+
+        return new TagDetail(name: $pdoRow->string(key: 'name'), slug: $pdoRow->string(key: 'slug'));
     }
 
     /** @return array<int, ShowArticle> */
@@ -46,21 +53,20 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
-        return array_map(fn (array $row): ShowArticle => new ShowArticle(
-            id: (int) $row['id'],
-            title: (string) $row['title'],
-            slug: (string) $row['slug'],
-            excerpt: (string) ($row['excerpt'] ?: ''),
-            categoryName: (string) ($row['category_name'] ?: '未分類'),
-            eyecatchPath: (string) ($row['eyecatch_path'] ?? ''),
-            publishedAt: $this->date(value: $row['published_at'] ?? null),
-            updatedAt: $this->date(value: $row['updated_at'] ?? null),
-        ), PdoHelper::fetchAll(statement: $stmt));
-    }
+        return array_map(static function (array $row): ShowArticle {
+            $pdoRow = PdoRow::from(values: $row);
 
-    private function date(mixed $value): string
-    {
-        return $value ? date('Y-m-d', strtotime((string) $value)) : '';
+            return new ShowArticle(
+                id: $pdoRow->int(key: 'id'),
+                title: $pdoRow->string(key: 'title'),
+                slug: $pdoRow->string(key: 'slug'),
+                excerpt: $pdoRow->string(key: 'excerpt'),
+                categoryName: $pdoRow->string(key: 'category_name', default: '未分類') ?: '未分類',
+                eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+                publishedAt: $pdoRow->date(key: 'published_at'),
+                updatedAt: $pdoRow->date(key: 'updated_at'),
+            );
+        }, PdoHelper::fetchAll(statement: $stmt));
     }
 
     private function publicCondition(): string

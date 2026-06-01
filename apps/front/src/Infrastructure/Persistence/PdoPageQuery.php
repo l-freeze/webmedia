@@ -6,6 +6,7 @@ namespace App\Front\Infrastructure\Persistence;
 
 use App\Framework\Content\Markdown;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use App\Front\Application\Page\Show\Query\IPageQuery;
 use App\Front\Application\Page\Show\Value\PageDetail;
 use PDO;
@@ -24,12 +25,14 @@ final readonly class PdoPageQuery implements IPageQuery
         if ($row === null) {
             return null;
         }
+        $pdoRow = PdoRow::from(values: $row);
+
         return new PageDetail(
-            id: (int) $row['id'],
-            title: (string) $row['title'],
-            slug: (string) $row['slug'],
-            bodyHtml: $this->markdown->toSafeHtml(markdown: (string) $row['body_markdown']),
-            updatedAt: date('Y-m-d', strtotime((string) $row['updated_at'])),
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            bodyHtml: $this->markdown->toSafeHtml(markdown: $pdoRow->string(key: 'body_markdown')),
+            updatedAt: $pdoRow->date(key: 'updated_at'),
         );
     }
 }
