@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\Application;
 use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\NativeSessionRuntime;
+use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;

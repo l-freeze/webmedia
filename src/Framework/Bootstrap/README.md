@@ -2,9 +2,9 @@
 
 ## 目的
 
-エントリーポイントで行う `Application` 生成、`.env` 読み込み、Runtime 選択をまとめるための薄い bootstrap 層です。
+エントリーポイントで行う `.env` 読み込み、Application 生成、Runtime 選択をまとめるための薄い bootstrap 層です。
 
-Framework の外側から `ApplicationBootstrapConfig` を渡すことで、例外ハンドラ、middleware pipeline、session runtime を差し替えられます。
+Framework の外側から `ApplicationBootstrapConfig` を渡すことで、Kernel の生成方法、例外ハンドラ、middleware pipeline、session runtime を差し替えられます。
 
 ## 基本形
 
@@ -14,10 +14,14 @@ Framework の外側から `ApplicationBootstrapConfig` を渡すことで、例�
 use App\Framework\Bootstrap\ApplicationBootstrap;
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+$root = dirname(__DIR__);
+
+require $root . '/vendor/autoload.php';
+
+$applicationFactory = require $root . '/apps/kernel/config/application.php';
 
 ApplicationBootstrap::run(
-    config: new ApplicationBootstrapConfig(root: dirname(__DIR__)),
+    config: new ApplicationBootstrapConfig(root: $root, applicationFactory: $applicationFactory),
 );
 ```
 
@@ -29,6 +33,7 @@ ApplicationBootstrap::run(
 ApplicationBootstrap::run(
     config: new ApplicationBootstrapConfig(
         root: dirname(__DIR__),
+        applicationFactory: $applicationFactory,
         exceptionHandler: new AppExceptionHandler(),
     ),
 );
@@ -41,10 +46,11 @@ $application = ApplicationBootstrap::createApplication(
     config: new ApplicationBootstrapConfig(
         root: $root,
         loadDotenv: false,
+        applicationFactory: $applicationFactory,
     ),
 );
 ```
 
 ## 責務
 
-この層は起動手順だけを扱います。Route、DI、middleware、exception handler の具体的な中身は各アプリケーション側に置きます。
+この層は起動手順だけを扱います。Route、DI、middleware、Kernel の具体的な中身は各アプリケーション側に置きます。

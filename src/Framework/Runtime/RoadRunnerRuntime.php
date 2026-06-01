@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Framework\Runtime;
 
-use App\Framework\Application\Application;
+use App\Framework\Application\ApplicationInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Spiral\RoadRunner\Http\PSR7Worker;
 use Spiral\RoadRunner\Http\PSR7WorkerInterface;
@@ -34,7 +34,7 @@ final readonly class RoadRunnerRuntime implements Runtime
         );
     }
 
-    public function run(Application $application): void
+    public function run(ApplicationInterface $application): void
     {
         while (($psrRequest = $this->worker->waitRequest()) !== null) {
             try {

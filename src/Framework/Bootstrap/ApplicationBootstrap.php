@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Framework\Bootstrap;
 
-use App\Framework\Application\Application;
-use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use App\Framework\Http\Middleware\MiddlewarePipeline;
+use App\Framework\Application\ApplicationInterface;
 use App\Framework\Runtime\RuntimeFactory;
-use App\Framework\Security\NativeSessionRuntime;
 use Dotenv\Dotenv;
+use RuntimeException;
 
 final readonly class ApplicationBootstrap
 {
@@ -23,14 +21,13 @@ final readonly class ApplicationBootstrap
         RuntimeFactory::fromEnvironment()->run(application: self::createApplication(config: $config));
     }
 
-    public static function createApplication(ApplicationBootstrapConfig $config): Application
+    public static function createApplication(ApplicationBootstrapConfig $config): ApplicationInterface
     {
-        return new Application(
-            root: $config->root,
-            sessionRuntime: $config->sessionRuntime ?? new NativeSessionRuntime(),
-            middlewarePipeline: $config->middlewarePipeline ?? new MiddlewarePipeline(),
-            exceptionHandler: $config->exceptionHandler ?? new RethrowingExceptionHandler(),
-        );
+        if ($config->applicationFactory === null) {
+            throw new RuntimeException('Application factory is not configured.');
+        }
+
+        return ($config->applicationFactory)($config);
     }
 
     private static function loadEnvironment(ApplicationBootstrapConfig $config): void

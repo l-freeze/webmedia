@@ -37,11 +37,16 @@ final readonly class FrontExceptionHandler implements ExceptionHandlerInterface
 use App\Framework\Bootstrap\ApplicationBootstrap;
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+$root = dirname(__DIR__);
+
+require $root . '/vendor/autoload.php';
+
+$applicationFactory = require $root . '/apps/kernel/config/application.php';
 
 ApplicationBootstrap::run(
     config: new ApplicationBootstrapConfig(
-        root: dirname(__DIR__),
+        root: $root,
+        applicationFactory: $applicationFactory,
         exceptionHandler: new FrontExceptionHandler(),
     ),
 );
@@ -49,11 +54,13 @@ ApplicationBootstrap::run(
 
 `public/index.php` は `ApplicationBootstrap::run()` を呼ぶだけにし、環境ごとに返したいエラー画面やログ出力が変わる場合は、ここで渡すハンドラを差し替えます。
 
-## 差し込み方: Application を直接作る場合
+## 差し込み方: Kernel Application を直接作る場合
 
-`Application` のコンストラクタに渡します。
+プロジェクト側の `App\Kernel\Application` のコンストラクタに渡します。
 
 ```php
+use App\Kernel\Application;
+
 $application = new Application(
     root: dirname(__DIR__),
     exceptionHandler: new FrontExceptionHandler(),
@@ -74,6 +81,7 @@ use App\Framework\Http\ExceptionHandling\PlainTextExceptionHandler;
 
 new ApplicationBootstrapConfig(
     root: dirname(__DIR__),
+    applicationFactory: $applicationFactory,
     exceptionHandler: new PlainTextExceptionHandler(),
 );
 ```

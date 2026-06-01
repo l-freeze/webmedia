@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\Application;
+use App\Framework\Application\ApplicationInterface;
 use App\Framework\Container\Container;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Runtime\ClassicRuntime;
 use App\Framework\Runtime\FrankenWorkerRuntime;
 use App\Framework\Runtime\RuntimeFactory;
+use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 
 final class RuntimeTest extends TestCase
@@ -143,7 +144,7 @@ final readonly class RuntimeController
 
 final class FakeRuntime implements \App\Framework\Runtime\Runtime
 {
-    public function run(Application $application): void
+    public function run(ApplicationInterface $application): void
     {
     }
 }

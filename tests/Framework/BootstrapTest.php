@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\Application;
+use App\Framework\Application\ApplicationInterface;
 use App\Framework\Bootstrap\ApplicationBootstrap;
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 
 final class BootstrapTest extends TestCase
@@ -32,7 +33,11 @@ PHP;
         file_put_contents($root . '/apps/cms/config/routes.php', $routes);
 
         $application = ApplicationBootstrap::createApplication(
-            config: new ApplicationBootstrapConfig(root: $root, loadDotenv: false),
+            config: new ApplicationBootstrapConfig(
+                root: $root,
+                loadDotenv: false,
+                applicationFactory: static fn (ApplicationBootstrapConfig $config): ApplicationInterface => new Application(root: $config->root),
+            ),
         );
 
         self::assertInstanceOf(Application::class, $application);
