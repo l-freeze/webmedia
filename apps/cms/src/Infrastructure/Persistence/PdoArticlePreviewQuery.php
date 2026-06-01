@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Article\Preview\Query\IArticleQuery;
 use App\Cms\Application\Article\Preview\Value\Article;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticlePreviewQuery implements IArticleQuery
@@ -24,16 +25,18 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
             return null;
         }
 
+        $pdoRow = PdoRow::from(values: $row);
+
         return new Article(
-            id: (int) $row['id'],
-            title: (string) $row['title'],
-            slug: (string) $row['slug'],
-            bodyMarkdown: (string) $row['body_markdown'],
-            bodyFormat: (string) ($row['body_format'] ?? 'markdown'),
-            status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel(status: (string) $row['status'], publishedAt: (string) ($row['published_at'] ?? ''), publishedEndsAt: (string) ($row['published_ends_at'] ?? '')),
-            eyecatchPath: (string) ($row['eyecatch_path'] ?? ''),
-            publishedAt: (string) ($row['published_at'] ?? ''),
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            bodyMarkdown: $pdoRow->string(key: 'body_markdown'),
+            bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
+            status: $pdoRow->string(key: 'status'),
+            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
+            eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+            publishedAt: $pdoRow->string(key: 'published_at'),
         );
     }
 }

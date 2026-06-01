@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\IUserRepository;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoUserRepository implements IUserRepository
@@ -24,12 +25,14 @@ final readonly class PdoUserRepository implements IUserRepository
             return null;
         }
 
+        $pdoRow = PdoRow::from(values: $row);
+
         return new User(
-            id: (int) $row['id'],
-            email: (string) $row['email'],
-            passwordHash: (string) $row['password_hash'],
-            name: (string) $row['name'],
-            role: (string) $row['role'],
+            id: $pdoRow->int(key: 'id'),
+            email: $pdoRow->string(key: 'email'),
+            passwordHash: $pdoRow->string(key: 'password_hash'),
+            name: $pdoRow->string(key: 'name'),
+            role: $pdoRow->string(key: 'role'),
         );
     }
 }

@@ -42,18 +42,42 @@ final readonly class Article
     {
         return new self(
             id: $id === null ? null : new ArticleId(value: $id),
-            title: new ArticleTitle(value: (string) $data['title']),
-            slug: new ArticleSlug(value: (string) $data['slug']),
-            bodyMarkdown: new ArticleBodyMarkdown(value: (string) $data['body_markdown']),
-            bodyFormat: new ArticleBodyFormat(value: (string) ($data['body_format'] ?? ArticleBodyFormat::MARKDOWN)),
-            excerpt: new ArticleExcerpt(value: (string) ($data['excerpt'] ?? '')),
-            status: new ArticleStatus(value: (string) ($data['status'] ?? 'draft')),
-            categoryId: ($data['category_id'] ?? '') === '' ? null : new CategoryId(value: (int) $data['category_id']),
-            eyecatchPath: ($data['eyecatch_path'] ?? '') === '' ? null : new EyecatchPath(value: (string) $data['eyecatch_path']),
-            publishedAt: ($data['published_at'] ?? '') === '' ? null : new PublishedAt(value: (string) $data['published_at']),
-            publishedEndsAt: ($data['published_ends_at'] ?? '') === '' ? null : new PublishedEndsAt(value: (string) $data['published_ends_at']),
-            seoTitle: new SeoTitle(value: (string) ($data['seo_title'] ?? '')),
-            metaDescription: new MetaDescription(value: (string) ($data['meta_description'] ?? '')),
+            title: new ArticleTitle(value: self::stringValue(data: $data, key: 'title')),
+            slug: new ArticleSlug(value: self::stringValue(data: $data, key: 'slug')),
+            bodyMarkdown: new ArticleBodyMarkdown(value: self::stringValue(data: $data, key: 'body_markdown')),
+            bodyFormat: new ArticleBodyFormat(value: self::stringValue(data: $data, key: 'body_format', default: ArticleBodyFormat::MARKDOWN)),
+            excerpt: new ArticleExcerpt(value: self::stringValue(data: $data, key: 'excerpt')),
+            status: new ArticleStatus(value: self::stringValue(data: $data, key: 'status', default: 'draft')),
+            categoryId: self::stringValue(data: $data, key: 'category_id') === '' ? null : new CategoryId(value: self::intValue(data: $data, key: 'category_id')),
+            eyecatchPath: self::stringValue(data: $data, key: 'eyecatch_path') === '' ? null : new EyecatchPath(value: self::stringValue(data: $data, key: 'eyecatch_path')),
+            publishedAt: self::stringValue(data: $data, key: 'published_at') === '' ? null : new PublishedAt(value: self::stringValue(data: $data, key: 'published_at')),
+            publishedEndsAt: self::stringValue(data: $data, key: 'published_ends_at') === '' ? null : new PublishedEndsAt(value: self::stringValue(data: $data, key: 'published_ends_at')),
+            seoTitle: new SeoTitle(value: self::stringValue(data: $data, key: 'seo_title')),
+            metaDescription: new MetaDescription(value: self::stringValue(data: $data, key: 'meta_description')),
         );
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function stringValue(array $data, string $key, string $default = ''): string
+    {
+        $value = $data[$key] ?? null;
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function intValue(array $data, string $key, int $default = 0): int
+    {
+        $value = $data[$key] ?? null;
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_float($value)) {
+            return (int) $value;
+        }
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
     }
 }

@@ -16,7 +16,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $type = (string) ($input->data['type'] ?? 'category');
+        $type = $this->stringValue(value: $input->data['type'] ?? 'category', default: 'category');
         $validation = (new FormValidator(input: new ValidationInput(values: $input->data)))
             ->required(field: 'name', label: '名前')
             ->required(field: 'slug', label: 'スラッグ')
@@ -33,5 +33,10 @@ final readonly class Interactor
 
         $this->taxonomy->createCategory(data: $input->data);
         return new Output(saved: true);
+    }
+
+    private function stringValue(mixed $value, string $default = ''): string
+    {
+        return is_scalar($value) ? (string) $value : $default;
     }
 }

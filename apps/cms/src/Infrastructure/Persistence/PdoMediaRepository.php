@@ -8,6 +8,7 @@ use App\Cms\Application\Media\Delete\Output as DeleteOutput;
 use App\Cms\Application\Media\Upload\Output;
 use App\Cms\Domain\Repository\IMediaRepository;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 use Throwable;
 
@@ -38,11 +39,12 @@ final readonly class PdoMediaRepository implements IMediaRepository
     /** @param array<string, mixed> $file */
     public function storeUploadedMedia(array $file, string $altText, string $caption): Output
     {
-        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return new Output(uploaded: false, error: $this->uploadErrorMessage(error: (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE)));
+        $input = PdoRow::from(values: $file);
+        if ($input->int(key: 'error', default: UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return new Output(uploaded: false, error: $this->uploadErrorMessage(error: $input->int(key: 'error', default: UPLOAD_ERR_NO_FILE)));
         }
 
-        $tmpName = (string) ($file['tmp_name'] ?? '');
+        $tmpName = $input->string(key: 'tmp_name');
         if ($tmpName === '' || !is_file($tmpName)) {
             return new Output(uploaded: false, error: 'アップロードされたファイルを確認できません。');
         }
@@ -52,7 +54,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
             return new Output(uploaded: false, error: 'アップロードできるメディアは JPEG / PNG / WebP / GIF / MP4 / WebM / Ogg / MOV / AVI です。');
         }
 
-        $fileSize = (int) ($file['size'] ?? 0);
+        $fileSize = $input->int(key: 'size');
         if ($fileSize <= 0 || $fileSize > $this->maxFileSize(mimeType: $mimeType)) {
             return new Output(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
         }
@@ -73,7 +75,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
         $path = '/uploads/media/' . $storedFileName;
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :alt_text, :caption, :created_at)');
         PdoHelper::execute(statement: $stmt, params: [
-            'file_name' => $this->safeOriginalName(fileName: (string) ($file['name'] ?? $storedFileName)),
+            'file_name' => $this->safeOriginalName(fileName: $input->string(key: 'name', default: $storedFileName)),
             'path' => $path,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,

@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Article\List\Query\IArticleQuery as ListArticleQuery;
 use App\Cms\Application\Article\List\Value\Article;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleQuery implements ListArticleQuery
@@ -33,13 +34,15 @@ final readonly class PdoArticleQuery implements ListArticleQuery
     /** @param array<string, mixed> $row */
     private function format(array $row): Article
     {
+        $pdoRow = PdoRow::from(values: $row);
+
         return new Article(
-            id: (int) $row['id'],
-            title: (string) $row['title'],
-            status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel(status: (string) $row['status'], publishedAt: (string) ($row['published_at'] ?? ''), publishedEndsAt: (string) ($row['published_ends_at'] ?? '')),
-            categoryName: $row['category_name'] === null ? null : (string) $row['category_name'],
-            updatedAt: date('Y-m-d H:i', strtotime((string) $row['updated_at'])),
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            status: $pdoRow->string(key: 'status'),
+            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
+            categoryName: $pdoRow->nullableString(key: 'category_name'),
+            updatedAt: $pdoRow->date(key: 'updated_at', format: 'Y-m-d H:i'),
         );
     }
 }

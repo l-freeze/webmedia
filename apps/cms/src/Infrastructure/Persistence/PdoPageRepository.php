@@ -8,6 +8,7 @@ use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Value\PageId;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 use Throwable;
 
@@ -49,7 +50,7 @@ final readonly class PdoPageRepository implements IPageRepository
             $payload['created_at'] = $now;
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO pages (title, slug, body_markdown, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
             PdoHelper::execute(statement: $stmt, params: $payload);
-            $id = (int) PdoHelper::fetchColumn(statement: $stmt);
+            $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
         } else {
             $id = $page->id->value;
             $payload['id'] = $id;
@@ -87,11 +88,11 @@ final readonly class PdoPageRepository implements IPageRepository
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT current_version_no FROM pages WHERE id = :id FOR UPDATE');
         PdoHelper::execute(statement: $stmt, params: ['id' => $pageId]);
-        $currentVersionNo = (int) PdoHelper::fetchColumn(statement: $stmt);
+        $currentVersionNo = PdoRow::from(values: ['version_no' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'version_no');
 
         $maxStmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COALESCE(MAX(version_no), 0) FROM page_versions WHERE page_id = :id');
         PdoHelper::execute(statement: $maxStmt, params: ['id' => $pageId]);
-        $maxVersionNo = (int) PdoHelper::fetchColumn(statement: $maxStmt);
+        $maxVersionNo = PdoRow::from(values: ['version_no' => PdoHelper::fetchColumn(statement: $maxStmt)])->int(key: 'version_no');
 
         return max($currentVersionNo, $maxVersionNo) + 1;
     }

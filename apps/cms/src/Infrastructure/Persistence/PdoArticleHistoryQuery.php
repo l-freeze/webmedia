@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Article\History\Query\IArticleHistoryQuery;
 use App\Cms\Application\Article\History\Value\ArticleVersion;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleHistoryQuery implements IArticleHistoryQuery
@@ -20,11 +21,15 @@ final readonly class PdoArticleHistoryQuery implements IArticleHistoryQuery
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT version_no, title, status, created_at FROM article_versions WHERE article_id = :id ORDER BY version_no DESC');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
-        return array_map(fn (array $row): ArticleVersion => new ArticleVersion(
-            versionNo: (int) $row['version_no'],
-            title: (string) $row['title'],
-            status: (string) $row['status'],
-            createdAt: (string) $row['created_at'],
-        ), PdoHelper::fetchAll(statement: $stmt));
+        return array_map(static function (array $row): ArticleVersion {
+            $pdoRow = PdoRow::from(values: $row);
+
+            return new ArticleVersion(
+                versionNo: $pdoRow->int(key: 'version_no'),
+                title: $pdoRow->string(key: 'title'),
+                status: $pdoRow->string(key: 'status'),
+                createdAt: $pdoRow->string(key: 'created_at'),
+            );
+        }, PdoHelper::fetchAll(statement: $stmt));
     }
 }

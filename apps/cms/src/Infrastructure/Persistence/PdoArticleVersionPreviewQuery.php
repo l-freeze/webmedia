@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\ArticleVersion\Preview\Query\IArticleVersionQuery;
 use App\Cms\Application\ArticleVersion\Preview\Value\ArticleVersion;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleVersionPreviewQuery implements IArticleVersionQuery
@@ -24,23 +25,25 @@ final readonly class PdoArticleVersionPreviewQuery implements IArticleVersionQue
             return null;
         }
 
+        $pdoRow = PdoRow::from(values: $row);
+
         return new ArticleVersion(
-            articleId: (int) $row['article_id'],
-            versionNo: (int) $row['version_no'],
-            title: (string) $row['title'],
-            slug: (string) $row['slug'],
-            bodyMarkdown: (string) $row['body_markdown'],
-            bodyFormat: (string) ($row['body_format'] ?? 'markdown'),
-            excerpt: (string) ($row['excerpt'] ?? ''),
-            status: (string) $row['status'],
-            statusLabel: PdoArticleRepository::statusLabel(status: (string) $row['status'], publishedAt: (string) ($row['published_at'] ?? ''), publishedEndsAt: (string) ($row['published_ends_at'] ?? '')),
-            categoryId: $row['category_id'] === null ? null : (int) $row['category_id'],
-            eyecatchPath: (string) ($row['eyecatch_path'] ?? ''),
-            publishedAt: (string) ($row['published_at'] ?? ''),
-            publishedEndsAt: (string) ($row['published_ends_at'] ?? ''),
-            seoTitle: (string) ($row['seo_title'] ?? ''),
-            metaDescription: (string) ($row['meta_description'] ?? ''),
-            createdAt: (string) $row['created_at'],
+            articleId: $pdoRow->int(key: 'article_id'),
+            versionNo: $pdoRow->int(key: 'version_no'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            bodyMarkdown: $pdoRow->string(key: 'body_markdown'),
+            bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
+            excerpt: $pdoRow->string(key: 'excerpt'),
+            status: $pdoRow->string(key: 'status'),
+            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
+            categoryId: $pdoRow->nullableInt(key: 'category_id'),
+            eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
+            publishedAt: $pdoRow->string(key: 'published_at'),
+            publishedEndsAt: $pdoRow->string(key: 'published_ends_at'),
+            seoTitle: $pdoRow->string(key: 'seo_title'),
+            metaDescription: $pdoRow->string(key: 'meta_description'),
+            createdAt: $pdoRow->string(key: 'created_at'),
         );
     }
 }

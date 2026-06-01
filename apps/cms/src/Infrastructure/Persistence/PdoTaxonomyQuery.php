@@ -9,6 +9,7 @@ use App\Cms\Application\Taxonomy\List\Query\ITagQuery;
 use App\Cms\Application\Taxonomy\List\Value\Category;
 use App\Cms\Application\Taxonomy\List\Value\Tag;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoTaxonomyQuery implements ICategoryQuery, ITagQuery
@@ -20,21 +21,29 @@ final readonly class PdoTaxonomyQuery implements ICategoryQuery, ITagQuery
     /** @return array<int, Category> */
     public function categories(): array
     {
-        return array_map(fn (array $row): Category => new Category(
-            id: (int) $row['id'],
-            name: (string) $row['name'],
-            slug: (string) $row['slug'],
-            description: (string) ($row['description'] ?? ''),
-        ), PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug, description FROM categories ORDER BY sort_order, name')));
+        return array_map(static function (array $row): Category {
+            $pdoRow = PdoRow::from(values: $row);
+
+            return new Category(
+                id: $pdoRow->int(key: 'id'),
+                name: $pdoRow->string(key: 'name'),
+                slug: $pdoRow->string(key: 'slug'),
+                description: $pdoRow->string(key: 'description'),
+            );
+        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug, description FROM categories ORDER BY sort_order, name')));
     }
 
     /** @return array<int, Tag> */
     public function tags(): array
     {
-        return array_map(fn (array $row): Tag => new Tag(
-            id: (int) $row['id'],
-            name: (string) $row['name'],
-            slug: (string) $row['slug'],
-        ), PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug FROM tags ORDER BY name')));
+        return array_map(static function (array $row): Tag {
+            $pdoRow = PdoRow::from(values: $row);
+
+            return new Tag(
+                id: $pdoRow->int(key: 'id'),
+                name: $pdoRow->string(key: 'name'),
+                slug: $pdoRow->string(key: 'slug'),
+            );
+        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug FROM tags ORDER BY name')));
     }
 }

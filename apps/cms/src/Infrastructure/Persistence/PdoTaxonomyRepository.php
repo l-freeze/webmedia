@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Repository\ITaxonomyRepository;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 use Throwable;
 
@@ -17,12 +18,13 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
 
     public function createCategory(array $data): void
     {
+        $input = PdoRow::from(values: $data);
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO categories (name, slug, description, created_at, updated_at) VALUES (:name, :slug, :description, :created_at, :updated_at)');
         PdoHelper::execute(statement: $stmt, params: [
-            'name' => (string) ($data['name'] ?? ''),
-            'slug' => (string) ($data['slug'] ?? ''),
-            'description' => (string) ($data['description'] ?? ''),
+            'name' => $input->string(key: 'name'),
+            'slug' => $input->string(key: 'slug'),
+            'description' => $input->string(key: 'description'),
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -30,11 +32,12 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
 
     public function createTag(array $data): void
     {
+        $input = PdoRow::from(values: $data);
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO tags (name, slug, created_at, updated_at) VALUES (:name, :slug, :created_at, :updated_at)');
         PdoHelper::execute(statement: $stmt, params: [
-            'name' => (string) ($data['name'] ?? ''),
-            'slug' => (string) ($data['slug'] ?? ''),
+            'name' => $input->string(key: 'name'),
+            'slug' => $input->string(key: 'slug'),
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -42,16 +45,17 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
 
     public function updateCategory(int $id, array $data): bool
     {
-        if ($this->slugExists(table: 'categories', slug: (string) ($data['slug'] ?? ''), excludeId: $id)) {
+        $input = PdoRow::from(values: $data);
+        if ($this->slugExists(table: 'categories', slug: $input->string(key: 'slug'), excludeId: $id)) {
             return false;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE categories SET name = :name, slug = :slug, description = :description, updated_at = :updated_at WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: [
             'id' => $id,
-            'name' => (string) ($data['name'] ?? ''),
-            'slug' => (string) ($data['slug'] ?? ''),
-            'description' => (string) ($data['description'] ?? ''),
+            'name' => $input->string(key: 'name'),
+            'slug' => $input->string(key: 'slug'),
+            'description' => $input->string(key: 'description'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -60,15 +64,16 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
 
     public function updateTag(int $id, array $data): bool
     {
-        if ($this->slugExists(table: 'tags', slug: (string) ($data['slug'] ?? ''), excludeId: $id)) {
+        $input = PdoRow::from(values: $data);
+        if ($this->slugExists(table: 'tags', slug: $input->string(key: 'slug'), excludeId: $id)) {
             return false;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE tags SET name = :name, slug = :slug, updated_at = :updated_at WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: [
             'id' => $id,
-            'name' => (string) ($data['name'] ?? ''),
-            'slug' => (string) ($data['slug'] ?? ''),
+            'name' => $input->string(key: 'name'),
+            'slug' => $input->string(key: 'slug'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -124,7 +129,7 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM {$table} WHERE slug = :slug AND id <> :id");
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug, 'id' => $excludeId]);
 
-        return (int) PdoHelper::fetchColumn(statement: $stmt) > 0;
+        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }
 
     private function exists(string $table, int $id): bool
@@ -132,6 +137,6 @@ final readonly class PdoTaxonomyRepository implements ITaxonomyRepository
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: "SELECT COUNT(*) FROM {$table} WHERE id = :id");
         PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
 
-        return (int) PdoHelper::fetchColumn(statement: $stmt) > 0;
+        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }
 }

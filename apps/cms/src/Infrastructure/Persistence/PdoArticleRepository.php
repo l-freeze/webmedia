@@ -9,6 +9,7 @@ use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleVersionNo;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 use Throwable;
 
@@ -56,7 +57,7 @@ final readonly class PdoArticleRepository implements IArticleRepository
             $payload['author_name'] = '編集部';
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO articles (title, slug, body_markdown, body_format, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, author_name, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :body_format, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :author_name, :created_at, :updated_at) RETURNING id');
             PdoHelper::execute(statement: $stmt, params: $payload);
-            $id = (int) PdoHelper::fetchColumn(statement: $stmt);
+            $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
         } else {
             $id = $article->id->value;
             $payload['id'] = $article->id->value;
@@ -136,11 +137,11 @@ final readonly class PdoArticleRepository implements IArticleRepository
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT current_version_no FROM articles WHERE id = :id FOR UPDATE');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
-        $currentVersionNo = (int) PdoHelper::fetchColumn(statement: $stmt);
+        $currentVersionNo = PdoRow::from(values: ['version_no' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'version_no');
 
         $maxStmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COALESCE(MAX(version_no), 0) FROM article_versions WHERE article_id = :id');
         PdoHelper::execute(statement: $maxStmt, params: ['id' => $articleId]);
-        $maxVersionNo = (int) PdoHelper::fetchColumn(statement: $maxStmt);
+        $maxVersionNo = PdoRow::from(values: ['version_no' => PdoHelper::fetchColumn(statement: $maxStmt)])->int(key: 'version_no');
 
         return max($currentVersionNo, $maxVersionNo) + 1;
     }

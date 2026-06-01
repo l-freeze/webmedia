@@ -8,6 +8,7 @@ use App\Cms\Application\Setting\Edit\Query\ISettingQuery;
 use App\Cms\Application\Setting\Edit\Value\Settings;
 use App\Cms\Domain\Repository\ISettingRepository;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepository
@@ -25,7 +26,8 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
     {
         $settings = [];
         foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT setting_key, setting_value FROM site_settings')) as $row) {
-            $settings[(string) $row['setting_key']] = (string) $row['setting_value'];
+            $pdoRow = PdoRow::from(values: $row);
+            $settings[$pdoRow->string(key: 'setting_key')] = $pdoRow->string(key: 'setting_value');
         }
         $frontTheme = $settings['front_theme'] ?? self::DEFAULT_FRONT_THEME;
         if (!in_array($frontTheme, self::FRONT_THEMES, true)) {
@@ -45,7 +47,7 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO site_settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value');
         foreach (['site_name', 'site_description', 'contact_email', 'front_theme', 'search_enabled'] as $key) {
-            $value = (string) ($data[$key] ?? '');
+            $value = PdoRow::from(values: $data)->string(key: $key);
             if ($key === 'front_theme' && !in_array($value, self::FRONT_THEMES, true)) {
                 $value = self::DEFAULT_FRONT_THEME;
             }

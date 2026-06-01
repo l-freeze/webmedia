@@ -32,13 +32,37 @@ final readonly class Page
     {
         return new self(
             id: $id === null ? null : new PageId(value: $id),
-            title: new PageTitle(value: (string) $data['title']),
-            slug: new PageSlug(value: (string) $data['slug']),
-            bodyMarkdown: new PageBodyMarkdown(value: (string) ($data['body_markdown'] ?? '')),
-            status: new PageStatus(value: (string) ($data['status'] ?? 'draft')),
-            displayOrder: new PageDisplayOrder(value: (int) ($data['display_order'] ?? 0)),
-            seoTitle: new SeoTitle(value: (string) ($data['seo_title'] ?? '')),
-            metaDescription: new MetaDescription(value: (string) ($data['meta_description'] ?? '')),
+            title: new PageTitle(value: self::stringValue(data: $data, key: 'title')),
+            slug: new PageSlug(value: self::stringValue(data: $data, key: 'slug')),
+            bodyMarkdown: new PageBodyMarkdown(value: self::stringValue(data: $data, key: 'body_markdown')),
+            status: new PageStatus(value: self::stringValue(data: $data, key: 'status', default: 'draft')),
+            displayOrder: new PageDisplayOrder(value: self::intValue(data: $data, key: 'display_order')),
+            seoTitle: new SeoTitle(value: self::stringValue(data: $data, key: 'seo_title')),
+            metaDescription: new MetaDescription(value: self::stringValue(data: $data, key: 'meta_description')),
         );
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function stringValue(array $data, string $key, string $default = ''): string
+    {
+        $value = $data[$key] ?? null;
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function intValue(array $data, string $key, int $default = 0): int
+    {
+        $value = $data[$key] ?? null;
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_float($value)) {
+            return (int) $value;
+        }
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
     }
 }

@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Page\Edit\Query\IPageQuery;
 use App\Cms\Application\Page\Edit\Value\Page;
 use App\Framework\Database\PdoHelper;
+use App\Framework\Database\PdoRow;
 use PDO;
 
 final readonly class PdoPageEditQuery implements IPageQuery
@@ -24,15 +25,17 @@ final readonly class PdoPageEditQuery implements IPageQuery
             return null;
         }
 
+        $pdoRow = PdoRow::from(values: $row);
+
         return new Page(
-            id: (int) $row['id'],
-            title: (string) $row['title'],
-            slug: (string) $row['slug'],
-            bodyMarkdown: (string) $row['body_markdown'],
-            status: (string) $row['status'],
-            displayOrder: (int) ($row['display_order'] ?? 0),
-            seoTitle: (string) ($row['seo_title'] ?? ''),
-            metaDescription: (string) ($row['meta_description'] ?? ''),
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            slug: $pdoRow->string(key: 'slug'),
+            bodyMarkdown: $pdoRow->string(key: 'body_markdown'),
+            status: $pdoRow->string(key: 'status'),
+            displayOrder: $pdoRow->int(key: 'display_order'),
+            seoTitle: $pdoRow->string(key: 'seo_title'),
+            metaDescription: $pdoRow->string(key: 'meta_description'),
         );
     }
 }
