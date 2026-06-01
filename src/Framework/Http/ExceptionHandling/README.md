@@ -29,7 +29,27 @@ final readonly class FrontExceptionHandler implements ExceptionHandlerInterface
 }
 ```
 
-## 差し込み方
+## 差し込み方: bootstrap から使う場合
+
+通常のエントリポイントでは `ApplicationBootstrapConfig` に渡します。
+
+```php
+use App\Framework\Bootstrap\ApplicationBootstrap;
+use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+ApplicationBootstrap::run(
+    config: new ApplicationBootstrapConfig(
+        root: dirname(__DIR__),
+        exceptionHandler: new FrontExceptionHandler(),
+    ),
+);
+```
+
+`public/index.php` は `ApplicationBootstrap::run()` を呼ぶだけにし、環境ごとに返したいエラー画面やログ出力が変わる場合は、ここで渡すハンドラを差し替えます。
+
+## 差し込み方: Application を直接作る場合
 
 `Application` のコンストラクタに渡します。
 
@@ -40,7 +60,23 @@ $application = new Application(
 );
 ```
 
+これは主にテストや bootstrap を経由しない実行で使います。
+
+## デフォルト挙動
+
 デフォルトは `RethrowingExceptionHandler` です。これは従来挙動を保つため、受け取った例外をそのまま再 throw します。
+
+未処理例外を 500 response に変換したい場合は、`PlainTextExceptionHandler` またはアプリケーション固有の `ExceptionHandlerInterface` 実装を `ApplicationBootstrapConfig` に渡してください。
+
+```php
+use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use App\Framework\Http\ExceptionHandling\PlainTextExceptionHandler;
+
+new ApplicationBootstrapConfig(
+    root: dirname(__DIR__),
+    exceptionHandler: new PlainTextExceptionHandler(),
+);
+```
 
 ## 用意済みハンドラ
 
