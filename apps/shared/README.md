@@ -11,6 +11,7 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 ```text
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
 apps/shared/src/Audit/Application/AuditLoggerInterface.php
+apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 ```
@@ -65,11 +66,27 @@ FRONT_CORS_MAX_AGE=600
 
 許可 origin が空の場合、CORS header は付与しません。
 
+### PSR-16 cache
+
+`apps/shared` は `Psr\SimpleCache\CacheInterface` を共通 cache contract として登録します。
+
+デフォルトは `App\Shared\Cache\Infrastructure\FileSimpleCache` です。保存先は `storage/cache/shared` です。
+
+```php
+use Psr\SimpleCache\CacheInterface;
+
+$cache = $container->get(CacheInterface::class);
+$cache->set('front.article_list', $articles, 300);
+```
+
+cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定します。その場合は `NullCache` が登録され、値は保存されません。
+
 ## 置いてよいもの
 
 - CMS/Front 共通の DI 定義
 - CMS/Front 共通の middleware
 - CMS/Front 共通の PSR-3 logger 実装
+- CMS/Front 共通の PSR-16 cache 実装
 - アプリ都合の共通 infrastructure
 
 Framework の routing、container、HTTP primitive などは `src/Framework` に置きます。

@@ -7,10 +7,12 @@ namespace Tests\Shared;
 use App\Framework\Container\Container;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
+use App\Shared\Cache\Infrastructure\FileSimpleCache;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 final class SharedConfigTest extends TestCase
 {
@@ -26,6 +28,7 @@ final class SharedConfigTest extends TestCase
         self::assertInstanceOf(Markdown::class, $container->get(id: Markdown::class));
         self::assertInstanceOf(JsonFileLogger::class, $container->get(id: LoggerInterface::class));
         self::assertInstanceOf(PlaceholderAuditLogger::class, $container->get(id: AuditLoggerInterface::class));
+        self::assertInstanceOf(FileSimpleCache::class, $container->get(id: CacheInterface::class));
     }
 
     public function testSharedMiddlewareConfigIsArray(): void
