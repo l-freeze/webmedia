@@ -40,6 +40,14 @@
   - `Throwable` や `Stringable` を context 内で安全に構造化する normalization を追加。
   - `apps/shared/src/Infrastructure/Logging/README.md` にログ形式、差し込み方、Monolog を使わない方針を記載。
   - `tests/Shared/JsonFileLoggerTest.php` で JSON Lines 出力と例外 context の正規化を検証。
+- `composer analyse` の既存エラーを解消。
+  - shared container / middleware 読み込み時に `is_callable` / `is_array` の実行時検査を追加し、設定ファイル由来の `mixed` を解消。
+  - `src/Framework/Database/PdoRow.php` を追加し、PDO fetch 結果の `array<string, mixed>` を string / int / nullable / date として安全に読む境界を整備。
+  - front 側 Persistence の row mapping を `PdoRow` 経由へ変更し、記事詳細 DTO 生成の型不整合も修正。
+  - CMS 側 Persistence と Domain Entity 入力変換の `mixed` cast を解消。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `docker compose run --rm app composer test`: 成功、PHPUnit 34 tests, 78 assertions。
+  - `docker compose run --rm app composer dump-autoload -o --strict-psr`: 成功、3927 classes。
 - Form Validation I/O を追加。
   - `src/Framework/Validation` に `ValidationInput` / `ValidationOutput` / `ValidationError` / `FormValidator` を追加。
   - taxonomy 作成/更新、問い合わせ作成、記事保存、固定ページ保存の必須入力検証を Validation I/O 経由へ変更。
