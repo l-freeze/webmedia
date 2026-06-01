@@ -23,9 +23,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->session->has(key: 'cms.user_id')) {
-            return Response::redirect(location: '/admin/login');
-        }
         if ($this->exceedsPostMaxSize(request: $request)) {
             $this->session->flash(key: 'error', value: 'アップロード全体のサイズが大きすぎます。画像は20MB以内、動画は512MB以内にしてください。');
             return Response::redirect(location: '/admin/media');

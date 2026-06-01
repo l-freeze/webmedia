@@ -23,10 +23,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->session->has(key: 'cms.user_id')) {
-            return Response::redirect(location: '/admin/login');
-        }
-
         $settings = $this->edit->execute(input: new Input())->settings;
 
         return new Response(body: $this->renderer->render(template: 'simple-list.latte', params: [

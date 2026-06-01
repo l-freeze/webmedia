@@ -25,10 +25,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->session->has(key: 'cms.user_id')) {
-            return Response::redirect(location: '/admin/login');
-        }
-
         $output = $this->list->execute(input: new Input());
         $rows = array_map(fn ($row): array => $row->toArray(), $output->rows);
         $categories = array_values(array_filter($rows, fn (array $row): bool => $row['type'] === 'category'));

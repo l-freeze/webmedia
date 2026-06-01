@@ -26,10 +26,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->session->has(key: 'cms.user_id')) {
-            return Response::redirect(location: '/admin/login');
-        }
-
         $formPage = $this->session->pullFlashValue(key: 'page.form_input');
         if (!is_array($formPage)) {
             $formPage = null;

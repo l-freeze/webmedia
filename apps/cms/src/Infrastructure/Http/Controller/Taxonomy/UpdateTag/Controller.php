@@ -23,9 +23,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->session->has(key: 'cms.user_id')) {
-            return Response::redirect(location: '/admin/login');
-        }
         if (!$this->csrf->validate(token: $request->input(key: '_csrf'))) {
             $this->session->flash(key: 'taxonomy.form_error', value: '不正な送信です。');
 
