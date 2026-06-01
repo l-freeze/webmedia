@@ -1,0 +1,515 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Scaffold an app under apps/{name}.
+ *
+ * Usage:
+ *   php bin/scaffold-app api /api
+ *   php bin/scaffold-app api /api --template=layered
+ *   php bin/scaffold-app preview /preview --root=/tmp/example
+ */
+
+$args = array_values(array_slice($argv, 1));
+$root = dirname(__DIR__);
+$template = 'minimal';
+$filteredArgs = [];
+foreach ($args as $arg) {
+    if (str_starts_with($arg, '--root=')) {
+        $root = rtrim(substr($arg, strlen('--root=')), '/');
+        continue;
+    }
+    if (str_starts_with($arg, '--template=')) {
+        $template = substr($arg, strlen('--template='));
+        continue;
+    }
+    $filteredArgs[] = $arg;
+}
+
+if (count($filteredArgs) !== 2) {
+    fwrite(STDERR, "Usage: php bin/scaffold-app <name> <path-prefix> [--template=minimal|layered] [--root=/path/to/project]\n");
+    exit(1);
+}
+
+[$name, $pathPrefix] = $filteredArgs;
+
+if (!preg_match('/^[a-z][a-z0-9-]*$/', $name)) {
+    fwrite(STDERR, "App name must match /^[a-z][a-z0-9-]*$/.\n");
+    exit(1);
+}
+
+if ($pathPrefix === '' || $pathPrefix[0] !== '/') {
+    fwrite(STDERR, "Path prefix must start with \"/\".\n");
+    exit(1);
+}
+
+if (!in_array($template, ['minimal', 'layered'], true)) {
+    fwrite(STDERR, "Template must be one of: minimal, layered.\n");
+    exit(1);
+}
+
+$appRoot = "{$root}/apps/{$name}";
+$namespace = namespaceName(name: $name);
+$healthPath = rtrim($pathPrefix, '/') . '/health';
+if ($healthPath === '/health' && $pathPrefix !== '/') {
+    $healthPath = $pathPrefix . '/health';
+}
+
+$directories = [
+    "{$appRoot}/config",
+    "{$appRoot}/src",
+];
+$paths = [
+    "{$appRoot}/config/routes.php",
+    "{$appRoot}/config/container.php",
+    "{$appRoot}/config/middleware.php",
+    "{$appRoot}/src/.gitkeep",
+];
+
+if ($template === 'layered') {
+    $directories = array_merge($directories, [
+        "{$appRoot}/src/Application/Health/Show",
+        "{$appRoot}/src/Domain/Entity",
+        "{$appRoot}/src/Domain/Repository",
+        "{$appRoot}/src/Domain/Value",
+        "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show",
+        "{$appRoot}/src/Infrastructure/Http/Middleware",
+        "{$appRoot}/src/Infrastructure/Persistence",
+    ]);
+    $paths = array_merge($paths, [
+        "{$appRoot}/src/Application/Health/Show/Input.php",
+        "{$appRoot}/src/Application/Health/Show/Output.php",
+        "{$appRoot}/src/Application/Health/Show/Interactor.php",
+        "{$appRoot}/src/Domain/Entity/HealthCheck.php",
+        "{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php",
+        "{$appRoot}/src/Domain/Value/HealthMessage.php",
+        "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show/Controller.php",
+        "{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php",
+        "{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php",
+    ]);
+}
+
+foreach ($paths as $path) {
+    if (file_exists($path)) {
+        fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
+        exit(1);
+    }
+}
+
+foreach ($directories as $directory) {
+    ensureDirectory($directory);
+}
+
+if ($template === 'layered') {
+    writeFile("{$appRoot}/config/routes.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\{{ namespace }}\Infrastructure\Http\Controller\Health\Show\Controller as HealthShowController;
+
+return [
+    ['GET', '{{ healthPath }}', HealthShowController::class],
+];
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
+} else {
+    writeFile("{$appRoot}/config/routes.php", <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+return [
+];
+PHP);
+}
+
+if ($template === 'layered') {
+    writeFile("{$appRoot}/config/container.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
+use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
+use App\{{ namespace }}\Infrastructure\Persistence\PdoHealthCheckRepository;
+use App\Framework\Container\Container;
+
+$root = dirname(__DIR__, 3);
+$container = new Container();
+
+$sharedContainer = require $root . '/apps/shared/config/container.php';
+if (!is_callable($sharedContainer)) {
+    throw new \RuntimeException('Shared container configuration is invalid.');
+}
+$sharedContainer($container, $root);
+
+$container->bind(abstract: IHealthCheckRepository::class, concrete: PdoHealthCheckRepository::class);
+$container->singleton(id: AppNameHeaderMiddleware::class, factory: static fn (): AppNameHeaderMiddleware => new AppNameHeaderMiddleware(appName: '{{ name }}'));
+
+return $container;
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
+} else {
+    writeFile("{$appRoot}/config/container.php", <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\Framework\Container\Container;
+
+$root = dirname(__DIR__, 3);
+$container = new Container();
+
+$sharedContainer = require $root . '/apps/shared/config/container.php';
+if (!is_callable($sharedContainer)) {
+    throw new \RuntimeException('Shared container configuration is invalid.');
+}
+$sharedContainer($container, $root);
+
+return $container;
+PHP);
+}
+
+if ($template === 'layered') {
+    writeFile("{$appRoot}/config/middleware.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
+
+$root = dirname(__DIR__, 3);
+$sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
+if (!is_array($sharedMiddleware)) {
+    throw new \RuntimeException('Shared middleware configuration is invalid.');
+}
+
+return [
+    ...$sharedMiddleware,
+    AppNameHeaderMiddleware::class,
+];
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
+} else {
+    writeFile("{$appRoot}/config/middleware.php", <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 3);
+$sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
+if (!is_array($sharedMiddleware)) {
+    throw new \RuntimeException('Shared middleware configuration is invalid.');
+}
+
+return [
+    ...$sharedMiddleware,
+];
+PHP);
+}
+
+writeFile("{$appRoot}/src/.gitkeep", '');
+
+if ($template === 'layered') {
+    writeLayeredSource(appRoot: $appRoot, namespace: $namespace, name: $name);
+}
+
+$definition = <<<PHP
+new ApplicationDefinition(
+    name: '{$name}',
+    pathPrefix: '{$pathPrefix}',
+    routesPath: '/apps/{$name}/config/routes.php',
+    containerPath: '/apps/{$name}/config/container.php',
+    middlewarePath: '/apps/{$name}/config/middleware.php',
+),
+PHP;
+
+$autoload = "\"App\\\\{$namespace}\\\\\": \"apps/{$name}/src/\"";
+
+echo "Created app scaffold: apps/{$name} ({$template})\n\n";
+echo "Created directories:\n";
+foreach ($directories as $directory) {
+    echo '- ' . relativePath(root: $root, path: $directory) . "\n";
+}
+echo "\n";
+echo "Created files:\n";
+foreach ($paths as $path) {
+    echo '- ' . relativePath(root: $root, path: $path) . "\n";
+}
+echo "\n";
+echo "Generated files:\n";
+echo "- apps/{$name}/config/routes.php: Route definitions for this app.\n";
+echo "- apps/{$name}/config/container.php: App DI container, after shared bindings.\n";
+echo "- apps/{$name}/config/middleware.php: App middleware list, after shared middleware.\n";
+echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
+if ($template === 'layered') {
+    echo "Layered starter:\n";
+    echo "- Application/Health/Show: Input, Output, and Interactor example.\n";
+    echo "- Domain/Entity: HealthCheck entity example.\n";
+    echo "- Domain/Value: HealthMessage value object example.\n";
+    echo "- Domain/Repository: HealthCheck repository interface.\n";
+    echo "- Infrastructure/Http/Controller: Health endpoint controller.\n";
+    echo "- Infrastructure/Http/Middleware: App-specific middleware example.\n";
+    echo "- Infrastructure/Persistence: PDO repository example.\n\n";
+}
+echo "Add this ApplicationDefinition to apps/kernel/config/application.php:\n\n";
+echo $definition . "\n\n";
+echo "Add this PSR-4 entry to composer.json when you add PHP classes under apps/{$name}/src:\n\n";
+echo $autoload . "\n\n";
+echo "Then run:\n\n";
+echo "composer dump-autoload\n";
+
+/** @phpstan-return non-empty-string */
+function namespaceName(string $name): string
+{
+    $parts = explode('-', $name);
+    $namespace = '';
+    foreach ($parts as $part) {
+        $namespace .= ucfirst($part);
+    }
+
+    return $namespace;
+}
+
+function ensureDirectory(string $path): void
+{
+    if (is_dir($path)) {
+        return;
+    }
+
+    if (!mkdir($path, 0777, true) && !is_dir($path)) {
+        throw new RuntimeException("Failed to create directory: {$path}");
+    }
+}
+
+function writeFile(string $path, string $contents): void
+{
+    if (file_put_contents($path, $contents) === false) {
+        throw new RuntimeException("Failed to write file: {$path}");
+    }
+}
+
+function renderTemplate(string $contents, string $namespace, string $healthPath, string $name): string
+{
+    return str_replace(
+        ['{{ namespace }}', '{{ healthPath }}', '{{ name }}'],
+        [$namespace, $healthPath, $name],
+        $contents,
+    );
+}
+
+function writeLayeredSource(string $appRoot, string $namespace, string $name): void
+{
+    writeFile("{$appRoot}/src/Application/Health/Show/Input.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Health\Show;
+
+final readonly class Input
+{
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Application/Health/Show/Output.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Health\Show;
+
+use App\{{ namespace }}\Domain\Entity\HealthCheck;
+
+final readonly class Output
+{
+    public function __construct(public HealthCheck $healthCheck)
+    {
+    }
+
+    /** @return array{status:string,message:string,database:string} */
+    public function toArray(): array
+    {
+        return [
+            'status' => $this->healthCheck->status,
+            'message' => $this->healthCheck->message->value,
+            'database' => $this->healthCheck->databaseOk ? 'ok' : 'ng',
+        ];
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Application/Health/Show/Interactor.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Health\Show;
+
+use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
+
+final readonly class Interactor
+{
+    public function __construct(private IHealthCheckRepository $healthChecks)
+    {
+    }
+
+    public function execute(Input $input): Output
+    {
+        return new Output(healthCheck: $this->healthChecks->get());
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Domain/Entity/HealthCheck.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Domain\Entity;
+
+use App\{{ namespace }}\Domain\Value\HealthMessage;
+
+final readonly class HealthCheck
+{
+    public function __construct(
+        public string $status,
+        public HealthMessage $message,
+        public bool $databaseOk,
+    ) {
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Domain\Repository;
+
+use App\{{ namespace }}\Domain\Entity\HealthCheck;
+
+interface IHealthCheckRepository
+{
+    public function get(): HealthCheck;
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Domain/Value/HealthMessage.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Domain\Value;
+
+use InvalidArgumentException;
+
+final readonly class HealthMessage
+{
+    public function __construct(public string $value)
+    {
+        if ($value === '') {
+            throw new InvalidArgumentException('Health message must not be empty.');
+        }
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Health/Show/Controller.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Http\Controller\Health\Show;
+
+use App\{{ namespace }}\Application\Health\Show\Input;
+use App\{{ namespace }}\Application\Health\Show\Interactor;
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+
+final readonly class Controller
+{
+    public function __construct(private Interactor $interactor)
+    {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $output = $this->interactor->execute(input: new Input());
+
+        return new Response(
+            body: json_encode($output->toArray(), JSON_THROW_ON_ERROR),
+            headers: ['Content-Type' => 'application/json; charset=utf-8'],
+        );
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Http\Middleware;
+
+use App\Framework\Http\Middleware\MiddlewareInterface;
+use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+
+final readonly class AppNameHeaderMiddleware implements MiddlewareInterface
+{
+    public function __construct(private string $appName)
+    {
+    }
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle(request: $request)->withHeader(name: 'X-App-Name', value: $this->appName);
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Persistence;
+
+use App\{{ namespace }}\Domain\Entity\HealthCheck;
+use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
+use App\{{ namespace }}\Domain\Value\HealthMessage;
+use PDO;
+
+final readonly class PdoHealthCheckRepository implements IHealthCheckRepository
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    public function get(): HealthCheck
+    {
+        $databaseOk = $this->pdo->query('SELECT 1') !== false;
+
+        return new HealthCheck(
+            status: 'ok',
+            message: new HealthMessage(value: '{{ name }} is ready'),
+            databaseOk: $databaseOk,
+        );
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+}
+
+function relativePath(string $root, string $path): string
+{
+    $prefix = rtrim($root, '/') . '/';
+    if (str_starts_with($path, $prefix)) {
+        return substr($path, strlen($prefix));
+    }
+
+    return $path;
+}

@@ -25,3 +25,21 @@ new ApplicationDefinition(
 - `routes.php`
 - `container.php`
 - `middleware.php`
+
+## Scaffold
+
+新しいアプリの最小構成は `bin/scaffold-app` で生成できます。
+
+```bash
+php bin/scaffold-app api /api
+```
+
+このコマンドは `apps/{name}` 配下の基本ファイルだけを作り、`apps/kernel/config/application.php` は自動編集しません。生成後に追加する `ApplicationDefinition` を表示するので、内容を確認して Kernel config へ追加します。
+
+縦割りのスターターも生成できます。
+
+```bash
+php bin/scaffold-app api /api --template=layered
+```
+
+`layered` は Controller、Application Interactor、Domain Entity、Value Object、Repository interface、PDO repository、アプリ固有 middleware のサンプルを含みます。薄く始める場合はデフォルトの `minimal` を使います。
