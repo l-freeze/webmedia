@@ -10,6 +10,7 @@
     "latte/latte": "^3.0",
     "league/commonmark": "^2.5",
     "nikic/fast-route": "^1.3",
+    "psr/container": "^2.0",
     "psr/log": "^3.0",
     "robmorgan/phinx": "^0.16",
     "symfony/mailer": "^7.0",

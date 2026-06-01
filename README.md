@@ -36,3 +36,13 @@ make test
 - `database/migrations`: Phinx マイグレーション
 - `database/seeds`: ローカル確認用シード
 - `public`: Web 公開ディレクトリ
+
+## PSR
+
+このプロジェクトは Composer autoload と相性のよい範囲で PSR を採用します。
+
+- PSR-3: `Psr\Log\LoggerInterface` をログの標準 contract として使います。
+- PSR-4: `App\Framework`、`App\Kernel`、`App\Shared`、`App\Front`、`App\Cms` を Composer autoload で解決します。
+- PSR-11: `App\Framework\Container\Container` は `Psr\Container\ContainerInterface` に準拠しています。
+
+HTTP の内部モデルは軽量性と可読性を優先し、独自の `Request` / `Response` を使います。RoadRunner など外部 runtime との境界では必要に応じて PSR-7 と bridge します。
