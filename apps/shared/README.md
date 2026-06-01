@@ -10,6 +10,7 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 
 ```text
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
+apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 ```
 

@@ -6,8 +6,8 @@ namespace Tests\Shared;
 
 use App\Framework\Container\Container;
 use App\Framework\Content\Markdown;
-use App\Framework\Logging\AuditLoggerInterface;
-use App\Framework\Logging\PlaceholderAuditLogger;
+use App\Shared\Audit\Application\AuditLoggerInterface;
+use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Logging;
+namespace App\Shared\Audit\Domain;
 
 final readonly class AuditEvent
 {

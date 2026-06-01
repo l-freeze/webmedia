@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Logging;
+namespace App\Shared\Audit\Infrastructure;
 
+use App\Shared\Audit\Application\AuditLoggerInterface;
+use App\Shared\Audit\Domain\AuditEvent;
 use LogicException;
 
 final readonly class PlaceholderAuditLogger implements AuditLoggerInterface
