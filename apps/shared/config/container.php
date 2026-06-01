@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Framework\Container\Container;
-use App\Framework\Content\Markdown;
 use App\Framework\Database\ConnectionFactory;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use Psr\Log\LoggerInterface;
 
 return static function (Container $container, string $root): void {

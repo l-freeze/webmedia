@@ -12,6 +12,7 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
 apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
+apps/shared/src/Markdown/Infrastructure/Markdown.php
 ```
 
 ## 依存ルール

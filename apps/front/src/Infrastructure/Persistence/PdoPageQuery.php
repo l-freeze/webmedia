@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
-use App\Framework\Content\Markdown;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Database\PdoHelper;
 use App\Framework\Database\PdoRow;
 use App\Front\Application\Page\Show\Query\IPageQuery;

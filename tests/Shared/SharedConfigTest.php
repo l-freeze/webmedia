@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Shared;
 
 use App\Framework\Container\Container;
-use App\Framework\Content\Markdown;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

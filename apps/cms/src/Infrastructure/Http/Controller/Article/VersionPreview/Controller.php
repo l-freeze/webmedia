@@ -6,7 +6,7 @@ namespace App\Cms\Infrastructure\Http\Controller\Article\VersionPreview;
 
 use App\Cms\Application\ArticleVersion\Preview\Input;
 use App\Cms\Application\ArticleVersion\Preview\Interactor;
-use App\Framework\Content\Markdown;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;

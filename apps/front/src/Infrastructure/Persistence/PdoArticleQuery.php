@@ -13,7 +13,7 @@ use App\Front\Application\Article\Show\Value\Article as ShowArticle;
 use App\Front\Application\Home\Show\Query\IArticleQuery as HomeArticleQuery;
 use App\Front\Application\Home\Show\Value\Article as HomeArticle;
 use App\Front\Application\Home\Show\Value\ArticleCount;
-use App\Framework\Content\Markdown;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use PDO;
 
 final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQuery, SearchArticleQuery

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Content;
+namespace App\Shared\Markdown\Infrastructure;
 
 use HTMLPurifier;
 use HTMLPurifier_Config;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Framework;
+namespace Tests\Shared\Markdown;
 
-use App\Framework\Content\Markdown;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use PHPUnit\Framework\TestCase;
 
 final class MarkdownTest extends TestCase
