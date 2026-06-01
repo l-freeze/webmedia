@@ -48,6 +48,7 @@ use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\View\Renderer;
+use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -57,6 +58,27 @@ if (!is_callable($sharedContainer)) {
     throw new \RuntimeException('Shared container configuration is invalid.');
 }
 $sharedContainer($container, $root);
+
+$envString = static function (string $key, string $default = ''): string {
+    $value = $_ENV[$key] ?? $default;
+
+    return is_scalar($value) ? (string) $value : $default;
+};
+
+$csv = static function (string $value): array {
+    return array_values(array_filter(array_map(
+        static fn (string $item): string => trim($item),
+        explode(',', $value),
+    ), static fn (string $item): bool => $item !== ''));
+};
+
+$container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMiddleware => new CorsMiddleware(
+    allowedOrigins: $csv($envString('CMS_CORS_ALLOWED_ORIGINS')),
+    allowedMethods: $csv($envString('CMS_CORS_ALLOWED_METHODS', 'GET,POST,OPTIONS')),
+    allowedHeaders: $csv($envString('CMS_CORS_ALLOWED_HEADERS', 'Content-Type,X-Requested-With')),
+    allowCredentials: filter_var($envString('CMS_CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOL),
+    maxAge: (int) $envString('CMS_CORS_MAX_AGE', '600'),
+));
 
 $container->singleton(id: Renderer::class, factory: function () use (&$container, $root): Renderer {
     $renderer = new Renderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');

@@ -40,6 +40,22 @@ return static function (Container $container, string $root): void {
 
 CMS/Front 固有の middleware は、それぞれの `apps/*/config/middleware.php` で shared 配列に追加します。
 
+### CORS middleware
+
+`App\Shared\Infrastructure\Http\Middleware\CorsMiddleware` は shared に置きますが、適用するかどうかは各アプリの `config/middleware.php` で決めます。
+
+設定値は各アプリの `config/container.php` で注入します。Front は `FRONT_CORS_*`、CMS は `CMS_CORS_*` の環境変数を使います。
+
+```text
+FRONT_CORS_ALLOWED_ORIGINS=https://example.com,https://admin.example.com
+FRONT_CORS_ALLOWED_METHODS=GET,POST,OPTIONS
+FRONT_CORS_ALLOWED_HEADERS=Content-Type,X-Requested-With
+FRONT_CORS_ALLOW_CREDENTIALS=false
+FRONT_CORS_MAX_AGE=600
+```
+
+許可 origin が空の場合、CORS header は付与しません。
+
 ## 置いてよいもの
 
 - CMS/Front 共通の DI 定義

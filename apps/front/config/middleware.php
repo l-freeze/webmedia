@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
+
 $root = dirname(__DIR__, 3);
 $sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
 if (!is_array($sharedMiddleware)) {
@@ -10,4 +12,5 @@ if (!is_array($sharedMiddleware)) {
 
 return [
     ...$sharedMiddleware,
+    CorsMiddleware::class,
 ];
