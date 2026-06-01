@@ -30,14 +30,33 @@ $root = dirname(__DIR__, 3);
 $container = new Container();
 
 $sharedContainer = require $root . '/apps/shared/config/container.php';
+if (!is_callable($sharedContainer)) {
+    throw new \RuntimeException('Shared container configuration is invalid.');
+}
 $sharedContainer($container, $root);
 
 $container->singleton(id: Renderer::class, factory: function () use (&$container, $root): Renderer {
     $renderer = new Renderer(templateDirectory: $root . '/apps/front/templates', cacheDirectory: $root . '/storage/cache');
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
-        $pages = $container->get(id: IPageLinkQuery::class)->publishedPageLinks();
-        $settings = $container->get(id: ISiteSettingQuery::class)->current();
-        $categories = $container->get(id: HomeCategoryQuery::class)->all();
+        $pageLinkQuery = $container->get(id: IPageLinkQuery::class);
+        if (!$pageLinkQuery instanceof IPageLinkQuery) {
+            throw new \RuntimeException('Page link query is not registered.');
+        }
+
+        $siteSettingQuery = $container->get(id: ISiteSettingQuery::class);
+        if (!$siteSettingQuery instanceof ISiteSettingQuery) {
+            throw new \RuntimeException('Site setting query is not registered.');
+        }
+
+        $categoryQuery = $container->get(id: HomeCategoryQuery::class);
+        if (!$categoryQuery instanceof HomeCategoryQuery) {
+            throw new \RuntimeException('Home category query is not registered.');
+        }
+
+        $pages = $pageLinkQuery->publishedPageLinks();
+        $settings = $siteSettingQuery->current();
+        $categories = $categoryQuery->all();
+
         return [
             'siteName' => $settings->siteName,
             'description' => $settings->siteDescription,
