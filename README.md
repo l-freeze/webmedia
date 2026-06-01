@@ -22,6 +22,17 @@ CMS:
 - 初期メールアドレス: `admin@example.test`
 - 初期パスワード: `password`
 
+## セッション Cookie
+
+Session cookie はアプリケーション側で `HttpOnly` を常に有効にします。`SameSite` と本番での `Secure` 強制は環境変数で指定できます。
+
+```text
+SESSION_COOKIE_SAMESITE=Lax
+SESSION_COOKIE_SECURE=false
+```
+
+`SESSION_COOKIE_SECURE=false` の場合でも、HTTPS リクエストでは `Secure` が付きます。本番で TLS 終端や proxy 構成により HTTPS 判定がずれる場合は、Caddy 側の補強に加えて `SESSION_COOKIE_SECURE=true` を指定します。
+
 ## テスト
 
 ```bash

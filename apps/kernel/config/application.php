@@ -10,9 +10,18 @@ use App\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
 use App\Kernel\ApplicationDefinition;
 
+$envString = static function (string $key, string $default): string {
+    $value = $_ENV[$key] ?? $default;
+
+    return is_scalar($value) ? (string) $value : $default;
+};
+
 return static fn (ApplicationBootstrapConfig $config): ApplicationInterface => new Application(
     root: $config->root,
-    sessionRuntime: $config->sessionRuntime ?? new NativeSessionRuntime(),
+    sessionRuntime: $config->sessionRuntime ?? new NativeSessionRuntime(
+        cookieSameSite: $envString(key: 'SESSION_COOKIE_SAMESITE', default: 'Lax'),
+        forceSecureCookie: filter_var($envString(key: 'SESSION_COOKIE_SECURE', default: 'false'), FILTER_VALIDATE_BOOL),
+    ),
     middlewarePipeline: $config->middlewarePipeline ?? new MiddlewarePipeline(),
     exceptionHandler: $config->exceptionHandler ?? new RethrowingExceptionHandler(),
     definitions: [

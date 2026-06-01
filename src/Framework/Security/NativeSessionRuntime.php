@@ -6,23 +6,33 @@ namespace App\Framework\Security;
 
 final class NativeSessionRuntime
 {
+    public function __construct(
+        private readonly string $cookieSameSite = 'Lax',
+        private readonly bool $forceSecureCookie = false,
+    ) {
+        if (!in_array($this->cookieSameSite, ['Lax', 'Strict', 'None'], true)) {
+            throw new \InvalidArgumentException('Session cookie SameSite must be Lax, Strict, or None.');
+        }
+    }
+
     public function start(bool $secure): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
 
+        $secureCookie = $this->secureCookie(secure: $secure);
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_secure', $secure ? '1' : '0');
-        ini_set('session.cookie_samesite', 'Lax');
+        ini_set('session.cookie_secure', $secureCookie ? '1' : '0');
+        ini_set('session.cookie_samesite', $this->cookieSameSite);
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
-            'secure' => $secure,
+            'secure' => $secureCookie,
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => $this->cookieSameSite,
         ]);
         session_start();
     }
@@ -90,5 +100,10 @@ final class NativeSessionRuntime
         }
 
         session_destroy();
+    }
+
+    private function secureCookie(bool $secure): bool
+    {
+        return $secure || $this->forceSecureCookie || $this->cookieSameSite === 'None';
     }
 }

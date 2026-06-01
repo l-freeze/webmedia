@@ -54,4 +54,17 @@ final class RequestTest extends TestCase
             $_FILES = $previousFiles;
         }
     }
+
+    public function testDetectsHttpsFromForwardedProto(): void
+    {
+        $request = new Request(
+            method: 'GET',
+            path: '/',
+            query: [],
+            body: [],
+            server: ['HTTP_X_FORWARDED_PROTO' => 'https'],
+        );
+
+        self::assertTrue($request->isHttps());
+    }
 }
