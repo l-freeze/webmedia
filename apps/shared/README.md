@@ -6,6 +6,13 @@
 
 Framework に入れるほど汎用ではないが、各アプリへ重複して書きたくない DI 定義、middleware 定義、ログ実装などを置きます。
 
+shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます。機能を削除・差し替え・切り出しやすくするため、技術別の横断ディレクトリをルートには置きません。
+
+```text
+apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
+apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
+```
+
 ## 依存ルール
 
 `shared` は `Framework` に依存できます。`cms` / `front` へは依存しません。
@@ -42,7 +49,7 @@ CMS/Front 固有の middleware は、それぞれの `apps/*/config/middleware.p
 
 ### CORS middleware
 
-`App\Shared\Infrastructure\Http\Middleware\CorsMiddleware` は shared に置きますが、適用するかどうかは各アプリの `config/middleware.php` で決めます。
+`App\Shared\Cors\Infrastructure\Http\CorsMiddleware` は shared に置きますが、適用するかどうかは各アプリの `config/middleware.php` で決めます。
 
 設定値は各アプリの `config/container.php` で注入します。Front は `FRONT_CORS_*`、CMS は `CMS_CORS_*` の環境変数を使います。
 

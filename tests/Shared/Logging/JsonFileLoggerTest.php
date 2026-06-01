@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Shared;
+namespace Tests\Shared\Logging;
 
-use App\Shared\Infrastructure\Logging\JsonFileLogger;
+use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

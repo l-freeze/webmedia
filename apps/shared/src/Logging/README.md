@@ -2,7 +2,7 @@
 
 ## 目的
 
-`apps/shared/src/Infrastructure/Logging` は CMS/Front 共通で使うアプリケーション側の PSR-3 logger 実装を置く場所です。
+`apps/shared/src/Logging` は CMS/Front 共通で使うアプリケーション側の PSR-3 logger 実装を置く場所です。
 
 Framework は `Psr\Log\LoggerInterface` へ依存するだけにし、具体的な出力形式や保存先は shared 側で決めます。
 

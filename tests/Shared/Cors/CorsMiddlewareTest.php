@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tests\Shared;
+namespace Tests\Shared\Cors;
 
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
+use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 use PHPUnit\Framework\TestCase;
 
 final class CorsMiddlewareTest extends TestCase

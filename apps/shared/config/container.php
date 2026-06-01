@@ -9,7 +9,7 @@ use App\Framework\Logging\AuditLoggerInterface;
 use App\Framework\Logging\PlaceholderAuditLogger;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
-use App\Shared\Infrastructure\Logging\JsonFileLogger;
+use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use Psr\Log\LoggerInterface;
 
 return static function (Container $container, string $root): void {

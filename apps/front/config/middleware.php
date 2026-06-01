@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
+use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 
 $root = dirname(__DIR__, 3);
 $sharedMiddleware = require $root . '/apps/shared/config/middleware.php';

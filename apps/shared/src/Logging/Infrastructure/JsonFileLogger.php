@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Shared\Infrastructure\Logging;
+namespace App\Shared\Logging\Infrastructure;
 
 use JsonException;
 use Psr\Log\AbstractLogger;

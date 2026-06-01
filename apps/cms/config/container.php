@@ -48,7 +48,7 @@ use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\View\Renderer;
-use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
+use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();

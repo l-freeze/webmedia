@@ -25,7 +25,7 @@ use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
-use App\Shared\Infrastructure\Http\Middleware\CorsMiddleware;
+use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();

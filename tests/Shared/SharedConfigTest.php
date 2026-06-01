@@ -8,7 +8,7 @@ use App\Framework\Container\Container;
 use App\Framework\Content\Markdown;
 use App\Framework\Logging\AuditLoggerInterface;
 use App\Framework\Logging\PlaceholderAuditLogger;
-use App\Shared\Infrastructure\Logging\JsonFileLogger;
+use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
