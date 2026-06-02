@@ -105,9 +105,11 @@ php vendor/bin/scaffold-app front /
 
 `scaffold-kernel` and `scaffold-shared` are project setup commands. Run them once for a project. Add more apps with `scaffold-app`.
 
+As a Composer package, Framework installation should create Kernel and Shared during project setup. `scaffold-app` is for adding individual apps after that setup. Templates do not decide whether Kernel or Shared exist.
+
 The default shared scaffold generates a Latte implementation for `TemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
 
-If automatic generation during `composer require` is needed, the package can provide a Composer plugin that calls the same scaffold logic during install events. Without a plugin, Composer does not automatically run dependency package scripts in the root project.
+If automatic generation during `composer require` is needed, the package can provide a Composer plugin that calls the same Kernel and Shared scaffold logic during install events. Without a plugin, Composer does not automatically run dependency package scripts in the root project.
 
 ## Examples
 

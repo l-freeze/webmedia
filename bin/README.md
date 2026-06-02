@@ -92,6 +92,8 @@ php bin/scaffold-app api /api --root=/tmp/example-project
 
 このコマンドは project setup 用です。通常はプロジェクトごとに一度だけ実行します。Controller や app を追加するたびに実行するものではありません。
 
+Framework package としては、インストール時点で Kernel scaffold と Shared scaffold が生成されている状態を標準にします。`scaffold-app` は、その後に個別の app を追加するためのコマンドです。
+
 ```bash
 php bin/scaffold-shared
 ```
@@ -114,7 +116,7 @@ php bin/scaffold-shared
 
 `App\Shared\Validation` はフォーム入力検証の標準スターターです。Framework 本体は Validator を持ちません。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリに置き換えられます。
 
-`layered` template は、既に存在する `apps/shared` の Validator を使う入力検証例を生成します。`layered` app を追加する前に `apps/shared` が存在している前提です。
+`layered` template は、インストール時に生成済みの `apps/shared` Validator を使う入力検証例を生成します。
 
 Shared の path と namespace は固定です。
 
@@ -137,4 +139,4 @@ plugin を使わない運用では、Framework 追加後に次を実行します
 php vendor/bin/scaffold-shared
 ```
 
-その後に app を追加する場合は、`scaffold-app` だけを実行します。
+Framework package 化後は、インストール時に Kernel と Shared を生成する Composer plugin を用意する方針です。plugin を使わない運用では、app を追加する前に `scaffold-kernel` と `scaffold-shared` を一度だけ実行します。
