@@ -53,6 +53,12 @@ use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 $root = dirname(__DIR__, 3);
 $container = new Container();
 
+$kernelContainer = require $root . '/apps/kernel/config/container.php';
+if (!is_callable($kernelContainer)) {
+    throw new \RuntimeException('Kernel container configuration is invalid.');
+}
+$kernelContainer($container);
+
 $sharedContainer = require $root . '/apps/shared/config/container.php';
 if (!is_callable($sharedContainer)) {
     throw new \RuntimeException('Shared container configuration is invalid.');
