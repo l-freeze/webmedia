@@ -103,7 +103,7 @@ When this Framework is split into a Composer package, the package should include
 
 The default shared scaffold generates a Latte implementation for `TemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
 
-Automatic generation during `composer require` requires a Composer plugin. This repository includes `App\Framework\Composer\FrameworkInstallerPlugin` for that package direction. The plugin creates Kernel and Shared only when their required config files are missing.
+Automatic generation during `composer require` requires a Composer plugin. This repository includes `tools/composer/FrameworkInstallerPlugin.php` for that package direction. It is package/install tooling, not Framework runtime code. The plugin creates Kernel and Shared only when their required config files are missing.
 
 ## Examples
 

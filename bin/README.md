@@ -146,4 +146,4 @@ php vendor/bin/scaffold-kernel
 php vendor/bin/scaffold-shared
 ```
 
-Framework package 側の Composer plugin は `App\Framework\Composer\FrameworkInstallerPlugin` です。Composer plugin は root project の `allow-plugins` で許可された場合だけ実行されます。plugin は Kernel と Shared の必須 config が存在しない場合だけ scaffold を呼び、既存ファイルは上書きしません。
+Framework package 側の Composer plugin は `tools/composer/FrameworkInstallerPlugin.php` に置きます。これは package/install 用の補助コードで、Framework runtime には含めません。Composer plugin は root project の `allow-plugins` で許可された場合だけ実行されます。plugin は Kernel と Shared の必須 config が存在しない場合だけ scaffold を呼び、既存ファイルは上書きしません。

@@ -48,7 +48,7 @@ final class FrameworkInstallerPlugin implements PluginInterface
             return;
         }
 
-        $packageRoot = dirname(__DIR__, 3);
+        $packageRoot = dirname(__DIR__, 2);
         $scriptPath = $packageRoot . '/bin/' . $script;
         if (!is_file($scriptPath)) {
             $io->writeError("<error>Framework installer could not find {$scriptPath}</error>");
