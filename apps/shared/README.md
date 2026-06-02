@@ -99,6 +99,19 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte、Smarty などの具象実装を登録します。
 
+#### Smarty に切り替える場合
+
+Latte は標準の starting point ですが、Framework の要件ではありません。
+
+Smarty を使う場合は、次の手順で切り替えます。
+
+1. `smarty/smarty` を project に追加する。
+2. `App\Shared\View\Infrastructure\SmartyTemplateRenderer` を作り、`TemplateRenderer` を実装する。
+3. 対象 app の container で `TemplateRenderer::class` を `SmartyTemplateRenderer` に bind する。
+4. 対象 app の templates を Latte 記法から Smarty 記法へ変換する。
+
+`SmartyTemplateRenderer` には、標準の `LatteTemplateRenderer` と同じ `addGlobalProvider()` を持たせても構いません。site settings、CSRF、flash message、current user などの共通 template 値を container で一度だけ登録でき、Controller ごとに渡す必要がなくなります。
+
 ### Validation
 
 `App\Shared\Validation` はフォーム入力検証の標準スターターです。

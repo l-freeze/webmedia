@@ -68,6 +68,15 @@ $container->singleton(
     ),
 );
 ```
+
+Latte is the default starting point, not a Framework requirement. To switch an app to Smarty:
+
+1. Add `smarty/smarty` to the project.
+2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `TemplateRenderer`.
+3. Bind `TemplateRenderer::class` to `SmartyTemplateRenderer` in the target app container.
+4. Convert that app's templates from Latte syntax to Smarty syntax.
+
+The Smarty renderer can keep the same `addGlobalProvider()` convenience method used by the default Latte renderer. That keeps common template values, such as site settings, CSRF data, flash messages, or current user information, registered once in the container instead of being passed by every controller.
 MARKDOWN,
     "{$sharedRoot}/config/container.php" => <<<'PHP'
 <?php
