@@ -77,4 +77,4 @@ PSR は標準であること自体を理由に採用しません。軽さと可�
 - PSR-11: `App\Framework\Container\Container` は `Psr\Container\ContainerInterface` に準拠しています。
 - PSR-16: `apps/shared` は `Psr\SimpleCache\CacheInterface` を共通キャッシュ contract として使います。
 
-HTTP の内部モデルは軽量性と可読性を優先し、独自の `Request` / `Response` を使います。RoadRunner など外部 runtime との境界では必要に応じて PSR-7 と bridge します。
+HTTP の内部モデルは軽量性と可読性を優先し、独自の `Request` / `Response` を使います。

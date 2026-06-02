@@ -12,7 +12,7 @@ It is designed for projects that want explicit application code, readable bounda
 - PSR-11 compatible DI container
 - Template renderer interface
 - Application bootstrap
-- Runtime selection for classic PHP, FrankenPHP worker, and RoadRunner
+- Runtime selection for classic PHP and FrankenPHP worker
 - Small support classes needed by the runtime
 
 The Framework gives an application a way to start, route, compose, and return responses. It does not decide what the application is.

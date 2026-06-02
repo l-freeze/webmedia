@@ -11,4 +11,3 @@ parameters:
     excludePaths:
         analyse:
             - src/Framework/Composer/FrameworkInstallerPlugin.php
-            - src/Framework/Runtime/RoadRunner*.php

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\ApplicationInterface;
-use App\Framework\Container\Container;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Runtime\ClassicRuntime;
@@ -74,28 +72,14 @@ final class RuntimeTest extends TestCase
         self::assertInstanceOf(FrankenWorkerRuntime::class, $runtime);
     }
 
-    public function testRuntimeFactoryFallsBackForUnsupportedWorkerRuntime(): void
+    public function testRuntimeFactoryFallsBackForUnsupportedRuntime(): void
     {
         $runtime = RuntimeFactory::fromRuntime(
-            runtime: 'roadrunner-worker',
+            runtime: 'unknown-worker',
             frankenAvailable: false,
         );
 
         self::assertInstanceOf(ClassicRuntime::class, $runtime);
-    }
-
-    public function testRuntimeFactoryCanSelectInjectedRoadRunnerRuntimeWhenAvailable(): void
-    {
-        $roadRunnerRuntime = new FakeRuntime();
-
-        $runtime = RuntimeFactory::fromRuntime(
-            runtime: 'roadrunner-worker',
-            frankenAvailable: false,
-            roadRunnerAvailable: true,
-            roadRunnerRuntime: $roadRunnerRuntime,
-        );
-
-        self::assertSame($roadRunnerRuntime, $runtime);
     }
 
     private function application(): Application
@@ -139,12 +123,5 @@ final readonly class RuntimeController
     public function __invoke(Request $request, array $vars): Response
     {
         return new Response(body: 'runtime');
-    }
-}
-
-final class FakeRuntime implements \App\Framework\Runtime\Runtime
-{
-    public function run(ApplicationInterface $application): void
-    {
     }
 }
