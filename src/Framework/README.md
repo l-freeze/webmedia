@@ -17,6 +17,16 @@ It is designed for projects that want explicit application code, readable bounda
 
 The Framework gives an application a way to start, route, compose, and return responses. It does not decide what the application is.
 
+## Required Web Rules
+
+Small does not mean unopinionated.
+
+The Framework keeps rules that are part of the baseline shape of a PHP web application.
+
+`Csrf` is kept in the Framework because CSRF protection is a normal safety rule for session-backed web forms. The session key name is also fixed by the Framework. Users should not have to choose this rule before they can build a safe form.
+
+`PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
+
 ## Fixed Application Shape
 
 Framework users are expected to use this root shape:
