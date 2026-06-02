@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Database;
+namespace App\Shared\Database\Infrastructure;
 
 use PDO;
 
@@ -16,7 +16,7 @@ final class ConnectionFactory
         $username = getenv('DB_USERNAME') ?: 'webmedia';
         $password = getenv('DB_PASSWORD') ?: 'webmedia';
 
-        $pdo = new PDO(
+        return new PDO(
             "pgsql:host={$host};port={$port};dbname={$database}",
             $username,
             $password,
@@ -26,7 +26,5 @@ final class ConnectionFactory
                 PDO::ATTR_EMULATE_PREPARES => false,
             ],
         );
-
-        return $pdo;
     }
 }

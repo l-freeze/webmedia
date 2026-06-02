@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Framework\Container\Container;
-use App\Framework\Database\ConnectionFactory;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
 use App\Shared\Cache\Infrastructure\NullCache;
+use App\Shared\Database\Infrastructure\ConnectionFactory;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use Psr\Log\LoggerInterface;
