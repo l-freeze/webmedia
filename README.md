@@ -41,7 +41,9 @@ make test
 
 ## 構成
 
-- `src/Framework`: DI、HTTP、Routing、View、Security、DB 接続などのアプリ非依存な軽量基盤
+- `src/Framework`: DI、HTTP、Routing、middleware pipeline、runtime などのアプリ非依存な軽量基盤
+- `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く
+- `apps/shared`: 複数 App で共有する横断関心ごと。セキュリティヘッダ、ログ、キャッシュなど
 - `apps/front`: 読者向けフロント。公開済み記事の Query 中心
 - `apps/cms`: 管理画面。認証、記事保存、履歴、管理機能
 - `database/migrations`: Phinx マイグレーション

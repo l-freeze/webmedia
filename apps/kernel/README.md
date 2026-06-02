@@ -26,6 +26,20 @@ new ApplicationDefinition(
 - `container.php`
 - `middleware.php`
 
+## PDO 接続
+
+`apps/kernel/config/container.php` は `PDO::class` を登録します。Framework と Shared は DB エンジンや接続方式を決めません。
+
+`apps/kernel/src/Database/Infrastructure/ConnectionFactory.php` は `DB_DSN` が指定されていればそれを使います。未指定の場合は、従来の PostgreSQL 向け DSN を `DB_HOST`、`DB_PORT`、`DB_DATABASE` から組み立てます。
+
+```text
+DB_DSN=mysql:host=127.0.0.1;port=3306;dbname=webmedia;charset=utf8mb4
+DB_USERNAME=webmedia
+DB_PASSWORD=webmedia
+```
+
+DB エンジンを変える場合でも、Framework は変更しません。Kernel の接続設定、Phinx 設定、必要な Persistence SQL をアプリ側で調整します。
+
 ## Scaffold
 
 新しいアプリの最小構成は `bin/scaffold-app` で生成できます。
