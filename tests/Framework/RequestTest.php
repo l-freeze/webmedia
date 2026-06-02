@@ -9,11 +9,11 @@ use PHPUnit\Framework\TestCase;
 
 final class RequestTest extends TestCase
 {
-    public function testInputReadsBodyBeforeQueryAndTrimsScalarValues(): void
+    public function testInputReadsBodyBeforeQueryWithoutNormalizingValue(): void
     {
         $request = new Request(method: 'POST', path: '/contact', query: ['name' => ' query '], body: ['name' => ' body '], server: []);
 
-        self::assertSame('body', $request->input(key: 'name'));
+        self::assertSame(' body ', $request->input(key: 'name'));
     }
 
     public function testInputReturnsDefaultForMissingValue(): void

@@ -62,6 +62,7 @@ Examples that belong outside the Framework:
 - cache storage policy
 - mail delivery settings
 - template engine selection
+- input normalization, such as trimming request values
 - validation library selection
 - validation messages for a specific application
 - CMS, blog, media, admin, or API domain rules

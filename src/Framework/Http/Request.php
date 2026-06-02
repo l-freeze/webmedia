@@ -85,6 +85,6 @@ final readonly class Request
     public function input(string $key, string $default = ''): string
     {
         $value = $this->body[$key] ?? $this->query[$key] ?? $default;
-        return is_scalar($value) ? trim((string) $value) : $default;
+        return is_scalar($value) ? (string) $value : $default;
     }
 }
