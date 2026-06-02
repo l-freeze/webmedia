@@ -99,7 +99,9 @@ The current `webmedia` project contains real applications:
 
 They are useful as a production-shaped example, but they are larger than a first-read sample.
 
-A smaller example template is planned for the future. It should show a complete but compact app, such as a simple Blog, with:
+Smaller example templates are planned for the future.
+
+`todo` should be the smallest complete sample. It should make the application shape easy to read with:
 
 - routes
 - controller
@@ -108,7 +110,9 @@ A smaller example template is planned for the future. It should show a complete 
 - PDO repository implementation
 - a small amount of seed data
 
-The purpose of that template is not to replace the CMS. It is to make the Framework's application shape understandable in a few minutes.
+`blog` should be a compact but more realistic sample. It should show article list/detail flows without the full CMS feature set.
+
+The purpose of these templates is not to replace the CMS. It is to make the Framework's application shape understandable in a few minutes.
 
 ## Reading Order
 
@@ -123,4 +127,3 @@ For a first read, start here:
 7. `apps/shared/README.md`
 
 The top-level `README.md` describes the `webmedia` project itself. This README describes the Framework.
-
