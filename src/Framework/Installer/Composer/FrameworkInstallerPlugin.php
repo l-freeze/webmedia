@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Composer;
+namespace FrameworkInstaller\Composer;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
@@ -48,7 +48,7 @@ final class FrameworkInstallerPlugin implements PluginInterface
             return;
         }
 
-        $packageRoot = dirname(__DIR__, 2);
+        $packageRoot = dirname(__DIR__, 4);
         $scriptPath = $packageRoot . '/bin/' . $script;
         if (!is_file($scriptPath)) {
             $io->writeError("<error>Framework installer could not find {$scriptPath}</error>");

@@ -8,3 +8,6 @@ parameters:
         - src
         - tests
     tmpDir: storage/phpstan
+    excludePaths:
+        analyse:
+            - src/Framework/Installer/Composer/FrameworkInstallerPlugin.php
