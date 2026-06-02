@@ -1,0 +1,163 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Scaffold shared application support under apps/shared.
+ *
+ * Usage:
+ *   php bin/scaffold-shared
+ *   php bin/scaffold-shared --root=/tmp/example
+ */
+
+$args = array_values(array_slice($argv, 1));
+$root = dirname(__DIR__);
+foreach ($args as $arg) {
+    if (str_starts_with($arg, '--root=')) {
+        $root = rtrim(substr($arg, strlen('--root=')), '/');
+        continue;
+    }
+
+    fwrite(STDERR, "Usage: php bin/scaffold-shared [--root=/path/to/project]\n");
+    exit(1);
+}
+
+$sharedRoot = "{$root}/apps/shared";
+$directories = [
+    "{$sharedRoot}/config",
+    "{$sharedRoot}/src/Security/Infrastructure/Http",
+];
+$files = [
+    "{$sharedRoot}/README.md" => <<<'MARKDOWN'
+# Shared Application Layer
+
+`apps/shared` contains application-side common services and middleware that are shared by multiple apps.
+
+Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
+
+## Middleware
+
+`apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
+
+`bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
+MARKDOWN,
+    "{$sharedRoot}/config/container.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\Framework\Container\Container;
+
+return static function (Container $container, string $root): void {
+};
+PHP,
+    "{$sharedRoot}/config/middleware.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
+
+return [
+    SecurityHeadersMiddleware::class,
+];
+PHP,
+    "{$sharedRoot}/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Security\Infrastructure\Http;
+
+use App\Framework\Http\Middleware\MiddlewareInterface;
+use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+
+final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
+{
+    /**
+     * @param array<string, string> $headers
+     */
+    public function __construct(
+        private array $headers = [
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'DENY',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        ],
+    ) {
+    }
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        $response = $handler->handle(request: $request);
+
+        foreach ($this->headers as $name => $value) {
+            if (!array_key_exists($name, $response->headers)) {
+                $response = $response->withHeader(name: $name, value: $value);
+            }
+        }
+
+        return $response;
+    }
+}
+PHP,
+];
+
+foreach (array_keys($files) as $path) {
+    if (file_exists($path)) {
+        fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
+        exit(1);
+    }
+}
+
+foreach ($directories as $directory) {
+    ensureDirectory($directory);
+}
+
+foreach ($files as $path => $contents) {
+    writeFile(path: $path, contents: $contents);
+}
+
+echo "Created shared scaffold: apps/shared\n\n";
+echo "Created directories:\n";
+foreach ($directories as $directory) {
+    echo '- ' . relativePath(root: $root, path: $directory) . "\n";
+}
+echo "\n";
+echo "Created files:\n";
+foreach (array_keys($files) as $path) {
+    echo '- ' . relativePath(root: $root, path: $path) . "\n";
+}
+echo "\n";
+echo "Add this PSR-4 entry to composer.json when this is a new project:\n\n";
+echo "\"App\\\\Shared\\\\\": \"apps/shared/src/\"\n";
+
+function ensureDirectory(string $directory): void
+{
+    if (is_dir($directory)) {
+        return;
+    }
+
+    if (!mkdir($directory, 0775, true) && !is_dir($directory)) {
+        fwrite(STDERR, "Failed to create directory: {$directory}\n");
+        exit(1);
+    }
+}
+
+function writeFile(string $path, string $contents): void
+{
+    if (file_put_contents($path, $contents) === false) {
+        fwrite(STDERR, "Failed to write file: {$path}\n");
+        exit(1);
+    }
+}
+
+function relativePath(string $root, string $path): string
+{
+    $root = rtrim($root, '/') . '/';
+    return str_starts_with($path, $root) ? substr($path, strlen($root)) : $path;
+}

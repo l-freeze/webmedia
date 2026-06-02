@@ -39,6 +39,11 @@
       "Tests\\": "tests/"
     }
   },
+  "bin": [
+    "bin/scaffold-app",
+    "bin/scaffold-kernel",
+    "bin/scaffold-shared"
+  ],
   "scripts": {
     "analyse": "phpstan analyse --memory-limit=1G",
     "test": "phpunit",
