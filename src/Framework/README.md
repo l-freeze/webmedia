@@ -114,6 +114,34 @@ The default shared scaffold generates a Latte implementation for `TemplateRender
 
 If automatic generation during `composer require` is needed, the package can provide a Composer plugin that calls the same Kernel and Shared scaffold logic during install events. Without a plugin, Composer does not automatically run dependency package scripts in the root project.
 
+This repository includes `App\Framework\Composer\FrameworkInstallerPlugin` for that package direction. A package composer file should enable it with Composer plugin metadata:
+
+```json
+{
+  "type": "composer-plugin",
+  "require": {
+    "composer-plugin-api": "^2.0"
+  },
+  "extra": {
+    "class": "App\\Framework\\Composer\\FrameworkInstallerPlugin"
+  }
+}
+```
+
+Composer plugins run only when the root project allows them. A consuming project must allow the package plugin:
+
+```json
+{
+  "config": {
+    "allow-plugins": {
+      "vendor/framework": true
+    }
+  }
+}
+```
+
+The plugin creates Kernel and Shared only when their required config files are missing. Existing project files are not overwritten by the scaffold commands.
+
 ## Examples
 
 The current `webmedia` project contains real applications:

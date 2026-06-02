@@ -10,4 +10,5 @@ parameters:
     tmpDir: storage/phpstan
     excludePaths:
         analyse:
+            - src/Framework/Composer/FrameworkInstallerPlugin.php
             - src/Framework/Runtime/RoadRunner*.php

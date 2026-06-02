@@ -144,3 +144,5 @@ php vendor/bin/scaffold-shared
 ```
 
 Framework package 化後は、インストール時に Kernel と Shared を生成する Composer plugin を用意する方針です。plugin を使わない運用では、app を追加する前に `scaffold-kernel` と `scaffold-shared` を一度だけ実行します。
+
+Framework package 側の Composer plugin は `App\Framework\Composer\FrameworkInstallerPlugin` です。Composer plugin は root project の `allow-plugins` で許可された場合だけ実行されます。plugin は Kernel と Shared の必須 config が存在しない場合だけ scaffold を呼び、既存ファイルは上書きしません。
