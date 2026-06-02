@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Cms\Application\Taxonomy\Update;
 
 use App\Cms\Domain\Repository\ITaxonomyRepository;
-use App\Framework\Validation\FormValidator;
-use App\Framework\Validation\ValidationInput;
+use App\Shared\Validation\FormValidator;
+use App\Shared\Validation\ValidationInput;
 
 final readonly class Interactor
 {

@@ -15,6 +15,7 @@ apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
+apps/shared/src/Validation/FormValidator.php
 apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php
 ```
 
@@ -97,6 +98,12 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte、Smarty などの具象実装を登録します。
 
+### Validation
+
+`App\Shared\Validation` はフォーム入力検証の標準スターターです。
+
+Framework は Validator を持ちません。入力検証のルールやメッセージはアプリケーション側の要件なので、Shared に置きます。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリへ置き換えます。
+
 ## 置いてよいもの
 
 - CMS/Front 共通の DI 定義
@@ -104,6 +111,7 @@ Framework は template engine を決めません。Controller は `TemplateRende
 - CMS/Front 共通の PSR-3 logger 実装
 - CMS/Front 共通の PSR-16 cache 実装
 - CMS/Front 共通の template renderer 実装
+- CMS/Front 共通の validation starter
 - アプリ都合の共通 infrastructure
 
 Framework の routing、container、HTTP primitive などは `src/Framework` に置きます。

@@ -56,6 +56,7 @@ $healthPath = rtrim($pathPrefix, '/') . '/health';
 if ($healthPath === '/health' && $pathPrefix !== '/') {
     $healthPath = $pathPrefix . '/health';
 }
+$contactPath = rtrim($pathPrefix, '/') . '/contact';
 
 $directories = [
     "{$appRoot}/config",
@@ -71,9 +72,11 @@ $paths = [
 if ($template === 'layered') {
     $directories = array_merge($directories, [
         "{$appRoot}/src/Application/Health/Show",
+        "{$appRoot}/src/Application/Contact/Submit",
         "{$appRoot}/src/Domain/Entity",
         "{$appRoot}/src/Domain/Repository",
         "{$appRoot}/src/Domain/Value",
+        "{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit",
         "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show",
         "{$appRoot}/src/Infrastructure/Http/Middleware",
         "{$appRoot}/src/Infrastructure/Persistence",
@@ -82,9 +85,13 @@ if ($template === 'layered') {
         "{$appRoot}/src/Application/Health/Show/Input.php",
         "{$appRoot}/src/Application/Health/Show/Output.php",
         "{$appRoot}/src/Application/Health/Show/Interactor.php",
+        "{$appRoot}/src/Application/Contact/Submit/Input.php",
+        "{$appRoot}/src/Application/Contact/Submit/Output.php",
+        "{$appRoot}/src/Application/Contact/Submit/Interactor.php",
         "{$appRoot}/src/Domain/Entity/HealthCheck.php",
         "{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php",
         "{$appRoot}/src/Domain/Value/HealthMessage.php",
+        "{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit/Controller.php",
         "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show/Controller.php",
         "{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php",
         "{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php",
@@ -109,11 +116,13 @@ if ($template === 'layered') {
 declare(strict_types=1);
 
 use App\{{ namespace }}\Infrastructure\Http\Controller\Health\Show\Controller as HealthShowController;
+use App\{{ namespace }}\Infrastructure\Http\Controller\Contact\Submit\Controller as ContactSubmitController;
 
 return [
     ['GET', '{{ healthPath }}', HealthShowController::class],
+    ['POST', '{{ contactPath }}', ContactSubmitController::class],
 ];
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $contactPath));
 } else {
     writeFile("{$appRoot}/config/routes.php", <<<'PHP'
 <?php
@@ -245,10 +254,11 @@ echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
 if ($template === 'layered') {
     echo "Layered starter:\n";
     echo "- Application/Health/Show: Input, Output, and Interactor example.\n";
+    echo "- Application/Contact/Submit: Input validation example using App\\Shared\\Validation.\n";
     echo "- Domain/Entity: HealthCheck entity example.\n";
     echo "- Domain/Value: HealthMessage value object example.\n";
     echo "- Domain/Repository: HealthCheck repository interface.\n";
-    echo "- Infrastructure/Http/Controller: Health endpoint controller.\n";
+    echo "- Infrastructure/Http/Controller: HTTP controller examples.\n";
     echo "- Infrastructure/Http/Middleware: App-specific middleware example.\n";
     echo "- Infrastructure/Persistence: PDO repository example.\n\n";
 }
@@ -289,11 +299,11 @@ function writeFile(string $path, string $contents): void
     }
 }
 
-function renderTemplate(string $contents, string $namespace, string $healthPath, string $name): string
+function renderTemplate(string $contents, string $namespace, string $healthPath, string $name, string $contactPath = ''): string
 {
     return str_replace(
-        ['{{ namespace }}', '{{ healthPath }}', '{{ name }}'],
-        [$namespace, $healthPath, $name],
+        ['{{ namespace }}', '{{ healthPath }}', '{{ name }}', '{{ contactPath }}'],
+        [$namespace, $healthPath, $name, $contactPath],
         $contents,
     );
 }
@@ -361,6 +371,94 @@ final readonly class Interactor
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
 
+    writeFile("{$appRoot}/src/Application/Contact/Submit/Input.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Contact\Submit;
+
+final readonly class Input
+{
+    public function __construct(
+        public string $name,
+        public string $email,
+        public string $message,
+    ) {
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Application/Contact/Submit/Output.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Contact\Submit;
+
+use App\Shared\Validation\ValidationOutput;
+
+final readonly class Output
+{
+    public function __construct(public bool $accepted, public ValidationOutput $validation)
+    {
+    }
+
+    public static function accepted(): self
+    {
+        return new self(accepted: true, validation: ValidationOutput::valid());
+    }
+
+    public static function invalid(ValidationOutput $validation): self
+    {
+        return new self(accepted: false, validation: $validation);
+    }
+
+    /** @return array{accepted:bool,error:?string} */
+    public function toArray(): array
+    {
+        return [
+            'accepted' => $this->accepted,
+            'error' => $this->validation->firstMessage(),
+        ];
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Application/Contact/Submit/Interactor.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Application\Contact\Submit;
+
+use App\Shared\Validation\FormValidator;
+use App\Shared\Validation\ValidationInput;
+
+final readonly class Interactor
+{
+    public function execute(Input $input): Output
+    {
+        $validation = (new FormValidator(input: new ValidationInput(values: [
+            'name' => $input->name,
+            'email' => $input->email,
+            'message' => $input->message,
+        ])))
+            ->required(field: 'name', label: '名前')
+            ->required(field: 'email', label: 'メールアドレス')
+            ->email(field: 'email', label: 'メールアドレス')
+            ->required(field: 'message', label: '内容')
+            ->output();
+
+        if (!$validation->isValid()) {
+            return Output::invalid(validation: $validation);
+        }
+
+        return Output::accepted();
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
     writeFile("{$appRoot}/src/Domain/Entity/HealthCheck.php", renderTemplate(<<<'PHP'
 <?php
 
@@ -412,6 +510,42 @@ final readonly class HealthMessage
         if ($value === '') {
             throw new InvalidArgumentException('Health message must not be empty.');
         }
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name));
+
+    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit/Controller.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Http\Controller\Contact\Submit;
+
+use App\{{ namespace }}\Application\Contact\Submit\Input;
+use App\{{ namespace }}\Application\Contact\Submit\Interactor;
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+
+final readonly class Controller
+{
+    public function __construct(private Interactor $interactor)
+    {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $output = $this->interactor->execute(input: new Input(
+            name: $request->input(key: 'name'),
+            email: $request->input(key: 'email'),
+            message: $request->input(key: 'message'),
+        ));
+
+        return new Response(
+            body: json_encode($output->toArray(), JSON_THROW_ON_ERROR),
+            status: $output->accepted ? 201 : 422,
+            headers: ['Content-Type' => 'application/json; charset=utf-8'],
+        );
     }
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));

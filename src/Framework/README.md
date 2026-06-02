@@ -61,10 +61,13 @@ Examples that belong outside the Framework:
 - cache storage policy
 - mail delivery settings
 - template engine selection
+- validation library selection
 - validation messages for a specific application
 - CMS, blog, media, admin, or API domain rules
 
 Those choices belong in Kernel, Shared, or each App.
+
+The default Shared scaffold provides `App\Shared\Validation` as a small form validation starting point, and the layered app scaffold shows how to use it. Framework core does not own validation classes.
 
 ## Scaffold
 

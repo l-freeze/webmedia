@@ -6,8 +6,8 @@ namespace App\Cms\Application\Page\Save;
 
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
-use App\Framework\Validation\FormValidator;
-use App\Framework\Validation\ValidationInput;
+use App\Shared\Validation\FormValidator;
+use App\Shared\Validation\ValidationInput;
 
 final readonly class Interactor
 {

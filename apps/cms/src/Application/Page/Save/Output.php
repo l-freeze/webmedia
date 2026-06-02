@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Page\Save;
 
 use App\Cms\Domain\Value\PageId;
-use App\Framework\Validation\ValidationOutput;
+use App\Shared\Validation\ValidationOutput;
 
 final readonly class Output
 {

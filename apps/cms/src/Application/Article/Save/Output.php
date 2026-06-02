@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Article\Save;
 
 use App\Cms\Domain\Value\ArticleId;
-use App\Framework\Validation\ValidationOutput;
+use App\Shared\Validation\ValidationOutput;
 
 final readonly class Output
 {

@@ -27,6 +27,7 @@ $sharedRoot = "{$root}/apps/shared";
 $directories = [
     "{$sharedRoot}/config",
     "{$sharedRoot}/src/Security/Infrastructure/Http",
+    "{$sharedRoot}/src/Validation",
     "{$sharedRoot}/src/View/Infrastructure",
 ];
 $files = [
@@ -38,6 +39,8 @@ $files = [
 Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
 
 The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
+
+The scaffold includes a small form validation set under `App\Shared\Validation`. Validation is application-side because rules and messages belong to the project, but the generated classes give layered apps a default path.
 
 ## Middleware
 
@@ -121,6 +124,118 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         }
 
         return $response;
+    }
+}
+PHP,
+    "{$sharedRoot}/src/Validation/FormValidator.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Validation;
+
+final class FormValidator
+{
+    /** @var list<ValidationError> */
+    private array $errors = [];
+
+    public function __construct(private readonly ValidationInput $input)
+    {
+    }
+
+    public function required(string $field, string $label): self
+    {
+        if ($this->input->string(field: $field) === '') {
+            $this->errors[] = new ValidationError(field: $field, message: "{$label}を入力してください。");
+        }
+
+        return $this;
+    }
+
+    public function email(string $field, string $label): self
+    {
+        $value = $this->input->string(field: $field);
+        if ($value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
+            $this->errors[] = new ValidationError(field: $field, message: "{$label}を正しく入力してください。");
+        }
+
+        return $this;
+    }
+
+    public function output(): ValidationOutput
+    {
+        return new ValidationOutput(errors: $this->errors);
+    }
+}
+PHP,
+    "{$sharedRoot}/src/Validation/ValidationError.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Validation;
+
+final readonly class ValidationError
+{
+    public function __construct(public string $field, public string $message)
+    {
+    }
+}
+PHP,
+    "{$sharedRoot}/src/Validation/ValidationInput.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Validation;
+
+final readonly class ValidationInput
+{
+    /** @param array<string, mixed> $values */
+    public function __construct(public array $values)
+    {
+    }
+
+    public function string(string $field): string
+    {
+        $value = $this->values[$field] ?? '';
+
+        return is_scalar($value) ? trim((string) $value) : '';
+    }
+}
+PHP,
+    "{$sharedRoot}/src/Validation/ValidationOutput.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Validation;
+
+final readonly class ValidationOutput
+{
+    /** @param list<ValidationError> $errors */
+    public function __construct(public array $errors = [])
+    {
+    }
+
+    public static function valid(): self
+    {
+        return new self();
+    }
+
+    public static function invalid(ValidationError ...$errors): self
+    {
+        return new self(errors: array_values($errors));
+    }
+
+    public function isValid(): bool
+    {
+        return $this->errors === [];
+    }
+
+    public function firstMessage(): ?string
+    {
+        return $this->errors[0]->message ?? null;
     }
 }
 PHP,

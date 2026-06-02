@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Front;
 
-use App\Framework\Validation\FormValidator;
-use App\Framework\Validation\ValidationInput;
+use App\Shared\Validation\FormValidator;
+use App\Shared\Validation\ValidationInput;
 use PHPUnit\Framework\TestCase;
 
 final class ContactValidationTest extends TestCase

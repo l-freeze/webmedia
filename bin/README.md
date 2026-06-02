@@ -68,6 +68,7 @@ php bin/scaffold-app api /api --template=layered
 追加で生成される主な構成:
 
 - `src/Application/Health/Show`: Input、Output、Interactor の例
+- `src/Application/Contact/Submit`: Shared Validation を使う入力検証の例
 - `src/Domain/Entity`: Entity の例
 - `src/Domain/Value`: Value Object の例
 - `src/Domain/Repository`: Repository interface の例
@@ -98,12 +99,18 @@ php bin/scaffold-shared
 - `apps/shared/config/container.php`
 - `apps/shared/config/middleware.php`
 - `apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php`
+- `apps/shared/src/Validation/FormValidator.php`
+- `apps/shared/src/Validation/ValidationInput.php`
+- `apps/shared/src/Validation/ValidationOutput.php`
+- `apps/shared/src/Validation/ValidationError.php`
 - `apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php`
 - `apps/shared/README.md`
 
 `SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
 
 `LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
+
+`App\Shared\Validation` はフォーム入力検証の標準スターターです。Framework 本体は Validator を持ちません。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリに置き換えられます。`layered` template はこのShared Validatorを使う入力検証例を生成します。
 
 Shared の path と namespace は固定です。
 
