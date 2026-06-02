@@ -22,6 +22,8 @@ Kernel の path と namespace は固定です。
 
 namespace を任意指定する option は用意しません。Framework は Kernel に依存しませんが、利用側プロジェクトの合成レイヤーとしてこの形を標準にします。
 
+生成される `apps/kernel/config/application.php` は、先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel/project startup の責務です。
+
 ## App Scaffold
 
 `bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。

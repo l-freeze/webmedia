@@ -2,7 +2,7 @@
 
 ## 目的
 
-エントリーポイントで行う `.env` 読み込み、Application 生成、Runtime 選択をまとめるための薄い bootstrap 層です。
+エントリーポイントで行う Application 生成と Runtime 選択をまとめるための薄い bootstrap 層です。
 
 Framework の外側から `ApplicationBootstrapConfig` を渡すことで、Kernel の生成方法、例外ハンドラ、middleware pipeline、session runtime を差し替えられます。
 
@@ -45,7 +45,6 @@ ApplicationBootstrap::run(
 $application = ApplicationBootstrap::createApplication(
     config: new ApplicationBootstrapConfig(
         root: $root,
-        loadDotenv: false,
         applicationFactory: $applicationFactory,
     ),
 );
@@ -53,4 +52,4 @@ $application = ApplicationBootstrap::createApplication(
 
 ## 責務
 
-この層は起動手順だけを扱います。Route、DI、middleware、Kernel の具体的な中身は各アプリケーション側に置きます。
+この層は Framework の起動手順だけを扱います。`.env` 読み込み、Route、DI、middleware、Kernel の具体的な中身は各アプリケーション側に置きます。

@@ -14,7 +14,6 @@ final readonly class ApplicationBootstrapConfig
 {
     public function __construct(
         public string $root,
-        public bool $loadDotenv = true,
         public ?NativeSessionRuntime $sessionRuntime = null,
         public ?MiddlewarePipeline $middlewarePipeline = null,
         public ?ExceptionHandlerInterface $exceptionHandler = null,

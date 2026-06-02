@@ -6,7 +6,6 @@ namespace App\Framework\Bootstrap;
 
 use App\Framework\Application\ApplicationInterface;
 use App\Framework\Runtime\RuntimeFactory;
-use Dotenv\Dotenv;
 use RuntimeException;
 
 final readonly class ApplicationBootstrap
@@ -17,7 +16,6 @@ final readonly class ApplicationBootstrap
 
     public static function run(ApplicationBootstrapConfig $config): void
     {
-        self::loadEnvironment(config: $config);
         RuntimeFactory::fromEnvironment()->run(application: self::createApplication(config: $config));
     }
 
@@ -30,12 +28,4 @@ final readonly class ApplicationBootstrap
         return ($config->applicationFactory)($config);
     }
 
-    private static function loadEnvironment(ApplicationBootstrapConfig $config): void
-    {
-        if (!$config->loadDotenv || !is_file($config->root . '/.env')) {
-            return;
-        }
-
-        Dotenv::createImmutable($config->root)->safeLoad();
-    }
 }

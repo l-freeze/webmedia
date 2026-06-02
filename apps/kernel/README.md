@@ -8,6 +8,8 @@ Framework は `Request`、`Response`、`Router`、`Container`、middleware pipel
 
 `apps/kernel/config/application.php` で `ApplicationDefinition` を追加します。
 
+この config は先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel 側の起動構成として扱います。
+
 ```php
 new ApplicationDefinition(
     name: 'api',

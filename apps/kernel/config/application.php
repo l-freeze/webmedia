@@ -9,6 +9,12 @@ use App\Framework\Http\Middleware\MiddlewarePipeline;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
 use App\Kernel\ApplicationDefinition;
+use Dotenv\Dotenv;
+
+$root = dirname(__DIR__, 3);
+if (is_file($root . '/.env')) {
+    Dotenv::createImmutable($root)->safeLoad();
+}
 
 $envString = static function (string $key, string $default): string {
     $value = $_ENV[$key] ?? $default;

@@ -61,6 +61,7 @@ Examples that belong outside the Framework:
 - CORS policy
 - cache storage policy
 - mail delivery settings
+- environment file loading
 - template engine selection
 - input normalization, such as trimming request values
 - validation library selection

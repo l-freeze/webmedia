@@ -35,7 +35,6 @@ PHP;
         $application = ApplicationBootstrap::createApplication(
             config: new ApplicationBootstrapConfig(
                 root: $root,
-                loadDotenv: false,
                 applicationFactory: static fn (ApplicationBootstrapConfig $config): ApplicationInterface => new Application(root: $config->root),
             ),
         );

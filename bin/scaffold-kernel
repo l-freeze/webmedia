@@ -42,6 +42,8 @@ The path and namespace are fixed:
 - `App\Kernel`
 
 Add `ApplicationDefinition` entries in `apps/kernel/config/application.php`.
+
+`apps/kernel/config/application.php` loads `.env` when it exists. Framework does not read dotenv directly. Environment loading belongs to Kernel/project startup.
 MARKDOWN,
     "{$kernelRoot}/config/application.php" => <<<'PHP'
 <?php
@@ -54,6 +56,12 @@ use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
+use Dotenv\Dotenv;
+
+$root = dirname(__DIR__, 3);
+if (is_file($root . '/.env')) {
+    Dotenv::createImmutable($root)->safeLoad();
+}
 
 $envString = static function (string $key, string $default): string {
     $value = $_ENV[$key] ?? $default;
