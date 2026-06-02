@@ -135,16 +135,15 @@ namespace を任意指定する option は用意しません。
 
 通常の dependency scripts は `composer require` した root project では自動実行されません。
 
-`composer require` と同時に `apps/shared` を生成したい場合は、Framework package 側で Composer plugin を提供し、install event からこの shared scaffold と同等の処理を呼びます。
+`composer require` と同時に Kernel と Shared を生成したい場合は、Framework package 側で Composer plugin を提供し、install event から `scaffold-kernel` と `scaffold-shared` と同等の処理を呼びます。
 
 Framework package の標準 scaffold は Latte 実装を生成するため、package の `require` には `latte/latte` を含めます。ただし Framework core は Latte クラスへ依存せず、`TemplateRenderer` interface だけを持ちます。
 
 plugin を使わない運用では、Framework 追加後に次を実行します。
 
 ```bash
+php vendor/bin/scaffold-kernel
 php vendor/bin/scaffold-shared
 ```
-
-Framework package 化後は、インストール時に Kernel と Shared を生成する Composer plugin を用意する方針です。plugin を使わない運用では、app を追加する前に `scaffold-kernel` と `scaffold-shared` を一度だけ実行します。
 
 Framework package 側の Composer plugin は `App\Framework\Composer\FrameworkInstallerPlugin` です。Composer plugin は root project の `allow-plugins` で許可された場合だけ実行されます。plugin は Kernel と Shared の必須 config が存在しない場合だけ scaffold を呼び、既存ファイルは上書きしません。

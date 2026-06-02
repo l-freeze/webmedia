@@ -27,6 +27,8 @@ The Framework keeps rules that are part of the baseline shape of a PHP web appli
 
 `PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
 
+`Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy.
+
 ## Fixed Application Shape
 
 Framework users are expected to use this root shape:
@@ -97,52 +99,11 @@ Namespace customization is intentionally not supported. The Framework gives user
 
 ## Composer Package Direction
 
-When this Framework is split into a Composer package, the package should include the scaffold commands.
-
-The expected user flow is:
-
-```bash
-composer require vendor/framework
-php vendor/bin/scaffold-kernel
-php vendor/bin/scaffold-shared
-php vendor/bin/scaffold-app front /
-```
-
-`scaffold-kernel` and `scaffold-shared` are project setup commands. Run them once for a project. Add more apps with `scaffold-app`.
-
-As a Composer package, Framework installation should create Kernel and Shared during project setup. `scaffold-app` is for adding individual apps after that setup. Templates do not decide whether Kernel or Shared exist.
+When this Framework is split into a Composer package, the package should include the scaffold commands. Framework installation should create Kernel and Shared during project setup. `scaffold-app` is for adding individual apps after that setup. Templates do not decide whether Kernel or Shared exist.
 
 The default shared scaffold generates a Latte implementation for `TemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
 
-If automatic generation during `composer require` is needed, the package can provide a Composer plugin that calls the same Kernel and Shared scaffold logic during install events. Without a plugin, Composer does not automatically run dependency package scripts in the root project.
-
-This repository includes `App\Framework\Composer\FrameworkInstallerPlugin` for that package direction. A package composer file should enable it with Composer plugin metadata:
-
-```json
-{
-  "type": "composer-plugin",
-  "require": {
-    "composer-plugin-api": "^2.0"
-  },
-  "extra": {
-    "class": "App\\Framework\\Composer\\FrameworkInstallerPlugin"
-  }
-}
-```
-
-Composer plugins run only when the root project allows them. A consuming project must allow the package plugin:
-
-```json
-{
-  "config": {
-    "allow-plugins": {
-      "vendor/framework": true
-    }
-  }
-}
-```
-
-The plugin creates Kernel and Shared only when their required config files are missing. Existing project files are not overwritten by the scaffold commands.
+Automatic generation during `composer require` requires a Composer plugin. This repository includes `App\Framework\Composer\FrameworkInstallerPlugin` for that package direction. The plugin creates Kernel and Shared only when their required config files are missing.
 
 ## Examples
 
@@ -153,20 +114,7 @@ The current `webmedia` project contains real applications:
 
 They are useful as a production-shaped example, but they are larger than a first-read sample.
 
-Smaller example templates are planned for the future.
-
-`todo` should be the smallest complete sample. It should make the application shape easy to read with:
-
-- routes
-- controller
-- interactor
-- repository interface
-- PDO repository implementation
-- a small amount of seed data
-
-`blog` should be a compact but more realistic sample. It should show article list/detail flows without the full CMS feature set.
-
-The purpose of these templates is not to replace the CMS. It is to make the Framework's application shape understandable in a few minutes.
+Smaller `todo` and `blog` templates are planned for the future. Their purpose is to make the Framework's application shape understandable in a few minutes.
 
 ## Reading Order
 

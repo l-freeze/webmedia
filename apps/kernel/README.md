@@ -40,7 +40,7 @@ DB_USERNAME=webmedia
 DB_PASSWORD=webmedia
 ```
 
-DB エンジンを変える場合でも、Framework は変更しません。Kernel の接続設定、Phinx 設定、必要な Persistence SQL をアプリ側で調整します。
+DB エンジンを変える場合でも、Framework は変更しません。Kernel の接続設定と、必要な Persistence SQL をアプリ側で調整します。
 
 ## Scaffold
 

@@ -116,7 +116,7 @@ Smarty を使う場合は、次の手順で切り替えます。
 
 `App\Shared\Validation` はフォーム入力検証の標準スターターです。
 
-Framework は Validator を持ちません。入力検証のルールやメッセージはアプリケーション側の要件なので、Shared に置きます。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリへ置き換えます。
+Framework は Validator を持ちません。入力検証のルール、メッセージ、trim などの正規化はアプリケーション側の要件なので、Shared に置きます。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリへ置き換えます。
 
 ### PDO helpers
 

@@ -43,7 +43,7 @@ Framework stays thin: HTTP primitives, routing, container, middleware pipeline, 
 
 The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
 
-The scaffold includes a small form validation set under `App\Shared\Validation`. Validation is application-side because rules and messages belong to the project, but the generated classes give layered apps a default path.
+The scaffold includes a small form validation set under `App\Shared\Validation`. Validation is application-side because rules, messages, and normalization such as trimming belong to the project, but the generated classes give layered apps a default path.
 
 The scaffold includes small PDO helpers under `App\Shared\Database`. Framework core does not require PDO, but the default app structure uses PDO-based persistence examples.
 
