@@ -69,7 +69,9 @@ $container->singleton(
 );
 ```
 
-Latte is the default starting point, not a Framework requirement. To switch an app to Smarty:
+Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `TemplateRenderer`.
+
+To switch an app to Smarty:
 
 1. Add `smarty/smarty` to the project.
 2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `TemplateRenderer`.

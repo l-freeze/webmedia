@@ -97,7 +97,7 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 `App\Shared\View\Infrastructure\LatteTemplateRenderer` は `App\Framework\View\TemplateRenderer` の Latte 実装です。
 
-Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。
+Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
 
 #### Smarty に切り替える場合
 
