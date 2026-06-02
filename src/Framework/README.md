@@ -90,6 +90,8 @@ php vendor/bin/scaffold-shared
 php vendor/bin/scaffold-app front /
 ```
 
+The default shared scaffold generates a Latte implementation for `TemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
+
 If automatic generation during `composer require` is needed, the package can provide a Composer plugin that calls the same scaffold logic during install events. Without a plugin, Composer does not automatically run dependency package scripts in the root project.
 
 ## Examples

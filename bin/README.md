@@ -98,9 +98,12 @@ php bin/scaffold-shared
 - `apps/shared/config/container.php`
 - `apps/shared/config/middleware.php`
 - `apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php`
+- `apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php`
 - `apps/shared/README.md`
 
 `SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
+
+`LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 
 Shared の path と namespace は固定です。
 
@@ -114,6 +117,8 @@ namespace を任意指定する option は用意しません。
 通常の dependency scripts は `composer require` した root project では自動実行されません。
 
 `composer require` と同時に `apps/shared` を生成したい場合は、Framework package 側で Composer plugin を提供し、install event からこの shared scaffold と同等の処理を呼びます。
+
+Framework package の標準 scaffold は Latte 実装を生成するため、package の `require` には `latte/latte` を含めます。ただし Framework core は Latte クラスへ依存せず、`TemplateRenderer` interface だけを持ちます。
 
 plugin を使わない運用では、Framework 追加後に次を実行します。
 

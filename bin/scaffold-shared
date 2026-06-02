@@ -27,6 +27,7 @@ $sharedRoot = "{$root}/apps/shared";
 $directories = [
     "{$sharedRoot}/config",
     "{$sharedRoot}/src/Security/Infrastructure/Http",
+    "{$sharedRoot}/src/View/Infrastructure",
 ];
 $files = [
     "{$sharedRoot}/README.md" => <<<'MARKDOWN'
@@ -36,11 +37,29 @@ $files = [
 
 Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
 
+The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
+
 ## Middleware
 
 `apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
 
 `bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
+
+## View
+
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `App\Framework\View\TemplateRenderer`.
+
+Register it in each app container with that app's template directory and cache directory:
+
+```php
+$container->singleton(
+    id: TemplateRenderer::class,
+    factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
+        templateDirectory: $root . '/apps/front/templates',
+        cacheDirectory: $root . '/storage/cache',
+    ),
+);
+```
 MARKDOWN,
     "{$sharedRoot}/config/container.php" => <<<'PHP'
 <?php
@@ -102,6 +121,53 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         }
 
         return $response;
+    }
+}
+PHP,
+    "{$sharedRoot}/src/View/Infrastructure/LatteTemplateRenderer.php" => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\View\Infrastructure;
+
+use App\Framework\View\TemplateRenderer;
+use Latte\Engine;
+
+final class LatteTemplateRenderer implements TemplateRenderer
+{
+    private Engine $engine;
+
+    private string $templateDirectory;
+
+    /** @var array<int, callable(): array<string, mixed>> */
+    private array $globalProviders = [];
+
+    public function __construct(string $templateDirectory, string $cacheDirectory)
+    {
+        $this->engine = new Engine();
+        $this->engine->setTempDirectory($cacheDirectory);
+        $this->templateDirectory = rtrim($templateDirectory, '/');
+    }
+
+    /** @param callable(): array<string, mixed> $provider */
+    public function addGlobalProvider(callable $provider): void
+    {
+        $this->globalProviders[] = $provider;
+    }
+
+    /** @param array<string, mixed> $params */
+    public function render(string $template, array $params = []): string
+    {
+        $globalParams = [];
+        foreach ($this->globalProviders as $provider) {
+            $globalParams = array_merge($globalParams, $provider());
+        }
+
+        return $this->engine->renderToString(
+            $this->templateDirectory . '/' . ltrim($template, '/'),
+            array_merge($globalParams, $params),
+        );
     }
 }
 PHP,
