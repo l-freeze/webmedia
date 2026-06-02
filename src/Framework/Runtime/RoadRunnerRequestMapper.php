@@ -77,7 +77,7 @@ final class RoadRunnerRequestMapper
         $error = $file->getError();
         $tmpName = '';
         if ($error === UPLOAD_ERR_OK) {
-            $tmpName = tempnam(sys_get_temp_dir(), 'webmedia-rr-upload-');
+            $tmpName = tempnam(sys_get_temp_dir(), 'framework-rr-upload-');
             if ($tmpName === false) {
                 throw new RuntimeException('Failed to create a temporary upload file.');
             }
