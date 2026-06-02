@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Database;
+namespace App\Shared\Database;
 
 use PDO;
 use PDOStatement;

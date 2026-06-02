@@ -6,8 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Page\History\Query\IPageHistoryQuery;
 use App\Cms\Application\Page\History\Value\PageVersion;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoPageHistoryQuery implements IPageHistoryQuery

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Repository\ITaxonomyRepository;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 use Throwable;
 

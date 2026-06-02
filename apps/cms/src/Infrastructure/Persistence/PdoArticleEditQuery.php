@@ -6,8 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\Edit\Query\IArticleQuery;
 use App\Cms\Application\Article\Edit\Value\Article;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleEditQuery implements IArticleQuery

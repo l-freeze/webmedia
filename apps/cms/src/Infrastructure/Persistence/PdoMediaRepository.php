@@ -7,8 +7,8 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Media\Delete\Output as DeleteOutput;
 use App\Cms\Application\Media\Upload\Output;
 use App\Cms\Domain\Repository\IMediaRepository;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 use Throwable;
 

@@ -8,8 +8,8 @@ use App\Cms\Application\Taxonomy\List\Query\ICategoryQuery;
 use App\Cms\Application\Taxonomy\List\Query\ITagQuery;
 use App\Cms\Application\Taxonomy\List\Value\Category;
 use App\Cms\Application\Taxonomy\List\Value\Tag;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoTaxonomyQuery implements ICategoryQuery, ITagQuery

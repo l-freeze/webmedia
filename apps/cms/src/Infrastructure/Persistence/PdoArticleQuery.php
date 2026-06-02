@@ -6,8 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\List\Query\IArticleQuery as ListArticleQuery;
 use App\Cms\Application\Article\List\Value\Article;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleQuery implements ListArticleQuery

@@ -7,8 +7,8 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Value\PageId;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 use Throwable;
 

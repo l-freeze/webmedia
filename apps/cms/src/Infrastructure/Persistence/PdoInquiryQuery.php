@@ -6,8 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Inquiry\List\Query\IInquiryQuery;
 use App\Cms\Application\Inquiry\List\Value\Inquiry;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoInquiryQuery implements IInquiryQuery

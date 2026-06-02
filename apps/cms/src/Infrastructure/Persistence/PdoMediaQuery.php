@@ -8,8 +8,8 @@ use App\Cms\Application\Article\Edit\Query\IMediaQuery as EditMediaQuery;
 use App\Cms\Application\Article\Edit\Value\Media as EditMedia;
 use App\Cms\Application\Media\List\Query\IMediaQuery;
 use App\Cms\Application\Media\List\Value\Media;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoMediaQuery implements IMediaQuery, EditMediaQuery

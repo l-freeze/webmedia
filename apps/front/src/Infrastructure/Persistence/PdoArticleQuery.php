@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use App\Front\Application\Article\Search\Query\IArticleQuery as SearchArticleQuery;
 use App\Front\Application\Article\Search\Value\Article as SearchArticle;
 use App\Front\Application\Article\Show\Query\IArticleQuery as ShowArticleQuery;

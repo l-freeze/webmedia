@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Front\Infrastructure\Persistence;
 
 use App\Shared\Markdown\Infrastructure\Markdown;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use App\Front\Application\Page\Show\Query\IPageQuery;
 use App\Front\Application\Page\Show\Value\PageDetail;
 use PDO;

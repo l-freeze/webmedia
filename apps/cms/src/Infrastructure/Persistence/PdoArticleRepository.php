@@ -8,8 +8,8 @@ use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleVersionNo;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 use Throwable;
 

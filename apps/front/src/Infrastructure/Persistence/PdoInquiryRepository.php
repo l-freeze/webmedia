@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
-use App\Framework\Database\PdoHelper;
+use App\Shared\Database\PdoHelper;
 use App\Front\Domain\Repository\IInquiryRepository;
 use PDO;
 

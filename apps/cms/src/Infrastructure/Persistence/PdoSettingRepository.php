@@ -7,8 +7,8 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Setting\Edit\Query\ISettingQuery;
 use App\Cms\Application\Setting\Edit\Value\Settings;
 use App\Cms\Domain\Repository\ISettingRepository;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepository

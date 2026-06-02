@@ -102,6 +102,8 @@ php bin/scaffold-shared
 
 - `apps/shared/config/container.php`
 - `apps/shared/config/middleware.php`
+- `apps/shared/src/Database/PdoHelper.php`
+- `apps/shared/src/Database/PdoRow.php`
 - `apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php`
 - `apps/shared/src/Validation/FormValidator.php`
 - `apps/shared/src/Validation/ValidationInput.php`
@@ -111,6 +113,8 @@ php bin/scaffold-shared
 - `apps/shared/README.md`
 
 `SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
+
+`PdoHelper` と `PdoRow` は PDO persistence 実装の標準スターターです。Framework 本体は PDO を要求しません。PDO を使う default persistence examples の補助として Shared に生成します。
 
 `LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 

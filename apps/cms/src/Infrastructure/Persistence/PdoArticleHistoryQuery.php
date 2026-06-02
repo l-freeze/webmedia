@@ -6,8 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Article\History\Query\IArticleHistoryQuery;
 use App\Cms\Application\Article\History\Value\ArticleVersion;
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoArticleHistoryQuery implements IArticleHistoryQuery

@@ -12,6 +12,7 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
 apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
+apps/shared/src/Database/PdoHelper.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
@@ -104,6 +105,12 @@ Framework は template engine を決めません。Controller は `TemplateRende
 
 Framework は Validator を持ちません。入力検証のルールやメッセージはアプリケーション側の要件なので、Shared に置きます。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリへ置き換えます。
 
+### PDO helpers
+
+`App\Shared\Database\PdoHelper` と `App\Shared\Database\PdoRow` は PDO persistence 実装の補助です。
+
+Framework は PDO を要求しません。DB接続方式やDBエンジンは Kernel/App 側の選択です。ただし webmedia の front/cms はPDO persistence実装を共有しているため、補助クラスはSharedに置きます。
+
 ## 置いてよいもの
 
 - CMS/Front 共通の DI 定義
@@ -112,6 +119,7 @@ Framework は Validator を持ちません。入力検証のルールやメッ�
 - CMS/Front 共通の PSR-16 cache 実装
 - CMS/Front 共通の template renderer 実装
 - CMS/Front 共通の validation starter
+- CMS/Front 共通の PDO persistence helper
 - アプリ都合の共通 infrastructure
 
 Framework の routing、container、HTTP primitive などは `src/Framework` に置きます。

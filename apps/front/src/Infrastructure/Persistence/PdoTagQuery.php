@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use App\Front\Application\Tag\List\Query\ITagQuery as ListTagQuery;
 use App\Front\Application\Tag\List\Value\Tag as ListTag;
 use App\Front\Application\Tag\Show\Query\IArticleQuery as ShowArticleQuery;

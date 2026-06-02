@@ -54,6 +54,7 @@ Examples that belong outside the Framework:
 
 - database engine selection
 - PDO connection settings
+- PDO persistence helpers
 - security headers
 - authentication and authorization rules
 - audit logging policy
@@ -68,6 +69,8 @@ Examples that belong outside the Framework:
 Those choices belong in Kernel, Shared, or each App.
 
 The default Shared scaffold provides `App\Shared\Validation` as a small form validation starting point, and the layered app scaffold shows how to use it. Framework core does not own validation classes.
+
+The default Shared scaffold also provides small PDO helpers for the default persistence examples. Framework core does not require PDO.
 
 ## Scaffold
 

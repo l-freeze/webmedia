@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
-use App\Framework\Database\PdoHelper;
-use App\Framework\Database\PdoRow;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
 use App\Front\Application\Category\List\Query\ICategoryQuery as ListCategoryQuery;
 use App\Front\Application\Category\List\Value\Category as ListCategory;
 use App\Front\Application\Category\Show\Query\IArticleQuery as ShowArticleQuery;
