@@ -36,6 +36,8 @@ $files = [
 
 `apps/shared` contains application-side common services and middleware that are shared by multiple apps.
 
+This scaffold is project setup. Run it once for a project, not once per controller or app.
+
 Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
 
 The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.

@@ -90,6 +90,8 @@ php bin/scaffold-app api /api --root=/tmp/example-project
 
 `bin/scaffold-shared` は Framework を使うプロジェクト側に `apps/shared` の最小構成を生成します。
 
+このコマンドは project setup 用です。通常はプロジェクトごとに一度だけ実行します。Controller や app を追加するたびに実行するものではありません。
+
 ```bash
 php bin/scaffold-shared
 ```
@@ -110,7 +112,9 @@ php bin/scaffold-shared
 
 `LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 
-`App\Shared\Validation` はフォーム入力検証の標準スターターです。Framework 本体は Validator を持ちません。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリに置き換えられます。`layered` template はこのShared Validatorを使う入力検証例を生成します。
+`App\Shared\Validation` はフォーム入力検証の標準スターターです。Framework 本体は Validator を持ちません。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリに置き換えられます。
+
+`layered` template は、既に存在する `apps/shared` の Validator を使う入力検証例を生成します。`layered` app を追加する前に `apps/shared` が存在している前提です。
 
 Shared の path と namespace は固定です。
 
@@ -132,3 +136,5 @@ plugin を使わない運用では、Framework 追加後に次を実行します
 ```bash
 php vendor/bin/scaffold-shared
 ```
+
+その後に app を追加する場合は、`scaffold-app` だけを実行します。
