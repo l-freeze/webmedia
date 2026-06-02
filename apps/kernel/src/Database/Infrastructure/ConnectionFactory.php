@@ -10,6 +10,7 @@ final class ConnectionFactory
 {
     public function create(): PDO
     {
+        $dsn = getenv('DB_DSN');
         $host = getenv('DB_HOST') ?: 'db';
         $port = getenv('DB_PORT') ?: '5432';
         $database = getenv('DB_DATABASE') ?: 'webmedia';
@@ -17,7 +18,7 @@ final class ConnectionFactory
         $password = getenv('DB_PASSWORD') ?: 'webmedia';
 
         return new PDO(
-            "pgsql:host={$host};port={$port};dbname={$database}",
+            is_string($dsn) && $dsn !== '' ? $dsn : "pgsql:host={$host};port={$port};dbname={$database}",
             $username,
             $password,
             [
