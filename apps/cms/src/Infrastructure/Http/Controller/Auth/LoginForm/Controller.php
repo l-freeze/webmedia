@@ -7,12 +7,12 @@ namespace App\Cms\Infrastructure\Http\Controller\Auth\LoginForm;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private Renderer $renderer,
+        private TemplateRenderer $renderer,
         private Csrf $csrf,
     ) {
     }

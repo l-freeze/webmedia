@@ -9,12 +9,12 @@ use App\Cms\Application\ArticleVersion\Preview\Interactor;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private Renderer $renderer,
+        private TemplateRenderer $renderer,
         private Markdown $markdown,
         private Interactor $articleVersionPreview,
     ) {

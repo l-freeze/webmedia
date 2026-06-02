@@ -9,12 +9,12 @@ use App\Cms\Application\Setting\Edit\Interactor;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private Renderer $renderer,
+        private TemplateRenderer $renderer,
         private Session $session,
         private Interactor $edit,
     ) {

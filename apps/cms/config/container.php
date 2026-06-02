@@ -47,8 +47,9 @@ use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
+use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -86,8 +87,8 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
     maxAge: (int) $envString('CMS_CORS_MAX_AGE', '600'),
 ));
 
-$container->singleton(id: Renderer::class, factory: function () use (&$container, $root): Renderer {
-    $renderer = new Renderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');
+$container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
+    $renderer = new LatteTemplateRenderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
         $csrf = $container->get(id: Csrf::class);
         if (!$csrf instanceof Csrf) {

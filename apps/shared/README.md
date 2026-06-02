@@ -15,6 +15,7 @@ apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
+apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php
 ```
 
 ## 依存ルール
@@ -90,12 +91,19 @@ $cache->set('front.article_list', $articles, 300);
 
 cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定します。その場合は `NullCache` が登録され、値は保存されません。
 
+### Latte template renderer
+
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` は `App\Framework\View\TemplateRenderer` の Latte 実装です。
+
+Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte、Smarty などの具象実装を登録します。
+
 ## 置いてよいもの
 
 - CMS/Front 共通の DI 定義
 - CMS/Front 共通の middleware
 - CMS/Front 共通の PSR-3 logger 実装
 - CMS/Front 共通の PSR-16 cache 実装
+- CMS/Front 共通の template renderer 実装
 - アプリ都合の共通 infrastructure
 
 Framework の routing、container、HTTP primitive などは `src/Framework` に置きます。

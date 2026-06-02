@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\View;
+namespace App\Shared\View\Infrastructure;
 
+use App\Framework\View\TemplateRenderer;
 use Latte\Engine;
 
-final class Renderer
+final class LatteTemplateRenderer implements TemplateRenderer
 {
     private Engine $engine;
 

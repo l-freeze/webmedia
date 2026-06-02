@@ -7,14 +7,14 @@ namespace App\Front\Infrastructure\Http\Controller\Contact\Store;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Inquiry\Create\Input;
 use App\Front\Application\Inquiry\Create\Interactor;
 
 final readonly class Controller
 {
     public function __construct(
-        private Renderer $renderer,
+        private TemplateRenderer $renderer,
         private Csrf $csrf,
         private Interactor $interactor,
     ) {

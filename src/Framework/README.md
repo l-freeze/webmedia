@@ -10,6 +10,7 @@ It is designed for projects that want explicit application code, readable bounda
 - Routing
 - Middleware pipeline
 - PSR-11 compatible DI container
+- Template renderer interface
 - Application bootstrap
 - Runtime selection for classic PHP, FrankenPHP worker, and RoadRunner
 - Small support classes needed by the runtime
@@ -49,6 +50,7 @@ Examples that belong outside the Framework:
 - CORS policy
 - cache storage policy
 - mail delivery settings
+- template engine selection
 - validation messages for a specific application
 - CMS, blog, media, admin, or API domain rules
 

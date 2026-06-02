@@ -6,11 +6,11 @@ namespace App\Front\Infrastructure\Http\Controller\State\Loading;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 
 final readonly class Controller
 {
-    public function __construct(private Renderer $renderer)
+    public function __construct(private TemplateRenderer $renderer)
     {
     }
 

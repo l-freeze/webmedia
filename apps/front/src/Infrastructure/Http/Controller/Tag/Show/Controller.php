@@ -6,14 +6,14 @@ namespace App\Front\Infrastructure\Http\Controller\Tag\Show;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\Renderer;
+use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Tag\Show\Input;
 use App\Front\Application\Tag\Show\Interactor;
 
 final readonly class Controller
 {
     public function __construct(
-        private Renderer $renderer,
+        private TemplateRenderer $renderer,
         private Interactor $interactor,
     ) {
     }
