@@ -93,6 +93,23 @@ Namespace customization is intentionally not supported. The Framework gives user
 
 `scaffold-app` generates a new app under `apps/{name}`. The default template is intentionally minimal.
 
+## Switching Template Engines
+
+The default scaffold uses Latte because it is the recommended starting point.
+
+This is not a Framework requirement. Controllers depend on `App\Framework\View\TemplateRenderer`, so another template engine can be used by adding a new renderer implementation and changing the container binding.
+
+For example, to switch an app to Smarty:
+
+1. Add `smarty/smarty` to the project.
+2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `TemplateRenderer`.
+3. Bind `TemplateRenderer::class` to `SmartyTemplateRenderer` in the target app container.
+4. Convert that app's templates from Latte syntax to Smarty syntax.
+
+The renderer can keep the same `addGlobalProvider()` convenience method used by the default Latte renderer. That keeps common template values, such as site settings, CSRF data, flash messages, or current user information, registered once in the container instead of being passed by every controller.
+
+Framework core does not need to know whether the concrete renderer is Latte, Smarty, Twig, or another engine.
+
 ## Composer Package Direction
 
 When this Framework is split into a Composer package, the package should include the scaffold commands.
