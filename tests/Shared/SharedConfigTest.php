@@ -10,6 +10,7 @@ use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
 use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use App\Shared\Markdown\Infrastructure\Markdown;
+use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -36,5 +37,6 @@ final class SharedConfigTest extends TestCase
         $middleware = require dirname(__DIR__, 2) . '/apps/shared/config/middleware.php';
 
         self::assertIsArray($middleware);
+        self::assertContains(SecurityHeadersMiddleware::class, $middleware);
     }
 }

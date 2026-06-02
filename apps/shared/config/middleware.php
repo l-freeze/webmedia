@@ -2,4 +2,8 @@
 
 declare(strict_types=1);
 
-return [];
+use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
+
+return [
+    SecurityHeadersMiddleware::class,
+];

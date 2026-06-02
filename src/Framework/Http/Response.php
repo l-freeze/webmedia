@@ -42,7 +42,7 @@ final readonly class Response
     {
         http_response_code($this->status);
         header_remove('X-Powered-By');
-        foreach ($this->headersWithSecurityDefaults() as $name => $value) {
+        foreach ($this->headers as $name => $value) {
             if (!preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name)) {
                 throw new InvalidArgumentException("Invalid response header name: {$name}");
             }
@@ -52,17 +52,5 @@ final readonly class Response
             header("{$name}: {$value}");
         }
         echo $this->body;
-    }
-
-    /** @return array<string, string> */
-    private function headersWithSecurityDefaults(): array
-    {
-        return $this->headers + [
-            'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'DENY',
-            'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
-        ];
     }
 }

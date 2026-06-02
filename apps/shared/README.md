@@ -14,6 +14,7 @@ apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
+apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
 ```
 
 ## 依存ルール
@@ -49,6 +50,14 @@ return static function (Container $container, string $root): void {
 `apps/shared/config/middleware.php` は両アプリへ共通適用したい middleware class-string の配列を返します。
 
 CMS/Front 固有の middleware は、それぞれの `apps/*/config/middleware.php` で shared 配列に追加します。
+
+### Security headers middleware
+
+`App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware` は shared middleware として標準適用します。
+
+Framework の `Response` は HTTP response を表現して送信するだけにし、CSP、Referrer-Policy、Permissions-Policy などのアプリケーション要件は shared middleware で差し込みます。
+
+`bin/scaffold-app` が生成する `apps/{name}/config/middleware.php` は shared middleware を読み込むため、新規 app にも自動で適用されます。
 
 ### CORS middleware
 
