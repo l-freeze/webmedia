@@ -9,9 +9,9 @@ use Latte\Engine;
 
 final class LatteTemplateRenderer implements TemplateRenderer
 {
-    private Engine $engine;
+    private readonly Engine $engine;
 
-    private string $templateDirectory;
+    private readonly string $templateDirectory;
 
     /** @var array<int, callable(): array<string, mixed>> */
     private array $globalProviders = [];

@@ -8,7 +8,7 @@ use HTMLPurifier;
 use HTMLPurifier_Config;
 use League\CommonMark\CommonMarkConverter;
 
-final class Markdown
+final readonly class Markdown
 {
     private CommonMarkConverter $converter;
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Front;
+namespace Tests\Shared\Validation;
 
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
 use PHPUnit\Framework\TestCase;
 
-final class ContactValidationTest extends TestCase
+final class FormValidatorTest extends TestCase
 {
     public function testEmailValidationRejectsInvalidAddress(): void
     {

@@ -1,5 +1,20 @@
 # リファクタリング作業チェックリスト
 
+## PHP 8.5 一貫性修正
+
+コードベース全体で `readonly` クラス・コンストラクタプロモーションが統一されているが、
+以下の2ファイルのみスタイルが揃っていなかったため修正した。
+
+- [x] `apps/shared/src/Markdown/Infrastructure/Markdown.php`
+  - `final class` → `final readonly class` に変更
+  - プロパティはコンストラクタ引数ではないためプロモーション不可だが、`readonly` クラス化により一貫性を確保
+- [x] `apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php`
+  - `$engine`・`$templateDirectory` プロパティに `readonly` を付与
+  - `$globalProviders` は `addGlobalProvider()` で変更されるため `readonly` 不可
+  - クラス全体を `readonly` にできないため、個別プロパティへの付与で対応
+- [x] `tests/Shared/View/LatteTemplateRendererTest.php` を新規作成
+  - テンプレートレンダリングと `addGlobalProvider` の動作を検証
+
 このファイルは、PHPStan 対応と設計整理を途中から再開できるようにするための作業メモである。
 
 ## PHPStan 対応
