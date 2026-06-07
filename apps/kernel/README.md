@@ -42,6 +42,16 @@ DB_PASSWORD=webmedia
 
 DB エンジンを変える場合でも、Framework は変更しません。Kernel の接続設定と、必要な Persistence SQL をアプリ側で調整します。
 
+## Worker Mode
+
+FrankenPHP Worker mode に対応する場合、`Application` インスタンスはプロセス起動時に1度だけ生成し、リクエストごとに `handle()` を呼び出します。
+
+`handle()` 内の `loadContainer()` は `require` でコンテナ設定を毎リクエスト再実行します。これは意図的な設計です。コンテナをリクエスト間で再利用すると、`Csrf::class` の singleton が別ユーザーの `Session` を保持し続けるセキュリティリスクがあります。そのリスクはパフォーマンス上の利益を大きく上回るため、コンテナの再利用は行いません。
+
+Worker mode の恩恵であるプロセス起動コストの排除は、`Application` インスタンスの長寿命化だけで十分に得られます。ルート解析とミドルウェア設定の読み込みはコンストラクタで1度だけ実行され、`$routers` と `$middleware` に保持されます。
+
+Worker mode 用エントリポイントは `apps/kernel/` に追加します。
+
 ## Scaffold
 
 新しいアプリの最小構成は `bin/scaffold-app` で生成できます。

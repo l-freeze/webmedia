@@ -6,6 +6,12 @@
 
 ## 直近作業
 
+- `docs/refactoring.md` のリファクタリング内容を評価。
+  - `AGENTS.md`、`docs/plan.md`、`docs/current_status.md`、`docs/refactoring.md` を確認。
+  - 実コード上の middleware、例外ハンドラ、shared logging、AuditLogger、Container、Renderer、array callback、date helper 対象箇所を確認。
+  - 評価結果として、全体方針は適切だが実装済み項目と未実装項目の整理が必要であることを `docs/refactoring.md` に追記。
+  - `LoggerInterface` 実装、例外ハンドラ差し込み口、CMS 認証 middleware は実施済み扱いとし、今後は残作業の具体化が必要と整理。
+  - Worker mode 対応は適切だが、request scope の設計を先に文書化してから実装すべきと整理。
 - Framework に middleware パイプライン機構を追加。
   - `src/Framework/Http/Middleware` に `MiddlewareInterface` / `RequestHandlerInterface` / `CallableRequestHandler` / `MiddlewarePipeline` を追加。
   - `Application` は `/admin` では `apps/cms/config/middleware.php`、それ以外では `apps/front/config/middleware.php` を任意で読み込むように変更。
