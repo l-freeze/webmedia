@@ -27,7 +27,10 @@
   - [x] `fetchColumn()` の戻り値を用途別に正規化する
   - [x] Infrastructure/Persistence から直接 `PDOStatement|false` を扱う箇所を減らす
 - [ ] callback 系配列関数を `foreach` へ寄せて解消する
-  - [ ] `array_map()` を `foreach` へ置き換える
+  - [x] Persistence 層の row → DTO 変換で使っていた `array_map()` を `foreach` へ置き換える
+  - [ ] Controller 層の DTO → `toArray()` 変換で使っている `array_map()` を解消する
+  - [ ] container config の CSV 正規化で使っている `array_map()` / `array_filter()` を解消する
+  - [ ] seed の初期データ生成で使っている `array_map()` を解消する
   - [ ] `array_filter()` を `foreach` へ置き換える
   - [ ] `array_reduce()` を `foreach` へ置き換える
   - [ ] `array_walk()` を使わないことを確認する

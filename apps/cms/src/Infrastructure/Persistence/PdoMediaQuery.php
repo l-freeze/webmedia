@@ -21,10 +21,11 @@ final readonly class PdoMediaQuery implements IMediaQuery, EditMediaQuery
     /** @return array<int, Media> */
     public function list(): array
     {
-        return array_map(static function (array $row): Media {
+        $media = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, file_name, path, mime_type, file_size, alt_text, caption, created_at FROM media_files ORDER BY created_at DESC')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Media(
+            $media[] = new Media(
                 id: $pdoRow->int(key: 'id'),
                 fileName: $pdoRow->string(key: 'file_name'),
                 path: $pdoRow->string(key: 'path'),
@@ -34,21 +35,26 @@ final readonly class PdoMediaQuery implements IMediaQuery, EditMediaQuery
                 caption: $pdoRow->string(key: 'caption'),
                 createdAt: $pdoRow->string(key: 'created_at'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, file_name, path, mime_type, file_size, alt_text, caption, created_at FROM media_files ORDER BY created_at DESC')));
+        }
+
+        return $media;
     }
 
     /** @return array<int, EditMedia> */
     public function media(): array
     {
-        return array_map(static function (array $row): EditMedia {
+        $media = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT id, file_name, path, alt_text FROM media_files WHERE mime_type LIKE 'image/%' ORDER BY created_at DESC")) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new EditMedia(
+            $media[] = new EditMedia(
                 id: $pdoRow->int(key: 'id'),
                 fileName: $pdoRow->string(key: 'file_name'),
                 path: $pdoRow->string(key: 'path'),
                 altText: $pdoRow->string(key: 'alt_text'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT id, file_name, path, alt_text FROM media_files WHERE mime_type LIKE 'image/%' ORDER BY created_at DESC")));
+        }
+
+        return $media;
     }
 }

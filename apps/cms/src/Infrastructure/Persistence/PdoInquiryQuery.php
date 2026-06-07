@@ -19,16 +19,19 @@ final readonly class PdoInquiryQuery implements IInquiryQuery
     /** @return array<int, Inquiry> */
     public function list(): array
     {
-        return array_map(static function (array $row): Inquiry {
+        $inquiries = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT name, email, subject, status, created_at FROM inquiries ORDER BY created_at DESC')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Inquiry(
+            $inquiries[] = new Inquiry(
                 name: $pdoRow->string(key: 'name'),
                 email: $pdoRow->string(key: 'email'),
                 subject: $pdoRow->string(key: 'subject'),
                 status: $pdoRow->string(key: 'status'),
                 createdAt: $pdoRow->string(key: 'created_at'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT name, email, subject, status, created_at FROM inquiries ORDER BY created_at DESC')));
+        }
+
+        return $inquiries;
     }
 }

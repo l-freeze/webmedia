@@ -21,13 +21,16 @@ final readonly class PdoPageLinkQuery implements IPageLinkQuery
     {
         $stmt = PdoHelper::query(pdo: $this->pdo, sql: "SELECT title, slug FROM pages WHERE status = 'published' ORDER BY display_order, id");
 
-        return array_map(static function (array $row): PageLink {
+        $links = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new PageLink(
+            $links[] = new PageLink(
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
             );
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $links;
     }
 }

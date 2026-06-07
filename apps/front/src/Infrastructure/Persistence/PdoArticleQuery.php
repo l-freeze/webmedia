@@ -29,7 +29,12 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
         PdoHelper::execute(statement: $stmt);
-        return array_map($this->homeArticle(...), PdoHelper::fetchAll(statement: $stmt));
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $articles[] = $this->homeArticle(row: $row);
+        }
+
+        return $articles;
     }
 
     public function countPublished(): ArticleCount
@@ -63,7 +68,12 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.body_markdown ILIKE :body_q) ORDER BY a.published_at DESC');
         $likeKeyword = '%' . $keyword . '%';
         PdoHelper::execute(statement: $stmt, params: ['title_q' => $likeKeyword, 'body_q' => $likeKeyword]);
-        return array_map($this->searchArticle(...), PdoHelper::fetchAll(statement: $stmt));
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $articles[] = $this->searchArticle(row: $row);
+        }
+
+        return $articles;
     }
 
     /** @return array<int, ShowArticle> */
@@ -72,12 +82,22 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         if ($categoryId === null) {
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id ORDER BY a.published_at DESC LIMIT 3');
             PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
-            return array_map(fn (array $row): ShowArticle => $this->showArticle(row: $row), PdoHelper::fetchAll(statement: $stmt));
+            $articles = [];
+            foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+                $articles[] = $this->showArticle(row: $row);
+            }
+
+            return $articles;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT 3');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId, 'category_id' => $categoryId]);
-        return array_map(fn (array $row): ShowArticle => $this->showArticle(row: $row), PdoHelper::fetchAll(statement: $stmt));
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $articles[] = $this->showArticle(row: $row);
+        }
+
+        return $articles;
     }
 
     private function baseSql(): string
@@ -161,14 +181,16 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT t.name, t.slug FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id WHERE at.article_id = :id ORDER BY t.name');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
 
-        return array_map(static function (array $row): array {
+        $tags = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
-
-            return [
+            $tags[] = [
                 'name' => $pdoRow->string(key: 'name'),
                 'slug' => $pdoRow->string(key: 'slug'),
             ];
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $tags;
     }
 
     private function excerpt(PdoRow $row): string

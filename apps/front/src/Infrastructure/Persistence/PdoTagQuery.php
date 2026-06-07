@@ -23,16 +23,19 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     /** @return array<int, ListTag> */
     public function all(): array
     {
-        return array_map(static function (array $row): ListTag {
+        $tags = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new ListTag(
+            $tags[] = new ListTag(
                 id: $pdoRow->int(key: 'id'),
                 name: $pdoRow->string(key: 'name'),
                 slug: $pdoRow->string(key: 'slug'),
                 articleCount: $pdoRow->int(key: 'article_count'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')));
+        }
+
+        return $tags;
     }
 
     public function find(string $slug): ?TagDetail
@@ -53,10 +56,11 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
-        return array_map(static function (array $row): ShowArticle {
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new ShowArticle(
+            $articles[] = new ShowArticle(
                 id: $pdoRow->int(key: 'id'),
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
@@ -66,7 +70,9 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
                 publishedAt: $pdoRow->date(key: 'published_at'),
                 updatedAt: $pdoRow->date(key: 'updated_at'),
             );
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $articles;
     }
 
     private function publicCondition(): string

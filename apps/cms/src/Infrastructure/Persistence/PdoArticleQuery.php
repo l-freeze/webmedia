@@ -28,7 +28,12 @@ final readonly class PdoArticleQuery implements ListArticleQuery
         $sql .= ' ORDER BY a.updated_at DESC';
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
         PdoHelper::execute(statement: $stmt, params: $params);
-        return array_map($this->format(...), PdoHelper::fetchAll(statement: $stmt));
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $articles[] = $this->format(row: $row);
+        }
+
+        return $articles;
     }
 
     /** @param array<string, mixed> $row */

@@ -19,14 +19,17 @@ final readonly class PdoTrashQuery implements ITrashQuery
     /** @return array<int, Trash> */
     public function list(): array
     {
-        return array_map(static function (array $row): Trash {
+        $items = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT title, slug, updated_at FROM articles WHERE status = 'trashed' UNION ALL SELECT title, slug, updated_at FROM pages WHERE status = 'trashed' ORDER BY updated_at DESC")) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Trash(
+            $items[] = new Trash(
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
                 updatedAt: $pdoRow->string(key: 'updated_at'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT title, slug, updated_at FROM articles WHERE status = 'trashed' UNION ALL SELECT title, slug, updated_at FROM pages WHERE status = 'trashed' ORDER BY updated_at DESC")));
+        }
+
+        return $items;
     }
 }

@@ -15,6 +15,13 @@
   - `AuditLoggerInterface` は存在するが、現状は `PlaceholderAuditLogger` であり本実装・重要操作への接続は未完了。
   - `Article::fromInput()` / `Page::fromInput()` は今回のリファクタリング対象から外す。Domain のコンストラクタは ValueObject を受け取っており、static factory 移動は効果に対して差分が大きい。
   - 今回の具体的なリファクタリング対象は callback 系配列関数、特に Persistence 層の `array_map()` 置換から開始する。
+- Persistence 層の callback 系配列関数を置換。
+  - `apps/front/src/Infrastructure/Persistence` と `apps/cms/src/Infrastructure/Persistence` の DB row → DTO 変換に残っていた `array_map()` を `foreach` へ置換。
+  - Persistence 層には `array_map()` が残っていないことを確認。
+  - 残作業は Controller 層の DTO → `toArray()` 変換、container config の CSV 正規化、seed の初期データ生成。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
+  - `docker compose exec -T app composer test`: 成功、PHPUnit 54 tests, 127 assertions。
 - `docs/refactoring.md` のリファクタリング内容を評価。
   - `AGENTS.md`、`docs/plan.md`、`docs/current_status.md`、`docs/refactoring.md` を確認。
   - 実コード上の middleware、例外ハンドラ、shared logging、AuditLogger、Container、Renderer、array callback、date helper 対象箇所を確認。

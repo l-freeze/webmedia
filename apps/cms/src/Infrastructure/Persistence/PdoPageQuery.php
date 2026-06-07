@@ -19,10 +19,11 @@ final readonly class PdoPageQuery implements IPageQuery
     /** @return array<int, Page> */
     public function list(): array
     {
-        return array_map(static function (array $row): Page {
+        $pages = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, title, slug, status, display_order, updated_at FROM pages ORDER BY display_order, id')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Page(
+            $pages[] = new Page(
                 id: $pdoRow->int(key: 'id'),
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
@@ -30,6 +31,8 @@ final readonly class PdoPageQuery implements IPageQuery
                 displayOrder: $pdoRow->int(key: 'display_order'),
                 updatedAt: $pdoRow->string(key: 'updated_at'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, title, slug, status, display_order, updated_at FROM pages ORDER BY display_order, id')));
+        }
+
+        return $pages;
     }
 }

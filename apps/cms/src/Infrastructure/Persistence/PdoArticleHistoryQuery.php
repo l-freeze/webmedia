@@ -21,15 +21,18 @@ final readonly class PdoArticleHistoryQuery implements IArticleHistoryQuery
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT version_no, title, status, created_at FROM article_versions WHERE article_id = :id ORDER BY version_no DESC');
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
-        return array_map(static function (array $row): ArticleVersion {
+        $versions = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new ArticleVersion(
+            $versions[] = new ArticleVersion(
                 versionNo: $pdoRow->int(key: 'version_no'),
                 title: $pdoRow->string(key: 'title'),
                 status: $pdoRow->string(key: 'status'),
                 createdAt: $pdoRow->string(key: 'created_at'),
             );
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $versions;
     }
 }

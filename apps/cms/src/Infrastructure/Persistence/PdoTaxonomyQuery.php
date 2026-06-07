@@ -21,29 +21,35 @@ final readonly class PdoTaxonomyQuery implements ICategoryQuery, ITagQuery
     /** @return array<int, Category> */
     public function categories(): array
     {
-        return array_map(static function (array $row): Category {
+        $categories = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug, description FROM categories ORDER BY sort_order, name')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Category(
+            $categories[] = new Category(
                 id: $pdoRow->int(key: 'id'),
                 name: $pdoRow->string(key: 'name'),
                 slug: $pdoRow->string(key: 'slug'),
                 description: $pdoRow->string(key: 'description'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug, description FROM categories ORDER BY sort_order, name')));
+        }
+
+        return $categories;
     }
 
     /** @return array<int, Tag> */
     public function tags(): array
     {
-        return array_map(static function (array $row): Tag {
+        $tags = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug FROM tags ORDER BY name')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new Tag(
+            $tags[] = new Tag(
                 id: $pdoRow->int(key: 'id'),
                 name: $pdoRow->string(key: 'name'),
                 slug: $pdoRow->string(key: 'slug'),
             );
-        }, PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, name, slug FROM tags ORDER BY name')));
+        }
+
+        return $tags;
     }
 }

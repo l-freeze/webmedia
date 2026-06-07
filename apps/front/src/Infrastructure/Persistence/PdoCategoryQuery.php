@@ -25,7 +25,12 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     /** @return array<int, HomeCategory|ListCategory> */
     public function all(): array
     {
-        return array_map($this->category(...), PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publicCondition() . ' GROUP BY c.id ORDER BY c.sort_order, c.name')));
+        $categories = [];
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publicCondition() . ' GROUP BY c.id ORDER BY c.sort_order, c.name')) as $row) {
+            $categories[] = $this->category(row: $row);
+        }
+
+        return $categories;
     }
 
     public function find(string $slug): ?CategoryDetail
@@ -50,10 +55,11 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
-        return array_map(static function (array $row): ShowArticle {
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new ShowArticle(
+            $articles[] = new ShowArticle(
                 id: $pdoRow->int(key: 'id'),
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
@@ -63,7 +69,9 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
                 publishedAt: $pdoRow->date(key: 'published_at'),
                 updatedAt: $pdoRow->date(key: 'updated_at'),
             );
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $articles;
     }
 
     /** @param array<string, mixed> $row */

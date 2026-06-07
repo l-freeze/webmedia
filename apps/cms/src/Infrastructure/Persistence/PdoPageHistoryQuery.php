@@ -21,15 +21,18 @@ final readonly class PdoPageHistoryQuery implements IPageHistoryQuery
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT version_no, title, status, created_at FROM page_versions WHERE page_id = :id ORDER BY version_no DESC');
         PdoHelper::execute(statement: $stmt, params: ['id' => $pageId]);
-        return array_map(static function (array $row): PageVersion {
+        $versions = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            return new PageVersion(
+            $versions[] = new PageVersion(
                 versionNo: $pdoRow->int(key: 'version_no'),
                 title: $pdoRow->string(key: 'title'),
                 status: $pdoRow->string(key: 'status'),
                 createdAt: $pdoRow->string(key: 'created_at'),
             );
-        }, PdoHelper::fetchAll(statement: $stmt));
+        }
+
+        return $versions;
     }
 }
