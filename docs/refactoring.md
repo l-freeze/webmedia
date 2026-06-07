@@ -206,3 +206,54 @@ Controller 層の `array_map(fn($x) => $x->toArray(), ...)` は、Application Ou
 - 「callback 系配列関数の全廃」を独立した品質目標として扱うこと。
 
 今回実施済みの Persistence 層の置換は、DB row の `array<string, mixed>` を DTO へ変換する型境界に限定したため妥当である。今後の作業では、この範囲を超えて callback 置換を進めない。
+
+---
+
+## scaffold-app minimal template の見直し 2026-06-08
+
+### 何をするか
+
+`bin/scaffold-app` の template 構成を整理する。
+
+現在の `--template=minimal` は、Kernel に接続するための config 3点と `src/.gitkeep` だけを生成する。これは極薄の構成としては有用だが、`minimal` という名前から期待される「最小限だが動くアプリ」ではない。
+
+今後は以下の構成へ変更する。
+
+- `--template=bare`
+  - 現在の `minimal` と同じ内容を生成する。
+  - `config/routes.php`
+  - `config/container.php`
+  - `config/middleware.php`
+  - `src/.gitkeep`
+  - route、Controller、template renderer、view template は生成しない。
+- `--template=minimal`
+  - 動く最小アプリを生成する。
+  - `bare` の生成物に加えて、少なくとも以下を生成する。
+    - `src/Infrastructure/Http/Controller/Index/Controller.php`
+    - `templates/index.latte`
+    - `config/routes.php` に `GET <path-prefix>` の route
+    - `config/container.php` に `TemplateRenderer::class` の binding
+  - `TemplateRenderer` の具象実装には、既存の `App\Shared\View\Infrastructure\LatteTemplateRenderer` を使う。
+  - template directory は `$root . '/apps/{name}/templates'`、cache directory は `$root . '/storage/cache/{name}'` を使う。
+- `--template=layered`
+  - 現在の layered starter を維持する。
+
+`--template` を省略した場合の default は、原則として新しい `minimal` とする。つまり、初回利用者が scaffold 後に ApplicationDefinition と composer autoload を追加すれば、すぐにブラウザで表示を確認できる状態にする。
+
+### なぜするか
+
+`minimal` という名前は、利用者に「余計な層はないが、HTTP request から Controller、view rendering までの基本導線はある」という期待を持たせる。現在の `minimal` は config だけで、アクセス可能な画面も Controller 例もないため、初回利用時に何を足せばよいか分かりにくい。
+
+一方で、template engine を決めたくない場合や、route / Controller / view をすべて自分で作りたい場合には、現在の極薄構成にも価値がある。そのため削除せず、より正確な名前である `bare` として残す。
+
+Latte を `minimal` に含めることは、Framework core が Latte に依存することを意味しない。このリポジトリでは `scaffold-shared` が `TemplateRenderer` interface の標準実装として Latte renderer を生成しており、Framework core は引き続き `TemplateRenderer` interface のみに依存する。Latte は scaffold の標準 view 実装であり、別の template engine を使いたい場合は `bare` を選ぶか、`minimal` 生成後に container の binding と template を差し替えればよい。
+
+### 実装時の注意
+
+- `bin/scaffold-app` の usage と validation を `bare|minimal|layered` に更新する。
+- `bin/README.md` と必要に応じて `apps/kernel/README.md` / `src/Framework/README.md` の説明を更新する。
+- 既存の `apps/minimal` は scaffold 生成物ではなく、試作用の参考実装である。実装の参考にはできるが、「既に scaffold で作れている」と誤認しないこと。
+- `apps/minimal/config/container.php` には試作用の `PDO::class` sqlite binding があるが、新しい `minimal` scaffold にそれをそのまま含める必要はない。IndexController が DB を使わないなら、不要な PDO binding は生成しない。
+- `GET <path-prefix>` の route は、`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix そのものにする。
+- 生成後メッセージでは、`bare` は「config only」、`minimal` は「IndexController + Latte view」、`layered` は「Application / Domain / Infrastructure starter」であることを明示する。
+- 互換性上、これまで `--template=minimal` を使って config only を期待していた自動化は `--template=bare` へ変更する必要がある。README にその移行先を明記する。
