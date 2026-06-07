@@ -22,6 +22,10 @@
   - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
   - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
   - `docker compose exec -T app composer test`: 成功、PHPUnit 54 tests, 127 assertions。
+- callback 系配列関数の追加置換方針を見直し。
+  - Controller 層の `array_map(fn($x) => $x->toArray(), ...)` 廃止は不適切であり、実施しないと `docs/refactoring.md` に明記。
+  - Controller / config / seed の局所的な配列処理は、callback 全廃を目的に書き換えない。
+  - Persistence 層の DB row → DTO 変換のみを今回の妥当な実施範囲として確定。
 - `docs/refactoring.md` のリファクタリング内容を評価。
   - `AGENTS.md`、`docs/plan.md`、`docs/current_status.md`、`docs/refactoring.md` を確認。
   - 実コード上の middleware、例外ハンドラ、shared logging、AuditLogger、Container、Renderer、array callback、date helper 対象箇所を確認。

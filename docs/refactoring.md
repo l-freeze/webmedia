@@ -28,9 +28,9 @@
   - [x] Infrastructure/Persistence から直接 `PDOStatement|false` を扱う箇所を減らす
 - [ ] callback 系配列関数を `foreach` へ寄せて解消する
   - [x] Persistence 層の row → DTO 変換で使っていた `array_map()` を `foreach` へ置き換える
-  - [ ] Controller 層の DTO → `toArray()` 変換で使っている `array_map()` を解消する
-  - [ ] container config の CSV 正規化で使っている `array_map()` / `array_filter()` を解消する
-  - [ ] seed の初期データ生成で使っている `array_map()` を解消する
+  - [x] Controller 層の DTO → `toArray()` 変換で使っている `array_map()` は解消しない
+  - [x] container config の CSV 正規化で使っている `array_map()` / `array_filter()` は解消しない
+  - [x] seed の初期データ生成で使っている `array_map()` は解消しない
   - [ ] `array_filter()` を `foreach` へ置き換える
   - [ ] `array_reduce()` を `foreach` へ置き換える
   - [ ] `array_walk()` を使わないことを確認する
@@ -190,3 +190,19 @@ Worker mode の恩恵はプロセス起動コストの排除で十分に得ら�
 - Persistence 層（row → Application Value DTO 変換）を優先する。`PdoArticleQuery`・`PdoTaxonomyQuery`・`PdoMediaQuery` など、DB row を DTO へ変換している `array_map` を `foreach` へ置き換える。型安全と PHPStan 安定化の観点で最も価値が高い。
 - Controller 層（DTO → `toArray()` 変換）は次に対処する。Latte はオブジェクトのプロパティを直接参照できるため、`array_map(fn($x) => $x->toArray(), ...)` を廃止して DTO をそのままテンプレートに渡す形へ移行できる。
 - container config の `$csv`（`array_map` + `array_filter`）は設定ファイル内の局所的な使用であり、最後に対処する。
+
+## 最終責任者からの判定 2026-06-08
+
+上記の「Controller 層（DTO → `toArray()` 変換）は次に対処する」というレビュー内容は不適切であり、実施してはならない。
+
+Controller 層の `array_map(fn($x) => $x->toArray(), ...)` は、Application Output / Value DTO をテンプレート用の配列へ変換する明示的な境界である。これを廃止して DTO を Latte テンプレートへ直接渡すと、テンプレートが DTO の public property や accessor の構造へ直接依存し、Controller が担っている view data 整形の責務が曖昧になる。
+
+この変更には、型安全性・保守性・実行時挙動のいずれにも十分な利益がない。得られるのは「callback 全廃」という形式上の整合だけであり、既存設計の境界を弱めるため、リファクタリングとして不適切である。
+
+したがって、以下は明確に禁止する。
+
+- Controller 層の `toArray()` 変換を廃止して DTO を Latte テンプレートへ直接渡すこと。
+- `array_map()` を消すこと自体を目的に、Controller / config / seed の局所的で明確な配列処理を書き換えること。
+- 「callback 系配列関数の全廃」を独立した品質目標として扱うこと。
+
+今回実施済みの Persistence 層の置換は、DB row の `array<string, mixed>` を DTO へ変換する型境界に限定したため妥当である。今後の作業では、この範囲を超えて callback 置換を進めない。
