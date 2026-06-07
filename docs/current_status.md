@@ -2,10 +2,19 @@
 
 ## 更新日時
 
-- 2026-06-01
+- 2026-06-08
 
 ## 直近作業
 
+- `docs/refactoring.md` の実態照合を再確認。
+  - `git status --short` はクリーン。
+  - 直近2コミットは `01b3d92 refactor: readonly を Markdown・LatteTemplateRenderer に付与しコードスタイルを統一` と `c429836 docs: リファクタリング評価・最終方針・Worker Mode 設計判断を追記`。
+  - `01b3d92` は readonly 化と Latte renderer テストに加え、`docs/review.md` 追加と FormValidator テスト移動を含んでおり、コミット粒度としては混在がある。
+  - `c429836` は docs / README 更新のみで、実コード変更は含まない。
+  - `JsonFileLogger`、`ExceptionHandlerInterface`、`RequireCmsSessionMiddleware` は実装済みであることを確認。
+  - `AuditLoggerInterface` は存在するが、現状は `PlaceholderAuditLogger` であり本実装・重要操作への接続は未完了。
+  - `Article::fromInput()` / `Page::fromInput()` は今回のリファクタリング対象から外す。Domain のコンストラクタは ValueObject を受け取っており、static factory 移動は効果に対して差分が大きい。
+  - 今回の具体的なリファクタリング対象は callback 系配列関数、特に Persistence 層の `array_map()` 置換から開始する。
 - `docs/refactoring.md` のリファクタリング内容を評価。
   - `AGENTS.md`、`docs/plan.md`、`docs/current_status.md`、`docs/refactoring.md` を確認。
   - 実コード上の middleware、例外ハンドラ、shared logging、AuditLogger、Container、Renderer、array callback、date helper 対象箇所を確認。

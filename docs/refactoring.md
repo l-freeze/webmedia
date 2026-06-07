@@ -176,7 +176,9 @@ Worker mode の恩恵はプロセス起動コストの排除で十分に得ら�
 
 ### 最終方針
 
-残るリファクタリングは callback 系配列関数の置換のみである。
+今回のリファクタリング対象は callback 系配列関数の置換に絞る。
+
+`date()` / `strtotime()` helper、Architecture Test、`CurrentUser`、AuditLogger 本実装、Worker mode は今後の改善候補として妥当だが、いずれも設計判断または機能追加を含む。直近の目的である PHPStan 安定化・規約整理とは作業単位を分ける。
 
 **callback 系配列関数の置換**
 
