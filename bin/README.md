@@ -80,6 +80,23 @@ php bin/scaffold-app api /api --template=layered
 
 `layered` は一通り揃ったスターターです。middleware なし、DB なしのような細かい分類は用意していません。薄く始めたい場合は `minimal` を使います。
 
+### todo
+
+PDO を使う小さな Todo アプリのスターターを生成します。
+
+```bash
+php bin/scaffold-app todo /todo --template=todo
+```
+
+追加で生成される主な構成:
+
+- `src/Application/Todo`: Todo DTO と repository interface
+- `src/Infrastructure/Http/Controller/Todo`: 一覧表示、追加、完了の Controller
+- `src/Infrastructure/Persistence`: PDO repository 実装
+- `templates/index.latte`: Todo 一覧の Latte template
+
+`todo` は、Controller に SQL を直接書かずに PDO を使う最小例です。生成された repository はサンプルとして `todos` table を `CREATE TABLE IF NOT EXISTS` で用意します。実運用では migration 管理へ移してください。
+
 コマンドは `apps/kernel/config/application.php` や `composer.json` を自動編集しません。生成後に追加する `ApplicationDefinition` と PSR-4 autoload の例を表示します。これは、どの設定がどの役割を持つかを実行者が確認できるようにするためです。
 
 テスト用に別 root へ生成する場合は `--root` を指定できます。

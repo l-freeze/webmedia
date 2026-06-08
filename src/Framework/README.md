@@ -95,7 +95,7 @@ apps/shared  App\Shared
 
 Namespace customization is intentionally not supported. The Framework gives users a clear starting structure instead of making the first decision ambiguous.
 
-`scaffold-app` generates a new app under `apps/{name}`. The default template is intentionally minimal.
+`scaffold-app` generates a new app under `apps/{name}`. The default template is intentionally minimal. Use `--template=todo` for a small PDO-backed Todo starter and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
 ## Composer Package Direction
 
@@ -114,7 +114,7 @@ The current `webmedia` project contains real applications:
 
 They are useful as a production-shaped example, but they are larger than a first-read sample.
 
-Smaller `todo` and `blog` templates are planned for the future. Their purpose is to make the Framework's application shape understandable in a few minutes.
+A smaller `todo` template is available for a first PDO-backed app. A small `blog` template is planned for the future. Their purpose is to make the Framework's application shape understandable in a few minutes.
 
 ## Reading Order
 

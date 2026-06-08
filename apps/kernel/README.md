@@ -69,3 +69,11 @@ php bin/scaffold-app api /api --template=layered
 ```
 
 `layered` は Controller、Application Interactor、Domain Entity、Value Object、Repository interface、PDO repository、アプリ固有 middleware のサンプルを含みます。薄く始める場合はデフォルトの `minimal` を使います。
+
+PDO を使う小さな Todo スターターも生成できます。
+
+```bash
+php bin/scaffold-app todo /todo --template=todo
+```
+
+`todo` は Controller、Latte template、Application-level repository interface、PDO repository を含みます。Controller に SQL を直接書かずに、DB を使う最小の画面として読めるサンプルです。
