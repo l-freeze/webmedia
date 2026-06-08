@@ -13,12 +13,13 @@ final class ContainerTest extends TestCase
 {
     public function testResolvesConstructorDependencies(): void
     {
-        $container = new Container();
+        $service1 = (new Container())->get(id: NeedsDependency::class);
+        self::assertInstanceOf(NeedsDependency::class, $service1);
+        self::assertInstanceOf(Dependency::class, $service1->dependency);
 
-        $service = $container->get(id: NeedsDependency::class);
-
-        self::assertInstanceOf(NeedsDependency::class, $service);
-        self::assertInstanceOf(Dependency::class, $service->dependency);
+        $service2 = (new Container())->get(id: NeedsDependency::class);
+        self::assertInstanceOf(NeedsDependency::class, $service2);
+        self::assertInstanceOf(Dependency::class, $service2->dependency);
     }
 
     public function testSingletonReturnsSameInstance(): void
@@ -49,11 +50,46 @@ final class ContainerTest extends TestCase
         (new Container())->get(id: NeedsScalar::class);
     }
 
+    public function testThrowsForUnionTypeParameter(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+
+        (new Container())->get(id: NeedsUnionType::class);
+    }
+
+    public function testThrowsForUnionTypeParameterWithDefault(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+
+        (new Container())->get(id: NeedsUnionTypeWithDefault::class);
+    }
+
     public function testThrowsNotFoundExceptionForUnknownService(): void
     {
         $this->expectException(NotFoundExceptionInterface::class);
 
         (new Container())->get(id: 'missing');
+    }
+
+    public function testResolvesMultipleDependencies(): void
+    {
+        $service1 = (new Container())->get(id: NeedsMultipleDependencies::class);
+        self::assertInstanceOf(DependencyA::class, $service1->depA);
+        self::assertInstanceOf(DependencyB::class, $service1->depB);
+
+        $service2 = (new Container())->get(id: NeedsMultipleDependencies::class);
+        self::assertInstanceOf(DependencyA::class, $service2->depA);
+        self::assertInstanceOf(DependencyB::class, $service2->depB);
+    }
+
+    public function testPreservesDefaultParameterValueFromCache(): void
+    {
+        (new Container())->get(id: NeedsDefaultValue::class);
+
+        $service = (new Container())->get(id: NeedsDefaultValue::class);
+
+        self::assertInstanceOf(Dependency::class, $service->dep);
+        self::assertSame('default', $service->name);
     }
 }
 
@@ -61,9 +97,49 @@ final readonly class Dependency
 {
 }
 
+final readonly class DependencyA
+{
+}
+
+final readonly class DependencyB
+{
+}
+
 final readonly class NeedsDependency
 {
     public function __construct(public Dependency $dependency)
+    {
+    }
+}
+
+final readonly class NeedsMultipleDependencies
+{
+    public function __construct(
+        public DependencyA $depA,
+        public DependencyB $depB,
+    ) {
+    }
+}
+
+final readonly class NeedsDefaultValue
+{
+    public function __construct(
+        public Dependency $dep,
+        public string $name = 'default',
+    ) {
+    }
+}
+
+final readonly class NeedsUnionType
+{
+    public function __construct(public DependencyA|DependencyB $dep)
+    {
+    }
+}
+
+final class NeedsUnionTypeWithDefault
+{
+    public function __construct(public Dependency|DependencyA $dep = new Dependency())
     {
     }
 }

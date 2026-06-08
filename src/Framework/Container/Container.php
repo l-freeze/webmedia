@@ -9,7 +9,9 @@ use App\Framework\Container\Exception\ServiceNotFoundException;
 use Closure;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use ReflectionIntersectionType;
 use ReflectionNamedType;
+use ReflectionUnionType;
 
 final class Container implements ContainerInterface
 {
@@ -24,6 +26,9 @@ final class Container implements ContainerInterface
 
     /** @var array<string, bool> */
     private array $resolving = [];
+
+    /** @var array<string, array<string, array{type: string|null, hasDefault: bool, default: mixed}>> */
+    private static array $reflectionCache = [];
 
     public function set(string $id, Closure $factory): void
     {
@@ -92,26 +97,38 @@ final class Container implements ContainerInterface
             throw new ServiceNotFoundException("Service {$class} is not registered");
         }
 
-        $reflection = new ReflectionClass($class);
-        $constructor = $reflection->getConstructor();
-
-        if ($constructor === null) {
-            return $reflection->newInstance();
+        if (!isset(self::$reflectionCache[$class])) {
+            $reflection = new ReflectionClass($class);
+            $constructor = $reflection->getConstructor();
+            $params = [];
+            if ($constructor !== null) {
+                foreach ($constructor->getParameters() as $parameter) {
+                    $type = $parameter->getType();
+                    if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
+                        throw new ContainerBuildException("Cannot resolve union or intersection type parameter {$parameter->getName()} for {$class}");
+                    }
+                    $params[] = [
+                        'name' => $parameter->getName(),
+                        'type' => $type instanceof ReflectionNamedType && !$type->isBuiltin() ? $type->getName() : null,
+                        'hasDefault' => $parameter->isDefaultValueAvailable(),
+                        'default' => $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                    ];
+                }
+            }
+            self::$reflectionCache[$class] = $params;
         }
 
         $arguments = [];
-        foreach ($constructor->getParameters() as $parameter) {
-            $type = $parameter->getType();
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                if ($parameter->isDefaultValueAvailable()) {
-                    $arguments[] = $parameter->getDefaultValue();
-                    continue;
-                }
-                throw new ContainerBuildException("Cannot resolve parameter {$parameter->getName()} for {$class}");
+        foreach (self::$reflectionCache[$class] as $param) {
+            if ($param['type'] !== null) {
+                $arguments[] = $this->get(id: $param['type']);
+            } elseif ($param['hasDefault']) {
+                $arguments[] = $param['default'];
+            } else {
+                throw new ContainerBuildException("Cannot resolve parameter {$param['name']} for {$class}");
             }
-            $arguments[] = $this->get(id: $type->getName());
         }
 
-        return $reflection->newInstanceArgs($arguments);
+        return new $class(...$arguments);
     }
 }
