@@ -27,6 +27,9 @@ final class Container implements ContainerInterface
     /** @var array<string, bool> */
     private array $resolving = [];
 
+    /** @var array<string, mixed> */
+    private static array $persistentInstances = [];
+
     /** @var array<string, array<string, array{type: string|null, hasDefault: bool, default: mixed}>> */
     private static array $reflectionCache = [];
 
@@ -38,6 +41,12 @@ final class Container implements ContainerInterface
     public function instance(string $id, mixed $instance): void
     {
         $this->instances[$id] = $instance;
+    }
+
+    public function persistent(string $id, Closure $factory): void
+    {
+        self::$persistentInstances[$id] ??= $factory($this);
+        $this->instances[$id] = self::$persistentInstances[$id];
     }
 
     public function singleton(string $id, Closure $factory): void
