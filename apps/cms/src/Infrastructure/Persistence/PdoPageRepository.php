@@ -32,6 +32,21 @@ final readonly class PdoPageRepository implements IPageRepository
         }
     }
 
+    public function slugExists(string $slug, ?int $exceptId): bool
+    {
+        $sql = 'SELECT COUNT(*) FROM pages WHERE slug = :slug';
+        $params = ['slug' => $slug];
+        if ($exceptId !== null) {
+            $sql .= ' AND id <> :id';
+            $params['id'] = $exceptId;
+        }
+
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
+        PdoHelper::execute(statement: $stmt, params: $params);
+
+        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
+    }
+
     private function saveWithinTransaction(Page $page): PageId
     {
         $now = date('Y-m-d H:i:s');

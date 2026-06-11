@@ -27,12 +27,14 @@ use App\Cms\Infrastructure\Http\Controller\Page\Store\Controller as PageStoreCon
 use App\Cms\Infrastructure\Http\Controller\Page\Update\Controller as PageUpdateController;
 use App\Cms\Infrastructure\Http\Controller\Setting\Edit\Controller as SettingEditController;
 use App\Cms\Infrastructure\Http\Controller\Setting\Update\Controller as SettingUpdateController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\DeleteCategory\Controller as DeleteCategoryController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\DeleteTag\Controller as DeleteTagController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\List\Controller as TaxonomyListController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\Store\Controller as TaxonomyStoreController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\UpdateCategory\Controller as UpdateCategoryController;
-use App\Cms\Infrastructure\Http\Controller\Taxonomy\UpdateTag\Controller as UpdateTagController;
+use App\Cms\Infrastructure\Http\Controller\Category\Delete\Controller as CategoryDeleteController;
+use App\Cms\Infrastructure\Http\Controller\Category\List\Controller as CategoryListController;
+use App\Cms\Infrastructure\Http\Controller\Category\Store\Controller as CategoryStoreController;
+use App\Cms\Infrastructure\Http\Controller\Category\Update\Controller as CategoryUpdateController;
+use App\Cms\Infrastructure\Http\Controller\Tag\Delete\Controller as TagDeleteController;
+use App\Cms\Infrastructure\Http\Controller\Tag\List\Controller as TagListController;
+use App\Cms\Infrastructure\Http\Controller\Tag\Store\Controller as TagStoreController;
+use App\Cms\Infrastructure\Http\Controller\Tag\Update\Controller as TagUpdateController;
 use App\Cms\Infrastructure\Http\Controller\Trash\List\Controller as TrashListController;
 
 return [
@@ -55,12 +57,14 @@ return [
     ['GET', '/admin/pages/{id:\d+}', PageEditController::class],
     ['POST', '/admin/pages', PageStoreController::class],
     ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class],
-    ['GET', '/admin/taxonomy', TaxonomyListController::class],
-    ['POST', '/admin/taxonomy', TaxonomyStoreController::class],
-    ['POST', '/admin/taxonomy/categories/{id:\d+}', UpdateCategoryController::class],
-    ['POST', '/admin/taxonomy/tags/{id:\d+}', UpdateTagController::class],
-    ['POST', '/admin/taxonomy/categories/{id:\d+}/delete', DeleteCategoryController::class],
-    ['POST', '/admin/taxonomy/tags/{id:\d+}/delete', DeleteTagController::class],
+    ['GET', '/admin/categories', CategoryListController::class],
+    ['POST', '/admin/categories', CategoryStoreController::class],
+    ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class],
+    ['POST', '/admin/categories/{id:\d+}/delete', CategoryDeleteController::class],
+    ['GET', '/admin/tags', TagListController::class],
+    ['POST', '/admin/tags', TagStoreController::class],
+    ['POST', '/admin/tags/{id:\d+}', TagUpdateController::class],
+    ['POST', '/admin/tags/{id:\d+}/delete', TagDeleteController::class],
     ['GET', '/admin/media', MediaListController::class],
     ['POST', '/admin/media', MediaStoreController::class],
     ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class],

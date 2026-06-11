@@ -12,6 +12,8 @@ interface IArticleRepository
 {
     public function save(Article $article): ArticleId;
 
+    public function slugExists(string $slug, ?int $exceptId): bool;
+
     public function restore(ArticleId $articleId, ArticleVersionNo $versionNo): void;
 
     public function trash(ArticleId $articleId): bool;

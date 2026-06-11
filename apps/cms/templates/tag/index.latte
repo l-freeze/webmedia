@@ -1,0 +1,47 @@
+{layout '../layout/default.latte'}
+{block content}
+<section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+  <h1 class="mb-4 text-2xl font-bold">タグ管理</h1>
+  {ifset $flash}
+    <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+  {/ifset}
+  {ifset $error}
+    <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-700" role="alert" data-auto-dismiss>{$error}</div>
+  {/ifset}
+  <form method="post" action="/admin/tags" class="grid gap-4">
+    <input type="hidden" name="_csrf" value="{$csrf}">
+    <label>名前<input name="name" value="{$formValues['name'] ?? ''}"></label>
+    <label>スラッグ<input name="slug" value="{$formValues['slug'] ?? ''}"></label>
+    <button class="inline-flex min-h-10 w-fit items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">保存</button>
+  </form>
+</section>
+
+<section class="mt-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+  <h2 class="mb-4 text-lg font-bold">タグ一覧</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200">
+    <table>
+      <thead><tr><th>名前</th><th>スラッグ</th><th>操作</th></tr></thead>
+      <tbody>
+      {foreach $tags as $tag}
+        <tr>
+          <td><input form="tag-update-{$tag['id']}" name="name" value="{$tag['name']}"></td>
+          <td><input form="tag-update-{$tag['id']}" name="slug" value="{$tag['slug']}"></td>
+          <td>
+            <div class="flex flex-wrap items-center gap-2">
+              <form id="tag-update-{$tag['id']}" method="post" action="/admin/tags/{$tag['id']}" class="m-0">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+              </form>
+              <button form="tag-update-{$tag['id']}" class="inline-flex min-h-9 items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700">更新</button>
+              <form method="post" action="/admin/tags/{$tag['id']}/delete" class="m-0">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" data-confirm="このタグを削除しますか？記事との紐づけも解除されます。">削除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div>
+</section>
+{/block}

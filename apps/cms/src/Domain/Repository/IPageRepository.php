@@ -10,4 +10,6 @@ use App\Cms\Domain\Value\PageId;
 interface IPageRepository
 {
     public function save(Page $page): PageId;
+
+    public function slugExists(string $slug, ?int $exceptId): bool;
 }

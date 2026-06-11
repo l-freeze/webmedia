@@ -33,6 +33,21 @@ final readonly class PdoArticleRepository implements IArticleRepository
         }
     }
 
+    public function slugExists(string $slug, ?int $exceptId): bool
+    {
+        $sql = 'SELECT COUNT(*) FROM articles WHERE slug = :slug';
+        $params = ['slug' => $slug];
+        if ($exceptId !== null) {
+            $sql .= ' AND id <> :id';
+            $params['id'] = $exceptId;
+        }
+
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
+        PdoHelper::execute(statement: $stmt, params: $params);
+
+        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
+    }
+
     private function saveWithinTransaction(Article $article): ArticleId
     {
         $now = date('Y-m-d H:i:s');
