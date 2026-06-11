@@ -2,7 +2,7 @@
 {block content}
 <div class="front-grid">
   <section>
-    <div class="card front-hero">
+    <div class="card front-hero{if ($heroImage ?? '') !== ''} front-hero--image{/if}"{if ($heroImage ?? '') !== ''} style="--hero-image: url('{$heroImage}')"{/if}>
       <div class="front-hero__copy">
         <p class="label">新着記事</p>
         <h1>読みやすく、探しやすいWEBメディア</h1>

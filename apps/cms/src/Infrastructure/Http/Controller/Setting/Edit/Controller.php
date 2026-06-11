@@ -34,6 +34,7 @@ final readonly class Controller
                 ['説明', $settings->siteDescription],
                 ['通知先', $settings->contactEmail],
                 ['フロントデザイン', $this->themeLabel(theme: $settings->frontTheme)],
+                ['ヒーロー画像', $settings->heroImage !== '' ? $settings->heroImage : '（未設定）'],
                 ['検索機能', $settings->searchEnabled ? '有効' : '無効'],
             ],
             'form' => [
@@ -54,6 +55,7 @@ final readonly class Controller
                         'mama-soft' => '子持ちママ向け: ママソフト',
                     ],
                 ],
+                ['label' => 'ヒーロー画像URL（空欄で未設定）', 'name' => 'hero_image'],
                 [
                     'label' => '検索機能',
                     'name' => 'search_enabled',
@@ -69,6 +71,7 @@ final readonly class Controller
                 'site_description' => $settings->siteDescription,
                 'contact_email' => $settings->contactEmail,
                 'front_theme' => $settings->frontTheme,
+                'hero_image' => $settings->heroImage,
                 'search_enabled' => $settings->searchEnabled ? '1' : '0',
             ],
             'flash' => $this->session->pullFlash(key: 'success'),

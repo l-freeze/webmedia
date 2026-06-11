@@ -40,13 +40,14 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
             contactEmail: $settings['contact_email'] ?? '',
             frontTheme: $frontTheme,
             searchEnabled: ($settings['search_enabled'] ?? '1') === '1',
+            heroImage: $settings['hero_image'] ?? '',
         );
     }
 
     public function save(array $data): void
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO site_settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value');
-        foreach (['site_name', 'site_description', 'contact_email', 'front_theme', 'search_enabled'] as $key) {
+        foreach (['site_name', 'site_description', 'contact_email', 'front_theme', 'search_enabled', 'hero_image'] as $key) {
             $value = PdoRow::from(values: $data)->string(key: $key);
             if ($key === 'front_theme' && !in_array($value, self::FRONT_THEMES, true)) {
                 $value = self::DEFAULT_FRONT_THEME;

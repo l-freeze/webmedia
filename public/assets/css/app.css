@@ -1305,6 +1305,30 @@ body[data-front-theme="mama-soft"] .category-panel { border: 1px solid var(--lin
 body[data-front-theme="mama-soft"] .category-panel h2 { color: #a85f30; }
 body[data-front-theme="mama-soft"] .prose { border-radius: 16px; }
 
+/* Optional hero background image (site setting `hero_image`, applied inline as
+   --hero-image on .front-hero). Shared across all themes: when set, the hero
+   shows the image under a semi-transparent overlay so the title stays readable.
+   Unset → the modifier class is absent and each theme's own hero is unchanged.
+   Specificity .front-hero.front-hero--image (0,3,1) beats every per-theme hero. */
+body[data-front-theme] .front-hero.front-hero--image {
+  border: 0;
+  min-height: 340px;
+  color: #fff;
+  background:
+    linear-gradient(0deg, rgba(12, 16, 24, .62), rgba(12, 16, 24, .32)),
+    var(--hero-image) center / cover no-repeat;
+}
+body[data-front-theme] .front-hero.front-hero--image::before,
+body[data-front-theme] .front-hero.front-hero--image::after { display: none; }
+body[data-front-theme] .front-hero.front-hero--image .front-hero__visual { display: none; }
+body[data-front-theme] .front-hero.front-hero--image .front-hero__copy { position: relative; z-index: 1; }
+body[data-front-theme] .front-hero.front-hero--image h1,
+body[data-front-theme] .front-hero.front-hero--image .muted {
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .42);
+}
+body[data-front-theme] .front-hero.front-hero--image .label { background: rgba(255, 255, 255, .92); color: #1a1a1a; }
+
 /* Theme-driven visibility of optional regions.
    HTML always renders these asides (single shared structure); each theme
    decides whether its layout exposes the slot. Replaces former {if $frontTheme}

@@ -12,6 +12,7 @@ final readonly class Settings
         public string $contactEmail,
         public string $frontTheme,
         public bool $searchEnabled,
+        public string $heroImage = '',
     ) {
     }
 }

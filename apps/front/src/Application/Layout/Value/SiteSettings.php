@@ -11,6 +11,7 @@ final readonly class SiteSettings
         public string $siteDescription,
         public string $frontTheme,
         public bool $searchEnabled,
+        public string $heroImage = '',
     ) {
     }
 }

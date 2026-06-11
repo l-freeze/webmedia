@@ -39,6 +39,7 @@ final readonly class PdoSiteSettingQuery implements ISiteSettingQuery
             siteDescription: $settings['site_description'] ?? '',
             frontTheme: $frontTheme,
             searchEnabled: ($settings['search_enabled'] ?? '1') === '1',
+            heroImage: $settings['hero_image'] ?? '',
         );
     }
 }

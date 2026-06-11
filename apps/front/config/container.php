@@ -91,6 +91,7 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
             'description' => $settings->siteDescription,
             'frontTheme' => $settings->frontTheme,
             'searchEnabled' => $settings->searchEnabled,
+            'heroImage' => $settings->heroImage,
             'publishedPages' => array_map(fn ($page): array => $page->toArray(), $pages),
             'publishedCategories' => array_map(fn ($category): array => $category->toArray(), $categories),
         ];
