@@ -28,7 +28,13 @@ final readonly class Controller
         }
 
         $output = $this->delete->execute(input: new Input(id: (int) $vars['id']));
-        $this->session->flash(key: 'success', value: $output->deleted ? 'タグを削除しました' : ($output->error ?? '削除できませんでした'));
+        if (!$output->deleted) {
+            $this->session->flash(key: 'tag.form_error', value: $output->error ?? '削除できませんでした');
+
+            return Response::redirect(location: '/admin/tags');
+        }
+
+        $this->session->flash(key: 'success', value: 'タグを削除しました');
 
         return Response::redirect(location: '/admin/tags');
     }
