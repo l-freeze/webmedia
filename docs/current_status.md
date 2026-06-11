@@ -6,6 +6,21 @@
 
 ## 直近作業
 
+- 次タスクは `bin/scaffold-app` の template 整備。
+  - 次の作業指示は「`plan.md` と `current_status.md` を確認し、次のタスクに進んでください。情報が足りない場合は `refactoring.md` も参照してください」を想定する。
+  - 作業開始時は `docs/plan.md` の「次タスク: scaffold-app template 整備」を最優先の実行計画として扱う。
+  - `docs/refactoring.md` の「scaffold-app template の見直し」は背景説明として参照する。
+  - Architecture Test は今回の次タスクに含めない。Framework / scaffold の整備とは別作業として扱う。
+- scaffold template の方針を更新。
+  - `bare`: 現在の `minimal` と同じ config only template。
+  - `minimal`: 1つの Controller ソースに DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を寄せた、動く最小アプリ。
+  - `layered`: 現在ある Application / Domain / Infrastructure starter を維持。
+  - `fullpack`: policy / guard / audit / permission / role などが揃ってきた段階で追加する全部載せ template の予約名。今回の実装では usage / validation に追加しない。
+  - これまで `--template=minimal` で config only を期待していた用途は、今後 `--template=bare` へ移行する。
+  - 既存の `apps/minimal` は試作用の参考実装であり、scaffold 生成物ではない。
+  - `apps/minimal/config/container.php` の sqlite `PDO::class` binding は、新しい `minimal` scaffold にそのまま含めない。
+  - `minimal` の route は `GET <path-prefix>`。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix にする。
+  - 実装時は `bin/scaffold-app`、`tests/Scaffold/ScaffoldAppTest.php`、`bin/README.md`、必要に応じて `apps/kernel/README.md` / `src/Framework/README.md` を更新する。
 - `docs/refactoring.md` のリファクタリング方針を追記。
   - Framework 側にアプリケーション都合の日付 helper は追加しない方針を明記。
   - Framework 側で時刻取得の抽象が必要になった場合は、独自 helper ではなく PSR-20 `Psr\Clock\ClockInterface` を採用候補にする。

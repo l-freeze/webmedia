@@ -51,6 +51,45 @@
 
 ## 作業順序
 
+### 次タスク: scaffold-app template 整備
+
+次に作業を再開する場合は、`bin/scaffold-app` の template 構成を整理する。
+
+実装対象:
+
+- `--template=bare`
+  - 現在の `minimal` と同じ config only template にする。
+  - 生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep`。
+  - route、Controller、view template、TemplateRenderer binding は生成しない。
+- `--template=minimal`
+  - 余計な層を作らず、1つの Controller ソースに処理を寄せた「動く最小アプリ」にする。
+  - Controller は同一ソース内で DB 接続の取得、必要な最小データ処理、TemplateRenderer 経由の HTML 出力までを行う。
+  - 一枚絵の HTML を返す Latte template を生成する。
+  - `config/routes.php` には `GET <path-prefix>` の route を追加する。
+  - `config/container.php` には `TemplateRenderer::class` の binding を追加する。
+  - DB は Framework / Kernel 側の既存 `PDO::class` binding を利用し、scaffold 側で独自の sqlite binding は生成しない。
+- `--template=layered`
+  - 現在ある layered starter を維持する。
+  - Application / Domain / Infrastructure の分割例を含む template として扱う。
+- `--template=fullpack`
+  - 今後、policy、guard、audit、permission、role などが充実してきた段階で追加する全部載せ template の予約名とする。
+  - 今回の実装では有効な template として追加しない。README 上の将来候補として触れるに留める。
+
+実装時の注意:
+
+- `bin/scaffold-app` の usage / validation / 出力メッセージを更新する。
+- `bin/README.md`、必要なら `apps/kernel/README.md` と `src/Framework/README.md` を更新する。
+- 既存の `apps/minimal` は試作用の参考実装であり、scaffold 生成物ではない。
+- `apps/minimal/config/container.php` の sqlite `PDO::class` binding は、新しい `minimal` scaffold へそのまま入れない。
+- `GET <path-prefix>` の route は、`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix にする。
+- 生成後メッセージでは、`bare` は config only、`minimal` は single-controller HTML starter、`layered` は Application / Domain / Infrastructure starter であることを明示する。
+- `fullpack` は今回の生成対象ではないため、usage / validation には追加しない。README に将来候補として記載するだけにする。
+- 互換性上、これまで `--template=minimal` で config only を期待していた自動化は `--template=bare` へ変更する必要がある。README に移行先を明記する。
+- `tests/Scaffold/ScaffoldAppTest.php` に `bare` と新しい `minimal` の生成物テストを追加し、既存 `todo` / `layered` の扱いを壊さない。
+- PHP / Composer / PHPUnit はホストではなく Docker Compose 経由で実行する。
+
+このタスクでは Architecture Test は扱わない。Architecture Test はアプリケーション構造の検査であり、今回の scaffold template 整備とは作業単位を分ける。
+
 ### 1. 計画の確定
 
 - `docs/README.md` と関連資料から実装方針を整理する。

@@ -247,7 +247,7 @@ PSR-20 `Psr\Clock\ClockInterface` も現時点で必須ではない。PSR-20 は
 
 ---
 
-## scaffold-app minimal template の見直し 2026-06-08
+## scaffold-app template の見直し 2026-06-11
 
 ### 何をするか
 
@@ -265,36 +265,50 @@ PSR-20 `Psr\Clock\ClockInterface` も現時点で必須ではない。PSR-20 は
   - `src/.gitkeep`
   - route、Controller、template renderer、view template は生成しない。
 - `--template=minimal`
-  - 動く最小アプリを生成する。
+  - 余計な層を作らず、1つの Controller ソースに処理を寄せた「動く最小アプリ」を生成する。
   - `bare` の生成物に加えて、少なくとも以下を生成する。
     - `src/Infrastructure/Http/Controller/Index/Controller.php`
     - `templates/index.latte`
     - `config/routes.php` に `GET <path-prefix>` の route
     - `config/container.php` に `TemplateRenderer::class` の binding
+  - Controller は同一ソース内で DB 接続の取得、必要な最小データ処理、TemplateRenderer 経由の HTML 出力までを扱う。
+  - template は一枚絵の HTML として成立する内容にする。
   - `TemplateRenderer` の具象実装には、既存の `App\Shared\View\Infrastructure\LatteTemplateRenderer` を使う。
   - template directory は `$root . '/apps/{name}/templates'`、cache directory は `$root . '/storage/cache/{name}'` を使う。
+  - DB は Framework / Kernel 側の既存 `PDO::class` binding を利用し、scaffold 側で独自の sqlite binding は生成しない。
 - `--template=layered`
   - 現在の layered starter を維持する。
+  - Application / Domain / Infrastructure の分割例を含む template として扱う。
+- `--template=fullpack`
+  - 今後、policy、guard、audit、permission、role などが充実してきた段階で追加する全部載せ template の予約名とする。
+  - 今回の scaffold 整備では、仕様が固まっていないため有効な template としては追加しない。
 
 `--template` を省略した場合の default は、原則として新しい `minimal` とする。つまり、初回利用者が scaffold 後に ApplicationDefinition と composer autoload を追加すれば、すぐにブラウザで表示を確認できる状態にする。
 
 ### なぜするか
 
-`minimal` という名前は、利用者に「余計な層はないが、HTTP request から Controller、view rendering までの基本導線はある」という期待を持たせる。現在の `minimal` は config だけで、アクセス可能な画面も Controller 例もないため、初回利用時に何を足せばよいか分かりにくい。
+`minimal` という名前は、利用者に「余計な層はないが、HTTP request から Controller、DB 接続、view rendering までの基本導線はある」という期待を持たせる。現在の `minimal` は config だけで、アクセス可能な画面も Controller 例もないため、初回利用時に何を足せばよいか分かりにくい。
 
 一方で、template engine を決めたくない場合や、route / Controller / view をすべて自分で作りたい場合には、現在の極薄構成にも価値がある。そのため削除せず、より正確な名前である `bare` として残す。
 
 Latte を `minimal` に含めることは、Framework core が Latte に依存することを意味しない。このリポジトリでは `scaffold-shared` が `TemplateRenderer` interface の標準実装として Latte renderer を生成しており、Framework core は引き続き `TemplateRenderer` interface のみに依存する。Latte は scaffold の標準 view 実装であり、別の template engine を使いたい場合は `bare` を選ぶか、`minimal` 生成後に container の binding と template を差し替えればよい。
 
+`minimal` は layered architecture の見本ではなく、動作する一枚絵の starter である。Controller に DB 接続と表示処理を同居させるのは、設計の理想形ではなく、利用者が request から HTML response までの流れを最短で確認するための意図的な割り切りである。きちんと層を分けた構成を始めたい場合は `layered` を選ぶ。
+
+`fullpack` は、policy、guard、audit、permission、role などの設計が揃ってから追加する。現時点で名前だけ先に決め、未確定の概念を `layered` や `minimal` に混ぜ込まない。
+
 ### 実装時の注意
 
-- `bin/scaffold-app` の usage と validation を `bare|minimal|layered` に更新する。
+- `bin/scaffold-app` の usage と validation を `bare|minimal|todo|layered` に更新する。
+- `fullpack` は今回の usage / validation には含めない。README に将来候補として記載するだけにする。
 - `bin/README.md` と必要に応じて `apps/kernel/README.md` / `src/Framework/README.md` の説明を更新する。
 - 既存の `apps/minimal` は scaffold 生成物ではなく、試作用の参考実装である。実装の参考にはできるが、「既に scaffold で作れている」と誤認しないこと。
-- `apps/minimal/config/container.php` には試作用の `PDO::class` sqlite binding があるが、新しい `minimal` scaffold にそれをそのまま含める必要はない。IndexController が DB を使わないなら、不要な PDO binding は生成しない。
+- `apps/minimal/config/container.php` には試作用の `PDO::class` sqlite binding があるが、新しい `minimal` scaffold にそれをそのまま含めない。DB 導線は Kernel 側の既存 `PDO::class` binding を使う。
 - `GET <path-prefix>` の route は、`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix そのものにする。
-- 生成後メッセージでは、`bare` は「config only」、`minimal` は「IndexController + Latte view」、`layered` は「Application / Domain / Infrastructure starter」であることを明示する。
+- 生成後メッセージでは、`bare` は「config only」、`minimal` は「single-controller HTML starter」、`layered` は「Application / Domain / Infrastructure starter」であることを明示する。
 - 互換性上、これまで `--template=minimal` を使って config only を期待していた自動化は `--template=bare` へ変更する必要がある。README にその移行先を明記する。
+- `tests/Scaffold/ScaffoldAppTest.php` に `bare` と新しい `minimal` の生成物テストを追加する。
+- Architecture Test は今回の scaffold 整備には含めない。アプリケーション構造の検査であり、Framework / scaffold の整備とは別作業として扱う。
 
 ---
 
