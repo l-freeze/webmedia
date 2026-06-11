@@ -26,16 +26,17 @@
   - [x] `fetchAll()` の戻り値を `list<array<string, mixed>>` に正規化する
   - [x] `fetchColumn()` の戻り値を用途別に正規化する
   - [x] Infrastructure/Persistence から直接 `PDOStatement|false` を扱う箇所を減らす
-- [ ] callback 系配列関数を `foreach` へ寄せて解消する
+- [x] callback 系配列関数の置換対象を Persistence 層の型境界に限定する
   - [x] Persistence 層の row → DTO 変換で使っていた `array_map()` を `foreach` へ置き換える
   - [x] Controller 層の DTO → `toArray()` 変換で使っている `array_map()` は解消しない
   - [x] container config の CSV 正規化で使っている `array_map()` / `array_filter()` は解消しない
   - [x] seed の初期データ生成で使っている `array_map()` は解消しない
-  - [ ] `array_filter()` を `foreach` へ置き換える
-  - [ ] `array_reduce()` を `foreach` へ置き換える
-  - [ ] `array_walk()` を使わないことを確認する
-- [ ] `date()` / `strtotime()` の `false` 問題を日付 helper へ閉じ込める
-- [ ] `Article::fromInput()` / `Page::fromInput()` の `mixed` cast を入力正規化 helper へ寄せる
+  - [x] `array_filter()` / `array_reduce()` / `array_walk()` の全廃は独立した品質目標にしない
+- [ ] 時刻取得・日付変換の扱いをアプリケーション層で整理する
+  - [ ] Framework 側に日付 helper は追加しない
+  - [ ] Framework 側で時刻抽象が必要な場合は PSR-20 `ClockInterface` の採用を検討する
+  - [ ] `apps/{cms,front,shared}` 配下の `date()` / `strtotime()` 整理はアプリケーション開発者の判断に委ねる
+- [x] `Article::fromInput()` / `Page::fromInput()` の移動は実施しない
 - [ ] Controller / Application / Domain / Infrastructure の境界違反を PHPStan で検出できるようにする
 - [ ] `composer analyse` を成功させる
 
@@ -206,6 +207,25 @@ Controller 層の `array_map(fn($x) => $x->toArray(), ...)` は、Application Ou
 - 「callback 系配列関数の全廃」を独立した品質目標として扱うこと。
 
 今回実施済みの Persistence 層の置換は、DB row の `array<string, mixed>` を DTO へ変換する型境界に限定したため妥当である。今後の作業では、この範囲を超えて callback 置換を進めない。
+
+## アプリケーション層の局所実装に関する判定 2026-06-11
+
+Framework 側にアプリケーション都合の日付 helper は追加しない。
+
+Framework は特定アプリケーションの DB 日付フォーマット、表示フォーマット、保存時刻生成の都合を知らない層である。`date()` / `strtotime()` の呼び出しを減らす目的で Framework に helper を置くと、Framework がアプリケーション固有の表現や永続化方針を背負うことになるため不適切である。
+
+Framework 側で時刻取得の抽象が必要になった場合は、独自 helper ではなく PSR-20 `Psr\Clock\ClockInterface` を採用候補にする。これは「現在時刻を取得する依存」を差し替えるための抽象であり、日付文字列の整形 helper ではない。DB 保存形式や画面表示形式の正規化は `apps/{cms,front,shared}` 側で必要に応じて設計する。
+
+また、`apps/{cms,front}` 配下に残る Controller の `array_map(fn ($x) => $x->toArray(), ...)`、container config の CSV 正規化、seed の初期データ生成は、いずれもアプリケーション層の局所的な実装判断である。これらを Framework 規約として一律に置換する必要はない。
+
+特に Controller 層の `toArray()` 変換は Application Output / Value DTO を view data へ変換する境界であり、Latte 側を DTO 構造へ寄せる変更は行わない。テンプレートに手を入れて callback を消すことは目的と利益が釣り合わず、既存の責務分担を弱める。
+
+したがって、今後の対応方針は以下とする。
+
+- Framework には日付 helper を追加しない。
+- Framework の時刻抽象が必要になった場合のみ PSR-20 `ClockInterface` を検討する。
+- apps 配下の `date()` / `strtotime()`、callback 系配列関数、`toArray()` 変換はアプリケーション開発者の判断に委ねる。
+- callback 全廃や helper 化を目的に Latte、Controller、config、seed を変更しない。
 
 ---
 

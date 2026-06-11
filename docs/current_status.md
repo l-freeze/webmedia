@@ -6,6 +6,12 @@
 
 ## 直近作業
 
+- `docs/refactoring.md` のリファクタリング方針を追記。
+  - Framework 側にアプリケーション都合の日付 helper は追加しない方針を明記。
+  - Framework 側で時刻取得の抽象が必要になった場合は、独自 helper ではなく PSR-20 `Psr\Clock\ClockInterface` を採用候補にする。
+  - DB 保存形式や画面表示形式の正規化は `apps/{cms,front,shared}` 側のアプリケーション開発者判断に委ねる。
+  - Controller 層の `array_map(fn ($x) => $x->toArray(), ...)` は view data 変換境界であり、Latte を DTO 構造へ寄せてまで廃止しない。
+  - container config の CSV 正規化、seed の初期データ生成、apps 配下の局所的な callback 系配列関数は、callback 全廃を目的に書き換えない。
 - `c82da39` の `Container.php` reflection cache 追加コミットを評価。
   - コンストラクタ引数の reflection 結果を static cache 化する方向性は、worker mode 前提の Framework 最適化として妥当。
   - union / intersection type を明示的に解決不能として扱う変更も、曖昧な依存解決を避けるため妥当。
