@@ -34,7 +34,7 @@
   - [x] `array_filter()` / `array_reduce()` / `array_walk()` の全廃は独立した品質目標にしない
 - [ ] 時刻取得・日付変換の扱いをアプリケーション層で整理する
   - [ ] Framework 側に日付 helper は追加しない
-  - [ ] Framework 側で時刻抽象が必要な場合は PSR-20 `ClockInterface` の採用を検討する
+  - [ ] PSR-20 `ClockInterface` は、現在時刻を固定したいユースケースが明確になった場合のみ検討する
   - [ ] `apps/{cms,front,shared}` 配下の `date()` / `strtotime()` 整理はアプリケーション開発者の判断に委ねる
 - [x] `Article::fromInput()` / `Page::fromInput()` の移動は実施しない
 - [ ] Controller / Application / Domain / Infrastructure の境界違反を PHPStan で検出できるようにする
@@ -223,9 +223,27 @@ Framework 側で時刻取得の抽象が必要になった場合は、独自 hel
 したがって、今後の対応方針は以下とする。
 
 - Framework には日付 helper を追加しない。
-- Framework の時刻抽象が必要になった場合のみ PSR-20 `ClockInterface` を検討する。
+- PSR-20 `ClockInterface` は、現在時刻を固定したいユースケースが明確になった場合のみ検討する。
 - apps 配下の `date()` / `strtotime()`、callback 系配列関数、`toArray()` 変換はアプリケーション開発者の判断に委ねる。
 - callback 全廃や helper 化を目的に Latte、Controller、config、seed を変更しない。
+
+## 日付 helper 化指摘への返答 2026-06-11
+
+`date()` / `strtotime()` の散在を「日付 helper に閉じ込める」形で解消する指摘は、このプロジェクトでは不適切である。
+
+理由は、問題の中心が「関数呼び出しの重複」ではなく「その日時がどの層でどの意味を持つ値なのか」にあるためである。helper は呼び出し場所を減らせるが、公開日時、予約公開日時、作成日時、更新日時、表示用日付、DB 保存用 timestamp といった意味の違いを表現しない。意味の違う日時を同じ helper に集めると、依存方向は見えにくくなり、Domain / UseCase / Infrastructure の境界も曖昧になる。
+
+業務上の意味を持つ日時は、必要になった時点で Domain または UseCase 側の Value として表現する。たとえば公開判定に関わる日時、予約公開の条件、期限切れ判定などは、単なる文字列整形ではなく業務ルールを持つ値として扱う方がよい。画面表示用の文字列は Application Output 側、DB 文字列との相互変換は Infrastructure 境界で扱う。
+
+PSR-20 `Psr\Clock\ClockInterface` も現時点で必須ではない。PSR-20 は日付操作ライブラリではなく、現在時刻を取得する依存を差し替えるための抽象である。公開予約、期限切れ、監査ログなどで `now()` を固定したテストが必要になった場合に採用を検討すればよい。`created_at` / `updated_at` の保存や表示整形だけを理由に導入する必要はない。
+
+したがって、今後の判断は以下とする。
+
+- 日付 helper を作ること自体をリファクタリング目標にしない。
+- Carbon 互換のような多機能な日時ユーティリティは作らない。
+- 業務上の意味がある日時は Domain / UseCase の Value として表現する。
+- DB 保存形式や表示形式の変換は Infrastructure または Application Output の境界で扱う。
+- PSR-20 は、現在時刻の差し替えが必要な具体的ユースケースが出た場合に限り検討する。
 
 ---
 

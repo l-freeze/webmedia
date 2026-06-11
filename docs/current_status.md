@@ -12,6 +12,11 @@
   - DB 保存形式や画面表示形式の正規化は `apps/{cms,front,shared}` 側のアプリケーション開発者判断に委ねる。
   - Controller 層の `array_map(fn ($x) => $x->toArray(), ...)` は view data 変換境界であり、Latte を DTO 構造へ寄せてまで廃止しない。
   - container config の CSV 正規化、seed の初期データ生成、apps 配下の局所的な callback 系配列関数は、callback 全廃を目的に書き換えない。
+- 日付 helper 化指摘への返答を `docs/refactoring.md` に追記。
+  - `date()` / `strtotime()` の散在を helper に閉じ込める指摘は、このプロジェクトでは不適切と判定。
+  - 問題の中心は関数呼び出しの重複ではなく、日時が Domain / UseCase / Application Output / Infrastructure のどの層でどの意味を持つかであると整理。
+  - 業務上の意味を持つ日時は helper ではなく Domain / UseCase の Value として表現する方針を明記。
+  - PSR-20 `ClockInterface` は日付操作処理ではなく現在時刻取得の抽象であり、`now()` 固定テストなど具体的な必要が出た場合のみ検討する。
 - `c82da39` の `Container.php` reflection cache 追加コミットを評価。
   - コンストラクタ引数の reflection 結果を static cache 化する方向性は、worker mode 前提の Framework 最適化として妥当。
   - union / intersection type を明示的に解決不能として扱う変更も、曖昧な依存解決を避けるため妥当。
