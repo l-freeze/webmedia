@@ -16,7 +16,7 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
     private const DEFAULT_FRONT_THEME = 'cafe-clean';
 
     /** @var list<string> */
-    private const FRONT_THEMES = ['cafe-clean', 'tech-edge', 'executive-trust'];
+    private const FRONT_THEMES = ['cafe-clean', 'tech-edge', 'executive-trust', 'dev-docs', 'recipe-fresh', 'pop-girly', 'mama-soft'];
 
     public function __construct(private PDO $pdo)
     {

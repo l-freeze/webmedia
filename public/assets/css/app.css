@@ -887,13 +887,436 @@ body[data-front-theme="executive-trust"] .article-card p:not(.meta) {
   max-width: 56em;
 }
 
+/* ============================================================================
+   Added themes. All share the single front HTML structure; only palette tokens
+   and presentation differ (no template branches, no markup changes).
+   Article lists use auto-fill grids so they stay responsive without per-theme
+   media queries. Generic body[data-front-theme] rules above (sticky/blurred
+   header, card shadow, accent thumb gradient) apply here too.
+   ========================================================================== */
+
+/* --- dev-docs: 技術系 — fixed dark docs rail, terminal hero, changelog feed --- */
+body[data-front-theme="dev-docs"] {
+  --bg: #f4f6fc;
+  --surface: #ffffff;
+  --surface-alt: #eef1f8;
+  --text: #1b2030;
+  --muted: #5a6478;
+  --line: #e2e7f1;
+  --accent: #5b5bd6;
+  --accent-soft: #ececfb;
+  font-family: "Inter", system-ui, sans-serif;
+}
+/* fixed dark left navigation rail (replaces the top menu) */
+body[data-front-theme="dev-docs"] .site-header {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 250px;
+  z-index: 20;
+  background: #0e1322;
+  border: 0;
+  border-right: 1px solid #222a40;
+  backdrop-filter: none;
+  overflow-y: auto;
+}
+body[data-front-theme="dev-docs"] .site-header__inner {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 24px;
+  padding: 26px 18px;
+}
+body[data-front-theme="dev-docs"] .brand {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color: #eaecfb;
+  font-size: 1.1rem;
+  letter-spacing: -.02em;
+}
+body[data-front-theme="dev-docs"] .brand::before { content: "~/ "; color: #7c83f0; }
+body[data-front-theme="dev-docs"] .nav { display: grid; gap: 2px; }
+body[data-front-theme="dev-docs"] .nav a {
+  display: block;
+  color: #aab2d5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: .94rem;
+}
+body[data-front-theme="dev-docs"] .nav a:hover { background: #1a2238; color: #fff; text-decoration: none; }
+body[data-front-theme="dev-docs"] .search-inline { display: grid; gap: 8px; }
+body[data-front-theme="dev-docs"] .search-inline input { background: #1a2238; border-color: #2a3350; color: #eaecfb; }
+body[data-front-theme="dev-docs"] .search-inline button { width: 100%; }
+/* main content offset by the rail, single column */
+body[data-front-theme="dev-docs"] .front-shell {
+  width: auto;
+  max-width: 1040px;
+  margin: 0 0 0 250px;
+  padding: 34px 40px 60px;
+}
+body[data-front-theme="dev-docs"] .site-footer { margin-left: 250px; }
+body[data-front-theme="dev-docs"] .front-grid { display: block; }
+/* terminal-window hero */
+body[data-front-theme="dev-docs"] .front-hero {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  align-content: center;
+  min-height: 230px;
+  padding: 46px 34px 34px;
+  border: 1px solid #222a40;
+  border-radius: 14px;
+  background: radial-gradient(130% 150% at 100% 0, rgba(91, 91, 214, .4), transparent 52%), #0e1322;
+  color: #eaecfb;
+  overflow: hidden;
+  box-shadow: 0 22px 50px rgba(14, 19, 34, .3);
+}
+body[data-front-theme="dev-docs"] .front-hero::before {
+  content: "~/blog — zsh";
+  position: absolute;
+  top: 14px;
+  left: 64px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: .74rem;
+  color: #6b769c;
+}
+body[data-front-theme="dev-docs"] .front-hero__visual {
+  position: absolute;
+  top: 15px;
+  left: 18px;
+  display: flex;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+body[data-front-theme="dev-docs"] .front-hero__visual span { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+body[data-front-theme="dev-docs"] .front-hero__visual span:nth-child(2) { background: #febc2e; }
+body[data-front-theme="dev-docs"] .front-hero__visual span:nth-child(3) { background: #28c840; }
+body[data-front-theme="dev-docs"] .front-hero h1 {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  color: #fff;
+  line-height: 1.3;
+}
+body[data-front-theme="dev-docs"] .front-hero h1::before { content: "$ "; color: #28c840; }
+body[data-front-theme="dev-docs"] .front-hero .muted { color: #9aa3c7; }
+body[data-front-theme="dev-docs"] .front-hero .label {
+  justify-self: start;
+  font-family: ui-monospace, Menlo, monospace;
+  text-transform: lowercase;
+  background: #1a2238;
+  color: #8b92f5;
+  border-radius: 6px;
+}
+/* changelog / docs feed (no thumbnails, accent rail on hover) */
+body[data-front-theme="dev-docs"] .article-list {
+  display: grid;
+  gap: 0;
+  margin-top: 22px !important;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+body[data-front-theme="dev-docs"] .article-card {
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 18px 22px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid transparent;
+  border-radius: 0;
+  background: #fff;
+}
+body[data-front-theme="dev-docs"] .article-card:last-child { border-bottom: 0; }
+body[data-front-theme="dev-docs"] .article-card:hover { transform: none; border-left-color: var(--accent); background: #fafbff; }
+body[data-front-theme="dev-docs"] .article-card__media { display: none; }
+body[data-front-theme="dev-docs"] .article-card__body { padding: 0; display: grid; gap: 6px; }
+body[data-front-theme="dev-docs"] .article-card h2 { margin: 0; font-size: 1.12rem; letter-spacing: -.01em; }
+body[data-front-theme="dev-docs"] .label {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  text-transform: lowercase;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 6px;
+}
+body[data-front-theme="dev-docs"] .meta { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; }
+body[data-front-theme="dev-docs"] .prose { border-top: 3px solid var(--accent); }
+body[data-front-theme="dev-docs"] .prose h2,
+body[data-front-theme="dev-docs"] .prose h3 { font-family: ui-monospace, Menlo, monospace; }
+
+/* --- recipe-fresh: 料理系 — magazine masthead, full-bleed hero, editorial masonry --- */
+body[data-front-theme="recipe-fresh"] {
+  --bg: #fff6ec;
+  --surface: #fffdfa;
+  --surface-alt: #fbeada;
+  --text: #3a2b21;
+  --muted: #8c7257;
+  --line: #f0ddc8;
+  --accent: #e2622f;
+  --accent-soft: #fce5d6;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+}
+body[data-front-theme="recipe-fresh"] .nav,
+body[data-front-theme="recipe-fresh"] .meta,
+body[data-front-theme="recipe-fresh"] .search-inline,
+body[data-front-theme="recipe-fresh"] .label { font-family: system-ui, sans-serif; }
+/* centered editorial masthead */
+body[data-front-theme="recipe-fresh"] .site-header { background: #fff8f0; border-bottom: 2px solid var(--accent); backdrop-filter: none; }
+body[data-front-theme="recipe-fresh"] .site-header__inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "nav brand search";
+  align-items: center;
+  min-height: 88px;
+  gap: 16px;
+}
+body[data-front-theme="recipe-fresh"] .brand { grid-area: brand; justify-self: center; font-size: 1.8rem; font-weight: 800; color: #b4431d; letter-spacing: .04em; }
+body[data-front-theme="recipe-fresh"] .nav { grid-area: nav; }
+body[data-front-theme="recipe-fresh"] .search-inline { grid-area: search; justify-content: flex-end; }
+body[data-front-theme="recipe-fresh"] .label { background: var(--accent); color: #fff; border-radius: 999px; letter-spacing: .04em; }
+/* single-column magazine canvas */
+body[data-front-theme="recipe-fresh"] .front-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+body[data-front-theme="recipe-fresh"] .front-grid > section { display: grid; gap: 30px; }
+/* full-bleed hero with overlaid title */
+body[data-front-theme="recipe-fresh"] .front-hero {
+  position: relative;
+  display: grid;
+  align-content: end;
+  gap: 10px;
+  min-height: 420px;
+  padding: 48px;
+  border: 0;
+  border-radius: 26px;
+  overflow: hidden;
+  color: #fff;
+}
+body[data-front-theme="recipe-fresh"] .front-hero__copy { position: relative; z-index: 1; display: grid; gap: 12px; }
+body[data-front-theme="recipe-fresh"] .front-hero h1 {
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 1.12;
+  color: #fff;
+  max-width: 14em;
+  text-shadow: 0 2px 24px rgba(60, 20, 5, .45);
+}
+body[data-front-theme="recipe-fresh"] .front-hero .muted { color: rgba(255, 255, 255, .92); max-width: 34em; }
+body[data-front-theme="recipe-fresh"] .front-hero .label { background: #fff; color: var(--accent); justify-self: start; }
+body[data-front-theme="recipe-fresh"] .front-hero__visual {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(0deg, rgba(70, 25, 8, .72), rgba(70, 25, 8, .12) 55%, rgba(70, 25, 8, .04)),
+    conic-gradient(from 35deg at 65% 40%, #f7b733, #e2622f, #d7402b, #f0913a, #f7b733);
+}
+body[data-front-theme="recipe-fresh"] .front-hero__visual span { display: none; }
+/* editorial masonry: first item is a 2x2 feature */
+body[data-front-theme="recipe-fresh"] .article-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: 22px;
+  margin-top: 0 !important;
+}
+body[data-front-theme="recipe-fresh"] .article-card {
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  min-height: 100%;
+}
+body[data-front-theme="recipe-fresh"] .article-card:first-child { grid-column: span 2; grid-row: span 2; }
+body[data-front-theme="recipe-fresh"] .article-card:nth-child(6n + 4) { grid-column: span 2; }
+body[data-front-theme="recipe-fresh"] .article-card:hover { transform: translateY(-5px); }
+body[data-front-theme="recipe-fresh"] .article-card__media { aspect-ratio: 4 / 3; border-radius: 0; min-height: 170px; }
+body[data-front-theme="recipe-fresh"] .article-card:first-child .article-card__media { aspect-ratio: 16 / 10; min-height: 320px; }
+body[data-front-theme="recipe-fresh"] .article-card__body { padding: 18px 20px 22px; }
+body[data-front-theme="recipe-fresh"] .article-card h2 { font-size: 1.34rem; color: #6a3a1f; }
+body[data-front-theme="recipe-fresh"] .article-card:first-child h2 { font-size: 2rem; }
+/* category as a horizontal ingredient strip */
+body[data-front-theme="recipe-fresh"] .category-panel {
+  display: grid;
+  grid-template-columns: auto repeat(4, minmax(0, 1fr));
+  gap: 12px 22px;
+  align-items: center;
+  border: 0;
+  border-radius: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #fff3e6, #ffe7d3);
+}
+body[data-front-theme="recipe-fresh"] .category-panel h2 { margin: 0; color: var(--accent); }
+body[data-front-theme="recipe-fresh"] .category-panel p { margin: 0; }
+body[data-front-theme="recipe-fresh"] .prose { border-radius: 20px; }
+
+/* --- pop-girly: 10代女の子向け — floating pill header, giant gradient hero, rotated card wall --- */
+body[data-front-theme="pop-girly"] {
+  --bg: #fff2f8;
+  --surface: #ffffff;
+  --surface-alt: #ffe6f2;
+  --text: #5a3349;
+  --muted: #b07d96;
+  --line: #ffd5e7;
+  --accent: #ff4f9e;
+  --accent-soft: #ffe0ee;
+  --radius-sm: 18px;
+  --radius-md: 24px;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", system-ui, sans-serif;
+  background:
+    radial-gradient(60% 50% at 82% 0, #ffe0ef, transparent 60%),
+    radial-gradient(52% 42% at 0 28%, #ece1ff, transparent 60%),
+    var(--bg);
+}
+/* floating pill header */
+body[data-front-theme="pop-girly"] .site-header { position: sticky; top: 16px; background: transparent; border: 0; z-index: 30; backdrop-filter: none; }
+body[data-front-theme="pop-girly"] .site-header__inner {
+  background: rgba(255, 255, 255, .86);
+  backdrop-filter: blur(14px);
+  border: 2px solid #ffd0e4;
+  border-radius: 999px;
+  min-height: 60px;
+  padding: 8px 16px 8px 24px;
+  box-shadow: 0 14px 34px rgba(255, 79, 158, .2);
+}
+body[data-front-theme="pop-girly"] .brand { color: var(--accent); font-weight: 800; font-size: 1.35rem; }
+body[data-front-theme="pop-girly"] .brand::before { content: "\2665"; margin-right: 6px; }
+body[data-front-theme="pop-girly"] .nav a { color: #a85f80; font-weight: 700; }
+body[data-front-theme="pop-girly"] .label { background: linear-gradient(135deg, #ff7eb6, #ff4f9e); color: #fff; border-radius: 999px; }
+body[data-front-theme="pop-girly"] button,
+body[data-front-theme="pop-girly"] .button { border-radius: 999px; background: linear-gradient(135deg, #ff7eb6, #ff4f9e); }
+/* giant rounded gradient hero */
+body[data-front-theme="pop-girly"] .front-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .85fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 52px;
+  border: 0;
+  border-radius: 44px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffd9ec 0%, #f0d9ff 50%, #d9ecff 100%);
+}
+body[data-front-theme="pop-girly"] .front-hero::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, rgba(255, 255, 255, 0));
+  opacity: .6;
+}
+body[data-front-theme="pop-girly"] .front-hero__copy { position: relative; z-index: 1; }
+body[data-front-theme="pop-girly"] .front-hero h1 { font-size: clamp(2.3rem, 5vw, 3.8rem); color: #d6357f; line-height: 1.12; }
+body[data-front-theme="pop-girly"] .front-hero .muted { color: #9a5f7c; }
+body[data-front-theme="pop-girly"] .front-hero__visual { position: relative; min-height: 250px; }
+body[data-front-theme="pop-girly"] .front-hero__visual span {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9ecb, #ff4f9e);
+  box-shadow: 0 14px 32px rgba(255, 79, 158, .32);
+}
+body[data-front-theme="pop-girly"] .front-hero__visual span:nth-child(1) { width: 150px; height: 150px; left: 6%; bottom: 8%; }
+body[data-front-theme="pop-girly"] .front-hero__visual span:nth-child(2) { width: 96px; height: 96px; right: 10%; top: 8%; background: linear-gradient(135deg, #c79bff, #9b6bff); }
+body[data-front-theme="pop-girly"] .front-hero__visual span:nth-child(3) { width: 66px; height: 66px; right: 32%; bottom: 16%; background: linear-gradient(135deg, #ffd36b, #ff9ecb); }
+/* rotated card wall */
+body[data-front-theme="pop-girly"] .article-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; margin-top: 0 !important; }
+body[data-front-theme="pop-girly"] .article-card {
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 28px;
+  box-shadow: 0 16px 36px rgba(255, 79, 158, .16);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+}
+body[data-front-theme="pop-girly"] .article-card:nth-child(3n + 1) { transform: rotate(-1.5deg); }
+body[data-front-theme="pop-girly"] .article-card:nth-child(3n + 2) { transform: rotate(1deg); margin-top: 20px; }
+body[data-front-theme="pop-girly"] .article-card:nth-child(3n) { transform: rotate(.6deg); }
+body[data-front-theme="pop-girly"] .article-card:hover { transform: rotate(0) translateY(-6px) scale(1.02); box-shadow: 0 24px 48px rgba(255, 79, 158, .3); }
+body[data-front-theme="pop-girly"] .article-card__media { aspect-ratio: 1 / 1; border-radius: 0; }
+body[data-front-theme="pop-girly"] .article-card__body { padding: 16px 18px 22px; }
+body[data-front-theme="pop-girly"] .article-card h2 { font-size: 1.22rem; color: #c43078; }
+body[data-front-theme="pop-girly"] .category-panel { position: sticky; top: 96px; border: 2px dashed var(--accent); border-radius: 28px; background: #fff; }
+body[data-front-theme="pop-girly"] .category-panel h2 { color: var(--accent); }
+body[data-front-theme="pop-girly"] .prose { border-radius: 28px; }
+
+/* --- mama-soft: 子持ちママ向け — calm apricot/natural, roomy, friendly --- */
+body[data-front-theme="mama-soft"] {
+  --bg: #faf6f1;
+  --surface: #ffffff;
+  --surface-alt: #f1ebe1;
+  --text: #43403a;
+  --muted: #837d70;
+  --line: #ece4d7;
+  --accent: #d98a5b;
+  --accent-soft: #f6e7d8;
+  --radius-sm: 14px;
+  font-family: "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+}
+body[data-front-theme="mama-soft"] .brand { color: #b9683c; font-weight: 700; }
+body[data-front-theme="mama-soft"] .label { background: var(--accent-soft); color: #a85f30; border-radius: 999px; }
+body[data-front-theme="mama-soft"] .front-grid { gap: 36px; }
+body[data-front-theme="mama-soft"] .front-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .75fr);
+  gap: 32px;
+  align-items: center;
+  padding: 40px;
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fffaf4, #f6ead9);
+}
+body[data-front-theme="mama-soft"] .front-hero h1 { font-size: clamp(1.9rem, 3.4vw, 3rem); line-height: 1.28; color: #8a5230; }
+body[data-front-theme="mama-soft"] .front-hero__visual { display: grid; gap: 12px; }
+body[data-front-theme="mama-soft"] .front-hero__visual span {
+  min-height: 60px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #ecd9c3;
+  box-shadow: 0 10px 24px rgba(217, 138, 91, .12);
+}
+body[data-front-theme="mama-soft"] .front-hero__visual span:nth-child(2) { margin-left: 24px; background: #f6ead9; }
+body[data-front-theme="mama-soft"] .front-hero__visual span:nth-child(3) { margin-left: 48px; }
+body[data-front-theme="mama-soft"] .article-list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+body[data-front-theme="mama-soft"] .article-card {
+  grid-template-columns: 124px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+body[data-front-theme="mama-soft"] .article-card:hover { transform: translateY(-2px); }
+body[data-front-theme="mama-soft"] .article-card__media { aspect-ratio: 1 / 1; border-radius: 12px; }
+body[data-front-theme="mama-soft"] .article-card h2 { font-size: 1.12rem; color: #6f4a2c; }
+body[data-front-theme="mama-soft"] .category-panel { border: 1px solid var(--line); border-radius: 16px; background: #fffdfa; }
+body[data-front-theme="mama-soft"] .category-panel h2 { color: #a85f30; }
+body[data-front-theme="mama-soft"] .prose { border-radius: 16px; }
+
 /* Theme-driven visibility of optional regions.
    HTML always renders these asides (single shared structure); each theme
    decides whether its layout exposes the slot. Replaces former {if $frontTheme}
    branches in index.latte / article/show.latte. */
-body[data-front-theme="tech-edge"] .front-grid > aside { display: none; }
+body[data-front-theme="tech-edge"] .front-grid > aside,
+body[data-front-theme="dev-docs"] .front-grid > aside { display: none; }
 body[data-front-theme="cafe-clean"] .article-detail-sidebar,
-body[data-front-theme="tech-edge"] .article-detail-sidebar { display: none; }
+body[data-front-theme="tech-edge"] .article-detail-sidebar,
+body[data-front-theme="dev-docs"] .article-detail-sidebar,
+body[data-front-theme="recipe-fresh"] .article-detail-sidebar,
+body[data-front-theme="pop-girly"] .article-detail-sidebar,
+body[data-front-theme="mama-soft"] .article-detail-sidebar { display: none; }
 
 .admin-body { background: #eef2f6; }
 .admin-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
@@ -1139,10 +1562,41 @@ th { background: #f8fafc; font-size: .88rem; color: var(--muted); }
     padding: 24px 0 48px;
   }
   body[data-front-theme="cafe-clean"] .front-hero,
-  body[data-front-theme="executive-trust"] .front-hero {
+  body[data-front-theme="executive-trust"] .front-hero,
+  body[data-front-theme="dev-docs"] .front-hero,
+  body[data-front-theme="recipe-fresh"] .front-hero,
+  body[data-front-theme="pop-girly"] .front-hero,
+  body[data-front-theme="mama-soft"] .front-hero {
     grid-template-columns: 1fr;
     min-height: auto;
   }
+  body[data-front-theme="mama-soft"] .article-card {
+    grid-template-columns: 1fr;
+  }
+  /* dev-docs: collapse the fixed rail into normal flow */
+  body[data-front-theme="dev-docs"] .site-header {
+    position: static;
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid #222a40;
+    overflow: visible;
+  }
+  body[data-front-theme="dev-docs"] .front-shell,
+  body[data-front-theme="dev-docs"] .site-footer {
+    margin-left: 0;
+    width: min(1120px, calc(100% - 32px));
+    padding-left: 0;
+    padding-right: 0;
+  }
+  body[data-front-theme="dev-docs"] .site-footer { width: auto; }
+  /* recipe-fresh: masonry → single column */
+  body[data-front-theme="recipe-fresh"] .article-list { grid-template-columns: 1fr; }
+  body[data-front-theme="recipe-fresh"] .article-card:first-child,
+  body[data-front-theme="recipe-fresh"] .article-card:nth-child(6n + 4) { grid-column: auto; grid-row: auto; }
+  body[data-front-theme="recipe-fresh"] .article-card:first-child .article-card__media { aspect-ratio: 16 / 10; min-height: 0; }
+  /* pop-girly: straighten the rotated wall */
+  body[data-front-theme="pop-girly"] .article-list { grid-template-columns: 1fr; }
+  body[data-front-theme="pop-girly"] .article-card { transform: none; margin-top: 0; }
   body[data-front-theme="cafe-clean"] .front-hero__visual {
     min-height: 260px;
     border-radius: 8px;

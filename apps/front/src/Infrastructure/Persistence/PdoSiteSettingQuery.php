@@ -15,7 +15,7 @@ final readonly class PdoSiteSettingQuery implements ISiteSettingQuery
     private const DEFAULT_THEME = 'cafe-clean';
 
     /** @var list<string> */
-    private const THEMES = ['cafe-clean', 'tech-edge', 'executive-trust'];
+    private const THEMES = ['cafe-clean', 'tech-edge', 'executive-trust', 'dev-docs', 'recipe-fresh', 'pop-girly', 'mama-soft'];
 
     public function __construct(private PDO $pdo)
     {

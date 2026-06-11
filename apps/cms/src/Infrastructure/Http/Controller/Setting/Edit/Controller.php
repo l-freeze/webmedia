@@ -48,6 +48,10 @@ final readonly class Controller
                         'cafe-clean' => '10代向け: カフェクリーン',
                         'tech-edge' => '20代技術営業向け: テックエッジ',
                         'executive-trust' => '30代責任者向け: エグゼクティブ',
+                        'dev-docs' => '技術系: デブドックス',
+                        'recipe-fresh' => '料理系: レシピフレッシュ',
+                        'pop-girly' => '10代女の子向け: ポップガーリー',
+                        'mama-soft' => '子持ちママ向け: ママソフト',
                     ],
                 ],
                 [
@@ -76,6 +80,10 @@ final readonly class Controller
         return match ($theme) {
             'tech-edge' => '20代技術営業向け: テックエッジ',
             'executive-trust' => '30代責任者向け: エグゼクティブ',
+            'dev-docs' => '技術系: デブドックス',
+            'recipe-fresh' => '料理系: レシピフレッシュ',
+            'pop-girly' => '10代女の子向け: ポップガーリー',
+            'mama-soft' => '子持ちママ向け: ママソフト',
             default => '10代向け: カフェクリーン',
         };
     }
