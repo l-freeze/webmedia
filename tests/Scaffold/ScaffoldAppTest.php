@@ -32,6 +32,10 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
             self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
             self::assertStringNotContainsString('TemplateRenderer::class', $container);
+
+            $middleware = $this->read(path: $root . '/apps/api/config/middleware.php');
+            self::assertStringContainsString('Add app-specific middleware here.', $middleware);
+            self::assertStringContainsString('YourMiddleware::class', $middleware);
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -61,6 +65,10 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('LatteTemplateRenderer', $container);
             self::assertStringNotContainsString('sqlite::memory:', $container);
             self::assertStringNotContainsString('PDO::class', $container);
+
+            $middleware = $this->read(path: $root . '/apps/mini-app/config/middleware.php');
+            self::assertStringContainsString('Add app-specific middleware here.', $middleware);
+            self::assertStringContainsString('YourMiddleware::class', $middleware);
 
             $controller = $this->read(path: $root . '/apps/mini-app/src/Infrastructure/Http/Controller/Index/Controller.php');
             self::assertStringContainsString('private PDO $pdo', $controller);
@@ -117,6 +125,10 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('TodoRepository::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
 
+            $middleware = $this->read(path: $root . '/apps/todo/config/middleware.php');
+            self::assertStringContainsString('Add app-specific middleware here.', $middleware);
+            self::assertStringContainsString('YourMiddleware::class', $middleware);
+
             $repository = $this->read(path: $root . '/apps/todo/src/Infrastructure/Persistence/PdoTodoRepository.php');
             self::assertStringContainsString('CREATE TABLE IF NOT EXISTS todos', $repository);
             self::assertStringContainsString('INSERT INTO todos', $repository);
@@ -147,6 +159,21 @@ final class ScaffoldAppTest extends TestCase
 
             $storeController = $this->read(path: $root . '/apps/root-todo/src/Infrastructure/Http/Controller/Todo/Store/Controller.php');
             self::assertStringContainsString("Response::redirect(location: '/')", $storeController);
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testLayeredTemplateIncludesMiddlewareCommentAndExample(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->runScaffold(root: $root, name: 'layered-app', pathPrefix: '/layered', template: 'layered');
+
+            $middleware = $this->read(path: $root . '/apps/layered-app/config/middleware.php');
+            self::assertStringContainsString('Add app-specific middleware here.', $middleware);
+            self::assertStringContainsString('AppNameHeaderMiddleware::class', $middleware);
         } finally {
             $this->removeDirectory(path: $root);
         }

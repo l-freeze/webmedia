@@ -330,6 +330,9 @@ if (!is_array($sharedMiddleware)) {
 
 return [
     ...$sharedMiddleware,
+
+    // Add app-specific middleware here.
+    // Example: AppNameHeaderMiddleware::class,
     AppNameHeaderMiddleware::class,
 ];
 PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
@@ -347,6 +350,9 @@ if (!is_array($sharedMiddleware)) {
 
 return [
     ...$sharedMiddleware,
+
+    // Add app-specific middleware here.
+    // Example: App\YourApp\Infrastructure\Http\Middleware\YourMiddleware::class,
 ];
 PHP);
 }

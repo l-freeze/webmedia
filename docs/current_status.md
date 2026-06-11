@@ -7,6 +7,7 @@
 ## 直近作業
 
 - `bin/scaffold-app` の template 整備を完了。
+  - `config/middleware.php` には全 template で app 固有 middleware の追加位置を示すコメントを生成するようにした。
   - `--template=bare` を追加し、旧 `minimal` と同じ config only template とした。
   - `--template=minimal` を、1つの Controller ソースに DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を寄せた single-controller HTML starter に変更した。
   - `minimal` は `GET <path-prefix>` route を生成する。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を使う。
@@ -18,10 +19,10 @@
   - Architecture Test は今回の作業対象外のまま。Framework / scaffold の整備とは別作業として扱う。
 - 検証結果。
   - `docker compose exec -T app php -l bin/scaffold-app`: 成功。
-  - `docker compose exec -T app ./vendor/bin/phpunit tests/Scaffold/ScaffoldAppTest.php`: 成功、5 tests / 133 assertions。
+  - `docker compose exec -T app ./vendor/bin/phpunit tests/Scaffold/ScaffoldAppTest.php`: 成功、6 tests / 169 assertions。
   - temporary root へ `--template=minimal` で生成し、生成 Controller と container の `php -l`: 成功。
   - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
-  - `docker compose exec -T app composer test`: 成功、64 tests / 274 assertions。
+  - `docker compose exec -T app composer test`: 成功、65 tests / 310 assertions。
   - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
   - `git diff --check`: 成功。
 - 次回再開地点。
