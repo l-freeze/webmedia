@@ -30,7 +30,7 @@ Framework は PSR-11 の読み取り contract に加えて、定義登録用の�
 
 - `set()`: factory を登録します。
 - `singleton()`: 初回解決後に instance を保持する factory を登録します。
-- `workerSingleton()`: PHP worker の生存期間だけ instance を保持します。request を跨ぐため、`Request`、`Session`、`Csrf` などの request scope service には使いません。
+- `workerSingleton()`: PHP worker の生存期間だけ instance を保持します。通常の service 定義は request ごとに作り直されるため、worker 実行中に使い回したい service だけを明示的に登録します。request を跨ぐため、`Request`、`Session`、`Csrf` などの request scope service には使いません。
 - `instance()`: 既存 instance を登録します。
 - `bind()`: interface や abstract class を concrete class に結びます。
 

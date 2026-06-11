@@ -877,7 +877,7 @@ singleton にしてよいもの:
 
 `Renderer` などを singleton にする場合でも、global provider が特定リクエストの `Request`、`Session`、`Csrf` instance を固定保持してはならない。provider 実行時に request scope から取り出す。
 
-`workerSingleton()` は connection pool ではない。現在の PHP worker のメモリに instance を保持する lifetime 指定であり、request 固有状態を登録してはならない。
+通常の service 定義は request ごとに作り直される。`workerSingleton()` は、worker 実行中に使い回したい service だけを明示的に登録するための lifetime 指定であり、connection pool ではない。現在の PHP worker のメモリに instance を保持するため、request 固有状態を登録してはならない。
 
 禁止:
 
