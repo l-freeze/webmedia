@@ -24,11 +24,11 @@
   - `ReflectionParameter::getDefaultValue()` の結果を static cache に保持するため、object default value を使う設計が入ると worker lifetime で同一 default object を保持し続けるリスクがある。現状用途では大きな実害はないが、Container の共通基盤としては注意点。
   - 総合判定は「方針は適切、型注釈と default value cache の扱いに改善余地あり」。前回の `persistent()` ほど危険な境界違反ではない。
 - `af41dce` のコネクションプール実装を見直し。
-  - `Container::persistent()` は connection pool ではなく worker lifetime singleton であるため、`Container::workerSingleton()` に改名。
+  - `Container::persistent()` は worker lifetime singleton であるため、`Container::workerSingleton()` に改名。
   - `src/Framework/Container/Container.php` の static 保持名を `$workerInstances` に変更し、request scope service に使わない注意をコードコメントへ追加。
   - `apps/kernel/config/container.php` の `PDO::class` 登録を `workerSingleton()` へ変更。
   - `tests/Framework/ContainerTest.php` に別 Container 間で worker singleton が同一 instance を返すテストを追加。
-  - `src/Framework/Container/README.md`、`apps/kernel/README.md`、`docs/webmedia_architecture_rules.md`、`docs/refactoring.md` に、worker lifetime singleton は connection pool ではなく request 固有状態には使わないことを追記。
+  - `src/Framework/Container/README.md`、`apps/kernel/README.md`、`docs/webmedia_architecture_rules.md`、`docs/refactoring.md` に、worker lifetime singleton は DB 接続、Redis client、外部 API client など worker 単位で再利用したい service に限定し、request 固有状態には使わないことを追記。
 - `docs/refactoring.md` の実態照合を再確認。
   - `git status --short` はクリーン。
   - 直近2コミットは `01b3d92 refactor: readonly を Markdown・LatteTemplateRenderer に付与しコードスタイルを統一` と `c429836 docs: リファクタリング評価・最終方針・Worker Mode 設計判断を追記`。

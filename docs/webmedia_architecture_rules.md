@@ -872,12 +872,12 @@ singleton にしてよいもの:
 - 設定
 - stateless な Interactor
 - stateless な Query / Repository
-- DB connection factory、または `workerSingleton()` による worker 単位の接続再利用
+- DB / Redis / 外部 API client の factory、または `workerSingleton()` による worker 単位の接続・client 再利用
 - template engine 本体
 
 `Renderer` などを singleton にする場合でも、global provider が特定リクエストの `Request`、`Session`、`Csrf` instance を固定保持してはならない。provider 実行時に request scope から取り出す。
 
-通常の service 定義は request ごとに作り直される。`workerSingleton()` は、worker 実行中に使い回したい service だけを明示的に登録するための lifetime 指定であり、connection pool ではない。現在の PHP worker のメモリに instance を保持するため、request 固有状態を登録してはならない。
+通常の service 定義は request ごとに作り直される。`workerSingleton()` は、worker 実行中に使い回したい service だけを明示的に登録するための lifetime 指定である。現在の PHP worker のメモリに instance を保持するため、request 固有状態を登録してはならない。
 
 禁止:
 

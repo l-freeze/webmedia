@@ -50,7 +50,7 @@ FrankenPHP Worker mode に対応する場合、`Application` インスタンス�
 
 Worker mode の恩恵であるプロセス起動コストの排除は、`Application` インスタンスの長寿命化だけで十分に得られます。ルート解析とミドルウェア設定の読み込みはコンストラクタで1度だけ実行され、`$routers` と `$middleware` に保持されます。
 
-通常の service 定義は request ごとに作り直されます。DB 接続のように worker 単位で再利用したい service だけ、`Container::workerSingleton()` で明示的に登録できます。これは connection pool ではなく、現在の PHP worker のメモリに instance を保持する lifetime 指定です。`Request`、`Session`、`Csrf`、現在ユーザー、flash message など request 固有状態には使いません。
+通常の service 定義は request ごとに作り直されます。DB 接続、Redis client、外部 API client のように worker 単位で再利用したい service だけ、`Container::workerSingleton()` で明示的に登録できます。これは現在の PHP worker のメモリに instance を保持する lifetime 指定です。`Request`、`Session`、`Csrf`、現在ユーザー、flash message など request 固有状態には使いません。
 
 Worker mode 用エントリポイントは `apps/kernel/` に追加します。
 

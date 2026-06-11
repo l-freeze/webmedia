@@ -302,6 +302,6 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
 
 `Container::persistent()` は名称が不適切であるため、`Container::workerSingleton()` に改名する。
 
-この API は connection pool ではなく、現在の PHP worker のメモリに instance を保持する lifetime 指定である。通常の service 定義は request ごとに作り直されるため、worker 実行中に使い回したい service だけを明示的に登録する。Framework は `PDO` などの具体的な永続対象を知らず、Container は lifetime 管理だけを扱う。
+この API は、現在の PHP worker のメモリに instance を保持する lifetime 指定である。通常の service 定義は request ごとに作り直されるため、worker 実行中に使い回したい service だけを明示的に登録する。Framework は `PDO` などの具体的な永続対象を知らず、Container は lifetime 管理だけを扱う。
 
-ただし request を跨いで同一 instance が使われるため、`Request`、`Session`、`Csrf`、現在ログイン中のユーザー、flash message、validation error、request id / request context には使ってはならない。DB 接続のように worker 単位の再利用が妥当な service に限定して、アプリケーション composition 側で明示的に選択する。
+ただし request を跨いで同一 instance が使われるため、`Request`、`Session`、`Csrf`、現在ログイン中のユーザー、flash message、validation error、request id / request context には使ってはならない。DB 接続、Redis client、外部 API client のように worker 単位の再利用が妥当な service に限定して、アプリケーション composition 側で明示的に選択する。
