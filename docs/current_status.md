@@ -6,21 +6,27 @@
 
 ## 直近作業
 
-- 次タスクは `bin/scaffold-app` の template 整備。
-  - 次の作業指示は「`plan.md` と `current_status.md` を確認し、次のタスクに進んでください。情報が足りない場合は `refactoring.md` も参照してください」を想定する。
-  - 作業開始時は `docs/plan.md` の「次タスク: scaffold-app template 整備」を最優先の実行計画として扱う。
-  - `docs/refactoring.md` の「scaffold-app template の見直し」は背景説明として参照する。
-  - Architecture Test は今回の次タスクに含めない。Framework / scaffold の整備とは別作業として扱う。
-- scaffold template の方針を更新。
-  - `bare`: 現在の `minimal` と同じ config only template。
-  - `minimal`: 1つの Controller ソースに DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を寄せた、動く最小アプリ。
-  - `layered`: 現在ある Application / Domain / Infrastructure starter を維持。
-  - `fullpack`: policy / guard / audit / permission / role などが揃ってきた段階で追加する全部載せ template の予約名。今回の実装では usage / validation に追加しない。
-  - これまで `--template=minimal` で config only を期待していた用途は、今後 `--template=bare` へ移行する。
-  - 既存の `apps/minimal` は試作用の参考実装であり、scaffold 生成物ではない。
-  - `apps/minimal/config/container.php` の sqlite `PDO::class` binding は、新しい `minimal` scaffold にそのまま含めない。
-  - `minimal` の route は `GET <path-prefix>`。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix にする。
-  - 実装時は `bin/scaffold-app`、`tests/Scaffold/ScaffoldAppTest.php`、`bin/README.md`、必要に応じて `apps/kernel/README.md` / `src/Framework/README.md` を更新する。
+- `bin/scaffold-app` の template 整備を完了。
+  - `--template=bare` を追加し、旧 `minimal` と同じ config only template とした。
+  - `--template=minimal` を、1つの Controller ソースに DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を寄せた single-controller HTML starter に変更した。
+  - `minimal` は `GET <path-prefix>` route を生成する。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を使う。
+  - `minimal` の container は Kernel container から既存 `PDO::class` binding を読み込み、Shared container を読み込んだうえで `TemplateRenderer::class` を `LatteTemplateRenderer` へ binding する。scaffold 側で独自の sqlite binding は生成しない。
+  - `layered` と `todo` template は既存の扱いを維持。
+  - `fullpack` は README 上の将来候補としてのみ記載し、usage / validation には追加していない。
+  - `bin/README.md`、`apps/kernel/README.md`、`src/Framework/README.md` に template の違いと `minimal` 旧用途から `bare` への移行先を記載。
+  - `tests/Scaffold/ScaffoldAppTest.php` に `bare`、新 `minimal`、root path の生成物テストを追加した。
+  - Architecture Test は今回の作業対象外のまま。Framework / scaffold の整備とは別作業として扱う。
+- 検証結果。
+  - `docker compose exec -T app php -l bin/scaffold-app`: 成功。
+  - `docker compose exec -T app ./vendor/bin/phpunit tests/Scaffold/ScaffoldAppTest.php`: 成功、5 tests / 133 assertions。
+  - temporary root へ `--template=minimal` で生成し、生成 Controller と container の `php -l`: 成功。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、64 tests / 274 assertions。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - scaffold template 整備は完了済み。
+  - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。
 - `docs/refactoring.md` のリファクタリング方針を追記。
   - Framework 側にアプリケーション都合の日付 helper は追加しない方針を明記。
   - Framework 側で時刻取得の抽象が必要になった場合は、独自 helper ではなく PSR-20 `Psr\Clock\ClockInterface` を採用候補にする。

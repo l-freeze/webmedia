@@ -34,7 +34,7 @@ php bin/scaffold-app api /api
 
 デフォルト template は `minimal` です。
 
-生成されるファイル:
+全 template で生成される基本ファイル:
 
 - `apps/{name}/config/routes.php`
 - `apps/{name}/config/container.php`
@@ -49,15 +49,38 @@ php bin/scaffold-app api /api
 
 ## Templates
 
+### bare
+
+Kernel に接続するための config only 構成だけを生成します。
+
+```bash
+php bin/scaffold-app api /api --template=bare
+```
+
+生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`TemplateRenderer` binding は生成しません。
+
+これまで `--template=minimal` を config only として使っていた自動化は、`--template=bare` へ移行してください。
+
 ### minimal
 
-Kernel に接続するための最小構成だけを生成します。
+1つの Controller に処理を寄せた、動く最小アプリを生成します。
 
 ```bash
 php bin/scaffold-app api /api --template=minimal
 ```
 
 `--template` を省略した場合も `minimal` です。
+
+追加で生成される主な構成:
+
+- `src/Infrastructure/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
+- `templates/index.latte`: 一枚絵の HTML として成立する Latte template
+
+`config/routes.php` には `GET <path-prefix>` の route が追加されます。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を route にします。
+
+`config/container.php` は Kernel container から既存の `PDO::class` binding を読み込み、Shared container を読み込んだうえで、`TemplateRenderer::class` を `LatteTemplateRenderer` へ binding します。scaffold 側で独自の sqlite `PDO::class` binding は生成しません。
+
+`minimal` は layered architecture の見本ではなく、request から HTML response までの導線を最短で確認するための single-controller HTML starter です。層を分けた構成から始める場合は `layered` を使います。
 
 ### layered
 
@@ -96,6 +119,10 @@ php bin/scaffold-app todo /todo --template=todo
 - `templates/index.latte`: Todo 一覧の Latte template
 
 `todo` は、Controller に SQL を直接書かずに PDO を使う最小例です。生成された repository はサンプルとして `todos` table を `CREATE TABLE IF NOT EXISTS` で用意します。実運用では migration 管理へ移してください。
+
+### future: fullpack
+
+`fullpack` は、policy、guard、audit、permission、role などの設計が充実してきた段階で追加する全部載せ template の予約名です。現時点では有効な `--template` 値ではありません。
 
 コマンドは `apps/kernel/config/application.php` や `composer.json` を自動編集しません。生成後に追加する `ApplicationDefinition` と PSR-4 autoload の例を表示します。これは、どの設定がどの役割を持つかを実行者が確認できるようにするためです。
 

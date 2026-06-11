@@ -95,7 +95,7 @@ apps/shared  App\Shared
 
 Namespace customization is intentionally not supported. The Framework gives users a clear starting structure instead of making the first decision ambiguous.
 
-`scaffold-app` generates a new app under `apps/{name}`. The default template is intentionally minimal. Use `--template=todo` for a small PDO-backed Todo starter and `--template=layered` for a larger Application / Domain / Infrastructure starter.
+`scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `TemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
 ## Composer Package Direction
 

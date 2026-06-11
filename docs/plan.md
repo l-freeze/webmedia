@@ -51,9 +51,23 @@
 
 ## 作業順序
 
-### 次タスク: scaffold-app template 整備
+### 次タスク: Architecture Test の追加
 
-次に作業を再開する場合は、`bin/scaffold-app` の template 構成を整理する。
+次に作業を再開する場合は、`docs/refactoring.md` の Architecture Test 候補をもとに、アプリケーション構造の依存方向を検査するテストを追加する。
+
+実装候補:
+
+- `apps/front` から `App\Cms` へ依存していないことを検査する。
+- `apps/cms` から `App\Front` へ依存していないことを検査する。
+- `Application` が `Infrastructure` に依存していないことを検査する。
+- `Domain` が `Application` / `Infrastructure` に依存していないことを検査する。
+- Controller の不要な `as` alias 検査と UseCase `Input` の named arguments 利用検査は、依存方向テストと別テストに分けるか、同一ファイル内でも別 test method として扱う。
+
+このタスクは、今回完了した scaffold template 整備とは別作業として扱う。
+
+### 完了: scaffold-app template 整備
+
+`bin/scaffold-app` の template 構成を整理済み。
 
 実装対象:
 

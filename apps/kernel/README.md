@@ -62,7 +62,15 @@ Worker mode 用エントリポイントは `apps/kernel/` に追加します。
 php bin/scaffold-app api /api
 ```
 
-このコマンドは `apps/{name}` 配下の基本ファイルだけを作り、`apps/kernel/config/application.php` は自動編集しません。生成後に追加する `ApplicationDefinition` を表示するので、内容を確認して Kernel config へ追加します。
+デフォルトの `minimal` template は、単一 Controller、`GET <path-prefix>` route、Latte template、`TemplateRenderer` binding を含む single-controller HTML starter です。DB 接続は Kernel 側の既存 `PDO::class` binding を使います。
+
+config only の極薄構成だけが必要な場合は `bare` を使います。
+
+```bash
+php bin/scaffold-app api /api --template=bare
+```
+
+このコマンドは `apps/kernel/config/application.php` は自動編集しません。生成後に追加する `ApplicationDefinition` を表示するので、内容を確認して Kernel config へ追加します。
 
 縦割りのスターターも生成できます。
 

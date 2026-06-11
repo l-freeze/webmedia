@@ -8,6 +8,7 @@ declare(strict_types=1);
  *
  * Usage:
  *   php bin/scaffold-app api /api
+ *   php bin/scaffold-app api /api --template=bare
  *   php bin/scaffold-app todo /todo --template=todo
  *   php bin/scaffold-app api /api --template=layered
  *   php bin/scaffold-app preview /preview --root=/tmp/example
@@ -30,7 +31,7 @@ foreach ($args as $arg) {
 }
 
 if (count($filteredArgs) !== 2) {
-    fwrite(STDERR, "Usage: php bin/scaffold-app <name> <path-prefix> [--template=minimal|todo|layered] [--root=/path/to/project]\n");
+    fwrite(STDERR, "Usage: php bin/scaffold-app <name> <path-prefix> [--template=bare|minimal|todo|layered] [--root=/path/to/project]\n");
     exit(1);
 }
 
@@ -46,8 +47,8 @@ if ($pathPrefix === '' || $pathPrefix[0] !== '/') {
     exit(1);
 }
 
-if (!in_array($template, ['minimal', 'todo', 'layered'], true)) {
-    fwrite(STDERR, "Template must be one of: minimal, todo, layered.\n");
+if (!in_array($template, ['bare', 'minimal', 'todo', 'layered'], true)) {
+    fwrite(STDERR, "Template must be one of: bare, minimal, todo, layered.\n");
     exit(1);
 }
 
@@ -125,6 +126,17 @@ if ($template === 'todo') {
     ]);
 }
 
+if ($template === 'minimal') {
+    $directories = array_merge($directories, [
+        "{$appRoot}/src/Infrastructure/Http/Controller/Index",
+        "{$appRoot}/templates",
+    ]);
+    $paths = array_merge($paths, [
+        "{$appRoot}/src/Infrastructure/Http/Controller/Index/Controller.php",
+        "{$appRoot}/templates/index.latte",
+    ]);
+}
+
 foreach ($paths as $path) {
     if (file_exists($path)) {
         fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
@@ -166,6 +178,18 @@ return [
     ['POST', '{{ todoCompletePath }}', TodoCompleteController::class],
 ];
 PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $contactPath, basePath: $basePath, todoCompletePath: $todoCompletePath));
+} elseif ($template === 'minimal') {
+    writeFile("{$appRoot}/config/routes.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\{{ namespace }}\Infrastructure\Http\Controller\Index\Controller as IndexController;
+
+return [
+    ['GET', '{{ basePath }}', IndexController::class],
+];
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name, basePath: $basePath));
 } else {
     writeFile("{$appRoot}/config/routes.php", <<<'PHP'
 <?php
@@ -237,6 +261,38 @@ $container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRende
 
 return $container;
 PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
+} elseif ($template === 'minimal') {
+    writeFile("{$appRoot}/config/container.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\Framework\Container\Container;
+use App\Framework\View\TemplateRenderer;
+use App\Shared\View\Infrastructure\LatteTemplateRenderer;
+
+$root = dirname(__DIR__, 3);
+$container = new Container();
+
+$kernelContainer = require $root . '/apps/kernel/config/container.php';
+if (!is_callable($kernelContainer)) {
+    throw new \RuntimeException('Kernel container configuration is invalid.');
+}
+$kernelContainer($container);
+
+$sharedContainer = require $root . '/apps/shared/config/container.php';
+if (!is_callable($sharedContainer)) {
+    throw new \RuntimeException('Shared container configuration is invalid.');
+}
+$sharedContainer($container, $root);
+
+$container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
+    templateDirectory: $root . '/apps/{{ name }}/templates',
+    cacheDirectory: $root . '/storage/cache/{{ name }}',
+));
+
+return $container;
+PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 } else {
     writeFile("{$appRoot}/config/container.php", <<<'PHP'
 <?php
@@ -300,6 +356,9 @@ writeFile("{$appRoot}/src/.gitkeep", '');
 if ($template === 'layered') {
     writeLayeredSource(appRoot: $appRoot, namespace: $namespace, name: $name);
 }
+if ($template === 'minimal') {
+    writeMinimalSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath);
+}
 if ($template === 'todo') {
     writeTodoSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath, viewBasePath: $viewBasePath);
 }
@@ -332,6 +391,17 @@ echo "- apps/{$name}/config/routes.php: Route definitions for this app.\n";
 echo "- apps/{$name}/config/container.php: App DI container, after shared bindings.\n";
 echo "- apps/{$name}/config/middleware.php: App middleware list, after shared middleware.\n";
 echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
+if ($template === 'bare') {
+    echo "Bare starter:\n";
+    echo "- Config only: routes, container, middleware, and src placeholder.\n";
+    echo "- No route, Controller, TemplateRenderer binding, or view template is generated.\n\n";
+}
+if ($template === 'minimal') {
+    echo "Minimal starter:\n";
+    echo "- Single-controller HTML starter at {$basePath}.\n";
+    echo "- Infrastructure/Http/Controller/Index: Controller with PDO access and TemplateRenderer output.\n";
+    echo "- templates/index.latte: Single-page Latte view.\n\n";
+}
 if ($template === 'layered') {
     echo "Layered starter:\n";
     echo "- Application/Health/Show: Input, Output, and Interactor example.\n";
@@ -724,6 +794,104 @@ final readonly class PdoHealthCheckRepository implements IHealthCheckRepository
     }
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
+}
+
+function writeMinimalSource(string $appRoot, string $namespace, string $name, string $basePath): void
+{
+    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Index/Controller.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Http\Controller\Index;
+
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+use App\Framework\View\TemplateRenderer;
+use App\Shared\Database\PdoHelper;
+use PDO;
+
+final readonly class Controller
+{
+    public function __construct(
+        private PDO $pdo,
+        private TemplateRenderer $renderer,
+    ) {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $this->ensureSchema();
+        $this->ensureWelcomeMessage();
+
+        $message = PdoHelper::fetchColumn(statement: PdoHelper::query(
+            pdo: $this->pdo,
+            sql: 'SELECT body FROM scaffold_messages ORDER BY id ASC LIMIT 1',
+        ));
+        $message = is_scalar($message) ? (string) $message : '{{ name }} is running.';
+
+        return new Response(
+            body: $this->renderer->render(template: 'index.latte', params: [
+                'title' => '{{ name }}',
+                'message' => $message,
+                'path' => '{{ basePath }}',
+            ]),
+            headers: ['Content-Type' => 'text/html; charset=utf-8'],
+        );
+    }
+
+    private function ensureSchema(): void
+    {
+        $this->pdo->exec('CREATE TABLE IF NOT EXISTS scaffold_messages (id INTEGER PRIMARY KEY, body VARCHAR(255) NOT NULL)');
+    }
+
+    private function ensureWelcomeMessage(): void
+    {
+        $count = PdoHelper::fetchColumn(statement: PdoHelper::query(
+            pdo: $this->pdo,
+            sql: 'SELECT COUNT(*) FROM scaffold_messages',
+        ));
+        if ((int) $count > 0) {
+            return;
+        }
+
+        $statement = PdoHelper::prepare(
+            pdo: $this->pdo,
+            sql: 'INSERT INTO scaffold_messages (id, body) VALUES (:id, :body)',
+        );
+        PdoHelper::execute(statement: $statement, params: ['id' => 1, 'body' => '{{ name }} is running.']);
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
+
+    writeFile("{$appRoot}/templates/index.latte", renderTemplate(<<<'LATTE'
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$title}</title>
+    <style>
+        body { margin: 0; font-family: system-ui, sans-serif; color: #1f2937; background: #f8fafc; }
+        main { max-width: 720px; margin: 72px auto; padding: 0 20px; }
+        .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 28px; box-shadow: 0 10px 24px rgba(15, 23, 42, .06); }
+        h1 { margin: 0 0 12px; font-size: 32px; line-height: 1.25; }
+        p { margin: 0 0 16px; line-height: 1.7; }
+        code { display: inline-block; padding: 3px 7px; border-radius: 6px; background: #f1f5f9; color: #334155; }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="panel">
+            <h1>{$title}</h1>
+            <p>{$message}</p>
+            <p>Route: <code>{$path}</code></p>
+        </section>
+    </main>
+</body>
+</html>
+LATTE, namespace: $namespace, healthPath: '', name: $name));
 }
 
 function writeTodoSource(string $appRoot, string $namespace, string $name, string $basePath, string $viewBasePath): void
