@@ -6,6 +6,8 @@
 
 ## 直近作業
 
+- `bin/README.md` の冒頭に scaffold command の一覧表を追加。
+  - `scaffold-kernel`、`scaffold-shared`、`scaffold-app` と各 app template の実行例・用途を、詳細説明へ入る前に確認できるようにした。
 - `bin/scaffold-app` の template 整備を完了。
   - `config/middleware.php` には全 template で app 固有 middleware の追加位置を示すコメントを生成するようにした。
   - `--template=bare` を追加し、旧 `minimal` と同じ config only template とした。
