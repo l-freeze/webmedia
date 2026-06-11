@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Page\Save;
 
+use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Shared\Validation\FormValidator;
@@ -23,9 +24,9 @@ final readonly class Interactor
         $validation = (new FormValidator(input: $values))
             ->required(field: 'title', label: 'タイトル')
             ->required(field: 'slug', label: 'スラッグ')
-            ->slug(field: 'slug', label: 'スラッグ')
             ->required(field: 'body_markdown', label: '本文')
             ->output();
+        $validation = SlugValidator::validate(input: $values, validation: $validation);
 
         if (!$validation->isValid()) {
             return Output::invalid(validation: $validation);
