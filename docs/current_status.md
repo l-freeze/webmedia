@@ -6,6 +6,12 @@
 
 ## 直近作業
 
+- `c82da39` の `Container.php` reflection cache 追加コミットを評価。
+  - コンストラクタ引数の reflection 結果を static cache 化する方向性は、worker mode 前提の Framework 最適化として妥当。
+  - union / intersection type を明示的に解決不能として扱う変更も、曖昧な依存解決を避けるため妥当。
+  - ただし、コミット時点の `$reflectionCache` PHPDoc は `array<string, array<string, ...>>` なのに実体は list であり、PHPStan 上の型定義として不適切。
+  - `ReflectionParameter::getDefaultValue()` の結果を static cache に保持するため、object default value を使う設計が入ると worker lifetime で同一 default object を保持し続けるリスクがある。現状用途では大きな実害はないが、Container の共通基盤としては注意点。
+  - 総合判定は「方針は適切、型注釈と default value cache の扱いに改善余地あり」。前回の `persistent()` ほど危険な境界違反ではない。
 - `af41dce` のコネクションプール実装を見直し。
   - `Container::persistent()` は connection pool ではなく worker lifetime singleton であるため、`Container::workerSingleton()` に改名。
   - `src/Framework/Container/Container.php` の static 保持名を `$workerInstances` に変更し、request scope service に使わない注意をコードコメントへ追加。
