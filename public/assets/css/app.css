@@ -10,16 +10,41 @@
   --danger: #dc2626;
   --success: #15803d;
   --warning: #b45309;
+
+  /* Modern foundation tokens — shared across all themes, overridable per theme. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .08);
+  --shadow-2: 0 10px 30px rgba(15, 23, 42, .10);
+  --shadow-3: 0 18px 48px rgba(15, 23, 42, .14);
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --speed: 180ms;
+  --focus-ring: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+h1, h2, h3, .front-hero h1, .prose h1 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 body[data-front-theme="cafe-clean"] {
   --bg: #fbf6f2;
   --surface: #fffdf9;
@@ -50,9 +75,14 @@ body[data-front-theme="executive-trust"] {
   --accent: #23615d;
   --accent-soft: #dfeeea;
 }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent); text-decoration: none; transition: color var(--speed) var(--ease); }
 a:hover { text-decoration: underline; }
 img { max-width: 100%; height: auto; }
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
 .site-header, .site-footer, .admin-topbar {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -74,16 +104,22 @@ img { max-width: 100%; height: auto; }
 input, textarea, select {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   background: #fff;
   color: var(--text);
   font: inherit;
+  transition: border-color var(--speed) var(--ease), box-shadow var(--speed) var(--ease);
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
 }
 textarea { min-height: 180px; resize: vertical; }
 button, .button {
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 10px 14px;
   background: var(--accent);
   color: #fff;
@@ -93,7 +129,14 @@ button, .button {
   align-items: center;
   justify-content: center;
   min-height: 40px;
+  transition: transform var(--speed) var(--ease), box-shadow var(--speed) var(--ease), background-color var(--speed) var(--ease);
 }
+button:hover, .button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+button:active, .button:active { transform: translateY(0); box-shadow: var(--shadow-1); }
+.is-disabled:hover, button:disabled:hover { transform: none; box-shadow: none; }
 .button.secondary, button.secondary { background: var(--surface-alt); color: var(--text); }
 .button.danger, button.danger { background: var(--danger); }
 button.is-submitting, input[type="submit"].is-submitting {
@@ -130,11 +173,21 @@ button.is-submitting, input[type="submit"].is-submitting {
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 18px;
+  transition: transform var(--speed) var(--ease), box-shadow var(--speed) var(--ease), border-color var(--speed) var(--ease);
 }
 .article-list { display: grid; gap: 16px; }
-.article-card { display: grid; grid-template-columns: 156px minmax(0, 1fr); gap: 16px; }
+.article-card { display: grid; grid-template-columns: 156px minmax(0, 1fr); gap: 16px; min-width: 0; }
+/* Content-length robustness: any title/excerpt must wrap inside the card,
+   never force the grid track wider or get clipped by overflow:hidden.
+   Grid/flex items default to min-width:auto, so spanning cards (e.g. the
+   cafe-clean featured card) need an explicit floor of 0 to shrink to track. */
+.article-card__media { min-width: 0; }
+.article-card__body { min-width: 0; }
+.article-card h2 { overflow-wrap: anywhere; }
+.article-card h2 a { overflow-wrap: anywhere; }
+.article-card p { overflow-wrap: anywhere; }
 .pagination {
   display: flex;
   align-items: center;
@@ -833,6 +886,14 @@ body[data-front-theme="executive-trust"] .article-card h2 {
 body[data-front-theme="executive-trust"] .article-card p:not(.meta) {
   max-width: 56em;
 }
+
+/* Theme-driven visibility of optional regions.
+   HTML always renders these asides (single shared structure); each theme
+   decides whether its layout exposes the slot. Replaces former {if $frontTheme}
+   branches in index.latte / article/show.latte. */
+body[data-front-theme="tech-edge"] .front-grid > aside { display: none; }
+body[data-front-theme="cafe-clean"] .article-detail-sidebar,
+body[data-front-theme="tech-edge"] .article-detail-sidebar { display: none; }
 
 .admin-body { background: #eef2f6; }
 .admin-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }

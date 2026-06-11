@@ -39,13 +39,12 @@
       </nav>
     {/if}
   </section>
-  {if ($frontTheme ?? '') !== 'tech-edge'}
-    <aside class="card category-panel">
-      <h2>カテゴリ</h2>
-      {foreach $categories as $category}
-        <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
-      {/foreach}
-    </aside>
-  {/if}
+  {* 表示/非表示はテーマ依存だが構造は共通。出し分けは CSS (.front-grid > aside) 側で行う。 *}
+  <aside class="card category-panel">
+    <h2>カテゴリ</h2>
+    {foreach $categories as $category}
+      <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+    {/foreach}
+  </aside>
 </div>
 {/block}

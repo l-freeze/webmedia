@@ -29,13 +29,12 @@
       </div>
     </section>
   </div>
-  {if ($frontTheme ?? '') === 'executive-trust'}
-    <aside class="card category-panel article-detail-sidebar">
-      <h2>カテゴリ</h2>
-      {foreach $publishedCategories as $category}
-        <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
-      {/foreach}
-    </aside>
-  {/if}
+  {* 表示/非表示はテーマ依存だが構造は共通。出し分けは CSS (.article-detail-sidebar) 側で行う。 *}
+  <aside class="card category-panel article-detail-sidebar">
+    <h2>カテゴリ</h2>
+    {foreach $publishedCategories as $category}
+      <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+    {/foreach}
+  </aside>
 </div>
 {/block}
