@@ -257,3 +257,13 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
 - `GET <path-prefix>` の route は、`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix そのものにする。
 - 生成後メッセージでは、`bare` は「config only」、`minimal` は「IndexController + Latte view」、`layered` は「Application / Domain / Infrastructure starter」であることを明示する。
 - 互換性上、これまで `--template=minimal` を使って config only を期待していた自動化は `--template=bare` へ変更する必要がある。README にその移行先を明記する。
+
+---
+
+## worker lifetime service の整理 2026-06-11
+
+`Container::persistent()` は名称が不適切であるため、`Container::workerSingleton()` に改名する。
+
+この API は connection pool ではなく、現在の PHP worker のメモリに instance を保持する lifetime 指定である。Framework は `PDO` などの具体的な永続対象を知らず、Container は lifetime 管理だけを扱う。
+
+ただし request を跨いで同一 instance が使われるため、`Request`、`Session`、`Csrf`、現在ログイン中のユーザー、flash message、validation error、request id / request context には使ってはならない。DB 接続のように worker 単位の再利用が妥当な service に限定して、アプリケーション composition 側で明示的に選択する。

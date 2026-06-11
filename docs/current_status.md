@@ -2,10 +2,16 @@
 
 ## 更新日時
 
-- 2026-06-08
+- 2026-06-11
 
 ## 直近作業
 
+- `af41dce` のコネクションプール実装を見直し。
+  - `Container::persistent()` は connection pool ではなく worker lifetime singleton であるため、`Container::workerSingleton()` に改名。
+  - `src/Framework/Container/Container.php` の static 保持名を `$workerInstances` に変更し、request scope service に使わない注意をコードコメントへ追加。
+  - `apps/kernel/config/container.php` の `PDO::class` 登録を `workerSingleton()` へ変更。
+  - `tests/Framework/ContainerTest.php` に別 Container 間で worker singleton が同一 instance を返すテストを追加。
+  - `src/Framework/Container/README.md`、`apps/kernel/README.md`、`docs/webmedia_architecture_rules.md`、`docs/refactoring.md` に、worker lifetime singleton は connection pool ではなく request 固有状態には使わないことを追記。
 - `docs/refactoring.md` の実態照合を再確認。
   - `git status --short` はクリーン。
   - 直近2コミットは `01b3d92 refactor: readonly を Markdown・LatteTemplateRenderer に付与しコードスタイルを統一` と `c429836 docs: リファクタリング評価・最終方針・Worker Mode 設計判断を追記`。

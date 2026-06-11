@@ -30,6 +30,18 @@ final class ContainerTest extends TestCase
         self::assertSame($container->get(id: Dependency::class), $container->get(id: Dependency::class));
     }
 
+    public function testWorkerSingletonReturnsSameInstanceAcrossContainers(): void
+    {
+        $first = new Container();
+        $second = new Container();
+        $id = __METHOD__;
+
+        $first->workerSingleton(id: $id, factory: fn (): Dependency => new Dependency());
+        $second->workerSingleton(id: $id, factory: fn (): Dependency => new Dependency());
+
+        self::assertSame($first->get(id: $id), $second->get(id: $id));
+    }
+
     public function testHasReturnsTrueForFactoriesAndBindings(): void
     {
         $container = new Container();
@@ -74,10 +86,12 @@ final class ContainerTest extends TestCase
     public function testResolvesMultipleDependencies(): void
     {
         $service1 = (new Container())->get(id: NeedsMultipleDependencies::class);
+        self::assertInstanceOf(NeedsMultipleDependencies::class, $service1);
         self::assertInstanceOf(DependencyA::class, $service1->depA);
         self::assertInstanceOf(DependencyB::class, $service1->depB);
 
         $service2 = (new Container())->get(id: NeedsMultipleDependencies::class);
+        self::assertInstanceOf(NeedsMultipleDependencies::class, $service2);
         self::assertInstanceOf(DependencyA::class, $service2->depA);
         self::assertInstanceOf(DependencyB::class, $service2->depB);
     }
@@ -88,6 +102,7 @@ final class ContainerTest extends TestCase
 
         $service = (new Container())->get(id: NeedsDefaultValue::class);
 
+        self::assertInstanceOf(NeedsDefaultValue::class, $service);
         self::assertInstanceOf(Dependency::class, $service->dep);
         self::assertSame('default', $service->name);
     }

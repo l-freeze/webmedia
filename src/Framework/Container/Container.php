@@ -28,9 +28,9 @@ final class Container implements ContainerInterface
     private array $resolving = [];
 
     /** @var array<string, mixed> */
-    private static array $persistentInstances = [];
+    private static array $workerInstances = [];
 
-    /** @var array<string, array<string, array{type: string|null, hasDefault: bool, default: mixed}>> */
+    /** @var array<string, list<array{name: string, type: string|null, hasDefault: bool, default: mixed}>> */
     private static array $reflectionCache = [];
 
     public function set(string $id, Closure $factory): void
@@ -43,10 +43,15 @@ final class Container implements ContainerInterface
         $this->instances[$id] = $instance;
     }
 
-    public function persistent(string $id, Closure $factory): void
+    /**
+     * Stores an instance for the current PHP worker lifetime.
+     *
+     * Do not use for request-scoped services such as Request, Session, or Csrf.
+     */
+    public function workerSingleton(string $id, Closure $factory): void
     {
-        self::$persistentInstances[$id] ??= $factory($this);
-        $this->instances[$id] = self::$persistentInstances[$id];
+        self::$workerInstances[$id] ??= $factory($this);
+        $this->instances[$id] = self::$workerInstances[$id];
     }
 
     public function singleton(string $id, Closure $factory): void
@@ -109,6 +114,7 @@ final class Container implements ContainerInterface
         if (!isset(self::$reflectionCache[$class])) {
             $reflection = new ReflectionClass($class);
             $constructor = $reflection->getConstructor();
+            /** @var list<array{name: string, type: string|null, hasDefault: bool, default: mixed}> $params */
             $params = [];
             if ($constructor !== null) {
                 foreach ($constructor->getParameters() as $parameter) {
