@@ -35,3 +35,36 @@ Framework は PSR-11 の読み取り contract に加えて、定義登録用の�
 - `bind()`: interface や abstract class を concrete class に結びます。
 
 PSR-11 準拠は外部から container を扱うための contract であり、登録 API はこの Framework の composition 用 API です。
+
+## Constructor injection の書き方
+
+Container は constructor の型情報を worker 内で cache します。
+
+DI 対象 class の constructor では、object dependency は default value にせず、必須引数として宣言します。
+
+Good:
+
+```php
+final readonly class ArticleService
+{
+    public function __construct(
+        private ArticleRepository $articles,
+        private string $status = 'draft',
+    ) {
+    }
+}
+```
+
+Bad:
+
+```php
+final readonly class ArticleService
+{
+    public function __construct(
+        private ArticleRepository $articles = new InMemoryArticleRepository(),
+    ) {
+    }
+}
+```
+
+object default value は worker lifetime の cache に保持される可能性があるため、request 固有状態や mutable object を含めると意図しない共有につながります。
