@@ -4,30 +4,25 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
+use App\Front\Application\Tag;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
-use App\Front\Application\Tag\List\Query\ITagQuery as ListTagQuery;
-use App\Front\Application\Tag\List\Value\Tag as ListTag;
-use App\Front\Application\Tag\Show\Query\IArticleQuery as ShowArticleQuery;
-use App\Front\Application\Tag\Show\Query\ITagQuery as ShowTagQuery;
-use App\Front\Application\Tag\Show\Value\Article as ShowArticle;
-use App\Front\Application\Tag\Show\Value\TagDetail;
 use PDO;
 
-final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArticleQuery
+final readonly class PdoTagQuery implements Tag\List\Query\ITagQuery, Tag\Show\Query\ITagQuery, Tag\Show\Query\IArticleQuery
 {
     public function __construct(private PDO $pdo)
     {
     }
 
-    /** @return array<int, ListTag> */
+    /** @return array<int, Tag\List\Value\Tag> */
     public function all(): array
     {
         $tags = [];
         foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            $tags[] = new ListTag(
+            $tags[] = new Tag\List\Value\Tag(
                 id: $pdoRow->int(key: 'id'),
                 name: $pdoRow->string(key: 'name'),
                 slug: $pdoRow->string(key: 'slug'),
@@ -38,7 +33,7 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
         return $tags;
     }
 
-    public function find(string $slug): ?TagDetail
+    public function find(string $slug): ?Tag\Show\Value\TagDetail
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT name, slug FROM tags WHERE slug = :slug');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
@@ -48,10 +43,10 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
         }
         $pdoRow = PdoRow::from(values: $row);
 
-        return new TagDetail(name: $pdoRow->string(key: 'name'), slug: $pdoRow->string(key: 'slug'));
+        return new Tag\Show\Value\TagDetail(name: $pdoRow->string(key: 'name'), slug: $pdoRow->string(key: 'slug'));
     }
 
-    /** @return array<int, ShowArticle> */
+    /** @return array<int, Tag\Show\Value\Article> */
     public function articles(string $slug): array
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
@@ -60,7 +55,7 @@ final readonly class PdoTagQuery implements ListTagQuery, ShowTagQuery, ShowArti
         foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            $articles[] = new ShowArticle(
+            $articles[] = new Tag\Show\Value\Article(
                 id: $pdoRow->int(key: 'id'),
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),

@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Article\List\Query\IArticleQuery as ListArticleQuery;
-use App\Cms\Application\Article\List\Value\Article;
+use App\Cms\Application\Article\List;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
 
-final readonly class PdoArticleQuery implements ListArticleQuery
+final readonly class PdoArticleQuery implements List\Query\IArticleQuery
 {
     public function __construct(private PDO $pdo)
     {
     }
 
-    /** @return array<int, Article> */
+    /** @return array<int, List\Value\Article> */
     public function list(string $keyword = ''): array
     {
         $sql = 'SELECT a.*, c.name AS category_name FROM articles a LEFT JOIN categories c ON c.id = a.category_id WHERE a.status <> :trashed';
@@ -37,11 +36,11 @@ final readonly class PdoArticleQuery implements ListArticleQuery
     }
 
     /** @param array<string, mixed> $row */
-    private function format(array $row): Article
+    private function format(array $row): List\Value\Article
     {
         $pdoRow = PdoRow::from(values: $row);
 
-        return new Article(
+        return new List\Value\Article(
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             status: $pdoRow->string(key: 'status'),

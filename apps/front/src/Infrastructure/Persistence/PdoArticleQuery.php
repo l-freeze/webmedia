@@ -4,25 +4,20 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
+use App\Front\Application\Article;
+use App\Front\Application\Home;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
-use App\Front\Application\Article\Search\Query\IArticleQuery as SearchArticleQuery;
-use App\Front\Application\Article\Search\Value\Article as SearchArticle;
-use App\Front\Application\Article\Show\Query\IArticleQuery as ShowArticleQuery;
-use App\Front\Application\Article\Show\Value\Article as ShowArticle;
-use App\Front\Application\Home\Show\Query\IArticleQuery as HomeArticleQuery;
-use App\Front\Application\Home\Show\Value\Article as HomeArticle;
-use App\Front\Application\Home\Show\Value\ArticleCount;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use PDO;
 
-final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQuery, SearchArticleQuery
+final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, Article\Show\Query\IArticleQuery, Article\Search\Query\IArticleQuery
 {
     public function __construct(private PDO $pdo, private Markdown $markdown)
     {
     }
 
-    /** @return array<int, HomeArticle> */
+    /** @return array<int, Home\Show\Value\Article> */
     public function latest(int $limit, int $offset): array
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' ORDER BY a.published_at DESC, a.id DESC LIMIT :limit OFFSET :offset');
@@ -37,12 +32,12 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         return $articles;
     }
 
-    public function countPublished(): ArticleCount
+    public function countPublished(): Home\Show\Value\ArticleCount
     {
-        return new ArticleCount(value: PdoRow::from(['count' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM articles a WHERE ' . $this->publicCondition()))])->int(key: 'count'));
+        return new Home\Show\Value\ArticleCount(value: PdoRow::from(['count' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM articles a WHERE ' . $this->publicCondition()))])->int(key: 'count'));
     }
 
-    public function findPublishedBySlug(string $slug): ?ShowArticle
+    public function findPublishedBySlug(string $slug): ?Article\Show\Value\Article
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.slug = :slug LIMIT 1');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
@@ -62,7 +57,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         );
     }
 
-    /** @return array<int, SearchArticle> */
+    /** @return array<int, Article\Search\Value\Article> */
     public function search(string $keyword): array
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.body_markdown ILIKE :body_q) ORDER BY a.published_at DESC');
@@ -76,7 +71,7 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
         return $articles;
     }
 
-    /** @return array<int, ShowArticle> */
+    /** @return array<int, Article\Show\Value\Article> */
     public function related(int $articleId, ?int $categoryId): array
     {
         if ($categoryId === null) {
@@ -114,11 +109,11 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
      * @param array<string, mixed> $row
      * @param array<int, array{name:string,slug:string}> $tags
      */
-    private function showArticle(array $row, ?string $bodyHtml = null, array $tags = []): ShowArticle
+    private function showArticle(array $row, ?string $bodyHtml = null, array $tags = []): Article\Show\Value\Article
     {
         $pdoRow = PdoRow::from(values: $row);
 
-        return new ShowArticle(
+        return new Article\Show\Value\Article(
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),
@@ -136,11 +131,11 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     }
 
     /** @param array<string, mixed> $row */
-    private function homeArticle(array $row): HomeArticle
+    private function homeArticle(array $row): Home\Show\Value\Article
     {
         $pdoRow = PdoRow::from(values: $row);
 
-        return new HomeArticle(
+        return new Home\Show\Value\Article(
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),
@@ -156,11 +151,11 @@ final readonly class PdoArticleQuery implements HomeArticleQuery, ShowArticleQue
     }
 
     /** @param array<string, mixed> $row */
-    private function searchArticle(array $row): SearchArticle
+    private function searchArticle(array $row): Article\Search\Value\Article
     {
         $pdoRow = PdoRow::from(values: $row);
 
-        return new SearchArticle(
+        return new Article\Search\Value\Article(
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),

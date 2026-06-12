@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence;
 
+use App\Front\Application\Category;
+use App\Front\Application\Home;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
-use App\Front\Application\Category\List\Query\ICategoryQuery as ListCategoryQuery;
-use App\Front\Application\Category\List\Value\Category as ListCategory;
-use App\Front\Application\Category\Show\Query\IArticleQuery as ShowArticleQuery;
-use App\Front\Application\Category\Show\Query\ICategoryQuery as ShowCategoryQuery;
-use App\Front\Application\Category\Show\Value\Article as ShowArticle;
-use App\Front\Application\Category\Show\Value\CategoryDetail;
-use App\Front\Application\Home\Show\Query\ICategoryQuery as HomeCategoryQuery;
-use App\Front\Application\Home\Show\Value\Category as HomeCategory;
 use PDO;
 
-final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategoryQuery, ShowCategoryQuery, ShowArticleQuery
+final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery, Category\List\Query\ICategoryQuery, Category\Show\Query\ICategoryQuery, Category\Show\Query\IArticleQuery
 {
     public function __construct(private PDO $pdo)
     {
     }
 
-    /** @return array<int, HomeCategory|ListCategory> */
+    /** @return array<int, Home\Show\Value\Category|Category\List\Value\Category> */
     public function all(): array
     {
         $categories = [];
@@ -33,7 +27,7 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
         return $categories;
     }
 
-    public function find(string $slug): ?CategoryDetail
+    public function find(string $slug): ?Category\Show\Value\CategoryDetail
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT name, slug, description FROM categories WHERE slug = :slug');
         PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
@@ -43,14 +37,14 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
         }
         $pdoRow = PdoRow::from(values: $row);
 
-        return new CategoryDetail(
+        return new Category\Show\Value\CategoryDetail(
             name: $pdoRow->string(key: 'name'),
             slug: $pdoRow->string(key: 'slug'),
             description: $pdoRow->nullableString(key: 'description'),
         );
     }
 
-    /** @return array<int, ShowArticle> */
+    /** @return array<int, Category\Show\Value\Article> */
     public function articles(string $slug): array
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
@@ -59,7 +53,7 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
         foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            $articles[] = new ShowArticle(
+            $articles[] = new Category\Show\Value\Article(
                 id: $pdoRow->int(key: 'id'),
                 title: $pdoRow->string(key: 'title'),
                 slug: $pdoRow->string(key: 'slug'),
@@ -75,11 +69,11 @@ final readonly class PdoCategoryQuery implements HomeCategoryQuery, ListCategory
     }
 
     /** @param array<string, mixed> $row */
-    private function category(array $row): HomeCategory
+    private function category(array $row): Home\Show\Value\Category
     {
         $pdoRow = PdoRow::from(values: $row);
 
-        return new HomeCategory(
+        return new Home\Show\Value\Category(
             id: $pdoRow->int(key: 'id'),
             name: $pdoRow->string(key: 'name'),
             slug: $pdoRow->string(key: 'slug'),
