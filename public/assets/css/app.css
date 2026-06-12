@@ -1311,6 +1311,9 @@ body[data-front-theme="mama-soft"] .prose { border-radius: 16px; }
    Unset → the modifier class is absent and each theme's own hero is unchanged.
    Specificity .front-hero.front-hero--image (0,3,1) beats every per-theme hero. */
 body[data-front-theme] .front-hero.front-hero--image {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
   border: 0;
   min-height: 340px;
   color: #fff;
@@ -1318,8 +1321,13 @@ body[data-front-theme] .front-hero.front-hero--image {
     linear-gradient(0deg, rgba(12, 16, 24, .62), rgba(12, 16, 24, .32)),
     var(--hero-image) center / cover no-repeat;
 }
+body[data-front-theme] .front-grid > section > .front-hero.front-hero--image {
+  grid-template-columns: 1fr;
+}
 body[data-front-theme] .front-hero.front-hero--image::before,
-body[data-front-theme] .front-hero.front-hero--image::after { display: none; }
+body[data-front-theme] .front-hero.front-hero--image::after,
+body[data-front-theme] .front-grid > section > .front-hero.front-hero--image::before,
+body[data-front-theme] .front-grid > section > .front-hero.front-hero--image::after { display: none; }
 body[data-front-theme] .front-hero.front-hero--image .front-hero__visual { display: none; }
 body[data-front-theme] .front-hero.front-hero--image .front-hero__copy { position: relative; z-index: 1; }
 body[data-front-theme] .front-hero.front-hero--image h1,
@@ -1613,6 +1621,21 @@ th { background: #f8fafc; font-size: .88rem; color: var(--muted); }
     padding-right: 0;
   }
   body[data-front-theme="dev-docs"] .site-footer { width: auto; }
+  body[data-front-theme="recipe-fresh"] .site-header__inner {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "brand"
+      "nav"
+      "search";
+  }
+  body[data-front-theme="recipe-fresh"] .brand,
+  body[data-front-theme="recipe-fresh"] .nav,
+  body[data-front-theme="recipe-fresh"] .search-inline {
+    justify-self: stretch;
+  }
+  body[data-front-theme="recipe-fresh"] .brand { text-align: center; }
+  body[data-front-theme="recipe-fresh"] .nav,
+  body[data-front-theme="recipe-fresh"] .search-inline { justify-content: center; }
   /* recipe-fresh: masonry → single column */
   body[data-front-theme="recipe-fresh"] .article-list { grid-template-columns: 1fr; }
   body[data-front-theme="recipe-fresh"] .article-card:first-child,
