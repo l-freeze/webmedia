@@ -8,14 +8,12 @@ use App\Cms\Application\Media\Upload\Input;
 use App\Cms\Application\Media\Upload\Interactor;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 
 final readonly class Controller
 {
     public function __construct(
         private Session $session,
-        private Csrf $csrf,
         private Interactor $upload,
     ) {
     }
@@ -27,10 +25,6 @@ final readonly class Controller
             $this->session->flash(key: 'error', value: 'アップロード全体のサイズが大きすぎます。画像は20MB以内、動画は512MB以内にしてください。');
             return Response::redirect(location: '/admin/media');
         }
-        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
-            return new Response(body: 'Invalid CSRF token', status: 422);
-        }
-
         $file = $request->files['media_file'] ?? [];
         if (!is_array($file)) {
             $file = [];

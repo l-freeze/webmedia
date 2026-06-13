@@ -331,6 +331,9 @@ if (!is_array($sharedMiddleware)) {
 return [
     ...$sharedMiddleware,
 
+    // Shared middleware includes security headers and CSRF protection.
+    // CSRF is disabled when APP_ENV is stg, staging, dev, develop, development, or test.
+    // Exclude paths with CSRF_EXCLUDED_PATHS=/webhook/*,/api/external.
     // Add app-specific middleware here.
     // Example: AppNameHeaderMiddleware::class,
     AppNameHeaderMiddleware::class,
@@ -351,6 +354,9 @@ if (!is_array($sharedMiddleware)) {
 return [
     ...$sharedMiddleware,
 
+    // Shared middleware includes security headers and CSRF protection.
+    // CSRF is disabled when APP_ENV is stg, staging, dev, develop, development, or test.
+    // Exclude paths with CSRF_EXCLUDED_PATHS=/webhook/*,/api/external.
     // Add app-specific middleware here.
     // Example: App\YourApp\Infrastructure\Http\Middleware\YourMiddleware::class,
 ];

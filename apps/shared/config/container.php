@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
+use App\Framework\Security\CsrfMiddleware;
 use App\Framework\Security\Session;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
@@ -15,6 +16,28 @@ use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 
 return static function (Container $container, string $root): void {
+    $envString = static function (string $key, string $default = ''): string {
+        if (array_key_exists($key, $_ENV)) {
+            $value = $_ENV[$key];
+        } elseif (array_key_exists($key, $_SERVER)) {
+            $value = $_SERVER[$key];
+        } else {
+            $value = getenv($key);
+            if ($value === false) {
+                return $default;
+            }
+        }
+
+        return is_scalar($value) ? (string) $value : $default;
+    };
+
+    $csv = static function (string $value): array {
+        return array_values(array_filter(array_map(
+            static fn (string $item): string => trim($item),
+            explode(',', $value),
+        ), static fn (string $item): bool => $item !== ''));
+    };
+
     $container->singleton(id: Csrf::class, factory: function (Container $container): Csrf {
         $session = $container->get(id: Session::class);
         if (!$session instanceof Session) {
@@ -22,6 +45,20 @@ return static function (Container $container, string $root): void {
         }
 
         return new Csrf(session: $session);
+    });
+    $container->singleton(id: CsrfMiddleware::class, factory: function (Container $container) use ($csv, $envString): CsrfMiddleware {
+        $csrf = $container->get(id: Csrf::class);
+        if (!$csrf instanceof Csrf) {
+            throw new \RuntimeException('CSRF service is not registered.');
+        }
+
+        $appEnv = strtolower($envString('APP_ENV', 'production'));
+
+        return new CsrfMiddleware(
+            csrf: $csrf,
+            excludedPaths: $csv($envString('CSRF_EXCLUDED_PATHS')),
+            enabled: !in_array($appEnv, ['stg', 'staging', 'dev', 'develop', 'development', 'test'], true),
+        );
     });
     $container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
     $container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new JsonFileLogger($root . '/storage/logs/app.log'));

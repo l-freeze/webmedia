@@ -23,10 +23,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
-            return $this->form(error: '不正な送信です。', old: $request->body);
-        }
-
         $name = $request->input(key: 'name');
         $email = $request->input(key: 'email');
         $subject = $request->input(key: 'subject');

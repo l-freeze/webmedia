@@ -34,6 +34,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('TemplateRenderer::class', $container);
 
             $middleware = $this->read(path: $root . '/apps/api/config/middleware.php');
+            self::assertStringContainsString('CSRF protection', $middleware);
+            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
         } finally {
@@ -67,6 +69,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('PDO::class', $container);
 
             $middleware = $this->read(path: $root . '/apps/mini-app/config/middleware.php');
+            self::assertStringContainsString('CSRF protection', $middleware);
+            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
@@ -126,6 +130,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('LatteTemplateRenderer', $container);
 
             $middleware = $this->read(path: $root . '/apps/todo/config/middleware.php');
+            self::assertStringContainsString('CSRF protection', $middleware);
+            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
@@ -172,6 +178,8 @@ final class ScaffoldAppTest extends TestCase
             $this->runScaffold(root: $root, name: 'layered-app', pathPrefix: '/layered', template: 'layered');
 
             $middleware = $this->read(path: $root . '/apps/layered-app/config/middleware.php');
+            self::assertStringContainsString('CSRF protection', $middleware);
+            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('AppNameHeaderMiddleware::class', $middleware);
         } finally {

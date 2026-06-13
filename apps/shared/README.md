@@ -62,6 +62,21 @@ Framework の `Response` は HTTP response を表現して送信するだけに�
 
 `bin/scaffold-app` が生成する `apps/{name}/config/middleware.php` は shared middleware を読み込むため、新規 app にも自動で適用されます。
 
+### CSRF middleware
+
+`App\Framework\Security\CsrfMiddleware` は shared middleware として標準適用します。
+
+CSRF は session-backed な state-changing request の横断ルールです。Controller ごとの `Csrf::validate()` ではなく middleware で検証します。検証 token は body の `_csrf` だけを読み、query fallback はしません。
+
+`APP_ENV` が `stg`、`staging`、`dev`、`develop`、`development`、`test` の場合は CSRF 検証を無効化します。未指定または production 系では有効です。
+
+除外 path が必要な場合は `CSRF_EXCLUDED_PATHS` に comma 区切りで指定します。完全一致と、末尾 `*` の prefix match を使えます。
+
+```text
+APP_ENV=production
+CSRF_EXCLUDED_PATHS=/webhook/*,/api/external
+```
+
 ### CORS middleware
 
 `App\Shared\Cors\Infrastructure\Http\CorsMiddleware` は shared に置きますが、適用するかどうかは各アプリの `config/middleware.php` で決めます。

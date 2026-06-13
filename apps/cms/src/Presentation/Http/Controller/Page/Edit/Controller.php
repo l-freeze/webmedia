@@ -16,8 +16,8 @@ final readonly class Controller
 {
     public function __construct(
         private TemplateRenderer $renderer,
-        private Session $session,
         private Csrf $csrf,
+        private Session $session,
         private Edit\Interactor $edit,
         private History\Interactor $history,
     ) {

@@ -51,22 +51,24 @@ Framework が CSRF を持つことは「アプリケーション要件を奪う�
 
 ### 対応内容
 
-- Framework に `CsrfMiddleware` を追加する。
+- Framework に `CsrfMiddleware` を追加した。
 - `CsrfMiddleware` は状態変更 method を対象にする。
   - 対象: `POST`, `PUT`, `PATCH`, `DELETE`
   - 除外: `GET`, `HEAD`, `OPTIONS`
 - token は body の `_csrf` から読む。
-- 不正 token は `403` または `419` 相当の response を返す。
-- scaffold で生成する middleware config には、session-backed web app の標準として CSRF middleware を入れる。
-- 既存 CMS / front の Controller から個別 `csrf->validate()` を段階的に撤去する。
+- 不正 token は `422` response を返す。
+- `APP_ENV` が `stg`, `staging`, `dev`, `develop`, `development`, `test` の場合は CSRF 検証を無効化する。
+- `CSRF_EXCLUDED_PATHS` で path 単位の除外を設定できる。
+- scaffold で生成する middleware config には、session-backed web app の標準として CSRF middleware を入れた。
+- 既存 CMS / front の Controller から個別 `csrf->validate()` を撤去した。
 - token 発行は現在どおり view/global provider 側に残す。
 
 ### 実装場所
 
 - `src/Framework/Security/Csrf.php`: 維持
-- `src/Framework/Security/CsrfMiddleware.php` または `src/Framework/Http/Middleware/CsrfMiddleware.php`: 追加候補
-- `apps/shared/config/middleware.php` または scaffold 生成物: デフォルト組み込み
-- `bin/scaffold-shared` / `bin/scaffold-app`: 生成物更新
+- `src/Framework/Security/CsrfMiddleware.php`
+- `apps/shared/config/middleware.php`: デフォルト組み込み
+- `bin/scaffold-app`: 生成物更新
 
 ### 注意点
 
@@ -376,7 +378,7 @@ Framework package 化時に採用する。
 
 ## 実施順
 
-1. CSRF middleware を追加し、scaffold / middleware config に組み込む。
+1. CSRF middleware を追加し、scaffold / middleware config に組み込む。完了。
 2. front layout global data cache を入れる。
 3. scaffold-kernel の例外ハンドラを debug mode に応じて安全側にする。
 4. `workerSingleton()` の説明を強化する。

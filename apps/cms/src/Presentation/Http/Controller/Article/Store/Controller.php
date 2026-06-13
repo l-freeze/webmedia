@@ -8,14 +8,12 @@ use App\Cms\Application\Article\Save\Input;
 use App\Cms\Application\Article\Save\Interactor;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 
 final readonly class Controller
 {
     public function __construct(
         private Session $session,
-        private Csrf $csrf,
         private Interactor $save,
     ) {
     }
@@ -23,10 +21,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
-            return new Response(body: 'Invalid CSRF token', status: 422);
-        }
-
         $output = $this->save->execute(input: new Input(id: null, data: $request->body));
         if ($output->articleId === null) {
             $this->session->flashValue(key: 'article.form_input', value: $this->articleFormData(data: $request->body, id: null));

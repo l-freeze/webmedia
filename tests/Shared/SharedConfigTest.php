@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Shared;
 
 use App\Framework\Container\Container;
+use App\Framework\Security\CsrfMiddleware;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
@@ -38,5 +39,6 @@ final class SharedConfigTest extends TestCase
 
         self::assertIsArray($middleware);
         self::assertContains(SecurityHeadersMiddleware::class, $middleware);
+        self::assertContains(CsrfMiddleware::class, $middleware);
     }
 }
