@@ -51,17 +51,17 @@ Framework が CSRF を持つことは「アプリケーション要件を奪う�
 
 ### 対応内容
 
-- Framework に `CsrfMiddleware` を追加した。
-- `CsrfMiddleware` は状態変更 method を対象にする。
+- [x] Framework に `CsrfMiddleware` を追加した。
+- [x] `CsrfMiddleware` は状態変更 method を対象にする。
   - 対象: `POST`, `PUT`, `PATCH`, `DELETE`
   - 除外: `GET`, `HEAD`, `OPTIONS`
-- token は body の `_csrf` から読む。
-- 不正 token は `422` response を返す。
-- `APP_ENV` が `stg`, `staging`, `dev`, `develop`, `development`, `test` の場合は CSRF 検証を無効化する。
-- `CSRF_EXCLUDED_PATHS` で path 単位の除外を設定できる。
-- scaffold で生成する middleware config には、session-backed web app の標準として CSRF middleware を入れた。
-- 既存 CMS / front の Controller から個別 `csrf->validate()` を撤去した。
-- token 発行は現在どおり view/global provider 側に残す。
+- [x] token は body の `_csrf` から読む。
+- [x] 不正 token は `422` response を返す。
+- [x] `APP_ENV` が `stg`, `staging`, `dev`, `develop`, `development`, `test` の場合は CSRF 検証を無効化する。
+- [x] `CSRF_EXCLUDED_PATHS` で path 単位の除外を設定できる。
+- [x] scaffold で生成する middleware config には、session-backed web app の標準として CSRF middleware を入れた。
+- [x] 既存 CMS / front の Controller から個別 `csrf->validate()` を撤去した。
+- [x] token 発行は現在どおり view/global provider 側に残す。
 
 ### 実装場所
 
@@ -90,9 +90,9 @@ worker mode では `Application` が生存するため、Router と dispatcher �
 
 ### 対応内容
 
-- 直近対応なし。
-- 性能計測で route dispatch が実ボトルネックになった場合のみ再検討する。
-- 再検討する場合も、まず現状の in-memory dispatcher reuse を benchmark で確認する。
+- [ ] 直近対応なし。
+- [ ] 性能計測で route dispatch が実ボトルネックになった場合のみ再検討する。
+- [ ] 再検討する場合も、まず現状の in-memory dispatcher reuse を benchmark で確認する。
 
 ## A-2: layout 共通 data cache
 
@@ -112,15 +112,15 @@ front の `TemplateRenderer` global provider は render ごとに以下を読む
 
 ### 対応内容
 
-- `CacheInterface` を使って layout global data を cache する。
-- cache key は front layout 専用に分ける。
-- TTL は短めから始める。
+- [ ] `CacheInterface` を使って layout global data を cache する。
+- [ ] cache key は front layout 専用に分ける。
+- [ ] TTL は短めから始める。
   - 例: 60 秒から 300 秒
-- CMS の以下更新時に invalidation する。
+- [ ] CMS の以下更新時に invalidation する。
   - site settings update
   - page publish/status update
   - category create/update/delete
-- invalidation が面倒な初期段階では短 TTL だけでもよい。
+- [ ] invalidation が面倒な初期段階では短 TTL だけでもよい。
 
 ### 実装場所
 
@@ -146,12 +146,12 @@ Framework core の default をいきなり変えるのは避ける。
 
 ### 対応内容
 
-- `PlainTextExceptionHandler` は維持する。
-- scaffold-kernel が生成する `apps/kernel/config/application.php` で、環境に応じて handler を選ぶ。
+- [x] `PlainTextExceptionHandler` は維持する。
+- [ ] scaffold-kernel が生成する `apps/kernel/config/application.php` で、環境に応じて handler を選ぶ。
 - 例:
   - `APP_DEBUG=true`: `RethrowingExceptionHandler`
   - それ以外: `PlainTextExceptionHandler`
-- 将来的に project-specific handler を用意する場合は Kernel 側に置く。
+- [ ] 将来的に project-specific handler を用意する場合は Kernel 側に置く。
 
 ### 実装場所
 
@@ -181,10 +181,10 @@ Framework core の default をいきなり変えるのは避ける。
 
 段階的に対応する。
 
-1. テンプレート内の inline script / inline style を棚卸しする。
-2. CDN 依存をローカル asset に寄せる。
-3. `SecurityHeadersMiddleware` の CSP から不要な CDN 許可を外す。
-4. inline が残る場合のみ nonce / hash を検討する。
+1. [ ] テンプレート内の inline script / inline style を棚卸しする。
+2. [ ] CDN 依存をローカル asset に寄せる。
+3. [ ] `SecurityHeadersMiddleware` の CSP から不要な CDN 許可を外す。
+4. [ ] inline が残る場合のみ nonce / hash を検討する。
 
 最初から nonce に寄せるより、まず inline と CDN を減らす方が単純である。
 
@@ -290,10 +290,10 @@ $container->workerSingleton(id: 'front.pdo', factory: ...);
 
 ### 対応内容
 
-- `workerSingleton()` の phpdoc / README に、Container instance 単位ではなく PHP worker process 単位で共有されることを明記する。
-- `Request`, `Session`, `Csrf`, user context, auth state, per-request cache には使わないことを明記する。
-- 複数 App で別実体が必要な場合は id を分けることを明記する。
-- `reflectionCache` は状態を持たない performance cache であると明記する。
+- [x] `workerSingleton()` の phpdoc / README に、Container instance 単位ではなく PHP worker process 単位で共有されることを明記する。
+- [ ] `Request`, `Session`, `Csrf`, user context, auth state, per-request cache には使わないことを明記する。
+- [ ] 複数 App で別実体が必要な場合は id を分けることを明記する。
+- [ ] `reflectionCache` は状態を持たない performance cache であると明記する。
 
 ### 実装場所
 
@@ -318,13 +318,13 @@ $container->workerSingleton(id: 'front.pdo', factory: ...);
 
 ### 対応内容
 
-- 既存 `input()` は維持する。
-- 破壊的変更はしない。
-- 任意で以下を追加する。
-  - `bodyInput(string $key, string $default = ''): string`
-  - `queryInput(string $key, string $default = ''): string`
-- CSRF middleware など横断処理では `bodyInput()` または body 直接参照を使う。
-- README に `input()` は body 優先、query fallback の convenience API であることを明記する。
+- [x] 既存 `input()` は維持する。
+- [x] 破壊的変更はしない。
+- [x] 任意で以下を追加する。
+  - [x] `bodyInput(string $key, string $default = ''): string`
+  - [x] `queryInput(string $key, string $default = ''): string`
+- [x] CSRF middleware など横断処理では `bodyInput()` または body 直接参照を使う。
+- [ ] README に `input()` は body 優先、query fallback の convenience API であることを明記する。
 
 ## B-4: CI
 
@@ -338,11 +338,11 @@ $container->workerSingleton(id: 'front.pdo', factory: ...);
 
 ### 対応内容
 
-- GitHub Actions を追加する。
-- Docker Compose 経由で実行できるようにする。
-- 最低限以下を実行する。
-  - `composer analyse`
-  - `composer test`
+- [ ] GitHub Actions を追加する。
+- [ ] Docker Compose 経由で実行できるようにする。
+- [ ] 最低限以下を実行する。
+  - [ ] `composer analyse`
+  - [ ] `composer test`
 
 ### 注意点
 
@@ -360,9 +360,9 @@ Framework package 化時に採用する。
 
 ### 対応内容
 
-- package 分離時に public API を定義する。
-- `src/Framework` の public contract と internal implementation を分ける。
-- 破壊的変更の扱いを README に書く。
+- [ ] package 分離時に public API を定義する。
+- [ ] `src/Framework` の public contract と internal implementation を分ける。
+- [ ] 破壊的変更の扱いを README に書く。
 
 ## C 系指摘
 
@@ -378,13 +378,13 @@ Framework package 化時に採用する。
 
 ## 実施順
 
-1. CSRF middleware を追加し、scaffold / middleware config に組み込む。完了。
-2. front layout global data cache を入れる。
-3. scaffold-kernel の例外ハンドラを debug mode に応じて安全側にする。
-4. `workerSingleton()` の説明を強化する。
-5. CSP から CDN / inline 依存を減らす。
-6. CI を追加する。
-7. 必要なら `bodyInput()` / `queryInput()` を追加する。
+1. [x] CSRF middleware を追加し、scaffold / middleware config に組み込む。
+2. [ ] front layout global data cache を入れる。
+3. [ ] scaffold-kernel の例外ハンドラを debug mode に応じて安全側にする。
+4. [ ] `workerSingleton()` の説明を強化する。
+5. [ ] CSP から CDN / inline 依存を減らす。
+6. [ ] CI を追加する。
+7. [x] 必要なら `bodyInput()` / `queryInput()` を追加する。
 
 ## 採用しない大きな主張
 
