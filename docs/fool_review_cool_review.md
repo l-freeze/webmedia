@@ -18,22 +18,22 @@
 
 ## 優先度一覧
 
-| 指摘 | 方針 | 優先度 | 理由 |
-|---|---|---:|---|
-| S-1 CSRF middleware 化 | 採用 | 高 | Web form の基本防御であり、Controller 規約より middleware の方が漏れに強い |
-| S-2 状態なし構成の worker reuse | 一部採用 | 中 | routes/middleware は既に概ね reuse 済み。Container 定義 cache は別設計が必要 |
-| S-3 例外ハンドラ安全化 | scaffold 側で採用 | 中 | 初回リリース時の設定漏れに効くが、Framework core の既定変更は微妙 |
-| S-4 CSP unsafe-inline 撤廃 | 採用 | 中 | 指摘箇所は誤りだが、`SecurityHeadersMiddleware` の課題として妥当 |
-| A-1 routing cachedDispatcher | 原則却下 | 低 | worker では `Router` と dispatcher を既にプロパティ保持している |
-| A-2 layout 共通 query cache | 採用 | 高 | render ごとの DB 3 往復は実効性能に効く |
-| A-3 Container 定義 worker cache | 保留 | 低 | 雑にやると request scoped instance 混入リスクがある |
-| A-4 middleware chain 事前構築 | 保留 | 低 | 効果が小さく、現状の単純さを崩すほどではない |
-| B-1 class_exists fallback 廃止 | 保留 | 中 | autowire の便利さと明示性の trade-off。freeze と一緒に検討 |
-| B-2 Container static scope | 説明追加 | 中 | Framework が勝手に scope を決める話ではない |
-| B-3 Request input 分離 | 原則却下、追加 API は任意 | 低 | App 開発者が用途を理解する領域。横断処理では明示取得が有効 |
-| B-4 CI | 採用 | 中 | `composer analyse` / `composer test` はあるので自動実行すべき |
-| B-5 semver / BC policy | package 化時に採用 | 低 | 今の webmedia 内では早い |
-| C 系微最適化 | 原則却下 | 低 | 現時点の主性能問題ではない |
+| 指摘 | 判定 | 理由 |
+|---|---|---|
+| S-1 CSRF middleware 化 | 採用 | Controller 規約ではなく middleware で構造化する。ただし `Csrf` は Framework に残し、scaffold で標準組み込みにする |
+| S-2 状態なし構成の worker reuse | 大幅に方針は変えるが採用 | 方針自体は正しい。ただし routes/middleware は既に概ね reuse 済み。Container 定義 cache は別設計が必要 |
+| S-3 例外ハンドラ安全化 | 大幅に方針は変えるが採用 | Framework core の既定変更ではなく、scaffold-kernel の生成物を本番安全側にする |
+| S-4 CSP unsafe-inline 撤廃 | 採用 | 指摘箇所は誤りだが、Shared の security policy として対応する |
+| A-1 routing cachedDispatcher | 却下 | 今のアーキテクチャーと worker 上の `Router` / dispatcher reuse を理解していない。論外 |
+| A-2 layout 共通 query cache | 採用 | render ごとの DB 3 往復は実効性能に効く |
+| A-3 Container 定義 worker cache | 却下 | Container lifetime の設計思想を理解していない。雑な cache は request scoped state を漏らすので論外 |
+| A-4 middleware chain 事前構築 | 却下 | 現状の単純さを崩してまでやる効果がない。優先度判断が論外 |
+| B-1 class_exists fallback 廃止 | 保留 | 論点自体はあるが、autowire の設計方針と Container freeze の話に分けて検討する |
+| B-2 Container static scope | 大幅に方針は変えるが採用 | Framework が scope を勝手に決める話ではない。`workerSingleton()` の共有範囲を説明追加する |
+| B-3 Request input 分離 | 却下 | App 開発者の責務を Framework の儀式に変えている。設計思想を理解していない |
+| B-4 CI | 採用 | `composer analyse` / `composer test` はあるので自動実行する |
+| B-5 semver / BC policy | package 化時に採用 | 今すぐではないが、Framework package 化時には必要 |
+| C 系微最適化 | 却下 | 今の性能課題を理解していない難癖。論外 |
 
 ## S-1: CSRF middleware 化
 
