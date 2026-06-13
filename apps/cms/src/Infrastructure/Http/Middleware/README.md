@@ -4,6 +4,18 @@ CMS 専用の middleware はこのディレクトリへ置きます。
 
 Framework の middleware pipeline は実行順と呼び出し規約だけを提供します。CMS のログイン必須判定、CMS 固有の監査、CMS 固有の request 制約のように、アプリケーションの事情を知る処理は `apps/cms` 側で実装します。
 
+現時点では CMS 固有 middleware を `Infrastructure/Http/Middleware` に統一します。HTTP pipeline に差し込む基盤部品として扱うことで、Controller の置き場所である `Presentation/Http/Controller` と役割を分けます。
+
+## 将来の分離ルール
+
+middleware が増え、1つのディレクトリに置くとかえって責務が読みにくくなった場合だけ、次の基準で分離します。
+
+- `apps/cms/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect など、CMS の HTTP 表現に直接関わる middleware。
+- `apps/cms/src/Infrastructure/Http/Middleware/`: session adapter、proxy header、upload limit、監査ログ送出、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近い middleware。
+- `src/Framework/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
+
+TODO: middleware が複数増えた時点で、この基準に照らして配置を見直します。分離する場合は class の namespace、`apps/cms/config/middleware.php` の import、README の配置説明を同じ変更単位で更新します。
+
 ## 作り方
 
 `App\Framework\Http\Middleware\MiddlewareInterface` を実装します。

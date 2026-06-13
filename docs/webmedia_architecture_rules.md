@@ -726,6 +726,16 @@ Infrastructure は Application と Domain の interface に依存してよい。
 
 Application と Domain は Infrastructure に依存してはならない。
 
+アプリ固有の HTTP middleware は、現時点では `apps/<app>/src/Infrastructure/Http/Middleware` に置く。HTTP pipeline に差し込む基盤部品として扱い、Controller の置き場所である `Presentation/Http/Controller` と分ける。
+
+TODO: middleware が増え、Infrastructure に統一すると責務が読みにくくなった場合だけ、次の基準で分離する。
+
+- `apps/<app>/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect など、HTTP 表現に直接関わるもの。
+- `apps/<app>/src/Infrastructure/Http/Middleware/`: session adapter、proxy header、upload limit、監査ログ送出、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いもの。
+- `src/Framework/Http/Middleware/`: app に依存しない middleware interface、pipeline、共通実行機構。
+
+分離する場合は class の namespace、`apps/<app>/config/middleware.php` の import、README の配置説明を同じ変更単位で更新する。
+
 ## 10.5 Presentation ルール
 
 Presentation は HTTP/HTML としてどう見せるかを扱う。

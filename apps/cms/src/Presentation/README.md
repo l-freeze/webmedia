@@ -64,6 +64,12 @@ ViewModel は HTML の見せ方に寄せた値を持ちます。UseCase の戻�
 
 ## Middleware
 
-CMS 固有 middleware は現状 `apps/cms/src/Infrastructure/Http/Middleware` に置きます。Controller と同じ HTTP 周辺ではありますが、今回の移動対象は「画面入力を受けて UseCase を呼び Response を返す Controller」です。
+CMS 固有 middleware は `apps/cms/src/Infrastructure/Http/Middleware` に置きます。Controller と同じ HTTP 周辺ではありますが、middleware は HTTP pipeline に差し込むアプリ固有の基盤部品として扱います。
 
-middleware の責務を Presentation に寄せるかは、認証、監査、request 制約などの扱いを改めて整理するタイミングで判断します。
+ただし将来 middleware が増え、すべてを Infrastructure に置く方がかえって分かりにくくなった場合は、次の基準で分離を検討します。
+
+- `Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect など、CMS の HTTP 表現に直接関わるもの。
+- `Infrastructure/Http/Middleware/`: session adapter、proxy header、upload limit、監査ログ送出、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いもの。
+- `src/Framework/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
+
+TODO: middleware が複数増えた時点で、この分離基準に照らして `Infrastructure/Http/Middleware` のまま統一するか、`Presentation/Http/Middleware` を追加するかを判断します。判断時は class の移動だけでなく、`apps/cms/config/middleware.php` の import と README の配置説明も同じコミットで更新します。
