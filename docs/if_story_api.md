@@ -53,7 +53,7 @@
 推奨する追加構造:
 
 ```text
-apps/front/src/Infrastructure/Http/Controller/Api/
+apps/front/src/Presentation/Http/Controller/Api/
   HomeApiController.php
   ArticleApiController.php
   CategoryApiController.php
@@ -260,7 +260,7 @@ apps/front/src/Infrastructure/Persistence/
   PdoFavoriteQuery.php
 ```
 
-Controller は `apps/front/src/Infrastructure/Http/Controller/Api` 配下に置き、HTML Controller と混ぜない。
+Controller は `apps/front/src/Presentation/Http/Controller/Api` 配下に置き、HTML Controller と混ぜない。
 
 ### 2.5 お気に入り API の例
 

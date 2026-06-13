@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Front\Infrastructure\Http\Controller\Article\Show\Controller as ArticleShowController;
-use App\Front\Infrastructure\Http\Controller\Category\List\Controller as CategoryListController;
-use App\Front\Infrastructure\Http\Controller\Category\Show\Controller as CategoryShowController;
-use App\Front\Infrastructure\Http\Controller\Contact\Create\Controller as ContactCreateController;
-use App\Front\Infrastructure\Http\Controller\Contact\Store\Controller as ContactStoreController;
-use App\Front\Infrastructure\Http\Controller\Contact\Success\Controller as ContactSuccessController;
-use App\Front\Infrastructure\Http\Controller\Home\Show\Controller as HomeShowController;
-use App\Front\Infrastructure\Http\Controller\Page\Show\Controller as PageShowController;
-use App\Front\Infrastructure\Http\Controller\Search\Index\Controller as SearchIndexController;
-use App\Front\Infrastructure\Http\Controller\State\Loading\Controller as StateLoadingController;
-use App\Front\Infrastructure\Http\Controller\State\Menu\Controller as StateMenuController;
-use App\Front\Infrastructure\Http\Controller\State\NoArticles\Controller as StateNoArticlesController;
-use App\Front\Infrastructure\Http\Controller\Tag\List\Controller as TagListController;
-use App\Front\Infrastructure\Http\Controller\Tag\Show\Controller as TagShowController;
+use App\Front\Presentation\Http\Controller\Article\Show\Controller as ArticleShowController;
+use App\Front\Presentation\Http\Controller\Category\List\Controller as CategoryListController;
+use App\Front\Presentation\Http\Controller\Category\Show\Controller as CategoryShowController;
+use App\Front\Presentation\Http\Controller\Contact\Create\Controller as ContactCreateController;
+use App\Front\Presentation\Http\Controller\Contact\Store\Controller as ContactStoreController;
+use App\Front\Presentation\Http\Controller\Contact\Success\Controller as ContactSuccessController;
+use App\Front\Presentation\Http\Controller\Home\Show\Controller as HomeShowController;
+use App\Front\Presentation\Http\Controller\Page\Show\Controller as PageShowController;
+use App\Front\Presentation\Http\Controller\Search\Index\Controller as SearchIndexController;
+use App\Front\Presentation\Http\Controller\State\Loading\Controller as StateLoadingController;
+use App\Front\Presentation\Http\Controller\State\Menu\Controller as StateMenuController;
+use App\Front\Presentation\Http\Controller\State\NoArticles\Controller as StateNoArticlesController;
+use App\Front\Presentation\Http\Controller\Tag\List\Controller as TagListController;
+use App\Front\Presentation\Http\Controller\Tag\Show\Controller as TagShowController;
 
 return [
     ['GET', '/', HomeShowController::class],

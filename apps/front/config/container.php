@@ -18,7 +18,7 @@ use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
-use App\Front\Infrastructure\Seo\CanonicalUrl;
+use App\Front\Presentation\Seo\CanonicalUrl;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 

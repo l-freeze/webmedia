@@ -67,7 +67,7 @@ src/
 許可:
 
 ```text
-Controller -> Application Interactor
+Presentation Controller -> Application Interactor
 Application Interactor -> Application Query interface
 Application Interactor -> Domain Repository interface
 Application Interactor -> Domain Entity / ValueObject
@@ -191,9 +191,12 @@ apps/front/
     Domain/
       Repository/
         IInquiryRepository.php
-    Infrastructure/
+    Presentation/
       Http/
         Controller/
+      Seo/
+        CanonicalUrl.php
+    Infrastructure/
       Persistence/
         PdoArticleQuery.php
         PdoCategoryQuery.php
@@ -584,7 +587,7 @@ IArticleRevisionTableRepository
 読み取り側:
 
 ```text
-Controller
+Presentation Controller
   -> Application/<対象>/<ユースケース>/Input
   -> Application/<対象>/<ユースケース>/Interactor
   -> Application/<対象>/<ユースケース>/Query/I...Query
@@ -595,7 +598,7 @@ Controller
 書き込み側:
 
 ```text
-Controller
+Presentation Controller
   -> Application/<対象>/<ユースケース>/Input
   -> Application/<対象>/<ユースケース>/Interactor
   -> Domain Entity / ValueObject
@@ -705,14 +708,12 @@ Infrastructure は外部技術の詳細を扱う。
 置いてよいもの:
 
 ```text
-HTTP Controller
 Middleware
 PDO
 SQL
 Repository implementation
 Query implementation
 Mapper
-Presenter
 Renderer adapter
 Filesystem
 Logger implementation
@@ -723,9 +724,28 @@ Infrastructure は Application と Domain の interface に依存してよい。
 
 Application と Domain は Infrastructure に依存してはならない。
 
+## 10.5 Presentation ルール
+
+Presentation は HTTP/HTML としてどう見せるかを扱う。
+
+置いてよいもの:
+
+```text
+HTTP Controller
+ViewModel
+Presenter
+SEO meta
+canonical URL
+Request / Response DTO
+```
+
+Presentation は Application を呼んでよい。Presentation は Infrastructure/Persistence の具象実装へ直接依存してはならない。
+
+Front の HTTP Controller と SEO meta は `apps/front/src/Presentation` に置く。CMS Controller は現状 `apps/cms/src/Infrastructure/Http/Controller` に残すが、新しく Front に表示責務を追加する場合は Presentation に置く。
+
 ## 11. Controller ルール
 
-Controller は Infrastructure に置く。
+Controller は表示層の入口である。Front では `Presentation/Http/Controller` に置く。CMS は既存構成として `Infrastructure/Http/Controller` に置く。
 
 Controller の責務:
 
@@ -1117,24 +1137,29 @@ Handler
 Controller は HTTP アクション単位のディレクトリに置く。
 
 ```text
-Infrastructure/Http/Controller/<対象>/<HTTPアクション>/Controller.php
+Presentation/Http/Controller/<対象>/<HTTPアクション>/Controller.php
 ```
 
-例:
+Front 例:
+
+```text
+Presentation/Http/Controller/Article/List/Controller.php
+Presentation/Http/Controller/Article/Show/Controller.php
+Presentation/Http/Controller/Search/Index/Controller.php
+```
+
+CMS 既存例:
 
 ```text
 Infrastructure/Http/Controller/Article/List/Controller.php
 Infrastructure/Http/Controller/Article/Create/Controller.php
 Infrastructure/Http/Controller/Article/Store/Controller.php
-Infrastructure/Http/Controller/Article/Edit/Controller.php
-Infrastructure/Http/Controller/Article/Update/Controller.php
-Infrastructure/Http/Controller/Article/Delete/Controller.php
 ```
 
 Controller class 名は各ディレクトリ内で `Controller` とする。
 
 ```php
-namespace App\Cms\Infrastructure\Http\Controller\Article\Store;
+namespace App\Front\Presentation\Http\Controller\Article\Show;
 
 final readonly class Controller
 {
@@ -1190,7 +1215,7 @@ HTTP アクションは「リクエストの入口」を表し、Application Use
 Controller アクション配下には、必要になった時だけ `Request.php` や `Response.php` を追加してよい。
 
 ```text
-Infrastructure/Http/Controller/Article/Store/
+Presentation/Http/Controller/Article/Show/
   Controller.php
   Request.php
   Response.php
@@ -1304,7 +1329,7 @@ Domain Entity / ValueObject
 Application Interactor
 Infrastructure PDO Repository
 Infrastructure PDO Query
-HTTP Controller integration
+Presentation HTTP Controller integration
 ```
 
 Interactor の unit test では fake Query または fake Repository implementation を使う。
@@ -1333,6 +1358,7 @@ PDO test では test database を使ってよい。
 [ ] UseCase Input の constructor 呼び出しは引数数に関わらず named arguments を使っている
 [ ] Application は Infrastructure に依存していない
 [ ] Domain は Application / Infrastructure に依存していない
+[ ] Presentation は Infrastructure/Persistence の具象実装に直接依存していない
 [ ] Controller に業務ルールを書いていない
 [ ] Controller の UseCase import で不要な `as` alias を使っていない
 [ ] 複数 UseCase を使う Controller は上位 namespace import と `Edit\Input` 形式で参照している

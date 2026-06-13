@@ -10,7 +10,7 @@ canonical URL は、同じ内容に複数URLで到達できる場合に「この
 
 canonical は認証やCORSのような横断的なHTTP制御ではなく、ページごとの意味を持つSEOメタ情報として扱う。
 
-そのため、Front専用middlewareでHTMLへ自動挿入するのではなく、canonicalを出すページのControllerから明示的にテンプレートへ渡す。URL生成の重複は共通クラスへ集約し、Controllerには「このページではcanonicalを出す」という判断だけを残す。
+そのため、Front専用middlewareでHTMLへ自動挿入するのではなく、canonicalを出すページのControllerから明示的にテンプレートへ渡す。URL生成の重複は `Presentation/Seo` の共通クラスへ集約し、`Presentation/Http/Controller` には「このページではcanonicalを出す」という判断だけを残す。
 
 ## 対象ページ
 
@@ -53,7 +53,7 @@ FRONT_SITE_URL=https://example.com
 ## 実装内容
 
 1. Front側にcanonical URL生成クラスを追加する。
-   - 例: `App\Front\Infrastructure\Seo\CanonicalUrl`
+   - 例: `App\Front\Presentation\Seo\CanonicalUrl`
    - `fromPath(string $path): ?string`
    - `article(string $slug): ?string`
    - `category(string $slug): ?string`

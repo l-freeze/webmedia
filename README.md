@@ -44,7 +44,7 @@ make test
 - `src/Framework`: DI、HTTP、Routing、middleware pipeline、runtime などのアプリ非依存な軽量基盤
 - `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く
 - `apps/shared`: 複数 App で共有する横断関心ごと。セキュリティヘッダ、ログ、キャッシュなど
-- `apps/front`: 読者向けフロント。公開済み記事の Query 中心
+- `apps/front`: 読者向けフロント。公開済み記事の Query と Presentation/HTTP 表示を担当
 - `apps/cms`: 管理画面。認証、記事保存、履歴、管理機能
 - `database/migrations`: Phinx マイグレーション
 - `database/seeds`: ローカル確認用シード
@@ -57,6 +57,8 @@ Framework は意図的に小さく保ちます。
 Framework は最小の実行基盤だけを提供します。アプリケーション要件は Kernel、Shared、各 App に置きます。機能は、理解しやすく、差し替えやすく、削除しやすい場合にだけ追加します。
 
 賢い抽象より、退屈で明示的で読みやすいコードを優先します。
+
+各 App のディレクトリ責務は App 配下の README にも記載します。Front app は [apps/front/README.md](apps/front/README.md) を参照してください。
 
 ## Design Philosophy
 
