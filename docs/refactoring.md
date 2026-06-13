@@ -267,7 +267,7 @@ PSR-20 `Psr\Clock\ClockInterface` も現時点で必須ではない。PSR-20 は
 - `--template=minimal`
   - 余計な層を作らず、1つの Controller ソースに処理を寄せた「動く最小アプリ」を生成する。
   - `bare` の生成物に加えて、少なくとも以下を生成する。
-    - `src/Infrastructure/Http/Controller/Index/Controller.php`
+    - `src/Presentation/Http/Controller/Index/Controller.php`
     - `templates/index.latte`
     - `config/routes.php` に `GET <path-prefix>` の route
     - `config/container.php` に `TemplateRenderer::class` の binding

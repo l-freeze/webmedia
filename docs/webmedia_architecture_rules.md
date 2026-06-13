@@ -327,10 +327,12 @@ apps/cms/
     Auth/
       Domain/
       Infrastructure/
+    Presentation/
+      Http/
+        Controller/
     Infrastructure/
       Http/
-        AuthGuard.php
-        Controller/
+        Middleware/
       Persistence/
         PdoArticleRepository.php
         PdoArticleQuery.php
@@ -741,11 +743,11 @@ Request / Response DTO
 
 Presentation は Application を呼んでよい。Presentation は Infrastructure/Persistence の具象実装へ直接依存してはならない。
 
-Front の HTTP Controller と SEO meta は `apps/front/src/Presentation` に置く。CMS Controller は現状 `apps/cms/src/Infrastructure/Http/Controller` に残すが、新しく Front に表示責務を追加する場合は Presentation に置く。
+Front と CMS の HTTP Controller は `apps/<app>/src/Presentation/Http/Controller` に置く。Front の SEO meta や sitemap などの公開表現も `apps/front/src/Presentation` に置く。
 
 ## 11. Controller ルール
 
-Controller は表示層の入口である。Front では `Presentation/Http/Controller` に置く。CMS は既存構成として `Infrastructure/Http/Controller` に置く。
+Controller は表示層の入口である。Front と CMS のどちらも `Presentation/Http/Controller` に置く。
 
 Controller の責務:
 
@@ -1148,12 +1150,12 @@ Presentation/Http/Controller/Article/Show/Controller.php
 Presentation/Http/Controller/Search/Index/Controller.php
 ```
 
-CMS 既存例:
+CMS 例:
 
 ```text
-Infrastructure/Http/Controller/Article/List/Controller.php
-Infrastructure/Http/Controller/Article/Create/Controller.php
-Infrastructure/Http/Controller/Article/Store/Controller.php
+Presentation/Http/Controller/Article/List/Controller.php
+Presentation/Http/Controller/Article/Create/Controller.php
+Presentation/Http/Controller/Article/Store/Controller.php
 ```
 
 Controller class 名は各ディレクトリ内で `Controller` とする。

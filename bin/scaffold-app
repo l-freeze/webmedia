@@ -84,8 +84,8 @@ if ($template === 'layered') {
         "{$appRoot}/src/Domain/Entity",
         "{$appRoot}/src/Domain/Repository",
         "{$appRoot}/src/Domain/Value",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show",
+        "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit",
+        "{$appRoot}/src/Presentation/Http/Controller/Health/Show",
         "{$appRoot}/src/Infrastructure/Http/Middleware",
         "{$appRoot}/src/Infrastructure/Persistence",
     ]);
@@ -99,8 +99,8 @@ if ($template === 'layered') {
         "{$appRoot}/src/Domain/Entity/HealthCheck.php",
         "{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php",
         "{$appRoot}/src/Domain/Value/HealthMessage.php",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit/Controller.php",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Health/Show/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Health/Show/Controller.php",
         "{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php",
         "{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php",
     ]);
@@ -109,18 +109,18 @@ if ($template === 'layered') {
 if ($template === 'todo') {
     $directories = array_merge($directories, [
         "{$appRoot}/src/Application/Todo",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Complete",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Index",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Store",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Index",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Store",
         "{$appRoot}/src/Infrastructure/Persistence",
         "{$appRoot}/templates",
     ]);
     $paths = array_merge($paths, [
         "{$appRoot}/src/Application/Todo/TodoItem.php",
         "{$appRoot}/src/Application/Todo/TodoRepository.php",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Complete/Controller.php",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Index/Controller.php",
-        "{$appRoot}/src/Infrastructure/Http/Controller/Todo/Store/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php",
         "{$appRoot}/src/Infrastructure/Persistence/PdoTodoRepository.php",
         "{$appRoot}/templates/index.latte",
     ]);
@@ -128,11 +128,11 @@ if ($template === 'todo') {
 
 if ($template === 'minimal') {
     $directories = array_merge($directories, [
-        "{$appRoot}/src/Infrastructure/Http/Controller/Index",
+        "{$appRoot}/src/Presentation/Http/Controller/Index",
         "{$appRoot}/templates",
     ]);
     $paths = array_merge($paths, [
-        "{$appRoot}/src/Infrastructure/Http/Controller/Index/Controller.php",
+        "{$appRoot}/src/Presentation/Http/Controller/Index/Controller.php",
         "{$appRoot}/templates/index.latte",
     ]);
 }
@@ -154,8 +154,8 @@ if ($template === 'layered') {
 
 declare(strict_types=1);
 
-use App\{{ namespace }}\Infrastructure\Http\Controller\Health\Show\Controller as HealthShowController;
-use App\{{ namespace }}\Infrastructure\Http\Controller\Contact\Submit\Controller as ContactSubmitController;
+use App\{{ namespace }}\Presentation\Http\Controller\Health\Show\Controller as HealthShowController;
+use App\{{ namespace }}\Presentation\Http\Controller\Contact\Submit\Controller as ContactSubmitController;
 
 return [
     ['GET', '{{ healthPath }}', HealthShowController::class],
@@ -168,9 +168,9 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $
 
 declare(strict_types=1);
 
-use App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Complete\Controller as TodoCompleteController;
-use App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Index\Controller as TodoIndexController;
-use App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Store\Controller as TodoStoreController;
+use App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete\Controller as TodoCompleteController;
+use App\{{ namespace }}\Presentation\Http\Controller\Todo\Index\Controller as TodoIndexController;
+use App\{{ namespace }}\Presentation\Http\Controller\Todo\Store\Controller as TodoStoreController;
 
 return [
     ['GET', '{{ basePath }}', TodoIndexController::class],
@@ -184,7 +184,7 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $
 
 declare(strict_types=1);
 
-use App\{{ namespace }}\Infrastructure\Http\Controller\Index\Controller as IndexController;
+use App\{{ namespace }}\Presentation\Http\Controller\Index\Controller as IndexController;
 
 return [
     ['GET', '{{ basePath }}', IndexController::class],
@@ -405,7 +405,7 @@ if ($template === 'bare') {
 if ($template === 'minimal') {
     echo "Minimal starter:\n";
     echo "- Single-controller HTML starter at {$basePath}.\n";
-    echo "- Infrastructure/Http/Controller/Index: Controller with PDO access and TemplateRenderer output.\n";
+    echo "- Presentation/Http/Controller/Index: Controller with PDO access and TemplateRenderer output.\n";
     echo "- templates/index.latte: Single-page Latte view.\n\n";
 }
 if ($template === 'layered') {
@@ -415,14 +415,14 @@ if ($template === 'layered') {
     echo "- Domain/Entity: HealthCheck entity example.\n";
     echo "- Domain/Value: HealthMessage value object example.\n";
     echo "- Domain/Repository: HealthCheck repository interface.\n";
-    echo "- Infrastructure/Http/Controller: HTTP controller examples.\n";
+    echo "- Presentation/Http/Controller: HTTP controller examples.\n";
     echo "- Infrastructure/Http/Middleware: App-specific middleware example.\n";
     echo "- Infrastructure/Persistence: PDO repository example.\n\n";
 }
 if ($template === 'todo') {
     echo "Todo starter:\n";
     echo "- Application/Todo: Todo DTO and repository interface.\n";
-    echo "- Infrastructure/Http/Controller/Todo: List, create, and complete actions.\n";
+    echo "- Presentation/Http/Controller/Todo: List, create, and complete actions.\n";
     echo "- Infrastructure/Persistence: PDO repository with a small self-contained todos table.\n";
     echo "- templates/index.latte: Latte view for the todo list.\n\n";
 }
@@ -678,12 +678,12 @@ final readonly class HealthMessage
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
 
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Contact/Submit/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Contact/Submit/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Contact\Submit;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Contact\Submit;
 
 use App\{{ namespace }}\Application\Contact\Submit\Input;
 use App\{{ namespace }}\Application\Contact\Submit\Interactor;
@@ -714,12 +714,12 @@ final readonly class Controller
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
 
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Health/Show/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Health/Show/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Health\Show;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Health\Show;
 
 use App\{{ namespace }}\Application\Health\Show\Input;
 use App\{{ namespace }}\Application\Health\Show\Interactor;
@@ -804,12 +804,12 @@ PHP, namespace: $namespace, healthPath: '', name: $name));
 
 function writeMinimalSource(string $appRoot, string $namespace, string $name, string $basePath): void
 {
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Index/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Index/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Index;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Index;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -950,12 +950,12 @@ interface TodoRepository
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
 
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Todo/Index/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Index;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Index;
 
 use App\{{ namespace }}\Application\Todo\TodoRepository;
 use App\Framework\Http\Request;
@@ -987,12 +987,12 @@ final readonly class Controller
 }
 PHP, namespace: $namespace, healthPath: '', name: $name, viewBasePath: $viewBasePath));
 
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Todo/Store/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Store;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Store;
 
 use App\{{ namespace }}\Application\Todo\TodoRepository;
 use App\Framework\Http\Request;
@@ -1017,12 +1017,12 @@ final readonly class Controller
 }
 PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
 
-    writeFile("{$appRoot}/src/Infrastructure/Http/Controller/Todo/Complete/Controller.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\{{ namespace }}\Infrastructure\Http\Controller\Todo\Complete;
+namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete;
 
 use App\{{ namespace }}\Application\Todo\TodoRepository;
 use App\Framework\Http\Request;

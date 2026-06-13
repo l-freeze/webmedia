@@ -89,7 +89,7 @@ php bin/scaffold-app api /api --template=minimal
 
 追加で生成される主な構成:
 
-- `src/Infrastructure/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
+- `src/Presentation/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
 - `templates/index.latte`: 一枚絵の HTML として成立する Latte template
 
 `config/routes.php` には `GET <path-prefix>` の route が追加されます。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を route にします。
@@ -113,7 +113,7 @@ php bin/scaffold-app api /api --template=layered
 - `src/Domain/Entity`: Entity の例
 - `src/Domain/Value`: Value Object の例
 - `src/Domain/Repository`: Repository interface の例
-- `src/Infrastructure/Http/Controller`: Controller の例
+- `src/Presentation/Http/Controller`: Controller の例
 - `src/Infrastructure/Http/Middleware`: アプリ固有 middleware の例
 - `src/Infrastructure/Persistence`: PDO repository 実装の例
 
@@ -130,7 +130,7 @@ php bin/scaffold-app todo /todo --template=todo
 追加で生成される主な構成:
 
 - `src/Application/Todo`: Todo DTO と repository interface
-- `src/Infrastructure/Http/Controller/Todo`: 一覧表示、追加、完了の Controller
+- `src/Presentation/Http/Controller/Todo`: 一覧表示、追加、完了の Controller
 - `src/Infrastructure/Persistence`: PDO repository 実装
 - `templates/index.latte`: Todo 一覧の Latte template
 

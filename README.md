@@ -45,7 +45,7 @@ make test
 - `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く
 - `apps/shared`: 複数 App で共有する横断関心ごと。セキュリティヘッダ、ログ、キャッシュなど
 - `apps/front`: 読者向けフロント。公開済み記事の Query と Presentation/HTTP 表示を担当
-- `apps/cms`: 管理画面。認証、記事保存、履歴、管理機能
+- `apps/cms`: 管理画面。認証、記事保存、履歴、管理機能、Presentation/HTTP 表示を担当
 - `database/migrations`: Phinx マイグレーション
 - `database/seeds`: ローカル確認用シード
 - `public`: Web 公開ディレクトリ
