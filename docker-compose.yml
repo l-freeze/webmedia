@@ -18,6 +18,7 @@ services:
       DB_DATABASE: webmedia
       DB_USERNAME: webmedia
       DB_PASSWORD: webmedia
+      FRONT_SITE_URL: ${FRONT_SITE_URL:-}
     depends_on:
       db:
         condition: service_healthy

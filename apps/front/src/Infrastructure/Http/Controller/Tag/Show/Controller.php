@@ -9,12 +9,14 @@ use App\Framework\Http\Response;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Tag\Show\Input;
 use App\Front\Application\Tag\Show\Interactor;
+use App\Front\Infrastructure\Seo\CanonicalUrl;
 
 final readonly class Controller
 {
     public function __construct(
         private TemplateRenderer $renderer,
         private Interactor $interactor,
+        private CanonicalUrl $canonicalUrl,
     ) {
     }
 
@@ -27,6 +29,7 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'list.latte', params: [
             'title' => $tag['name'] ?? 'タグ',
             'heading' => '#' . ($tag['name'] ?? 'タグ'),
+            'canonicalUrl' => $tag !== null ? $this->canonicalUrl->tag(slug: $tag['slug']) : null,
             'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
         ]));
     }

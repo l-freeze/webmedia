@@ -18,6 +18,7 @@ use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
+use App\Front\Infrastructure\Seo\CanonicalUrl;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
@@ -55,6 +56,9 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
     allowedHeaders: $csv($envString('FRONT_CORS_ALLOWED_HEADERS', 'Content-Type,X-Requested-With')),
     allowCredentials: filter_var($envString('FRONT_CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOL),
     maxAge: (int) $envString('FRONT_CORS_MAX_AGE', '600'),
+));
+$container->singleton(id: CanonicalUrl::class, factory: static fn (): CanonicalUrl => new CanonicalUrl(
+    baseUrl: $envString('FRONT_SITE_URL'),
 ));
 
 $container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {

@@ -9,10 +9,15 @@ use App\Framework\Http\Response;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Page\Show\Input;
 use App\Front\Application\Page\Show\Interactor;
+use App\Front\Infrastructure\Seo\CanonicalUrl;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer, private Interactor $interactor)
+    public function __construct(
+        private TemplateRenderer $renderer,
+        private Interactor $interactor,
+        private CanonicalUrl $canonicalUrl,
+    )
     {
     }
 
@@ -24,9 +29,11 @@ final readonly class Controller
             return new Response(body: 'Not Found', status: 404);
         }
         $page = $page->toArray();
+        $slug = is_string($page['slug'] ?? null) ? $page['slug'] : '';
 
         return new Response(body: $this->renderer->render(template: 'page/show.latte', params: [
             'title' => $page['title'],
+            'canonicalUrl' => $this->canonicalUrl->page(slug: $slug),
             'page' => $page,
         ]));
     }

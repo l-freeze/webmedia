@@ -9,12 +9,14 @@ use App\Framework\Http\Response;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Category\Show\Input;
 use App\Front\Application\Category\Show\Interactor;
+use App\Front\Infrastructure\Seo\CanonicalUrl;
 
 final readonly class Controller
 {
     public function __construct(
         private TemplateRenderer $renderer,
         private Interactor $interactor,
+        private CanonicalUrl $canonicalUrl,
     ) {
     }
 
@@ -28,6 +30,7 @@ final readonly class Controller
             'title' => $category['name'] ?? 'カテゴリ',
             'heading' => $category['name'] ?? 'カテゴリ',
             'lead' => $category['description'] ?? '',
+            'canonicalUrl' => $category !== null ? $this->canonicalUrl->category(slug: $category['slug']) : null,
             'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
         ]));
     }

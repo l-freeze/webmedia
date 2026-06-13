@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{$title} | {$siteName}</title>
   <meta name="description" content="{$description ?? ''}">
+  {if ($canonicalUrl ?? '') !== ''}
+    <link rel="canonical" href="{$canonicalUrl}">
+  {/if}
   <link rel="stylesheet" href="/assets/css/app.css?v=20260612-hero-image">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script type="module" src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"></script>

@@ -9,10 +9,15 @@ use App\Framework\Http\Response;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Article\Show\Input;
 use App\Front\Application\Article\Show\Interactor;
+use App\Front\Infrastructure\Seo\CanonicalUrl;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer, private Interactor $interactor)
+    public function __construct(
+        private TemplateRenderer $renderer,
+        private Interactor $interactor,
+        private CanonicalUrl $canonicalUrl,
+    )
     {
     }
 
@@ -30,9 +35,12 @@ final readonly class Controller
         }
 
         $article = $article->toArray();
+        $slug = is_string($article['slug'] ?? null) ? $article['slug'] : '';
+
         return new Response(body: $this->renderer->render(template: 'article/show.latte', params: [
             'title' => $article['title'],
             'description' => $article['excerpt'],
+            'canonicalUrl' => $this->canonicalUrl->article(slug: $slug),
             'article' => $article,
             'related' => array_map(fn ($item): array => $item->toArray(), $output->related),
         ]));
