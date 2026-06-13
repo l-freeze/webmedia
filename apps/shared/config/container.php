@@ -63,8 +63,8 @@ return static function (Container $container, string $root): void {
     $container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
     $container->singleton(id: LoggerInterface::class, factory: fn (): LoggerInterface => new JsonFileLogger($root . '/storage/logs/app.log'));
     $container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new PlaceholderAuditLogger());
-    $container->singleton(id: CacheInterface::class, factory: static function () use ($root): CacheInterface {
-        $driver = $_ENV['SHARED_CACHE_DRIVER'] ?? 'file';
+    $container->singleton(id: CacheInterface::class, factory: static function () use ($envString, $root): CacheInterface {
+        $driver = $envString('SHARED_CACHE_DRIVER', 'file');
         $driver = is_scalar($driver) ? strtolower((string) $driver) : 'file';
 
         return match ($driver) {
