@@ -23,6 +23,27 @@ final class RequestTest extends TestCase
         self::assertSame('fallback', $request->input(key: 'missing', default: 'fallback'));
     }
 
+    public function testBodyInputReadsOnlyBody(): void
+    {
+        $request = new Request(method: 'POST', path: '/contact', query: ['_csrf' => 'query-token'], body: ['_csrf' => 'body-token'], server: []);
+
+        self::assertSame('body-token', $request->bodyInput(key: '_csrf'));
+    }
+
+    public function testBodyInputDoesNotFallbackToQuery(): void
+    {
+        $request = new Request(method: 'POST', path: '/contact', query: ['_csrf' => 'query-token'], body: [], server: []);
+
+        self::assertSame('', $request->bodyInput(key: '_csrf'));
+    }
+
+    public function testQueryInputReadsOnlyQuery(): void
+    {
+        $request = new Request(method: 'GET', path: '/search', query: ['q' => 'php'], body: ['q' => 'body'], server: []);
+
+        self::assertSame('php', $request->queryInput(key: 'q'));
+    }
+
     public function testFromGlobalsBuildsRequestFromSuperglobals(): void
     {
         $previousServer = $_SERVER;

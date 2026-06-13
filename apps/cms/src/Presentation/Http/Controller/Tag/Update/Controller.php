@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->csrf->validate(token: $request->input(key: '_csrf'))) {
+        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
             $this->session->flash(key: 'tag.form_error', value: '不正な送信です。');
 
             return Response::redirect(location: '/admin/tags');

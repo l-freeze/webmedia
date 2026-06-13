@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if (!$this->csrf->validate(token: $request->input(key: '_csrf'))) {
+        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
             return new Response(body: 'Invalid CSRF token', status: 422);
         }
 

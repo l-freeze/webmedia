@@ -21,16 +21,16 @@
 | 指摘 | 判定 | 理由 |
 |---|---|---|
 | S-1 CSRF middleware 化 | 採用 | Controller 規約ではなく middleware で構造化する。ただし `Csrf` は Framework に残し、scaffold で標準組み込みにする |
-| S-2 状態なし構成の worker reuse | 大幅に方針は変えるが採用 | 方針自体は正しい。ただし routes/middleware は既に概ね reuse 済み。Container 定義 cache は別設計が必要 |
+| S-2 状態なし構成の worker reuse | 大幅に方針は変えるが採用 | 方針自体は正しい。ただし routes/middleware は既に概ね reuse 済み。Container 定義 cache は採用しない |
 | S-3 例外ハンドラ安全化 | 大幅に方針は変えるが採用 | Framework core の既定変更ではなく、scaffold-kernel の生成物を本番安全側にする |
 | S-4 CSP unsafe-inline 撤廃 | 採用 | 指摘箇所は誤りだが、Shared の security policy として対応する |
 | A-1 routing cachedDispatcher | 却下 | 今のアーキテクチャーと worker 上の `Router` / dispatcher reuse を理解していない。論外 |
 | A-2 layout 共通 query cache | 採用 | render ごとの DB 3 往復は実効性能に効く |
-| A-3 Container 定義 worker cache | 却下 | Container lifetime の設計思想を理解していない。雑な cache は request scoped state を漏らすので論外 |
+| A-3 Container 定義 worker cache | 却下 | Container lifetime の設計思想を理解していない。request scoped state を漏らす地雷なので論外。一生やらない |
 | A-4 middleware chain 事前構築 | 却下 | 現状の単純さを崩してまでやる効果がない。優先度判断が論外 |
 | B-1 class_exists fallback 廃止 | 保留 | 論点自体はあるが、autowire の設計方針と Container freeze の話に分けて検討する |
 | B-2 Container static scope | 大幅に方針は変えるが採用 | Framework が scope を勝手に決める話ではない。`workerSingleton()` の共有範囲を説明追加する |
-| B-3 Request input 分離 | 却下 | App 開発者の責務を Framework の儀式に変えている。設計思想を理解していない |
+| B-3 Request input 分離 | 大幅に方針は変えるが一部採用 | `input()` 廃止と全 Controller 強制は却下。CSRF など横断処理の body 明示と source 明示 API は採用 |
 | B-4 CI | 採用 | `composer analyse` / `composer test` はあるので自動実行する |
 | B-5 semver / BC policy | package 化時に採用 | 今すぐではないが、Framework package 化時には必要 |
 | C 系微最適化 | 却下 | 今の性能課題を理解していない難癖。論外 |
@@ -197,7 +197,7 @@ Framework core の default をいきなり変えるのは避ける。
 
 ### 方針
 
-保留する。
+却下する。一生やらない。
 
 ### 理由
 
@@ -212,17 +212,15 @@ container config を毎リクエスト `require` しているのは事実だが�
 
 pera の価値は、アプリケーション開発者が本筋と無関係な lifetime 管理を意識しなくて済むことにある。性能改善のために lifetime の罠を増やすなら本末転倒である。
 
+特に Container instance そのものを worker へ保持する方針は採用しない。`Request`、`Session`、`Csrf`、現在ユーザー、flash message、per-request cache のどれか一つでも漏れれば、性能改善ではなくセキュリティ事故である。これは「優先度が低い」ではなく、この Framework の責務境界と worker 方針に反する。
+
 ### 対応内容
 
-直近対応なし。
+対応しない。
 
-将来やる場合は、以下のように専用設計として扱う。
+worker lifetime で共有したいものは、既存の `workerSingleton()` でアプリケーション開発者が明示する。それ以外の通常 service 定義は request ごとに作り直す。
 
-- Container を definition と request instances に分離する。
-- worker に置くのは definition だけにする。
-- request ごとに empty instances を持つ child container を作る。
-- workerSingleton は definition cache とは別概念として維持する。
-- request scoped service を worker cache に入れられないことをテストで保証する。
+将来も、Container instance の worker cache、request container の再利用、singleton instance の request 跨ぎ reuse は導入しない。Container definition だけを分離 cache する案も、現時点の pera では採用しない。構造が複雑になり、アプリケーション開発者に lifetime の罠を意識させる割に、得られる性能上の利益が小さいためである。
 
 ## A-4: middleware chain 事前構築
 
@@ -392,9 +390,9 @@ Framework package 化時に採用する。
 
 worker mode では Router と dispatcher が既に memory 上に残る。ファイル cache を導入する前に、現状 reuse の効果と route 数に対する実測を見るべきである。
 
-### Container 定義 cache は単純な変数 cache ではない
+### Container 定義 cache はやらない
 
-routes や middleware class list と違い、Container は lifetime の異なるものを持つ。雑な cache は pera の「リクエスト状態を漏らさない」という強みを壊す。
+routes や middleware class list と違い、Container は lifetime の異なるものを持つ。雑な cache は pera の「リクエスト状態を漏らさない」という強みを壊す。Container instance の worker cache は論外であり、definition cache だけに分ける案も現時点では採用しない。
 
 ### Request input 分離を強制しない
 
@@ -411,4 +409,4 @@ routes や middleware class list と違い、Container は lifetime の異なる
 - workerSingleton の共有 scope を明文化する。
 - CI を入れる。
 
-一方、routing cache、middleware chain cache、Container definition cache、input merge 廃止は、現時点では過剰または優先度が低い。pera の価値は、アプリケーション開発者が lifetime や framework 都合の儀式を意識せずに、本筋の実装へ集中できることにある。その価値を壊す最適化は採用しない。
+一方、routing cache、middleware chain cache、input merge 廃止は、現時点では過剰または優先度が低い。Container definition cache は優先度の問題ではなく、pera の request isolation と worker 方針に反するため採用しない。pera の価値は、アプリケーション開発者が lifetime や framework 都合の儀式を意識せずに、本筋の実装へ集中できることにある。その価値を壊す最適化は採用しない。

@@ -27,7 +27,7 @@ final readonly class Controller
             $this->session->flash(key: 'error', value: 'アップロード全体のサイズが大きすぎます。画像は20MB以内、動画は512MB以内にしてください。');
             return Response::redirect(location: '/admin/media');
         }
-        if (!$this->csrf->validate(token: $request->input(key: '_csrf'))) {
+        if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
             return new Response(body: 'Invalid CSRF token', status: 422);
         }
 
