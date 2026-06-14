@@ -6,6 +6,12 @@
 
 ## 直近作業
 
+- `docs/canonical.md` を削除。
+  - 同文書は Canonical URL 実装プランであり、現行実装と照合して対応済みであることを確認。
+  - `App\Front\Presentation\Seo\CanonicalUrl`、Front container 登録、共通 layout の `<link rel="canonical">` 出力、記事詳細/カテゴリ詳細/タグ詳細/固定ページ Controller への反映、canonical 関連テストが揃っている。
+  - `docs/plan.md` にも「記事詳細、カテゴリ、タグ、固定ページに canonical URL を出力する」は対応済みとして記載済み。
+  - `rg "docs/canonical|canonical.md" -n .`: 参照なし。
+  - `docker compose exec -T app ./vendor/bin/phpunit tests/Front/Presentation/Seo/CanonicalUrlTest.php tests/Front/Templates/DefaultLayoutCanonicalTest.php`: 成功、6 tests / 6 assertions。
 - `docs/webmedia_architecture_rules.md` を現行構成に合わせて更新。
   - `apps/shared` / `App\Shared` は禁止ではなく、`front` / `cms` の両方から使うアプリケーション側の共有基盤として許可する方針を明記。
   - `apps/kernel` / `App\Kernel` を、起動・runtime・DB factory などを扱う Kernel として PSR-4 / ディレクトリ構造例へ追加。
