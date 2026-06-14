@@ -319,3 +319,17 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
 この API は、現在の PHP worker のメモリに instance を保持する lifetime 指定である。通常の service 定義は request ごとに作り直されるため、worker 実行中に使い回したい service だけを明示的に登録する。Framework は `PDO` などの具体的な永続対象を知らず、Container は lifetime 管理だけを扱う。
 
 ただし request を跨いで同一 instance が使われるため、`Request`、`Session`、`Csrf`、現在ログイン中のユーザー、flash message、validation error、request id / request context には使ってはならない。DB 接続、Redis client、外部 API client のように worker 単位の再利用が妥当な service に限定して、アプリケーション composition 側で明示的に選択する。
+
+## Framework refinement 候補の扱い 2026-06-14
+
+`Request attributes`、`Response with*` 系 API、`Container freeze` は、いずれも現時点では実装しない。
+
+これらは Framework の方向性としては妥当だが、実際のアプリケーション開発で重複、事故、表現不能が出た場合に限って採用を検討する。先に入れると API 面積や設計上の選択肢だけが増え、使われない抽象や雑多な置き場になるリスクがある。
+
+`Request attributes` は、middleware が認証済みユーザー、tenant、request id などを後段へ渡す具体的な必要が出るまで追加しない。現状の route params や Controller 引数で足りる間は不要である。
+
+`Response with*` 系 API は、`withHeader()`、constructor、`redirect()` で不足が出るまで増やさない。`json()`、`html()`、`text()` などの factory も、API response や htmx 用 JSON などの実需要が出てから検討する。
+
+`Container freeze` は、worker mode 運用、Framework の外部利用、package 化、複数 app の composition 複雑化により、起動後の container 変更が実害を持つ段階で検討する。現時点では残タスクとして扱わない。
+
+以上の判断により、検討メモとして存在していた `docs/consider.md` は削除する。今後も「Framework として美しいから」という理由だけで先回り実装せず、必要が明確になった時点で小さく導入する。

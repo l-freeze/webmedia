@@ -6,6 +6,12 @@
 
 ## 直近作業
 
+- `docs/consider.md` を削除し、有効な判断だけを `docs/refactoring.md` に吸収。
+  - `Request attributes`、`Response with*` 系 API、`Container freeze` は方向性としては妥当だが、現時点では実装しないと判定。
+  - 実際のアプリケーション開発で重複、事故、表現不能が出た場合に限って採用を検討する方針へ整理。
+  - `Request attributes` は middleware から認証済みユーザー、tenant、request id などを後段へ渡す必要が出るまで追加しない。
+  - `Response with*` / `json()` / `html()` / `text()` は既存の `withHeader()`、constructor、`redirect()` で不足が出るまで追加しない。
+  - `Container freeze` は worker mode 運用、Framework 外部利用、package 化、複数 app composition 複雑化により起動後変更が実害化する段階で検討する。
 - `docs/canonical.md` を削除。
   - 同文書は Canonical URL 実装プランであり、現行実装と照合して対応済みであることを確認。
   - `App\Front\Presentation\Seo\CanonicalUrl`、Front container 登録、共通 layout の `<link rel="canonical">` 出力、記事詳細/カテゴリ詳細/タグ詳細/固定ページ Controller への反映、canonical 関連テストが揃っている。
