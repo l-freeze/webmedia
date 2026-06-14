@@ -332,4 +332,26 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
 
 `Container freeze` は、Kernel composition 中だけ service registration を許可し、Application 起動後は container の `set()`、`instance()`、`singleton()`、`bind()` などの変更操作を禁止するための制約である。目的は、解決済み service の差し替え、解決中の再登録、起動後の設定変更による実行時の不確実性を減らすことである。worker mode 運用、Framework の外部利用、package 化、複数 app の composition 複雑化により、起動後の container 変更が実害を持つ段階で検討する。現時点では残タスクとして扱わない。
 
+将来実装する場合は、以下の形を基準にする。
+
+- `Request attributes`
+  - `Request` constructor に `attributes` を追加し、既定値は空配列にする。
+  - `fromGlobals()`、既存テスト、既存の `new Request(...)` 呼び出しが壊れないよう、追加引数は末尾に置く。
+  - `withAttribute(string $key, mixed $value): self` は現在の `method` / `path` / `query` / `body` / `server` / `files` を保持し、`attributes[$key]` だけを差し替えた新しい `Request` を返す。
+  - `attribute(string $key, mixed $default = null): mixed` は存在しない key では `$default` を返す。
+  - route params をすぐ attributes へ移す必要はない。最初の用途は middleware から後段へ渡す request context に限定する。
+- `Response with*` 系 API
+  - 既存の `Response` constructor、`redirect()`、`withHeader()`、`send()` の挙動は維持する。
+  - `withStatus(int $status): self`、`withBody(string $body): self`、`withHeaders(array $headers): self`、`withoutHeader(string $name): self` は、現在の値を破壊せず新しい `Response` を返す。
+  - `withHeaders()` は既存 headers に追加・上書きする操作とし、全置換 API が必要になるまでは作らない。
+  - `json()` は `json_encode()` 失敗時に例外を投げ、`Content-Type: application/json; charset=utf-8` を設定する。`html()` と `text()` は body と content type を明示する factory に留める。
+  - header name / value の妥当性検査は `send()` の既存検査を維持し、必要になるまでは各 `with*` へ重複実装しない。
+- `Container freeze`
+  - `Container` に `freeze(): void` と `isFrozen(): bool` を追加する。
+  - `set()`、`instance()`、`workerSingleton()`、`singleton()`、`bind()` は、frozen 後に呼ばれた場合 `ContainerBuildException` を投げる。
+  - `get()`、`has()`、既存 instance の解決、未登録 class の autowire は、freeze 導入だけを理由に挙動変更しない。`class_exists()` fallback の廃止は別判断にする。
+  - 現行 `App\Kernel\Application::handle()` では request ごとに container を読み込み、その後 `Request::class` と `Session::class` を `instance()` 登録している。そのため freeze するなら、この2つの request 固有 instance 登録が終わった直後、middleware pipeline と router dispatch の前に行う。
+  - container config ファイル内、shared container 読み込み、app 固有 binding、request 固有 `Request` / `Session` 登録までは composition 期間として扱う。
+  - tests は、frozen 後の mutation が例外になること、frozen 後も `get()` は使えること、`Application::handle()` 実行中に middleware / controller から service registration できないことを確認する。
+
 以上の判断により、検討メモとして存在していた `docs/consider.md` は削除する。今後も「Framework として美しいから」という理由だけで先回り実装せず、必要が明確になった時点で小さく導入する。

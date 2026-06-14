@@ -11,6 +11,7 @@
   - `Request attributes` は route params や middleware 由来の派生情報を `query` / `body` / `server` / `files` と分離して保持するための候補だったことを明記。
   - `Response with*` 系 API は status / body / headers の変更を新しい `Response` への変換として扱うための候補だったことを明記。
   - `Container freeze` は Kernel composition 後の container 変更を禁止し、実行時の不確実性を減らすための候補だったことを明記。
+  - 将来実装する場合の基準として、`Request` constructor への `attributes` 追加位置、`Response` の `with*` / factory の挙動、`Container::freeze()` の mutation 禁止対象、`App\Kernel\Application::handle()` での freeze タイミング、最低限のテスト観点を追記。
   - 実際のアプリケーション開発で重複、事故、表現不能が出た場合に限って採用を検討する方針へ整理。
   - `Request attributes` は middleware から認証済みユーザー、tenant、request id などを後段へ渡す必要が出るまで追加しない。
   - `Response with*` / `json()` / `html()` / `text()` は既存の `withHeader()`、constructor、`redirect()` で不足が出るまで追加しない。
