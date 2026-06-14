@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return $this->media->storeUploadedMedia(file: $input->file, altText: $input->altText, caption: $input->caption);
+        $result = $this->media->storeUploadedMedia(file: $input->file, altText: $input->altText, caption: $input->caption);
+
+        return new Output(uploaded: $result->uploaded, error: $result->error);
     }
 }

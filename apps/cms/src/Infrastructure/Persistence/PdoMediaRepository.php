@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Media\Delete;
-use App\Cms\Application\Media\Upload;
 use App\Cms\Domain\Repository\IMediaRepository;
+use App\Cms\Domain\Value\MediaDeleteResult;
+use App\Cms\Domain\Value\MediaUploadResult;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -37,26 +37,26 @@ final readonly class PdoMediaRepository implements IMediaRepository
     }
 
     /** @param array<string, mixed> $file */
-    public function storeUploadedMedia(array $file, string $altText, string $caption): Upload\Output
+    public function storeUploadedMedia(array $file, string $altText, string $caption): MediaUploadResult
     {
         $input = PdoRow::from(values: $file);
         if ($input->int(key: 'error', default: UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return new Upload\Output(uploaded: false, error: $this->uploadErrorMessage(error: $input->int(key: 'error', default: UPLOAD_ERR_NO_FILE)));
+            return new MediaUploadResult(uploaded: false, error: $this->uploadErrorMessage(error: $input->int(key: 'error', default: UPLOAD_ERR_NO_FILE)));
         }
 
         $tmpName = $input->string(key: 'tmp_name');
         if ($tmpName === '' || !is_file($tmpName)) {
-            return new Upload\Output(uploaded: false, error: 'アップロードされたファイルを確認できません。');
+            return new MediaUploadResult(uploaded: false, error: 'アップロードされたファイルを確認できません。');
         }
 
         $mimeType = $this->detectMimeType(tmpName: $tmpName);
         if (!isset(self::EXTENSIONS[$mimeType])) {
-            return new Upload\Output(uploaded: false, error: 'アップロードできるメディアは JPEG / PNG / WebP / GIF / MP4 / WebM / Ogg / MOV / AVI です。');
+            return new MediaUploadResult(uploaded: false, error: 'アップロードできるメディアは JPEG / PNG / WebP / GIF / MP4 / WebM / Ogg / MOV / AVI です。');
         }
 
         $fileSize = $input->int(key: 'size');
         if ($fileSize <= 0 || $fileSize > $this->maxFileSize(mimeType: $mimeType)) {
-            return new Upload\Output(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
+            return new MediaUploadResult(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
         }
 
         $publicDir = $this->publicUploadDir();
@@ -69,7 +69,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
         $destination = $publicDir . '/' . $storedFileName;
 
         if (!$this->moveUploadedFile(tmpName: $tmpName, destination: $destination)) {
-            return new Upload\Output(uploaded: false, error: 'メディアファイルの保存に失敗しました。');
+            return new MediaUploadResult(uploaded: false, error: 'メディアファイルの保存に失敗しました。');
         }
 
         $path = '/uploads/media/' . $storedFileName;
@@ -84,16 +84,16 @@ final readonly class PdoMediaRepository implements IMediaRepository
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return new Upload\Output(uploaded: true);
+        return new MediaUploadResult(uploaded: true);
     }
 
-    public function delete(int $id): Delete\Output
+    public function delete(int $id): MediaDeleteResult
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT path FROM media_files WHERE id = :id LIMIT 1');
         PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
         $path = PdoHelper::fetchColumn(statement: $stmt);
         if (!is_string($path) || $path === '') {
-            return new Delete\Output(deleted: false, error: '削除対象のメディアが見つかりません。');
+            return new MediaDeleteResult(deleted: false, error: '削除対象のメディアが見つかりません。');
         }
 
         $this->pdo->beginTransaction();
@@ -112,7 +112,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
             unlink($filePath);
         }
 
-        return new Delete\Output(deleted: true);
+        return new MediaDeleteResult(deleted: true);
     }
 
     private function detectMimeType(string $tmpName): string
