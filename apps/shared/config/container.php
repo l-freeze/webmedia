@@ -65,7 +65,7 @@ return static function (Container $container, string $root): void {
     $container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new PlaceholderAuditLogger());
     $container->singleton(id: CacheInterface::class, factory: static function () use ($envString, $root): CacheInterface {
         $driver = $envString('SHARED_CACHE_DRIVER', 'file');
-        $driver = is_scalar($driver) ? strtolower((string) $driver) : 'file';
+        $driver = strtolower($driver);
 
         return match ($driver) {
             'null', 'none', 'off' => new NullCache(),

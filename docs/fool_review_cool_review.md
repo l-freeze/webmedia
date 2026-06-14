@@ -112,15 +112,15 @@ front の `TemplateRenderer` global provider は render ごとに以下を読む
 
 ### 対応内容
 
-- [ ] `CacheInterface` を使って layout global data を cache する。
-- [ ] cache key は front layout 専用に分ける。
-- [ ] TTL は短めから始める。
+- [x] `CacheInterface` を使って layout global data を cache する。
+- [x] cache key は front layout 専用に分ける。
+- [x] TTL は短めから始める。
   - 例: 60 秒から 300 秒
 - [ ] CMS の以下更新時に invalidation する。
   - site settings update
   - page publish/status update
   - category create/update/delete
-- [ ] invalidation が面倒な初期段階では短 TTL だけでもよい。
+- [x] invalidation が面倒な初期段階では短 TTL だけでもよい。
 
 ### 実装場所
 
@@ -379,7 +379,7 @@ Framework package 化時に採用する。
 ## 実施順
 
 1. [x] CSRF middleware を追加し、scaffold / middleware config に組み込む。
-2. [ ] front layout global data cache を入れる。
+2. [x] front layout global data cache を入れる。
 3. [ ] scaffold-kernel の例外ハンドラを debug mode に応じて安全側にする。
 4. [ ] `workerSingleton()` の説明を強化する。
 5. [ ] CSP から CDN / inline 依存を減らす。

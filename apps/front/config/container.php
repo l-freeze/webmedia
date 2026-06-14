@@ -19,8 +19,10 @@ use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
 use App\Front\Presentation\Seo\CanonicalUrl;
+use App\Front\Presentation\View\LayoutGlobalProvider;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
+use Psr\SimpleCache\CacheInterface;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -60,38 +62,45 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
 $container->singleton(id: CanonicalUrl::class, factory: static fn (): CanonicalUrl => new CanonicalUrl(
     baseUrl: $envString('FRONT_SITE_URL'),
 ));
+$container->singleton(id: LayoutGlobalProvider::class, factory: function (Container $container) use ($envString): LayoutGlobalProvider {
+    $pageLinkQuery = $container->get(id: Layout\Query\IPageLinkQuery::class);
+    if (!$pageLinkQuery instanceof Layout\Query\IPageLinkQuery) {
+        throw new \RuntimeException('Page link query is not registered.');
+    }
+
+    $siteSettingQuery = $container->get(id: Layout\Query\ISiteSettingQuery::class);
+    if (!$siteSettingQuery instanceof Layout\Query\ISiteSettingQuery) {
+        throw new \RuntimeException('Site setting query is not registered.');
+    }
+
+    $categoryQuery = $container->get(id: Home\Show\Query\ICategoryQuery::class);
+    if (!$categoryQuery instanceof Home\Show\Query\ICategoryQuery) {
+        throw new \RuntimeException('Home category query is not registered.');
+    }
+
+    $cache = $container->get(id: CacheInterface::class);
+    if (!$cache instanceof CacheInterface) {
+        throw new \RuntimeException('Cache service is not registered.');
+    }
+
+    return new LayoutGlobalProvider(
+        pageLinks: $pageLinkQuery,
+        settings: $siteSettingQuery,
+        categories: $categoryQuery,
+        cache: $cache,
+        ttlSeconds: max(0, (int) $envString('FRONT_LAYOUT_CACHE_TTL', '120')),
+    );
+});
 
 $container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
     $renderer = new LatteTemplateRenderer(templateDirectory: $root . '/apps/front/templates', cacheDirectory: $root . '/storage/cache');
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
-        $pageLinkQuery = $container->get(id: Layout\Query\IPageLinkQuery::class);
-        if (!$pageLinkQuery instanceof Layout\Query\IPageLinkQuery) {
-            throw new \RuntimeException('Page link query is not registered.');
+        $provider = $container->get(id: LayoutGlobalProvider::class);
+        if (!$provider instanceof LayoutGlobalProvider) {
+            throw new \RuntimeException('Layout global provider is not registered.');
         }
 
-        $siteSettingQuery = $container->get(id: Layout\Query\ISiteSettingQuery::class);
-        if (!$siteSettingQuery instanceof Layout\Query\ISiteSettingQuery) {
-            throw new \RuntimeException('Site setting query is not registered.');
-        }
-
-        $categoryQuery = $container->get(id: Home\Show\Query\ICategoryQuery::class);
-        if (!$categoryQuery instanceof Home\Show\Query\ICategoryQuery) {
-            throw new \RuntimeException('Home category query is not registered.');
-        }
-
-        $pages = $pageLinkQuery->publishedPageLinks();
-        $settings = $siteSettingQuery->current();
-        $categories = $categoryQuery->all();
-
-        return [
-            'siteName' => $settings->siteName,
-            'description' => $settings->siteDescription,
-            'frontTheme' => $settings->frontTheme,
-            'searchEnabled' => $settings->searchEnabled,
-            'heroImage' => $settings->heroImage,
-            'publishedPages' => array_map(fn ($page): array => $page->toArray(), $pages),
-            'publishedCategories' => array_map(fn ($category): array => $category->toArray(), $categories),
-        ];
+        return $provider->globals();
     });
     return $renderer;
 });

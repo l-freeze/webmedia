@@ -24,3 +24,5 @@
 ## Notes
 
 `Presentation` は「アプリケーション都合ではあるが、UseCase そのものではない表示責務」を置く層です。canonical URL、OGP、JSON-LD、ViewModel などが増える場合は、UseCase や Infrastructure に混ぜず `Presentation` 配下へ置きます。
+
+Layout の global data は `App\Front\Presentation\View\LayoutGlobalProvider` が組み立てます。published page links、site settings、categories は低更新頻度の表示データなので、Front app の判断として PSR-16 cache に短 TTL で保存します。TTL は `FRONT_LAYOUT_CACHE_TTL` で変更でき、`0` 以下にすると cache を使いません。
