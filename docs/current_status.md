@@ -2,10 +2,15 @@
 
 ## 更新日時
 
-- 2026-06-11
+- 2026-06-14
 
 ## 直近作業
 
+- `docs/webmedia_architecture_rules.md` を現行構成に合わせて更新。
+  - `apps/shared` / `App\Shared` は禁止ではなく、`front` / `cms` の両方から使うアプリケーション側の共有基盤として許可する方針を明記。
+  - `apps/kernel` / `App\Kernel` を、起動・runtime・DB factory などを扱う Kernel として PSR-4 / ディレクトリ構造例へ追加。
+  - 禁止対象は `apps/common`、`apps/modules`、`apps/framework` などの曖昧な置き場に整理し、`apps/shared` は雑多な helper や業務ロジックの避難場所にしないチェックへ変更。
+- `docs/quality_review_2026-06-12.md` の有効な指摘を architecture rules に吸収したため、同レビュー文書を削除。
 - `bin/README.md` の冒頭に scaffold command の一覧表を追加。
   - `scaffold-kernel`、`scaffold-shared`、`scaffold-app` と各 app template の実行例・用途を、詳細説明へ入る前に確認できるようにした。
 - `bin/scaffold-app` の template 整備を完了。

@@ -42,9 +42,15 @@ use App\Cms\...;
 - Constructor Injection
 - Composer PSR-4 Autoload
 
-このプロジェクト自体が WEB メディアである。そのため、`WebMedia`、`Shared`、`Common`、`Core`、`Utils`、`Helpers` のような曖昧なアプリケーションディレクトリを作ってはならない。
+このプロジェクト自体が WEB メディアである。そのため、`WebMedia`、`Common`、`Core`、`Utils`、`Helpers` のような曖昧なアプリケーションディレクトリを作ってはならない。
 
-`front` と `cms` の両方から使う技術基盤は `src/Framework` に置く。
+共通基盤は責務ごとに明確に分ける。
+
+- `src/Framework`: DI、HTTP、Routing など、アプリケーション都合を持たない軽量 Framework core
+- `apps/kernel`: 起動、runtime、DB factory など、実行基盤を組み立てる Kernel
+- `apps/shared`: `front` / `cms` の両方から使うアプリケーション側の共有基盤
+
+`apps/shared` は許可する。ただし、雑多な helper や業務ロジックの避難場所にしてはならない。`front` / `cms` のどちらか一方に閉じる機能は、それぞれのアプリケーション配下に置く。
 
 ```text
 src/
@@ -58,7 +64,7 @@ src/
     Content/
 ```
 
-`apps/common`、`apps/shared`、`apps/modules`、`apps/framework` は禁止する。`apps` は実行アプリケーションコンテキストの置き場である。
+`apps/common`、`apps/modules`、`apps/framework` は禁止する。`apps` 直下に追加する共有ディレクトリは、責務が明確な `kernel` / `shared` に限定する。
 
 ## 3. 依存ルール
 
@@ -122,6 +128,8 @@ Shared に置く Interface も例外ではない。Shared の Interface は、�
 ```text
 webmedia/
   apps/
+    kernel/
+    shared/
     front/
     cms/
   src/
@@ -1089,6 +1097,8 @@ Composer PSR-4 root:
   "autoload": {
     "psr-4": {
       "App\\Framework\\": "src/Framework/",
+      "App\\Kernel\\": "apps/kernel/src/",
+      "App\\Shared\\": "apps/shared/src/",
       "App\\Front\\": "apps/front/src/",
       "App\\Cms\\": "apps/cms/src/"
     }
@@ -1104,6 +1114,10 @@ namespace App\Front\Application\Article\Show\Query;
 namespace App\Front\Domain\Repository;
 namespace App\Front\Infrastructure\Persistence;
 
+namespace App\Kernel\Database;
+namespace App\Shared\View\Infrastructure;
+namespace App\Shared\Markdown\Infrastructure;
+
 namespace App\Cms\Application\Dashboard\Show;
 namespace App\Cms\Application\Dashboard\Show\Query;
 namespace App\Cms\Domain\Repository;
@@ -1113,7 +1127,6 @@ namespace App\Cms\Infrastructure\Persistence;
 禁止 namespace:
 
 ```php
-namespace App\Shared;
 namespace App\Common;
 namespace App\Core;
 namespace App\Utils;
@@ -1384,7 +1397,8 @@ PDO test では test database を使ってよい。
 ```text
 [ ] cms が front に依存していない
 [ ] front が cms に依存していない
-[ ] apps/shared、apps/common、apps/modules、apps/framework を作っていない
+[ ] apps/shared を雑多な helper や業務ロジックの避難場所にしていない
+[ ] apps/common、apps/modules、apps/framework を作っていない
 [ ] Interface は依存制御のためだけに導入している
 [ ] Query interface は Application/<対象>/<ユースケース>/Query 配下にある
 [ ] Query interface は I prefix を使っている
