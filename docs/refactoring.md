@@ -326,10 +326,10 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
 
 これらは Framework の方向性としては妥当だが、実際のアプリケーション開発で重複、事故、表現不能が出た場合に限って採用を検討する。先に入れると API 面積や設計上の選択肢だけが増え、使われない抽象や雑多な置き場になるリスクがある。
 
-`Request attributes` は、middleware が認証済みユーザー、tenant、request id などを後段へ渡す具体的な必要が出るまで追加しない。現状の route params や Controller 引数で足りる間は不要である。
+`Request attributes` は、route params や middleware が生成した派生情報を、`query`、`body`、`server`、`files` に混ぜずに保持するための Request 側の領域である。想定していた機能は `Request::withAttribute()` と `Request::attribute()` で、Request を変更せず新しい Request を返し、後段の middleware や Controller が値を読む形である。middleware が認証済みユーザー、tenant、request id などを後段へ渡す具体的な必要が出るまで追加しない。現状の route params や Controller 引数で足りる間は不要である。
 
-`Response with*` 系 API は、`withHeader()`、constructor、`redirect()` で不足が出るまで増やさない。`json()`、`html()`、`text()` などの factory も、API response や htmx 用 JSON などの実需要が出てから検討する。
+`Response with*` 系 API は、Response を HTTP 値オブジェクトとして扱い、status、body、headers の変更を破壊的代入ではなく新しい Response への変換として表現するための API である。想定していた機能は `Response::withStatus()`、`Response::withBody()`、`Response::withHeaders()`、`Response::withoutHeader()` と、Content-Type を固定した `Response::json()`、`Response::html()`、`Response::text()` である。現状は `withHeader()`、constructor、`redirect()` で足りているため、不足が出るまで増やさない。API response や htmx 用 JSON などの実需要が出てから検討する。
 
-`Container freeze` は、worker mode 運用、Framework の外部利用、package 化、複数 app の composition 複雑化により、起動後の container 変更が実害を持つ段階で検討する。現時点では残タスクとして扱わない。
+`Container freeze` は、Kernel composition 中だけ service registration を許可し、Application 起動後は container の `set()`、`instance()`、`singleton()`、`bind()` などの変更操作を禁止するための制約である。目的は、解決済み service の差し替え、解決中の再登録、起動後の設定変更による実行時の不確実性を減らすことである。worker mode 運用、Framework の外部利用、package 化、複数 app の composition 複雑化により、起動後の container 変更が実害を持つ段階で検討する。現時点では残タスクとして扱わない。
 
 以上の判断により、検討メモとして存在していた `docs/consider.md` は削除する。今後も「Framework として美しいから」という理由だけで先回り実装せず、必要が明確になった時点で小さく導入する。
