@@ -25,15 +25,27 @@ final readonly class LayoutGlobalProvider
     /** @return array<string, mixed> */
     public function globals(): array
     {
-        if ($this->ttlSeconds > 0) {
-            $cached = $this->cache->get(key: self::CACHE_KEY);
-            if (is_array($cached)) {
-                /** @var array<string, mixed> $cached */
-                return $cached;
-            }
+        if ($this->ttlSeconds <= 0) {
+            return $this->loadGlobals();
         }
 
+        $cached = $this->cache->get(key: self::CACHE_KEY);
+        if (is_array($cached)) {
+            /** @var array<string, mixed> $cached */
+            return $cached;
+        }
+
+        $globals = $this->loadGlobals();
+        $this->cache->set(key: self::CACHE_KEY, value: $globals, ttl: $this->ttlSeconds);
+
+        return $globals;
+    }
+
+    /** @return array<string, mixed> */
+    private function loadGlobals(): array
+    {
         $settings = $this->settings->current();
+
         /** @var array<string, mixed> $globals */
         $globals = [
             'siteName' => $settings->siteName,
@@ -50,10 +62,6 @@ final readonly class LayoutGlobalProvider
                 $this->categories->all(),
             ),
         ];
-
-        if ($this->ttlSeconds > 0) {
-            $this->cache->set(key: self::CACHE_KEY, value: $globals, ttl: $this->ttlSeconds);
-        }
 
         return $globals;
     }

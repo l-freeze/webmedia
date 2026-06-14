@@ -282,3 +282,7 @@
 - 第二候補: ConoHa VPS 2GB
 - 低コスト優先: 1GB VPS でも小規模なら動く可能性はあるが、PostgreSQL、画像処理、動画アップロードを考えると 2GB を推奨する。
 - 避けたい構成: PHP バージョン、PostgreSQL、Docker、常駐プロセス、アップロードサイズに制限が強いレンタルサーバー。
+
+# 備考
+
+レイアウトキャッシュが複雑化した場合の改善対応案は `docs/layout_global_provider_refactoring.md` を参照する。現時点では `LayoutGlobalProvider` 内で `globals()` と `loadGlobals()` を分けるに留め、provider interface / cache decorator への分離は複雑化の兆候が出た時点で検討する。
