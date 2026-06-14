@@ -86,6 +86,35 @@ front -> cms
 cms -> front
 ```
 
+### 3.1 Interface 導入ルール
+
+アプリケーションコードでは、Interface は依存制御のためにだけ導入する。
+
+Interface を作ってよい主な用途:
+
+- Application から Infrastructure の具象実装へ依存しないための Query port
+- Domain から Infrastructure の具象実装へ依存しないための Repository port
+- 外部サービス、外部ライブラリ、永続化、HTTP、ファイルシステムなどの技術詳細を内側から隔離する境界
+- Framework / Kernel / Shared の基盤機能が、実装差し込み点を明示的に提供する場合
+
+禁止:
+
+```text
+複数実装がありそうだから Interface を作る
+将来差し替えるかもしれないから Interface を作る
+テストで mock したいだけで Interface を作る
+同じメソッド形状の class が2つあるから Interface を作る
+型の共通化や分類名として Interface を作る
+```
+
+Interface が必要に見える場合は、先に責務分割、UseCase 分割、配置、データ構造を見直す。
+
+たとえば CSV / JSON / HTML などの出力形式が複数ある場合でも、呼び出し側が形式を選び、それぞれが `Response` を返すだけなら `ExporterInterface` は不要である。`CsvResponse`、`JsonResponse`、`HtmlResponse` のような具象の出力変換で表現する。
+
+`ExporterInterface` のような Interface を作ってよいのは、呼び出し側が具体形式を知らず、同じ契約で実装を差し替える依存制御が現在必要な場合に限る。
+
+Shared に置く Interface も例外ではない。Shared の Interface は、複数アプリから使われる外部境界、または Framework / Kernel 的な基盤の差し込み点を表す場合に限る。
+
 ## 4. ディレクトリ構造
 
 ### 4.1 ルート
@@ -1356,6 +1385,7 @@ PDO test では test database を使ってよい。
 [ ] cms が front に依存していない
 [ ] front が cms に依存していない
 [ ] apps/shared、apps/common、apps/modules、apps/framework を作っていない
+[ ] Interface は依存制御のためだけに導入している
 [ ] Query interface は Application/<対象>/<ユースケース>/Query 配下にある
 [ ] Query interface は I prefix を使っている
 [ ] Query は PHP array ではなく Application Value DTO を返している
