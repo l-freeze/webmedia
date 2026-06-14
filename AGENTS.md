@@ -8,5 +8,5 @@
   - `docker compose exec -T app php ...` when the running app container is appropriate
 - Use `docker compose ps` if the app/db service state matters.
 - Do not repeat a status note that host PHP/Composer is missing unless it is directly relevant to the user.
-- When planning development work, implementing or testing, or evaluating code quality, performance, or architecture, read `docs/README.md` and `docs/plan.md` first, then follow the referenced documents as needed.
+- When planning development work, implementing or testing, or evaluating code quality, performance, architecture, or other technical aspects, read `docs/README.md` and `docs/plan.md` first, then follow the referenced documents as needed.
 - Commit after each coherent work unit. Do not leave unrelated work units staged or unstaged together when the user has asked for implementation work.
