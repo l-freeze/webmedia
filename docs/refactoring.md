@@ -355,3 +355,107 @@ Latte を `minimal` に含めることは、Framework core が Latte に依存�
   - tests は、frozen 後の mutation が例外になること、frozen 後も `get()` は使えること、`Application::handle()` 実行中に middleware / controller から service registration できないことを確認する。
 
 以上の判断により、検討メモとして存在していた `docs/consider.md` は削除する。今後も「Framework として美しいから」という理由だけで先回り実装せず、必要が明確になった時点で小さく導入する。
+
+## fool_review 吸収後の未完了項目 2026-06-14
+
+`docs/fool_review.md` と `docs/fool_review_cool_review.md` は削除する。前者は生レビューであり、現行コードの前提を読み違えた指摘や過剰な評価が混ざっている。後者は採否判定として有用だったが、長期的にはレビュー回答文書ではなく、未完了作業と採用しない判断だけを正式な作業メモへ残す方がよい。
+
+すでに実装済み、または別文書へ吸収済みの内容は再実施しない。
+
+- CSRF middleware 化は実装済み。`src/Framework/Security/CsrfMiddleware.php`、`apps/shared/config/middleware.php`、`tests/Framework/CsrfMiddlewareTest.php` を前提にする。
+- Front layout global data cache は実装済み。`apps/front/src/Presentation/View/LayoutGlobalProvider.php` と `tests/Front/Presentation/View/LayoutGlobalProviderTest.php` を前提にする。
+- `Request::bodyInput()` / `Request::queryInput()` は実装済み。横断処理では `_csrf` を `bodyInput()` から読む方針を維持する。
+- `workerSingleton()` の基本説明は `src/Framework/Container/README.md` と `apps/kernel/README.md` に記載済み。
+- routing cachedDispatcher、Container definition worker cache、middleware chain 事前構築、`Request::input()` の強制廃止は現時点では採用しない。性能計測や具体的事故が出るまで残タスクにしない。
+
+### scaffold-kernel の例外ハンドラ安全化
+
+目的は、本番相当の環境で未処理例外の詳細を利用者へ出さないことである。Framework core の default は従来互換のため `RethrowingExceptionHandler` のまま維持し、scaffold される Kernel 側の application config を安全側にする。
+
+実装する場合は、以下の形にする。
+
+- `bin/scaffold-kernel` が生成する `apps/kernel/config/application.php` で `APP_DEBUG` を読む。
+- `APP_DEBUG=true`、`APP_DEBUG=1`、`APP_DEBUG=yes` の場合だけ `RethrowingExceptionHandler` を使う。
+- それ以外は `PlainTextExceptionHandler` を使う。
+- 既存プロジェクト側の `apps/kernel/config/application.php` も同じ方針に寄せるか、少なくとも README に差し替え例を載せる。
+- `src/Framework/Http/ExceptionHandling/README.md` には、Framework default は再 throw だが、本番向け scaffold は安全側 handler を選ぶ、という責務分担を明記する。
+- tests は、scaffold 生成物に debug 判定と `PlainTextExceptionHandler` / `RethrowingExceptionHandler` の分岐が含まれることを `tests/Scaffold` で確認する。
+
+Framework core に環境変数判定を入れない。環境ごとの wiring は Kernel の責務である。
+
+### CSP / CDN / inline script の整理
+
+目的は、Shared の security policy から不要な `unsafe-inline` と外部 CDN 許可を減らし、CSP を実効性のある防御に寄せることである。これは Framework core ではなく `apps/shared` と各 App template の責務である。
+
+実装する場合は、nonce 導入から始めない。まず inline / CDN 依存を減らす。
+
+- `apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php` と `bin/scaffold-shared` の生成 template を確認する。
+- `apps/*/templates`、`public/assets`、scaffold template 内の inline `<script>`、inline `style`、外部 CDN 読み込みを棚卸しする。
+- 既にローカル配信できている asset は CSP の CDN 許可から外す。
+- inline script は、可能な限り `public/assets/js` の静的ファイルへ移す。
+- inline style は、可能な限り CSS class または asset CSS へ移す。
+- inline がどうしても必要なものだけ、最後に nonce または hash を検討する。
+- `SecurityHeadersMiddlewareTest` で、期待する CSP header が出ること、不要な CDN host や `unsafe-inline` を含まないことを確認する。
+
+nonce を導入する場合は、request ごとの nonce をどこで生成し、どの View data へ渡し、middleware がどの header に載せるかを先に設計する。`Response` や Framework core に CSP policy を直接持たせない。
+
+### CI の追加
+
+目的は、PHPStan と PHPUnit を人間の手元実行に依存させず、変更ごとに機械的に確認することである。
+
+実装する場合は、ホスト PHP / Composer に依存しない。プロジェクトの開発前提に合わせ、Docker Compose 経由で実行する。
+
+- `.github/workflows/ci.yml` を追加する。
+- checkout 後に Docker Compose で必要 service を build / up する。
+- `docker compose run --rm app composer install` または既存 image の依存解決方針に合わせて install を実行する。
+- `docker compose run --rm app composer analyse` を実行する。
+- `docker compose run --rm app composer test` を実行する。
+- 必要なら `docker compose run --rm app composer validate --strict` も追加する。
+- DB が必要なテストがある場合は、workflow 内で DB service の readiness を待ち、migration / seed の要否を明記する。
+
+ローカル検証コマンドと CI コマンドは揃える。CI だけ host PHP を使う構成にはしない。
+
+### workerSingleton scope 説明の追加
+
+目的は、`workerSingleton()` が Container instance 単位ではなく PHP worker process 単位で共有される lifetime であることを、利用者が誤解しないようにすることである。
+
+実装する場合は、`src/Framework/Container/README.md`、`apps/kernel/README.md`、必要なら `src/Framework/Container/Container.php` の doc comment を更新する。
+
+- `workerSingleton()` は PHP worker process 内で同じ id に対して同一 instance を返す。
+- 別 Container instance でも同じ id なら同じ worker instance を共有する。
+- `Request`、`Session`、`Csrf`、現在ユーザー、認可 context、flash message、validation error、request id、per-request cache には使わない。
+- 複数 App で別実体が必要な場合は id を分ける。
+- 例: `cms.pdo` と `front.pdo` のように別 id で登録する。
+- `reflectionCache` は object state ではなく reflection 結果の performance cache であり、request state を保持してはならない。
+
+tests は、別 Container 間で同じ id の `workerSingleton()` が同一 instance になること、別 id なら別 instance になることを確認する。
+
+### Request input API の README 説明
+
+目的は、`Request::input()`、`bodyInput()`、`queryInput()` の使い分けを明確にし、横断処理が body/query merge に依存しないようにすることである。
+
+実装する場合は、`src/Framework/README.md` または `src/Framework/Http/README.md` を追加・更新する。
+
+- `input()` は body を優先し、存在しない場合だけ query を見る convenience API である。
+- POST form の検証、CSRF、状態変更系 middleware では `bodyInput()` を使う。
+- 検索、ページング、filter など URL query の値は `queryInput()` を使う。
+- body と query の両方を見る必要がある場合だけ `input()` を使う。
+- `input()` の暗黙 merge を廃止する予定はないが、security-sensitive な処理では使わない。
+
+tests は既存 `tests/Framework/RequestTest.php` を維持し、README の説明と実挙動がずれないことを確認する。
+
+### Layout global cache invalidation
+
+目的は、Front layout global data の短 TTL cache に加えて、CMS 更新時に必要な cache を明示的に消せるようにすることである。
+
+現状は短 TTL cache だけでも実用上は成立する。invalidation は、CMS 更新後に即時反映が必要になった場合に実施する。
+
+実装する場合は、以下を基準にする。
+
+- `LayoutGlobalProvider` の cache key を定数または Shared/App 側の明示的な key として参照可能にする。
+- cache 削除操作は `Psr\SimpleCache\CacheInterface::delete()` を使う。
+- CMS の site settings update、page publish/status update、category create/update/delete の成功後に該当 cache key を削除する。
+- 削除失敗時に CMS 更新自体を失敗させるかは慎重に扱う。初期実装では、削除失敗は logger に記録し、業務更新は成功させる方が運用上安全である。
+- tests は、対象更新 UseCase または Controller 実行後に `delete()` が呼ばれることを fake cache で確認する。
+
+cache invalidation のために Framework core へ event dispatcher を追加しない。必要になるまでは、CMS の該当処理から明示的に cache を消す。

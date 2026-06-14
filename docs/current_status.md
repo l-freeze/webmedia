@@ -6,6 +6,11 @@
 
 ## 直近作業
 
+- `docs/fool_review.md` と `docs/fool_review_cool_review.md` を削除し、有効な未完了項目だけを `docs/refactoring.md` に吸収。
+  - 生レビュー文書は現行コードの前提違い、過剰評価、レビュー回答形式の文章が混ざるため長期保存しない。
+  - `scaffold-kernel` の例外ハンドラ安全化、CSP / CDN / inline script 整理、CI 追加、`workerSingleton()` scope 説明追加、Request input API の README 説明、Layout global cache invalidation を実装可能な粒度で追記。
+  - CSRF middleware 化、Front layout global cache、`bodyInput()` / `queryInput()` 追加は実装済みとして再実施しない方針を明記。
+  - routing cachedDispatcher、Container definition worker cache、middleware chain 事前構築、`Request::input()` 強制廃止は現時点では採用しない判断を明記。
 - `docs/consider.md` を削除し、有効な判断だけを `docs/refactoring.md` に吸収。
   - `Request attributes`、`Response with*` 系 API、`Container freeze` は方向性としては妥当だが、現時点では実装しないと判定。
   - `Request attributes` は route params や middleware 由来の派生情報を `query` / `body` / `server` / `files` と分離して保持するための候補だったことを明記。
