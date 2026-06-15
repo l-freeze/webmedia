@@ -2,10 +2,15 @@
 
 ## 更新日時
 
-- 2026-06-14
+- 2026-06-16
 
 ## 直近作業
 
+- プロジェクトルート README に classic mode の実行手順を追記。
+  - Docker Compose 開発環境では `.docker/caddy/Caddyfile` が FrankenPHP worker mode を有効化しているため、classic mode へ切り替える場合は Caddyfile の worker `handle` block をコメントアウトし、classic 用 `handle` block をコメント解除する手順に修正。
+  - `.docker/caddy/Caddyfile` だけの変更で classic mode に切り替えられることを明記。
+  - worker block 内で `env APP_RUNTIME frankenphp-worker` を指定しているため、worker block を有効にしたまま `.env` だけで classic mode へ切り替えることはできないと明記。
+  - `.env.example` の `APP_RUNTIME=classic` は、Docker 開発環境の既定 Caddyfile と食い違うため削除。
 - `docs/fool_review.md` と `docs/fool_review_cool_review.md` を削除し、有効な未完了項目だけを `docs/refactoring.md` に吸収。
   - 生レビュー文書は現行コードの前提違い、過剰評価、レビュー回答形式の文章が混ざるため長期保存しない。
   - `scaffold-kernel` の例外ハンドラ安全化、CSP / CDN / inline script 整理、CI 追加、`workerSingleton()` scope 説明追加、Request input API の README 説明、Layout global cache invalidation を実装可能な粒度で追記。

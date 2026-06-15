@@ -22,6 +22,33 @@ CMS:
 - 初期メールアドレス: `admin@example.test`
 - 初期パスワード: `password`
 
+## Runtime
+
+Docker Compose の開発環境は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) で FrankenPHP worker mode を有効にしています。
+
+通常の1リクエスト1実行の classic mode で動かす場合は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) の worker mode 用 `handle` block をコメントアウトし、classic mode 用 `handle` block をコメント解除します。
+
+```caddyfile
+# handle {
+# 	request_header X-Webmedia-Runtime frankenphp-worker
+# 	php_server {
+# 		worker {
+# 			file /app/public/index.php
+# 			env APP_RUNTIME frankenphp-worker
+# 		}
+# 	}
+# }
+
+handle {
+	request_header X-Webmedia-Runtime classic
+	php_server
+}
+```
+
+`.docker/caddy/Caddyfile` だけの変更で classic mode に切り替えられます。worker block の中で `env APP_RUNTIME frankenphp-worker` を指定しているため、worker block を有効にしたまま `.env` だけで classic mode にすることはできません。
+
+PHP 側の切り替え処理は [src/Framework/Runtime/RuntimeFactory.php](src/Framework/Runtime/RuntimeFactory.php) にあります。`APP_RUNTIME` 未指定時は `classic` が使われ、`APP_RUNTIME=frankenphp-worker` かつ FrankenPHP worker 関数が利用できる場合だけ worker runtime を使います。
+
 ## セッション Cookie
 
 Session cookie はアプリケーション側で `HttpOnly` を常に有効にします。`SameSite` と本番での `Secure` 強制は環境変数で指定できます。
