@@ -57,21 +57,20 @@ The scaffold includes small PDO helpers under `App\Shared\Database`. Framework c
 
 `App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `App\Framework\View\TemplateRenderer`.
 
-Register it in each app container with that app's template directory and cache directory:
+Register it in each app container with that app's template directory:
 
 ```php
 $container->singleton(
     id: TemplateRenderer::class,
     factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
         templateDirectory: $root . '/apps/front/templates',
-        cacheDirectory: $root . '/storage/cache/views/front',
     ),
 );
 ```
 
 Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `TemplateRenderer`.
 
-`LatteTemplateRenderer` keeps source change detection enabled while using Latte's compiled view cache. The Framework does not expose an env/config switch to disable it. Only change that behavior in a custom renderer when the developer understands Latte and worker behavior and can guarantee the performance change is risk-free.
+`LatteTemplateRenderer` disables Latte's compiled view cache by default because worker mode keeps loaded template classes in the PHP process. Pass `cacheDirectory` explicitly only when running a classic/non-worker runtime.
 
 To switch an app to Smarty:
 
@@ -436,13 +435,19 @@ final class LatteTemplateRenderer implements TemplateRenderer
     /** @var array<int, callable(): array<string, mixed>> */
     private array $globalProviders = [];
 
-    public function __construct(string $templateDirectory, string $cacheDirectory)
+    public function __construct(string $templateDirectory, ?string $cacheDirectory = null)
     {
         $this->engine = new Engine();
-        $this->engine->setCacheDirectory($cacheDirectory);
-        // Keep template source change detection enabled. If a project can
-        // guarantee safe immutable deploys, use a custom renderer explicitly.
-        $this->engine->setAutoRefresh(self::AUTO_REFRESH);
+        if ($cacheDirectory !== null) {
+            // 日本語: compiled view cache は worker mode では基本不要です。
+            // 有効にするのは、template class が request をまたいで残らない
+            // classic/non-worker runtime を使う場合に限定してください。
+            // English: compiled view cache is usually unnecessary in worker mode.
+            // Enable it only for classic/non-worker runtimes where template
+            // classes do not stay loaded across requests.
+            $this->engine->setCacheDirectory($cacheDirectory);
+            $this->engine->setAutoRefresh(self::AUTO_REFRESH);
+        }
         $this->templateDirectory = rtrim($templateDirectory, '/');
     }
 

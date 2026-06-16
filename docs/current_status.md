@@ -7,12 +7,14 @@
 ## 直近作業
 
 - View コンパイルキャッシュ方針を実装。
-  - `LatteTemplateRenderer` は `Engine::setCacheDirectory()` を使い、`AUTO_REFRESH = true` を private const で固定するように変更。
-  - `setAutoRefresh(false)` は env / config の公開設定として持たず、変更検知を有効にしたまま compiled view cache を使う方針にした。
-  - Front / CMS の Latte cache directory を `storage/cache/views/front`、`storage/cache/views/cms` に分離。
-  - `bin/scaffold-app` と `bin/scaffold-shared` の生成物も app 別 View cache directory と `AUTO_REFRESH = true` 固定に追従。
-  - `tests/Shared/View/LatteTemplateRendererTest.php` に、同じ template でも render ごとの `$params` と global provider が再評価される契約テストを追加。
-  - `docs/view-compiled-cached.md` に、View コンパイルキャッシュは HTML response cache ではなく、`autoRefresh=true` のまま高 throughput を目指す方針を記載。
+  - `LatteTemplateRenderer` は `?string $cacheDirectory = null` を受け取り、標準では `Engine::setCacheDirectory()` を呼ばないように変更。
+  - FrankenPHP worker mode では loaded template class が PHP process 内に残るため、Latte の compiled view cache は基本不要と判断。
+  - compiled view cache を使うのは classic / non-worker runtime の場合だけとし、app container から `cacheDirectory` を明示して opt-in する方針に訂正。
+  - `cacheDirectory` 明示時も `setAutoRefresh(false)` は使わず、`AUTO_REFRESH = true` を private const で固定する。
+  - Front / CMS の container と `bin/scaffold-app` の生成物から標準の `cacheDirectory` 指定を削除。
+  - `bin/scaffold-shared` が生成する `LatteTemplateRenderer` と README に、worker mode では compiled view cache が基本不要で、classic/non-worker runtime の場合だけ有効化することを日本語・英語コメントで明記。
+  - `tests/Shared/View/LatteTemplateRendererTest.php` に、同じ template でも render ごとの `$params` と global provider が再評価される契約テストに加え、compiled view cache が標準無効で明示時だけ有効になるテストを追加。
+  - `docs/view-compiled-cached.md` に、View コンパイルキャッシュは HTML response cache ではなく、worker mode 標準では無効、classic/non-worker runtime では明示 opt-in とする方針を記載。
 - プロジェクトルート README に classic mode の実行手順を追記。
   - Docker Compose 開発環境では `.docker/caddy/Caddyfile` が FrankenPHP worker mode を有効化しているため、classic mode へ切り替える場合は Caddyfile の worker `handle` block をコメントアウトし、classic 用 `handle` block をコメント解除する手順に修正。
   - `.docker/caddy/Caddyfile` だけの変更で classic mode に切り替えられることを明記。

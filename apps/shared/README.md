@@ -114,7 +114,9 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
 
-`LatteTemplateRenderer` は Latte の compiled view cache を使いながら、template source の変更検知を有効に保ちます。変更検知を無効化する env / config switch は用意しません。Latte と worker の挙動を理解しており、リスクなくパフォーマンス向上ができることを開発者自身が保証できる場合のみ、独自 renderer で明示的に変更します。
+`LatteTemplateRenderer` は Latte の compiled view cache をデフォルトで無効にします。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic/non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
+
+By default, `LatteTemplateRenderer` disables Latte's compiled view cache. In worker mode, loaded template classes stay in the PHP process, so compiled view cache is usually unnecessary. Pass `cacheDirectory` explicitly only for classic/non-worker runtimes.
 
 #### Smarty に切り替える場合
 

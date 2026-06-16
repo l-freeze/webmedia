@@ -2,11 +2,11 @@
 
 ## 結論
 
-このシステムでは、View コンパイルキャッシュは採用する価値がある。
+このシステムでは、View コンパイルキャッシュは標準では有効にしない。
 
-ただし採用するのは「テンプレートソースを PHP 等へコンパイルした結果を再利用する」範囲だけに限定する。DB から取得した記事、設定、ログイン状態、CSRF token、権限、問い合わせ内容などの request data / application data はキャッシュしない。
+理由は、標準 runtime が FrankenPHP worker mode であり、Latte は一度ロードした template class を同一 PHP process 内で再利用するためである。`vendor/latte/latte/src/Latte/Engine.php` の `loadTemplate()` は `class_exists($class, autoload: false)` を先に見るため、worker mode の定常リクエストではディスク上の compiled view cache へ到達しない。
 
-速度のために安全性、データ反映、運用の確実性を落とす設定は採用しない。具体的には、テンプレート変更検知を切る `setAutoRefresh(false)` 相当の設定は Framework の公開設定として持たない。
+View コンパイルキャッシュを有効にするのは、template class が request をまたいで残らない classic / non-worker runtime を使う場合に限定する。DB から取得した記事、設定、ログイン状態、CSRF token、権限、問い合わせ内容などの request data / application data は、引き続きキャッシュしない。
 
 ## 判断基準
 
@@ -18,7 +18,7 @@
 - キャッシュ削除やデプロイ手順のミスで業務上の不整合を起こさない。
 - 個人運用でも安全に扱え、大規模運用では明確に拡張できる。
 
-View コンパイルキャッシュは、この条件を満たす範囲で使う。
+worker mode では、template 変更を反映するには worker restart が必要である。これは View コンパイルキャッシュではなく worker lifecycle の問題として扱う。
 
 ## TemplateRenderer の責務
 
@@ -43,21 +43,21 @@ render(string $template, array $params = []): string
 
 ### 1. Template engine の標準コンパイルキャッシュ
 
-Latte / Smarty / Twig / Blade のような template engine が持つ「template source を PHP 等へ変換した結果」のキャッシュは採用してよい。
+Latte / Smarty / Twig / Blade のような template engine が持つ「template source を PHP 等へ変換した結果」のキャッシュは、classic / non-worker runtime では採用してよい。
 
 これは PHP ファイルの opcache に近い性質であり、HTML 出力キャッシュではない。template logic の再構築コストを下げるだけで、view data は毎回渡される。
 
-### 2. 変更検知ありの運用
+### 2. worker mode では標準無効
 
-開発環境、本番環境ともに、template source の変更検知は有効にする。
+worker mode では、View コンパイルキャッシュは標準で無効にする。
 
-Latte では `autoRefresh` の既定値が true であり、template source や extension の変化を検知して再コンパイルする。この既定値をそのまま使う。
+Latte は template を一度ロードすると template class が PHP process 内に残る。以後は `class_exists($class, autoload: false)` で処理が終わるため、ディスク上の compiled view cache の有無は定常リクエストの性能にほぼ影響しない。
 
-この方針なら、個人ブログでは cache clear 手順を意識せず安全に運用できる。大量アクセスサイトや基幹システムでも、デプロイ後に古い template が残り続けるリスクを避けられる。`autoRefresh=true` のまま十分速い状態を標準にする。
+template source の変更も、worker 内に class がロード済みなら `autoRefresh` の再チェックへ進まない。開発・運用では worker restart によって反映する。
 
 ### 3. app 別の cache directory
 
-View cache は他の cache と混ぜない。Front / CMS / Minimal など app ごとに分ける。
+classic / non-worker runtime で View cache を有効にする場合は、他の cache と混ぜない。Front / CMS / Minimal など app ごとに分ける。
 
 推奨例:
 
@@ -65,9 +65,30 @@ View cache は他の cache と混ぜない。Front / CMS / Minimal など app �
 - `storage/cache/views/cms`
 - `storage/cache/views/minimal`
 
-現行の `apps/front/config/container.php` と `apps/cms/config/container.php` は、app 別の View cache directory を使う。
+現行の `apps/front/config/container.php` と `apps/cms/config/container.php` は、標準では View cache directory を渡さない。
+
+### 4. classic / non-worker runtime の opt-in
+
+classic / non-worker runtime で View コンパイルキャッシュを使う場合は、app container から `LatteTemplateRenderer` へ `cacheDirectory` を明示的に渡す。
+
+```php
+new LatteTemplateRenderer(
+    templateDirectory: $root . '/apps/front/templates',
+    cacheDirectory: $root . '/storage/cache/views/front',
+);
+```
+
+この場合でも `autoRefresh=true` 相当で変更検知を有効にする。`setAutoRefresh(false)` は標準では採用しない。
 
 ## 標準採用しないもの
+
+### View コンパイルキャッシュの有効化スイッチ
+
+`VIEW_CACHE=true`、`CMS_VIEW_CACHE=true`、`FRONT_VIEW_CACHE=true` のような公開設定は採用しない。
+
+理由は、runtime が worker か classic かで意味が変わる設定を env switch として隠すと、性能や変更反映の前提が読みづらくなるからである。
+
+必要な場合は、app container の `new LatteTemplateRenderer(..., cacheDirectory: ...)` で明示する。
 
 ### `autoRefresh=false`
 
@@ -114,24 +135,25 @@ container / config のコンパイルキャッシュは現時点では採用し�
 
 | Engine | 採用してよい cache | 変更検知 | 標準方針 |
 |---|---|---|---|
-| Latte | `Engine::setCacheDirectory()` | `autoRefresh=true` | 採用、変更不可 |
-| Smarty | compile directory | compile check 有効 | 採用可 |
-| Twig | `Environment(['cache' => dir])` | `auto_reload=true` 相当 | 採用可 |
-| Blade | compiled views | mtime 再コンパイル | 採用可 |
+| Latte | `Engine::setCacheDirectory()` | `autoRefresh=true` | worker では標準無効、classic/non-worker では明示 opt-in |
+| Smarty | compile directory | compile check 有効 | classic/non-worker では採用可 |
+| Twig | `Environment(['cache' => dir])` | `auto_reload=true` 相当 | classic/non-worker では採用可 |
+| Blade | compiled views | mtime 再コンパイル | classic/non-worker では採用可 |
 | 素の PHP | コンパイル概念なし | OPcache に委ねる | View cache 不要 |
 
 Latte の `setTempDirectory()` は現行 vendor では deprecated なので、新規実装や修正では `setCacheDirectory()` を使う。
 
 ## 実装済みの作業
 
-現時点の Latte 実装は既に app 別の cache directory を設定しているため、View コンパイルキャッシュ自体は有効である。
+現時点の Latte 実装は `cacheDirectory` を省略できるため、標準では View コンパイルキャッシュを無効にしている。
 
 実装済みの範囲は次の通り。
 
-1. `LatteTemplateRenderer` の `setTempDirectory()` を `setCacheDirectory()` へ置き換え済み。
-2. Front / CMS の cache directory を `storage/cache/views/front` と `storage/cache/views/cms` へ分離済み。
+1. `LatteTemplateRenderer` は `?string $cacheDirectory = null` を受け取り、null の場合は `Engine::setCacheDirectory()` を呼ばない。
+2. Front / CMS の container は標準では cache directory を渡さない。
 3. tests で「同じ template でも `$params` を変えれば出力が変わる」ことを renderer の契約として固定済み。
-4. docs に、View cache は HTML response cache ではないことを明記済み。
+4. tests で、compiled view cache が標準無効であり、`cacheDirectory` 明示時だけ有効になることを固定済み。
+5. docs に、View cache は HTML response cache ではないことを明記済み。
 
 `setAutoRefresh(false)` はこの作業に含めない。環境変数や config で切り替える仕組みも作らない。
 
@@ -139,53 +161,53 @@ Latte の `setTempDirectory()` は現行 vendor では deprecated なので、�
 
 Latte renderer 側で `autoRefresh` の扱いを明示する場合は、env や app config で切り替えられる設定にはしない。
 
-Framework 標準実装では、renderer 内の private constant で固定する。
+Framework 標準実装では、cache directory が明示された場合だけ renderer 内の private constant を使う。
 
 ```php
 private const AUTO_REFRESH = true;
 ```
 
-この constant は利用者向けの設定値ではなく、Framework の設計判断をコード上に残すためのものとして扱う。標準値は必ず true にする。
+この constant は利用者向けの設定値ではなく、classic / non-worker runtime で compiled view cache を明示的に有効化した場合も、変更検知を切らないという設計判断をコード上に残すためのものとして扱う。
 
 コメントを残す場合は、次の趣旨にする。
 
-- true のままでも View コンパイルキャッシュの主要な性能メリットは得られる。
+- worker mode では loaded template class が PHP process 内に残るため、compiled view cache は基本不要である。
+- cache directory を渡して有効化するのは、classic / non-worker runtime を使う場合に限定する。
 - false で削れるのは template source 変更検知のコストだけである。
 - false は古い template が残るリスクを持つため、Framework 標準では推奨しない。
-- Latte と worker の挙動を理解しており、リスクなくパフォーマンス向上ができることを開発者自身が保証できる場合のみ、独自 renderer での変更を検討する。
-- このシステムは `autoRefresh=true` のまま高い throughput を出せることを前提に設計する。
 
-つまり、Framework 標準は「設定で速さと安全性を選ばせる」のではなく、「安全な設定のまま速い」を実装として固定する。
+つまり、Framework 標準は「env で速さと安全性を選ばせる」のではなく、runtime に合った明示的な構成を app container に書く方針で固定する。
 
 ## 用途別評価
 
 ### 個人ブログ
 
-採用するメリットはある。初回 render 後の template compile cost を避けられ、運用負担は増えない。
+worker mode で運用するなら標準無効でよい。初回 render 後は template class が worker process 内に残る。
 
-ただし安全性を保つため、変更検知は有効のままにする。個人運用では cache clear 忘れを前提に設計した方がよい。
+classic / non-worker runtime で運用する場合だけ、`cacheDirectory` を明示して有効化する。
 
 ### 超大量アクセスサイト
 
-View コンパイルキャッシュは最低限の土台として有効だが、それだけで大量アクセス対策になるわけではない。
+worker mode では View コンパイルキャッシュより、worker process 内の loaded class 再利用と OPcache の方が本筋である。
 
-本当に効くのは CDN、reverse proxy、response cache、DB query cache、read replica、静的 asset 配信、worker mode、OPcache などとの組み合わせである。View コンパイルキャッシュはその中で安全に常時有効化できる低リスクな最適化として扱う。
+本当に効くのは CDN、reverse proxy、response cache、DB query cache、read replica、静的 asset 配信、worker mode、OPcache などとの組み合わせである。classic / non-worker runtime を選ぶ場合は、View コンパイルキャッシュを明示的に有効化する価値がある。
 
 ### 基幹システム
 
-採用してよい。ただし、基幹システムでは「速いが古い画面が出る可能性がある」設定は許容しない。
+worker mode で運用するなら標準無効でよい。ただし、基幹システムでは「速いが古い画面が出る可能性がある」設定は許容しない。
 
-そのため標準は変更検知あり、app 別 cache directory、HTML response cache との分離で固定する。権限、CSRF、監査、承認状態など request / user / workflow に紐づく値を View cache に入れない限り、安全性は維持できる。
+classic / non-worker runtime で有効化する場合は、変更検知あり、app 別 cache directory、HTML response cache との分離で固定する。権限、CSRF、監査、承認状態など request / user / workflow に紐づく値を View cache に入れない限り、安全性は維持できる。
 
 ## 最終方針
 
-このシステムで実装するメリットはある。ただしメリットの中心は「安全な標準最適化として template compile cost を避けること」であり、「運用リスクを取って限界まで速くすること」ではない。目指す状態は、変更検知を有効にしたまま高速な View rendering である。
+このシステムでは worker mode を標準にするため、View コンパイルキャッシュは標準無効にする。classic / non-worker runtime を選ぶ場合だけ、app container で `cacheDirectory` を明示して有効化する。
 
 したがって、採用方針は次の通り。
 
-- View コンパイルキャッシュは採用する。
+- View コンパイルキャッシュは標準では無効にする。
 - data cache / response cache とは明確に分ける。
-- `autoRefresh=true` 相当で固定する。
+- `cacheDirectory` 明示時だけ `autoRefresh=true` 相当で固定する。
 - `autoRefresh=false` の設定スイッチは作らない。
-- cache directory は app 別に分離する。
+- View コンパイルキャッシュ自体を env / config switch で切り替えない。
+- 有効化する場合、cache directory は app 別に分離する。
 - container / config コンパイルキャッシュは現時点では採用しない。

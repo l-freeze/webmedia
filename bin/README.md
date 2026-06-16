@@ -180,6 +180,8 @@ php bin/scaffold-shared
 
 `LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 
+scaffold が生成する `LatteTemplateRenderer` は、Latte の compiled view cache をデフォルトでは有効にしません。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic / non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
+
 `App\Shared\Validation` はフォーム入力検証の標準スターターです。Framework 本体は Validator を持ちません。必要なら `symfony/validator`、`respect/validation`、`rakit/validation` などの外部ライブラリに置き換えられます。
 
 `layered` template は、インストール時に生成済みの `apps/shared` Validator を使う入力検証例を生成します。

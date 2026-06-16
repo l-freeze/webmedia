@@ -256,7 +256,6 @@ $sharedContainer($container, $root);
 $container->bind(abstract: TodoRepository::class, concrete: PdoTodoRepository::class);
 $container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
     templateDirectory: $root . '/apps/{{ name }}/templates',
-    cacheDirectory: $root . '/storage/cache/views/{{ name }}',
 ));
 
 return $container;
@@ -288,7 +287,6 @@ $sharedContainer($container, $root);
 
 $container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
     templateDirectory: $root . '/apps/{{ name }}/templates',
-    cacheDirectory: $root . '/storage/cache/views/{{ name }}',
 ));
 
 return $container;

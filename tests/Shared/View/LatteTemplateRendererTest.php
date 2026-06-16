@@ -29,7 +29,6 @@ final class LatteTemplateRendererTest extends TestCase
 
         $renderer = new LatteTemplateRenderer(
             templateDirectory: $templateDir,
-            cacheDirectory: $this->temporaryDirectory(),
         );
 
         $output = $renderer->render(template: 'test.latte', params: ['message' => 'hello']);
@@ -44,7 +43,6 @@ final class LatteTemplateRendererTest extends TestCase
 
         $renderer = new LatteTemplateRenderer(
             templateDirectory: $templateDir,
-            cacheDirectory: $this->temporaryDirectory(),
         );
         $renderer->addGlobalProvider(provider: fn() => ['global' => 'world']);
 
@@ -60,7 +58,6 @@ final class LatteTemplateRendererTest extends TestCase
 
         $renderer = new LatteTemplateRenderer(
             templateDirectory: $templateDir,
-            cacheDirectory: $this->temporaryDirectory(),
         );
         $renderer->addGlobalProvider(provider: fn() => ['value' => 'global']);
 
@@ -76,7 +73,6 @@ final class LatteTemplateRendererTest extends TestCase
 
         $renderer = new LatteTemplateRenderer(
             templateDirectory: $templateDir,
-            cacheDirectory: $this->temporaryDirectory(),
         );
 
         $first = $renderer->render(template: 'test.latte', params: ['message' => 'first']);
@@ -94,7 +90,6 @@ final class LatteTemplateRendererTest extends TestCase
         $value = 'first';
         $renderer = new LatteTemplateRenderer(
             templateDirectory: $templateDir,
-            cacheDirectory: $this->temporaryDirectory(),
         );
         $renderer->addGlobalProvider(provider: function () use (&$value): array {
             return ['value' => $value];
@@ -106,6 +101,58 @@ final class LatteTemplateRendererTest extends TestCase
 
         self::assertStringContainsString('<p>first</p>', $first);
         self::assertStringContainsString('<p>second</p>', $second);
+    }
+
+    public function testCompiledCacheIsDisabledByDefault(): void
+    {
+        $templateDir = $this->temporaryDirectory();
+        file_put_contents($templateDir . '/test.latte', '<p>cached?</p>');
+
+        $renderer = new LatteTemplateRenderer(templateDirectory: $templateDir);
+
+        $renderer->render(template: 'test.latte');
+
+        self::assertNull($this->cacheDirectoryOf(renderer: $renderer));
+    }
+
+    public function testCompiledCacheCanBeEnabledExplicitly(): void
+    {
+        $templateDir = $this->temporaryDirectory();
+        $cacheDir = $this->temporaryDirectory();
+        file_put_contents($templateDir . '/test.latte', '<p>cached</p>');
+
+        $renderer = new LatteTemplateRenderer(
+            templateDirectory: $templateDir,
+            cacheDirectory: $cacheDir,
+        );
+
+        $renderer->render(template: 'test.latte');
+
+        self::assertSame($cacheDir, $this->cacheDirectoryOf(renderer: $renderer));
+        self::assertNotSame([], glob($cacheDir . '/*'));
+    }
+
+    private function cacheDirectoryOf(LatteTemplateRenderer $renderer): ?string
+    {
+        $rendererReflection = new \ReflectionObject($renderer);
+        $engineProperty = $rendererReflection->getProperty('engine');
+        $engine = $engineProperty->getValue($renderer);
+        if (!is_object($engine)) {
+            throw new \RuntimeException('Latte engine is not available.');
+        }
+
+        $engineReflection = new \ReflectionObject($engine);
+        $cacheProperty = $engineReflection->getProperty('cache');
+        $cache = $cacheProperty->getValue($engine);
+        if (!is_object($cache)) {
+            throw new \RuntimeException('Latte cache is not available.');
+        }
+
+        $cacheReflection = new \ReflectionObject($cache);
+        $directoryProperty = $cacheReflection->getProperty('directory');
+        $directory = $directoryProperty->getValue($cache);
+
+        return is_string($directory) ? $directory : null;
     }
 
     private function temporaryDirectory(): string

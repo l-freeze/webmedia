@@ -18,13 +18,19 @@ final class LatteTemplateRenderer implements TemplateRenderer
     /** @var array<int, callable(): array<string, mixed>> */
     private array $globalProviders = [];
 
-    public function __construct(string $templateDirectory, string $cacheDirectory)
+    public function __construct(string $templateDirectory, ?string $cacheDirectory = null)
     {
         $this->engine = new Engine();
-        $this->engine->setCacheDirectory($cacheDirectory);
-        // Keep template source change detection enabled. If a project can
-        // guarantee safe immutable deploys, use a custom renderer explicitly.
-        $this->engine->setAutoRefresh(self::AUTO_REFRESH);
+        if ($cacheDirectory !== null) {
+            // 日本語: compiled view cache は worker mode では基本不要です。
+            // 有効にするのは、template class が request をまたいで残らない
+            // classic/non-worker runtime を使う場合に限定してください。
+            // English: compiled view cache is usually unnecessary in worker mode.
+            // Enable it only for classic/non-worker runtimes where template
+            // classes do not stay loaded across requests.
+            $this->engine->setCacheDirectory($cacheDirectory);
+            $this->engine->setAutoRefresh(self::AUTO_REFRESH);
+        }
         $this->templateDirectory = rtrim($templateDirectory, '/');
     }
 

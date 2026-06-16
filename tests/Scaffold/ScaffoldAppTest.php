@@ -65,7 +65,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
             self::assertStringContainsString('TemplateRenderer::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
-            self::assertStringContainsString("cacheDirectory: \$root . '/storage/cache/views/mini-app'", $container);
+            self::assertStringNotContainsString('cacheDirectory:', $container);
             self::assertStringNotContainsString('sqlite::memory:', $container);
             self::assertStringNotContainsString('PDO::class', $container);
 
@@ -129,7 +129,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
             self::assertStringContainsString('TodoRepository::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
-            self::assertStringContainsString("cacheDirectory: \$root . '/storage/cache/views/todo'", $container);
+            self::assertStringNotContainsString('cacheDirectory:', $container);
 
             $middleware = $this->read(path: $root . '/apps/todo/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
