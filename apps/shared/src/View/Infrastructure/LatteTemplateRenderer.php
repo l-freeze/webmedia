@@ -9,6 +9,8 @@ use Latte\Engine;
 
 final class LatteTemplateRenderer implements TemplateRenderer
 {
+    private const AUTO_REFRESH = true;
+
     private readonly Engine $engine;
 
     private readonly string $templateDirectory;
@@ -19,7 +21,10 @@ final class LatteTemplateRenderer implements TemplateRenderer
     public function __construct(string $templateDirectory, string $cacheDirectory)
     {
         $this->engine = new Engine();
-        $this->engine->setTempDirectory($cacheDirectory);
+        $this->engine->setCacheDirectory($cacheDirectory);
+        // Keep template source change detection enabled. If a project can
+        // guarantee safe immutable deploys, use a custom renderer explicitly.
+        $this->engine->setAutoRefresh(self::AUTO_REFRESH);
         $this->templateDirectory = rtrim($templateDirectory, '/');
     }
 

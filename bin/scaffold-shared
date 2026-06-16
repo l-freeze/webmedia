@@ -64,12 +64,14 @@ $container->singleton(
     id: TemplateRenderer::class,
     factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
         templateDirectory: $root . '/apps/front/templates',
-        cacheDirectory: $root . '/storage/cache',
+        cacheDirectory: $root . '/storage/cache/views/front',
     ),
 );
 ```
 
 Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `TemplateRenderer`.
+
+`LatteTemplateRenderer` keeps source change detection enabled while using Latte's compiled view cache. The Framework does not expose an env/config switch to disable it. Only change that behavior in a custom renderer when the developer understands Latte and worker behavior and can guarantee the performance change is risk-free.
 
 To switch an app to Smarty:
 
@@ -425,6 +427,8 @@ use Latte\Engine;
 
 final class LatteTemplateRenderer implements TemplateRenderer
 {
+    private const AUTO_REFRESH = true;
+
     private Engine $engine;
 
     private string $templateDirectory;
@@ -435,7 +439,10 @@ final class LatteTemplateRenderer implements TemplateRenderer
     public function __construct(string $templateDirectory, string $cacheDirectory)
     {
         $this->engine = new Engine();
-        $this->engine->setTempDirectory($cacheDirectory);
+        $this->engine->setCacheDirectory($cacheDirectory);
+        // Keep template source change detection enabled. If a project can
+        // guarantee safe immutable deploys, use a custom renderer explicitly.
+        $this->engine->setAutoRefresh(self::AUTO_REFRESH);
         $this->templateDirectory = rtrim($templateDirectory, '/');
     }
 

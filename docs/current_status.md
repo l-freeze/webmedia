@@ -6,6 +6,13 @@
 
 ## 直近作業
 
+- View コンパイルキャッシュ方針を実装。
+  - `LatteTemplateRenderer` は `Engine::setCacheDirectory()` を使い、`AUTO_REFRESH = true` を private const で固定するように変更。
+  - `setAutoRefresh(false)` は env / config の公開設定として持たず、変更検知を有効にしたまま compiled view cache を使う方針にした。
+  - Front / CMS の Latte cache directory を `storage/cache/views/front`、`storage/cache/views/cms` に分離。
+  - `bin/scaffold-app` と `bin/scaffold-shared` の生成物も app 別 View cache directory と `AUTO_REFRESH = true` 固定に追従。
+  - `tests/Shared/View/LatteTemplateRendererTest.php` に、同じ template でも render ごとの `$params` と global provider が再評価される契約テストを追加。
+  - `docs/view-compiled-cached.md` に、View コンパイルキャッシュは HTML response cache ではなく、`autoRefresh=true` のまま高 throughput を目指す方針を記載。
 - プロジェクトルート README に classic mode の実行手順を追記。
   - Docker Compose 開発環境では `.docker/caddy/Caddyfile` が FrankenPHP worker mode を有効化しているため、classic mode へ切り替える場合は Caddyfile の worker `handle` block をコメントアウトし、classic 用 `handle` block をコメント解除する手順に修正。
   - `.docker/caddy/Caddyfile` だけの変更で classic mode に切り替えられることを明記。

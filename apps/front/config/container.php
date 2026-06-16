@@ -93,7 +93,10 @@ $container->singleton(id: LayoutGlobalProvider::class, factory: function (Contai
 });
 
 $container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
-    $renderer = new LatteTemplateRenderer(templateDirectory: $root . '/apps/front/templates', cacheDirectory: $root . '/storage/cache');
+    $renderer = new LatteTemplateRenderer(
+        templateDirectory: $root . '/apps/front/templates',
+        cacheDirectory: $root . '/storage/cache/views/front',
+    );
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
         $provider = $container->get(id: LayoutGlobalProvider::class);
         if (!$provider instanceof LayoutGlobalProvider) {

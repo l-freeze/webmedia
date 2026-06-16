@@ -114,6 +114,8 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
 
+`LatteTemplateRenderer` は Latte の compiled view cache を使いながら、template source の変更検知を有効に保ちます。変更検知を無効化する env / config switch は用意しません。Latte と worker の挙動を理解しており、リスクなくパフォーマンス向上ができることを開発者自身が保証できる場合のみ、独自 renderer で明示的に変更します。
+
 #### Smarty に切り替える場合
 
 Latte は標準の starting point ですが、Framework の要件ではありません。

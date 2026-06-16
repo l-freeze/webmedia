@@ -84,7 +84,10 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
 ));
 
 $container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
-    $renderer = new LatteTemplateRenderer(templateDirectory: $root . '/apps/cms/templates', cacheDirectory: $root . '/storage/cache');
+    $renderer = new LatteTemplateRenderer(
+        templateDirectory: $root . '/apps/cms/templates',
+        cacheDirectory: $root . '/storage/cache/views/cms',
+    );
     $renderer->addGlobalProvider(provider: function () use (&$container): array {
         $csrf = $container->get(id: Csrf::class);
         if (!$csrf instanceof Csrf) {
