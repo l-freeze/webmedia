@@ -1,0 +1,171 @@
+{layout '../layout/default.latte'}
+{block content}
+<section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold">サイト設定</h1>
+    <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-800 px-4 py-2 font-bold text-white hover:bg-slate-700" href="/">サイトを確認</a>
+  </div>
+  {ifset $flash}
+    <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+  {/ifset}
+  {ifset $error}
+    <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-700" role="alert" data-auto-dismiss>{$error}</div>
+  {/ifset}
+
+  <form method="post" class="grid gap-5">
+    <input type="hidden" name="_csrf" value="{$csrf}">
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <label>サイト名
+        <input name="site_name" value="{$settings['site_name'] ?? ''}">
+      </label>
+      <label>通知先メール
+        <input name="contact_email" value="{$settings['contact_email'] ?? ''}">
+      </label>
+      <label class="md:col-span-2">説明
+        <input name="site_description" value="{$settings['site_description'] ?? ''}">
+      </label>
+      <label>フロントデザイン
+        <select name="front_theme">
+          <option value="cafe-clean" {if ($settings['front_theme'] ?? '') === 'cafe-clean'}selected{/if}>10代向け: カフェクリーン</option>
+          <option value="tech-edge" {if ($settings['front_theme'] ?? '') === 'tech-edge'}selected{/if}>20代技術営業向け: テックエッジ</option>
+          <option value="executive-trust" {if ($settings['front_theme'] ?? '') === 'executive-trust'}selected{/if}>30代責任者向け: エグゼクティブ</option>
+          <option value="dev-docs" {if ($settings['front_theme'] ?? '') === 'dev-docs'}selected{/if}>技術系: デブドックス</option>
+          <option value="recipe-fresh" {if ($settings['front_theme'] ?? '') === 'recipe-fresh'}selected{/if}>料理系: レシピフレッシュ</option>
+          <option value="pop-girly" {if ($settings['front_theme'] ?? '') === 'pop-girly'}selected{/if}>10代女の子向け: ポップガーリー</option>
+          <option value="mama-soft" {if ($settings['front_theme'] ?? '') === 'mama-soft'}selected{/if}>子持ちママ向け: ママソフト</option>
+        </select>
+      </label>
+      <label>検索機能
+        <select name="search_enabled">
+          <option value="1" {if ($settings['search_enabled'] ?? '1') === '1'}selected{/if}>有効</option>
+          <option value="0" {if ($settings['search_enabled'] ?? '1') === '0'}selected{/if}>無効</option>
+        </select>
+      </label>
+    </div>
+
+    <section class="grid gap-3" data-hero-picker>
+      <input type="hidden" name="hero_image" value="{$settings['hero_image'] ?? ''}" data-hero-input>
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <label class="min-w-56 flex-1">ヒーロー画像
+          <input type="search" placeholder="画像名・代替テキストで検索" autocomplete="off" data-hero-search>
+        </label>
+        <div class="flex flex-wrap gap-2">
+          <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300" type="button" data-hero-clear>解除</button>
+          <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-800 px-4 py-2 font-bold text-white hover:bg-slate-700" href="/admin/media">メディアを登録</a>
+        </div>
+      </div>
+      <div class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" data-hero-preview>
+          {if ($settings['hero_image'] ?? '') !== ''}
+            <img class="h-80 w-full bg-slate-950 object-contain md:h-96" src="{$settings['hero_image']}" alt="ヒーロー画像">
+          {else}
+            <div class="flex h-80 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500 md:h-96">ヒーロー画像未設定</div>
+          {/if}
+          <div class="flex min-h-11 items-center border-t border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700" data-hero-selected-name>
+            {var $selectedHeroName = '未設定'}
+            {foreach $media as $item}
+              {if ($settings['hero_image'] ?? '') === $item['path']}
+                {var $selectedHeroName = $item['file_name']}
+              {/if}
+            {/foreach}
+            {$selectedHeroName}
+          </div>
+        </div>
+        <div class="max-h-80 overflow-y-scroll pr-2 [scrollbar-gutter:stable]">
+          {if count($media) === 0}
+            <div class="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500">登録済み画像はありません。</div>
+          {else}
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5" data-hero-grid>
+              {foreach $media as $item}
+                {var $isSelectedHero = ($settings['hero_image'] ?? '') === $item['path']}
+                <button class="group relative overflow-hidden rounded-lg border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 {if $isSelectedHero}border-blue-600 ring-2 ring-blue-200{else}border-slate-200{/if}" type="button" data-hero-option data-path="{$item['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}" aria-pressed="{if $isSelectedHero}true{else}false{/if}">
+                  <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="{$item['path']}" alt="{$item['alt_text'] !== '' ? $item['alt_text'] : $item['file_name']}" loading="lazy">
+                  <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">{$item['file_name']}</span>
+                  <span class="{if $isSelectedHero}flex{else}hidden{/if} absolute right-2 top-2 h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white shadow" data-hero-check aria-hidden="true">✓</span>
+                </button>
+              {/foreach}
+            </div>
+            <div class="mt-3 hidden rounded-lg border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm font-bold text-slate-500" data-hero-empty>一致する画像はありません。</div>
+          {/if}
+        </div>
+      </div>
+    </section>
+
+    <div class="flex justify-end">
+      <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" type="submit">保存</button>
+    </div>
+  </form>
+</section>
+{/block}
+{block scripts}
+  <script>
+    const heroPicker = document.querySelector('[data-hero-picker]');
+    if (heroPicker) {
+      const heroInput = heroPicker.querySelector('[data-hero-input]');
+      const heroPreview = heroPicker.querySelector('[data-hero-preview]');
+      const heroSelectedName = heroPicker.querySelector('[data-hero-selected-name]');
+      const heroSearch = heroPicker.querySelector('[data-hero-search]');
+      const heroClear = heroPicker.querySelector('[data-hero-clear]');
+      const heroOptions = Array.from(heroPicker.querySelectorAll('[data-hero-option]'));
+      const heroEmpty = heroPicker.querySelector('[data-hero-empty]');
+
+      const renderHeroPreview = (path, name, alt) => {
+        const preview = path ? document.createElement('img') : document.createElement('div');
+        if (path) {
+          preview.src = path;
+          preview.alt = alt || name || 'ヒーロー画像';
+          preview.className = 'h-80 w-full bg-slate-950 object-contain md:h-96';
+        } else {
+          preview.className = 'flex h-80 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500 md:h-96';
+          preview.textContent = 'ヒーロー画像未設定';
+        }
+        heroPreview?.firstElementChild?.replaceWith(preview);
+        if (heroSelectedName) {
+          heroSelectedName.textContent = name || '未設定';
+        }
+      };
+
+      const setHero = (path, name, alt) => {
+        if (heroInput) {
+          heroInput.value = path;
+        }
+        for (const option of heroOptions) {
+          const selected = option.dataset.path === path && path !== '';
+          option.setAttribute('aria-pressed', selected ? 'true' : 'false');
+          option.classList.toggle('border-blue-600', selected);
+          option.classList.toggle('ring-2', selected);
+          option.classList.toggle('ring-blue-200', selected);
+          option.classList.toggle('border-slate-200', !selected);
+          option.querySelector('[data-hero-check]')?.classList.toggle('hidden', !selected);
+          option.querySelector('[data-hero-check]')?.classList.toggle('flex', selected);
+        }
+        renderHeroPreview(path, name, alt);
+      };
+
+      for (const option of heroOptions) {
+        option.addEventListener('click', () => {
+          setHero(option.dataset.path || '', option.dataset.name || '', option.dataset.alt || '');
+        });
+      }
+
+      heroClear?.addEventListener('click', () => {
+        setHero('', '', '');
+      });
+
+      heroSearch?.addEventListener('input', () => {
+        const keyword = heroSearch.value.trim().toLowerCase();
+        let visibleCount = 0;
+        for (const option of heroOptions) {
+          const haystack = ((option.dataset.name || '') + ' ' + (option.dataset.alt || '')).toLowerCase();
+          const matched = keyword === '' || haystack.includes(keyword);
+          option.classList.toggle('hidden', !matched);
+          if (matched) {
+            visibleCount += 1;
+          }
+        }
+        heroEmpty?.classList.toggle('hidden', visibleCount !== 0);
+      });
+    }
+  </script>
+{/block}

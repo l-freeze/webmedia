@@ -6,6 +6,23 @@
 
 ## 直近作業
 
+- CMS サイト設定画面のヒーロー画像選択 UI を更新。
+  - `/admin/settings` を汎用 `simple-list.latte` から専用 `setting/edit.latte` へ切り出し、入力フォーム下の同内容確認テーブルを削除。
+  - ヒーロー画像 URL の通常入力欄を hidden input 化し、記事編集のアイキャッチ画像選択と同じ操作感の検索付き画像カード選択 UI へ変更。
+  - 上部に大きい `object-contain` プレビュー、下部に常時スクロール可能なサムネイルグリッドを置く縦積みレイアウトにした。
+  - サムネイル一覧は `overflow-y-scroll` と `scrollbar-gutter: stable` でスクロールバー領域を常時確保する。
+  - 設定画面の画像候補はメディア一覧から画像 MIME のみを渡す。
+- 検証結果。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、87 tests / 879 assertions。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+  - `/admin/settings`: ログイン後 200 OK。`data-hero-picker`、`data-hero-option`、hidden `name="hero_image"`、拡大プレビュー `h-80 ... md:h-96`、サムネイル一覧 `overflow-y-scroll`、`scrollbar-gutter: stable` の出力を確認。
+  - `/admin/settings`: 旧テーブル `<table>`、旧 `ヒーロー画像URL` 入力表示、記事用 `data-eyecatch-picker` が出力されないことを確認。
+- 次回再開地点。
+  - 設定画面のヒーロー画像 UI 改修は完了済み。
+  - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。
+
 - CMS 記事編集画面のアイキャッチ画像選択 UI を更新。
   - `/admin/articles/16` などの記事編集画面で、アイキャッチ画像設定を単純な `<select>` から、検索付きの画像カード選択 UI へ変更。
   - 保存時の `eyecatch_path` は hidden input で維持し、既存の Article Save 処理や DB 構造は変更しない。
