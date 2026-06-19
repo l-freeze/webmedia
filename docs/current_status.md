@@ -6,6 +6,22 @@
 
 ## 直近作業
 
+- CMS サイト設定画面のヒーロー画像プレビューをフロント表示に寄せて調整。
+  - `/admin/settings` のヒーロー画像プレビューを `<img object-contain>` から、フロントトップの `.front-hero.front-hero--image` と同じ考え方の「背景画像 cover + 暗いオーバーレイ + ヒーロー文言」表示へ変更。
+  - 画像選択時の即時プレビュー更新も同じカード構造を JavaScript で再生成するように変更。
+  - 未設定時は従来どおり空状態を表示し、選択済みファイル名とサムネイル一覧の操作性は維持。
+- 検証結果。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer test`: 成功、87 tests / 879 assertions。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+  - `docker compose restart app`: 成功。
+  - `/admin/settings`: ログイン後 200 OK。`data-hero-preview-card`、`min-h-[340px]`、`background-image: linear-gradient(...)`、フロントと同じヒーロー文言の出力を確認。
+  - `/admin/settings`: 旧 `<img class="h-80 ... object-contain">` が出力されないことを確認。
+- 次回再開地点。
+  - 設定画面のヒーロー画像プレビュー調整は完了済み。
+  - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。
+
 - CMS サイト設定画面のヒーロー画像選択 UI を更新。
   - `/admin/settings` を汎用 `simple-list.latte` から専用 `setting/edit.latte` へ切り出し、入力フォーム下の同内容確認テーブルを削除。
   - ヒーロー画像 URL の通常入力欄を hidden input 化し、記事編集のアイキャッチ画像選択と同じ操作感の検索付き画像カード選択 UI へ変更。
