@@ -30,22 +30,53 @@
       </label>
       <label>公開日時<input class="datetime-picker" type="text" name="published_at" value="{$article['published_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
       <label>公開終了日時<input class="datetime-picker" type="text" name="published_ends_at" value="{$article['published_ends_at'] ?? ''}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off" inputmode="none"></label>
-      <label class="md:col-span-2">アイキャッチ画像
-        <select name="eyecatch_path">
-          <option value="">未設定</option>
-          {foreach $media as $item}
-            <option value="{$item['path']}" {if ($article['eyecatch_path'] ?? '') === $item['path']}selected{/if}>{$item['file_name']}</option>
-          {/foreach}
-        </select>
-      </label>
-      <div class="grid gap-3 md:col-span-2" data-eyecatch-preview>
-        {if ($article['eyecatch_path'] ?? '') !== ''}
-          <img class="max-h-56 rounded-lg border border-slate-200 object-contain" src="{$article['eyecatch_path']}" alt="{$article['title'] ?? 'アイキャッチ画像'}">
-        {else}
-          <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500">アイキャッチ未設定</div>
-        {/if}
-        <a class="inline-flex min-h-10 w-fit items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300" href="/admin/media">メディアを登録する</a>
-      </div>
+      <section class="grid gap-3 md:col-span-2" data-eyecatch-picker>
+        <input type="hidden" name="eyecatch_path" value="{$article['eyecatch_path'] ?? ''}" data-eyecatch-input>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <label class="min-w-56 flex-1">アイキャッチ画像
+            <input type="search" placeholder="画像名・代替テキストで検索" autocomplete="off" data-eyecatch-search>
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300" type="button" data-eyecatch-clear>解除</button>
+            <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-800 px-4 py-2 font-bold text-white hover:bg-slate-700" href="/admin/media">メディアを登録</a>
+          </div>
+        </div>
+        <div class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 md:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
+          <div class="overflow-hidden rounded-lg border border-slate-200 bg-white" data-eyecatch-preview>
+            {if ($article['eyecatch_path'] ?? '') !== ''}
+              <img class="h-48 w-full object-cover" src="{$article['eyecatch_path']}" alt="{$article['title'] ?? 'アイキャッチ画像'}">
+            {else}
+              <div class="flex h-48 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500">アイキャッチ未設定</div>
+            {/if}
+            <div class="border-t border-slate-200 px-3 py-2 text-xs font-bold text-slate-500" data-eyecatch-selected-name>
+              {var $selectedEyecatchName = '未設定'}
+              {foreach $media as $item}
+                {if ($article['eyecatch_path'] ?? '') === $item['path']}
+                  {var $selectedEyecatchName = $item['file_name']}
+                {/if}
+              {/foreach}
+              {$selectedEyecatchName}
+            </div>
+          </div>
+          <div class="max-h-72 overflow-y-auto pr-1">
+            {if count($media) === 0}
+              <div class="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500">登録済み画像はありません。</div>
+            {else}
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4" data-eyecatch-grid>
+                {foreach $media as $item}
+                  {var $isSelectedEyecatch = ($article['eyecatch_path'] ?? '') === $item['path']}
+                  <button class="group relative overflow-hidden rounded-lg border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 {if $isSelectedEyecatch}border-blue-600 ring-2 ring-blue-200{else}border-slate-200{/if}" type="button" data-eyecatch-option data-path="{$item['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}" aria-pressed="{if $isSelectedEyecatch}true{else}false{/if}">
+                    <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="{$item['path']}" alt="{$item['alt_text'] !== '' ? $item['alt_text'] : $item['file_name']}" loading="lazy">
+                    <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">{$item['file_name']}</span>
+                    <span class="{if $isSelectedEyecatch}flex{else}hidden{/if} absolute right-2 top-2 h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white shadow" data-eyecatch-check aria-hidden="true">✓</span>
+                  </button>
+                {/foreach}
+              </div>
+              <div class="mt-3 hidden rounded-lg border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm font-bold text-slate-500" data-eyecatch-empty>一致する画像はありません。</div>
+            {/if}
+          </div>
+        </div>
+      </section>
       <label class="md:col-span-2">SEOタイトル<input name="seo_title" value="{$article['seo_title'] ?? ''}"></label>
       <label class="md:col-span-2">meta description<textarea name="meta_description">{$article['meta_description'] ?? ''}</textarea></label>
     </div>
@@ -108,28 +139,72 @@
       time_24hr: true
     });
 
-    const eyecatchSelect = document.querySelector('select[name="eyecatch_path"]');
-      const eyecatchPreview = document.querySelector('[data-eyecatch-preview]');
-    eyecatchSelect?.addEventListener('change', () => {
-      const path = eyecatchSelect.value;
-      const title = document.querySelector('input[name="title"]')?.value || 'アイキャッチ画像';
-      if (!eyecatchPreview) {
-        return;
+    const eyecatchPicker = document.querySelector('[data-eyecatch-picker]');
+    if (eyecatchPicker) {
+      const eyecatchInput = eyecatchPicker.querySelector('[data-eyecatch-input]');
+      const eyecatchPreview = eyecatchPicker.querySelector('[data-eyecatch-preview]');
+      const eyecatchSelectedName = eyecatchPicker.querySelector('[data-eyecatch-selected-name]');
+      const eyecatchSearch = eyecatchPicker.querySelector('[data-eyecatch-search]');
+      const eyecatchClear = eyecatchPicker.querySelector('[data-eyecatch-clear]');
+      const eyecatchOptions = Array.from(eyecatchPicker.querySelectorAll('[data-eyecatch-option]'));
+      const eyecatchEmpty = eyecatchPicker.querySelector('[data-eyecatch-empty]');
+
+      const renderEyecatchPreview = (path, name, alt) => {
+        const preview = path ? document.createElement('img') : document.createElement('div');
+        if (path) {
+          preview.src = path;
+          preview.alt = alt || name || 'アイキャッチ画像';
+          preview.className = 'h-48 w-full object-cover';
+        } else {
+          preview.className = 'flex h-48 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500';
+          preview.textContent = 'アイキャッチ未設定';
+        }
+        eyecatchPreview?.firstElementChild?.replaceWith(preview);
+        if (eyecatchSelectedName) {
+          eyecatchSelectedName.textContent = name || '未設定';
+        }
+      };
+
+      const setEyecatch = (path, name, alt) => {
+        if (eyecatchInput) {
+          eyecatchInput.value = path;
+        }
+        for (const option of eyecatchOptions) {
+          const selected = option.dataset.path === path && path !== '';
+          option.setAttribute('aria-pressed', selected ? 'true' : 'false');
+          option.classList.toggle('border-blue-600', selected);
+          option.classList.toggle('ring-2', selected);
+          option.classList.toggle('ring-blue-200', selected);
+          option.classList.toggle('border-slate-200', !selected);
+          option.querySelector('[data-eyecatch-check]')?.classList.toggle('hidden', !selected);
+          option.querySelector('[data-eyecatch-check]')?.classList.toggle('flex', selected);
+        }
+        renderEyecatchPreview(path, name, alt);
+      };
+
+      for (const option of eyecatchOptions) {
+        option.addEventListener('click', () => {
+          setEyecatch(option.dataset.path || '', option.dataset.name || '', option.dataset.alt || '');
+        });
       }
-      const link = eyecatchPreview.querySelector('a');
-      const preview = path ? document.createElement('img') : document.createElement('div');
-      if (path) {
-        preview.src = path;
-        preview.alt = title;
-        preview.className = 'max-h-56 rounded-lg border border-slate-200 object-contain';
-      } else {
-        preview.className = 'rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-bold text-slate-500';
-        preview.textContent = 'アイキャッチ未設定';
-      }
-      eyecatchPreview.replaceChildren(preview);
-      if (link) {
-        eyecatchPreview.appendChild(link);
-      }
-    });
+
+      eyecatchClear?.addEventListener('click', () => {
+        setEyecatch('', '', '');
+      });
+
+      eyecatchSearch?.addEventListener('input', () => {
+        const keyword = eyecatchSearch.value.trim().toLowerCase();
+        let visibleCount = 0;
+        for (const option of eyecatchOptions) {
+          const haystack = ((option.dataset.name || '') + ' ' + (option.dataset.alt || '')).toLowerCase();
+          const matched = keyword === '' || haystack.includes(keyword);
+          option.classList.toggle('hidden', !matched);
+          if (matched) {
+            visibleCount += 1;
+          }
+        }
+        eyecatchEmpty?.classList.toggle('hidden', visibleCount !== 0);
+      });
+    }
   </script>
 {/block}
