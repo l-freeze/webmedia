@@ -10,6 +10,9 @@
   - `/admin/articles/16` などの記事編集画面で、アイキャッチ画像設定を単純な `<select>` から、検索付きの画像カード選択 UI へ変更。
   - 保存時の `eyecatch_path` は hidden input で維持し、既存の Article Save 処理や DB 構造は変更しない。
   - 選択中画像の大きめプレビュー、ファイル名表示、選択済みリング、解除ボタン、メディア登録導線、画像名・代替テキスト検索、検索結果なし表示を追加。
+  - ユーザー確認後、サムネイル一覧のスクロールバー表示が hover / focus で出入りして見た目が揺れる問題を修正。
+  - アイキャッチ確認のしやすさを優先し、横並びの小さいプレビューをやめて、上部に大きい `object-contain` プレビュー、下部に常時スクロール可能なサムネイルグリッドを置く縦積みレイアウトへ変更。
+  - サムネイル一覧は `overflow-y-scroll` と `scrollbar-gutter: stable` でスクロールバー領域を常時確保する。
   - JavaScript は `apps/cms/templates/article/edit.latte` 内の既存日時ピッカー script block に合わせて局所実装。
   - FrankenPHP worker mode ではテンプレート変更後に worker restart が必要なため、確認時に `docker compose restart app` を実行。
 - 検証結果。
@@ -18,6 +21,7 @@
   - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
   - `git diff --check`: 成功。
   - `/admin/articles/16`: ログイン後 200 OK。`data-eyecatch-picker` と `data-eyecatch-option` が出力され、旧 `select name="eyecatch_path"` が出力されないことを確認。
+  - `/admin/articles/16`: ログイン後 200 OK。拡大プレビュー `h-80 ... md:h-96`、サムネイル一覧 `overflow-y-scroll`、`scrollbar-gutter: stable` の出力を確認。
 - 次回再開地点。
   - 今回の UI 改修は完了済み。
   - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。

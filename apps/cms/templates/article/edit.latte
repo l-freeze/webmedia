@@ -41,14 +41,14 @@
             <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-800 px-4 py-2 font-bold text-white hover:bg-slate-700" href="/admin/media">メディアを登録</a>
           </div>
         </div>
-        <div class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 md:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
-          <div class="overflow-hidden rounded-lg border border-slate-200 bg-white" data-eyecatch-preview>
+        <div class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" data-eyecatch-preview>
             {if ($article['eyecatch_path'] ?? '') !== ''}
-              <img class="h-48 w-full object-cover" src="{$article['eyecatch_path']}" alt="{$article['title'] ?? 'アイキャッチ画像'}">
+              <img class="h-80 w-full bg-slate-950 object-contain md:h-96" src="{$article['eyecatch_path']}" alt="{$article['title'] ?? 'アイキャッチ画像'}">
             {else}
-              <div class="flex h-48 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500">アイキャッチ未設定</div>
+              <div class="flex h-80 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500 md:h-96">アイキャッチ未設定</div>
             {/if}
-            <div class="border-t border-slate-200 px-3 py-2 text-xs font-bold text-slate-500" data-eyecatch-selected-name>
+            <div class="flex min-h-11 items-center border-t border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700" data-eyecatch-selected-name>
               {var $selectedEyecatchName = '未設定'}
               {foreach $media as $item}
                 {if ($article['eyecatch_path'] ?? '') === $item['path']}
@@ -58,11 +58,11 @@
               {$selectedEyecatchName}
             </div>
           </div>
-          <div class="max-h-72 overflow-y-auto pr-1">
+          <div class="max-h-80 overflow-y-scroll pr-2 [scrollbar-gutter:stable]">
             {if count($media) === 0}
               <div class="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500">登録済み画像はありません。</div>
             {else}
-              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4" data-eyecatch-grid>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5" data-eyecatch-grid>
                 {foreach $media as $item}
                   {var $isSelectedEyecatch = ($article['eyecatch_path'] ?? '') === $item['path']}
                   <button class="group relative overflow-hidden rounded-lg border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 {if $isSelectedEyecatch}border-blue-600 ring-2 ring-blue-200{else}border-slate-200{/if}" type="button" data-eyecatch-option data-path="{$item['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}" aria-pressed="{if $isSelectedEyecatch}true{else}false{/if}">
@@ -154,9 +154,9 @@
         if (path) {
           preview.src = path;
           preview.alt = alt || name || 'アイキャッチ画像';
-          preview.className = 'h-48 w-full object-cover';
+          preview.className = 'h-80 w-full bg-slate-950 object-contain md:h-96';
         } else {
-          preview.className = 'flex h-48 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500';
+          preview.className = 'flex h-80 items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500 md:h-96';
           preview.textContent = 'アイキャッチ未設定';
         }
         eyecatchPreview?.firstElementChild?.replaceWith(preview);
