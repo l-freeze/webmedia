@@ -288,7 +288,6 @@ final class InitialDataSeeder extends AbstractSeed
             ['setting_key' => 'contact_email', 'setting_value' => 'admin@example.com'],
             ['setting_key' => 'front_theme', 'setting_value' => 'cafe-clean'],
             ['setting_key' => 'search_enabled', 'setting_value' => '1'],
-            ['setting_key' => 'hero_label', 'setting_value' => '新着記事'],
             ['setting_key' => 'hero_title', 'setting_value' => '読みやすく、探しやすいWEBメディア'],
             ['setting_key' => 'hero_description', 'setting_value' => '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。'],
         ])->saveData();

@@ -42,7 +42,6 @@ final class LayoutGlobalProviderTest extends TestCase
                     frontTheme: 'default',
                     searchEnabled: true,
                     heroImage: '/hero.jpg',
-                    heroLabel: 'Pick up',
                     heroTitle: 'Custom hero',
                     heroDescription: 'Custom lead',
                 );
@@ -76,7 +75,6 @@ final class LayoutGlobalProviderTest extends TestCase
         self::assertSame(1, $categories->calls);
         self::assertSame(120, $cache->ttl);
         self::assertSame('WEB Media', $first['siteName']);
-        self::assertSame('Pick up', $first['heroLabel']);
         self::assertSame('Custom hero', $first['heroTitle']);
         self::assertSame('Custom lead', $first['heroDescription']);
         self::assertSame([['title' => 'About', 'slug' => 'about']], $first['publishedPages']);

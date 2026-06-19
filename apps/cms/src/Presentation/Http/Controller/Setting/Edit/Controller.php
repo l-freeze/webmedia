@@ -36,7 +36,6 @@ final readonly class Controller
                 'contact_email' => $settings->contactEmail,
                 'front_theme' => $settings->frontTheme,
                 'hero_image' => $settings->heroImage,
-                'hero_label' => $settings->heroLabel,
                 'hero_title' => $settings->heroTitle,
                 'hero_description' => $settings->heroDescription,
                 'search_enabled' => $settings->searchEnabled ? '1' : '0',

@@ -14,7 +14,6 @@ use PDO;
 final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepository
 {
     private const DEFAULT_FRONT_THEME = 'cafe-clean';
-    private const DEFAULT_HERO_LABEL = '新着記事';
     private const DEFAULT_HERO_TITLE = '読みやすく、探しやすいWEBメディア';
     private const DEFAULT_HERO_DESCRIPTION = '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。';
 
@@ -44,16 +43,15 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
             frontTheme: $frontTheme,
             searchEnabled: ($settings['search_enabled'] ?? '1') === '1',
             heroImage: $settings['hero_image'] ?? '',
-            heroLabel: $settings['hero_label'] ?? self::DEFAULT_HERO_LABEL,
-            heroTitle: $settings['hero_title'] ?? self::DEFAULT_HERO_TITLE,
-            heroDescription: $settings['hero_description'] ?? self::DEFAULT_HERO_DESCRIPTION,
+            heroTitle: self::settingOrDefault(value: $settings['hero_title'] ?? null, default: self::DEFAULT_HERO_TITLE),
+            heroDescription: self::settingOrDefault(value: $settings['hero_description'] ?? null, default: self::DEFAULT_HERO_DESCRIPTION),
         );
     }
 
     public function save(array $data): void
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO site_settings (setting_key, setting_value) VALUES (:key, :value) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value');
-        foreach (['site_name', 'site_description', 'contact_email', 'front_theme', 'search_enabled', 'hero_image', 'hero_label', 'hero_title', 'hero_description'] as $key) {
+        foreach (['site_name', 'site_description', 'contact_email', 'front_theme', 'search_enabled', 'hero_image', 'hero_title', 'hero_description'] as $key) {
             $value = PdoRow::from(values: $data)->string(key: $key);
             if ($key === 'front_theme' && !in_array($value, self::FRONT_THEMES, true)) {
                 $value = self::DEFAULT_FRONT_THEME;
@@ -64,5 +62,14 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
 
             PdoHelper::execute(statement: $stmt, params: ['key' => $key, 'value' => $value]);
         }
+    }
+
+    private static function settingOrDefault(string|null $value, string $default): string
+    {
+        if ($value === null || trim($value) === '') {
+            return $default;
+        }
+
+        return $value;
     }
 }

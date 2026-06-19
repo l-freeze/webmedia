@@ -6,25 +6,26 @@
 
 ## 直近作業
 
-- トップヒーロー文言をサイト設定から変更できるようにした。
-  - `hero_label`、`hero_title`、`hero_description` を `site_settings` の key-value 設定として追加。
-  - `/admin/settings` にヒーローラベル、ヒーロータイトル、ヒーロー説明の入力欄を追加。
-  - フロントトップ `apps/front/templates/index.latte` のヒーローラベル、H1、説明文を Layout global の設定値から描画するように変更。
-  - CMS のヒーロー画像プレビューも同じ設定値を表示し、入力中の文言変更がプレビューへ即時反映されるように変更。
-  - 設定保存時に `front.layout_globals` cache を削除し、保存直後に公開側へ反映されるようにした。
-  - 初期 seed にヒーロー文言の設定値を追加。既存DBにキーがない場合も現在の文言をデフォルトとして表示する。
+- ヒーローラベルを不要として削除し、サイト設定画面のヒーロー画像 UI 配置を調整。
+  - `hero_label` / `heroLabel` を Settings / SiteSettings / Repository / Controller / Layout global / seed / test / template から削除。
+  - フロントトップ `apps/front/templates/index.latte` のヒーロー表示は、H1 と説明文だけを Layout global の設定値から描画する形に変更。
+  - `/admin/settings` のヒーロー画像選択 UI は、ヒーローエリアのプレビューを先に表示し、その直下に検索ボックス・解除・メディア登録ボタン、その下に画像候補グリッドを置く順序へ変更。
+  - CMS のヒーロー画像プレビューからラベルバッジを削除し、入力中のタイトル・説明変更だけがプレビューへ即時反映されるように整理。
+  - `hero_title` / `hero_description` がDB上で空文字の場合も既定文言へフォールバックするようにし、既存データの空文字でフロントヒーローが空表示にならないようにした。
+  - Layout global の cache key を `front.layout_globals.v2` に更新し、旧 `heroLabel` を含む stale cache を再利用しないようにした。設定保存時の cache 削除対象も同キーへ更新。
 - 検証結果。
   - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
   - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
-  - `docker compose exec -T app composer test`: 成功、87 tests / 882 assertions。
+  - `docker compose exec -T app composer test`: 成功、87 tests / 881 assertions。
   - `git diff --check`: 成功。
   - `docker compose restart app`: 成功。
-  - `/admin/settings`: ログイン後 200 OK。`name="hero_label"`、`name="hero_title"`、`name="hero_description"` とプレビュー用 `data-hero-preview-*` の出力を確認。
-  - `/`: 200 OK。ヒーローラベル、H1、説明文の出力を確認。
-  - Front / CMS template と CSS に、旧固定ヒーロー見出しの直書き `<p class="label">新着記事`、`<h1>読みやすく、探しやすいWEBメディア`、`preview.innerHTML` が残っていないことを確認。
+  - `/admin/settings`: ログイン後 200 OK。`data-hero-preview` が `data-hero-search` より前、`data-hero-search` が `data-hero-grid` より前に出力されることを確認。
+  - `/admin/settings`: `name="hero_label"`、`data-hero-preview-label`、`heroLabel` が出力されないことを確認。
+  - `/admin/settings`: `name="hero_title"`、`name="hero_description"`、プレビュー用 `data-hero-preview-title` / `data-hero-preview-description` の出力を確認。
+  - `/`: 200 OK。ヒーローの H1 と説明文が出力され、ラベルは出力されないことを確認。
 - 次回再開地点。
-  - ヒーロー文言のサイト設定化は完了済み。
-  - CMS の「CMSログイン」「CMS」など管理機能名はサイト表示文言ではないため今回の設定化対象外。
+  - ヒーローラベル削除とヒーロー画像 UI 配置調整は完了済み。
+  - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。
 
 - CMS サイト設定画面のヒーロー画像プレビューをフロント表示に寄せて調整。
   - `/admin/settings` のヒーロー画像プレビューを `<img object-contain>` から、フロントトップの `.front-hero.front-hero--image` と同じ考え方の「背景画像 cover + 暗いオーバーレイ + ヒーロー文言」表示へ変更。

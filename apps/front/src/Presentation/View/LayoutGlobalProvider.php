@@ -11,7 +11,7 @@ use Psr\SimpleCache\CacheInterface;
 
 final readonly class LayoutGlobalProvider
 {
-    private const CACHE_KEY = 'front.layout_globals';
+    private const CACHE_KEY = 'front.layout_globals.v2';
 
     public function __construct(
         private IPageLinkQuery $pageLinks,
@@ -53,7 +53,6 @@ final readonly class LayoutGlobalProvider
             'frontTheme' => $settings->frontTheme,
             'searchEnabled' => $settings->searchEnabled,
             'heroImage' => $settings->heroImage,
-            'heroLabel' => $settings->heroLabel,
             'heroTitle' => $settings->heroTitle,
             'heroDescription' => $settings->heroDescription,
             'publishedPages' => array_map(

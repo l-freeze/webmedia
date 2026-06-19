@@ -4,7 +4,6 @@
   <section>
     <div class="card front-hero{if ($heroImage ?? '') !== ''} front-hero--image{/if}"{if ($heroImage ?? '') !== ''} style="--hero-image: url('{$heroImage}')"{/if}>
       <div class="front-hero__copy">
-        <p class="label">{$heroLabel ?? '新着記事'}</p>
         <h1>{$heroTitle ?? $siteName}</h1>
         <p class="muted">{$heroDescription ?? $description ?? ''}</p>
       </div>
