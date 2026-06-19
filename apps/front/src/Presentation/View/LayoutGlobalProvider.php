@@ -53,6 +53,9 @@ final readonly class LayoutGlobalProvider
             'frontTheme' => $settings->frontTheme,
             'searchEnabled' => $settings->searchEnabled,
             'heroImage' => $settings->heroImage,
+            'heroLabel' => $settings->heroLabel,
+            'heroTitle' => $settings->heroTitle,
+            'heroDescription' => $settings->heroDescription,
             'publishedPages' => array_map(
                 static fn ($page): array => $page->toArray(),
                 $this->pageLinks->publishedPageLinks(),

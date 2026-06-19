@@ -4,9 +4,9 @@
   <section>
     <div class="card front-hero{if ($heroImage ?? '') !== ''} front-hero--image{/if}"{if ($heroImage ?? '') !== ''} style="--hero-image: url('{$heroImage}')"{/if}>
       <div class="front-hero__copy">
-        <p class="label">新着記事</p>
-        <h1>読みやすく、探しやすいWEBメディア</h1>
-        <p class="muted">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
+        <p class="label">{$heroLabel ?? '新着記事'}</p>
+        <h1>{$heroTitle ?? $siteName}</h1>
+        <p class="muted">{$heroDescription ?? $description ?? ''}</p>
       </div>
       <div class="front-hero__visual" aria-hidden="true">
         <span></span>

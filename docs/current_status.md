@@ -6,6 +6,26 @@
 
 ## 直近作業
 
+- トップヒーロー文言をサイト設定から変更できるようにした。
+  - `hero_label`、`hero_title`、`hero_description` を `site_settings` の key-value 設定として追加。
+  - `/admin/settings` にヒーローラベル、ヒーロータイトル、ヒーロー説明の入力欄を追加。
+  - フロントトップ `apps/front/templates/index.latte` のヒーローラベル、H1、説明文を Layout global の設定値から描画するように変更。
+  - CMS のヒーロー画像プレビューも同じ設定値を表示し、入力中の文言変更がプレビューへ即時反映されるように変更。
+  - 設定保存時に `front.layout_globals` cache を削除し、保存直後に公開側へ反映されるようにした。
+  - 初期 seed にヒーロー文言の設定値を追加。既存DBにキーがない場合も現在の文言をデフォルトとして表示する。
+- 検証結果。
+  - `docker compose exec -T app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose exec -T app composer analyse`: 成功、PHPStan No errors。
+  - `docker compose exec -T app composer test`: 成功、87 tests / 882 assertions。
+  - `git diff --check`: 成功。
+  - `docker compose restart app`: 成功。
+  - `/admin/settings`: ログイン後 200 OK。`name="hero_label"`、`name="hero_title"`、`name="hero_description"` とプレビュー用 `data-hero-preview-*` の出力を確認。
+  - `/`: 200 OK。ヒーローラベル、H1、説明文の出力を確認。
+  - Front / CMS template と CSS に、旧固定ヒーロー見出しの直書き `<p class="label">新着記事`、`<h1>読みやすく、探しやすいWEBメディア`、`preview.innerHTML` が残っていないことを確認。
+- 次回再開地点。
+  - ヒーロー文言のサイト設定化は完了済み。
+  - CMS の「CMSログイン」「CMS」など管理機能名はサイト表示文言ではないため今回の設定化対象外。
+
 - CMS サイト設定画面のヒーロー画像プレビューをフロント表示に寄せて調整。
   - `/admin/settings` のヒーロー画像プレビューを `<img object-contain>` から、フロントトップの `.front-hero.front-hero--image` と同じ考え方の「背景画像 cover + 暗いオーバーレイ + ヒーロー文言」表示へ変更。
   - 画像選択時の即時プレビュー更新も同じカード構造を JavaScript で再生成するように変更。

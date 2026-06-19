@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Cms\Application\Setting\Save;
 
 use App\Cms\Domain\Repository\ISettingRepository;
+use Psr\SimpleCache\CacheInterface;
 
 final readonly class Interactor
 {
-    public function __construct(private ISettingRepository $settings)
-    {
+    public function __construct(
+        private ISettingRepository $settings,
+        private CacheInterface $cache,
+    ) {
     }
 
     public function execute(Input $input): Output
     {
         $this->settings->save(data: $input->data);
+        $this->cache->delete(key: 'front.layout_globals');
+
         return new Output(saved: true);
     }
 }

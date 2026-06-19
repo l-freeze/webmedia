@@ -25,6 +25,15 @@
       <label class="md:col-span-2">説明
         <input name="site_description" value="{$settings['site_description'] ?? ''}">
       </label>
+      <label>ヒーローラベル
+        <input name="hero_label" value="{$settings['hero_label'] ?? '新着記事'}" data-hero-label-input>
+      </label>
+      <label>ヒーロータイトル
+        <input name="hero_title" value="{$settings['hero_title'] ?? '読みやすく、探しやすいWEBメディア'}" data-hero-title-input>
+      </label>
+      <label class="md:col-span-2">ヒーロー説明
+        <textarea name="hero_description" rows="3" data-hero-description-input>{$settings['hero_description'] ?? '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。'}</textarea>
+      </label>
       <label>フロントデザイン
         <select name="front_theme">
           <option value="cafe-clean" {if ($settings['front_theme'] ?? '') === 'cafe-clean'}selected{/if}>10代向け: カフェクリーン</option>
@@ -60,9 +69,9 @@
           {if ($settings['hero_image'] ?? '') !== ''}
             <div class="grid min-h-[340px] content-center bg-slate-950 bg-cover bg-center p-8 text-white md:min-h-[420px]" style="background-image: linear-gradient(0deg, rgba(12, 16, 24, .62), rgba(12, 16, 24, .32)), url('{$settings['hero_image']}');" data-hero-preview-card>
               <div class="relative z-10 grid max-w-3xl gap-4">
-                <p class="w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-900">新着記事</p>
-                <h2 class="text-3xl font-black leading-tight text-white drop-shadow-md md:text-5xl">読みやすく、探しやすいWEBメディア</h2>
-                <p class="max-w-2xl text-base font-bold leading-7 text-white drop-shadow-md md:text-lg">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p>
+                <p class="w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-900" data-hero-preview-label>{$settings['hero_label'] ?? '新着記事'}</p>
+                <h2 class="text-3xl font-black leading-tight text-white drop-shadow-md md:text-5xl" data-hero-preview-title>{$settings['hero_title'] ?? '読みやすく、探しやすいWEBメディア'}</h2>
+                <p class="max-w-2xl text-base font-bold leading-7 text-white drop-shadow-md md:text-lg" data-hero-preview-description>{$settings['hero_description'] ?? '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。'}</p>
               </div>
             </div>
           {else}
@@ -113,8 +122,41 @@
       const heroSelectedName = heroPicker.querySelector('[data-hero-selected-name]');
       const heroSearch = heroPicker.querySelector('[data-hero-search]');
       const heroClear = heroPicker.querySelector('[data-hero-clear]');
+      const heroLabelInput = document.querySelector('[data-hero-label-input]');
+      const heroTitleInput = document.querySelector('[data-hero-title-input]');
+      const heroDescriptionInput = document.querySelector('[data-hero-description-input]');
       const heroOptions = Array.from(heroPicker.querySelectorAll('[data-hero-option]'));
       const heroEmpty = heroPicker.querySelector('[data-hero-empty]');
+
+      const heroCopy = () => ({
+        label: heroLabelInput?.value.trim() || '新着記事',
+        title: heroTitleInput?.value.trim() || '読みやすく、探しやすいWEBメディア',
+        description: heroDescriptionInput?.value.trim() || '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。',
+      });
+
+      const appendHeroCopy = (preview) => {
+        const copy = heroCopy();
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative z-10 grid max-w-3xl gap-4';
+
+        const label = document.createElement('p');
+        label.className = 'w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-900';
+        label.dataset.heroPreviewLabel = '';
+        label.textContent = copy.label;
+
+        const title = document.createElement('h2');
+        title.className = 'text-3xl font-black leading-tight text-white drop-shadow-md md:text-5xl';
+        title.dataset.heroPreviewTitle = '';
+        title.textContent = copy.title;
+
+        const description = document.createElement('p');
+        description.className = 'max-w-2xl text-base font-bold leading-7 text-white drop-shadow-md md:text-lg';
+        description.dataset.heroPreviewDescription = '';
+        description.textContent = copy.description;
+
+        wrapper.append(label, title, description);
+        preview.append(wrapper);
+      };
 
       const renderHeroPreview = (path, name, alt) => {
         const preview = document.createElement('div');
@@ -123,7 +165,7 @@
           const escapedPath = path.replace(/["\\]/g, '\\$&');
           preview.className = 'grid min-h-[340px] content-center bg-slate-950 bg-cover bg-center p-8 text-white md:min-h-[420px]';
           preview.style.backgroundImage = 'linear-gradient(0deg, rgba(12, 16, 24, .62), rgba(12, 16, 24, .32)), url("' + escapedPath + '")';
-          preview.innerHTML = '<div class="relative z-10 grid max-w-3xl gap-4"><p class="w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-900">新着記事</p><h2 class="text-3xl font-black leading-tight text-white drop-shadow-md md:text-5xl">読みやすく、探しやすいWEBメディア</h2><p class="max-w-2xl text-base font-bold leading-7 text-white drop-shadow-md md:text-lg">小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。</p></div>';
+          appendHeroCopy(preview);
         } else {
           preview.className = 'flex min-h-[340px] items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-sm font-bold text-slate-500 md:min-h-[420px]';
           preview.textContent = 'ヒーロー画像未設定';
@@ -151,6 +193,23 @@
         renderHeroPreview(path, name, alt);
       };
 
+      const updateHeroCopy = () => {
+        const copy = heroCopy();
+        const previewCard = heroPicker.querySelector('[data-hero-preview-card]');
+        const label = previewCard?.querySelector('[data-hero-preview-label]');
+        const title = previewCard?.querySelector('[data-hero-preview-title]');
+        const description = previewCard?.querySelector('[data-hero-preview-description]');
+        if (label) {
+          label.textContent = copy.label;
+        }
+        if (title) {
+          title.textContent = copy.title;
+        }
+        if (description) {
+          description.textContent = copy.description;
+        }
+      };
+
       for (const option of heroOptions) {
         option.addEventListener('click', () => {
           setHero(option.dataset.path || '', option.dataset.name || '', option.dataset.alt || '');
@@ -174,6 +233,10 @@
         }
         heroEmpty?.classList.toggle('hidden', visibleCount !== 0);
       });
+
+      heroLabelInput?.addEventListener('input', updateHeroCopy);
+      heroTitleInput?.addEventListener('input', updateHeroCopy);
+      heroDescriptionInput?.addEventListener('input', updateHeroCopy);
     }
   </script>
 {/block}
