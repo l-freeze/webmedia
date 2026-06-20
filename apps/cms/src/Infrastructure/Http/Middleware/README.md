@@ -61,3 +61,31 @@ Middleware は Container から解決されるため、コンストラクタで 
 `RequireCmsSessionMiddleware` は CMS 管理画面にログイン済みセッションを要求します。
 
 `/admin/login` はログインフォーム表示とログイン処理のため public path として通します。それ以外の CMS リクエストで `cms.user_id` が Session に存在しない場合は `/admin/login` へ redirect します。
+
+## CmsAuditMiddleware
+
+`CmsAuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`AuditLoggerInterface` に渡します。
+
+対象は `/admin` 配下の状態変更 method です。
+
+```text
+POST
+PUT
+PATCH
+DELETE
+```
+
+対象判定は allowlist ではなく denylist で行います。CMS の操作は増えるため、新規操作を監査対象に入れ忘れないことを優先します。監査ログが不要な path だけを denylist に追加します。
+
+初期 denylist は以下です。
+
+```text
+/admin/login
+/admin/logout
+```
+
+GET は初期対象外です。問い合わせ詳細閲覧、エクスポート、ダウンロードなど、GET でも監査が必要な操作が出た場合だけ個別に設計します。
+
+`CmsAuditMiddleware` は AuditLogger の例外を握りつぶしません。`PlaceholderAuditLogger` のまま監査対象 request を実行した場合に例外が見えることは、Audit 未設定を検知するための意図した挙動です。
+
+永続化先、DB schema、`AuditEvent` から保存形式への mapping は AuditLogger 実装側の責務です。middleware は request body 全体、password、CSRF token、cookie、session id を保存しません。

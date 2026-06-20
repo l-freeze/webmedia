@@ -30,6 +30,8 @@ CMS の監査対象操作について、「誰が、いつ、何を行い、結�
 - Audit を実際に使うアプリケーションは、明示的に `PdoAuditLogger` などの実装へ差し替える。
 - `NullAuditLogger` は標準実装にしない。監査対象操作を沈黙して捨てると設定漏れに気付けないためである。
 - 本番で監査ログが必須のアプリケーションでは、`PlaceholderAuditLogger` のまま起動しないように container test または bootstrap check を追加してよい。
+- `CmsAuditMiddleware` を有効化した状態で `PlaceholderAuditLogger` のまま監査対象 request を実行すると例外になる。これは設定漏れにすぐ気付くための意図した挙動であり、隠してはならない。
+- 実際に CMS を動かすアプリケーションでは、`AuditLoggerInterface` が最初に解決される前に対象アプリの container で実装を差し替える。現行 Kernel は request ごとに DI container を生成するため、container 生成直後に差し替える限り stale instance 問題は起きない。
 
 ## 監査ログと他ログの分類
 
@@ -152,34 +154,9 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 
 ただし、scaffold 初期状態の `PlaceholderAuditLogger` は維持する。
 
-### 追加する migration
+永続化先、DB schema、`AuditEvent` から保存形式への mapping は、AuditLogger 実装側の責務である。この文書では規約化しない。
 
-DB へ保存する場合は `audit_logs` テーブルを追加する。
-
-```sql
-CREATE TABLE audit_logs (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    occurred_at DATETIME NOT NULL,
-    action VARCHAR(120) NOT NULL,
-    resource_type VARCHAR(80) NOT NULL,
-    resource_id VARCHAR(80) NULL,
-    result VARCHAR(30) NOT NULL,
-    actor_user_id VARCHAR(80) NULL,
-    actor_role VARCHAR(80) NULL,
-    ip_address VARCHAR(45) NULL,
-    user_agent VARCHAR(255) NULL,
-    request_id VARCHAR(80) NULL,
-    http_method VARCHAR(16) NULL,
-    path VARCHAR(255) NULL,
-    status_code INT NULL,
-    before_json JSON NULL,
-    after_json JSON NULL,
-    metadata_json JSON NULL,
-    created_at DATETIME NOT NULL
-);
-```
-
-`http_method`、`path`、`status_code` は middleware 由来の情報を metadata に埋め込まず、検索しやすい列として持つ。
+理由は、`CmsAuditMiddleware` は Framework でも Kernel でもなく、CMS の HTTP pipeline に差し込むアプリケーション側の部品だからである。保存先が DB、ファイル、外部監査基盤のどれになるかは利用アプリケーションが決める。
 
 ## CmsAuditMiddleware の責務
 
@@ -188,7 +165,7 @@ CREATE TABLE audit_logs (
 - CMS の監査対象 request か判定する。
 - 対象外なら何も記録せず次へ進める。
 - 対象なら handler 実行後に `AuditEvent` を作る。
-- handler が例外を投げた場合は failure として記録を試み、その後に同じ例外を再 throw する。
+- 対象 request で handler が例外を投げた場合は failure として記録を試みる。
 - `AuditLoggerInterface::record()` を呼ぶ。
 
 `CmsAuditMiddleware` が行わないこと:
@@ -200,6 +177,16 @@ CREATE TABLE audit_logs (
 - ログイン成功・失敗を扱わない。
 - HTTP access log の代替にしない。
 - AuditLogger の実装を自分で選ばない。DI container の bind に従う。
+
+### 例外方針
+
+`CmsAuditMiddleware` は AuditLogger の例外を握りつぶさない。
+
+理由は、`PlaceholderAuditLogger` の例外を隠すと、Audit 未設定に気付くという目的を壊すためである。監査対象 request で AuditLogger が例外を投げた場合、その例外が利用者に見えることを許容する。
+
+対象外 request では AuditLogger を呼ばない。そのため、GET、ログイン、ログアウト、denylist に入れた path、`/admin` 以外の request で発生した例外は監査例外に置き換わらない。
+
+権限不足など監査対象操作の実行中に発生した failure は、AuditLogger による検知対象である。一方、監査対象に到達する前のエラーや監査対象外の request は Audit middleware の責務ではない。
 
 ## 記録する値
 
@@ -227,27 +214,21 @@ metadata:
 
 ## 対象判定
 
-初期対象は CMS の状態変更 request とする。
+初期対象は CMS の状態変更 request すべてとする。
+
+対象は allowlist ではなく denylist で決める。
+
+理由は、CMS の操作は追加され続けるため、allowlist では新規操作を監査対象に入れ忘れるリスクが高いからである。監査ログが不要な対象だけを明示的に denylist に入れる。
 
 対象:
 
-```text
-POST /admin/articles...
-POST /admin/pages...
-POST /admin/categories...
-POST /admin/tags...
-POST /admin/media...
-POST /admin/settings...
-POST /admin/trash...
-PUT /admin/...
-PATCH /admin/...
-DELETE /admin/...
-```
+- `/admin` 配下
+- method が `POST`、`PUT`、`PATCH`、`DELETE`
+- denylist に一致しない path
 
-対象外:
+初期 denylist:
 
 ```text
-GET ...
 POST /admin/login
 POST /admin/logout
 ```
@@ -282,6 +263,12 @@ use Throwable;
 
 final readonly class CmsAuditMiddleware implements MiddlewareInterface
 {
+    /** @var array<int, string> */
+    private const DENIED_PATHS = [
+        '/admin/login',
+        '/admin/logout',
+    ];
+
     public function __construct(
         private AuditLoggerInterface $auditLogger,
         private Session $session,
@@ -316,7 +303,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
             return false;
         }
 
-        if ($request->path === '/admin/login' || $request->path === '/admin/logout') {
+        if (in_array($request->path, self::DENIED_PATHS, true)) {
             return false;
         }
 
@@ -352,7 +339,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
 この例では AuditLogger の例外を握りつぶしていない。
 
-理由は、`PlaceholderAuditLogger` の例外を隠すと、未設定に気付くという placeholder の目的を壊すためである。監査ログ保存失敗時にも業務処理を継続したいアプリケーションでは、`PdoAuditLogger` 側、または別の decorator で failure policy を明示する。
+理由は、`PlaceholderAuditLogger` の例外を隠すと、未設定に気付くという placeholder の目的を壊すためである。監査ログ保存失敗時にも業務処理を継続したいアプリケーションでは、AuditLogger 実装側、または別の decorator で failure policy を明示する。
 
 ## middleware 登録順
 
@@ -391,11 +378,10 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 方針:
 
 - `AuditLoggerInterface` を実装する。
-- `AuditEvent` を `audit_logs` へ insert する。
-- `before` / `after` / `metadata` は JSON として保存する。
-- JSON encode に失敗した場合は例外にする。
+- `AuditEvent` を任意の保存先へ記録する。
 - password、token、cookie の除去は原則として呼び出し側の責務にする。
 - `PdoAuditLogger` が勝手に request body を読む実装にしない。
+- DB schema、timestamp 生成、JSON 変換、`metadata` から列への展開は利用アプリケーションの責務として決める。この文書では固定しない。
 
 container 差し替え例:
 
@@ -412,6 +398,8 @@ $container->singleton(
     ),
 );
 ```
+
+差し替えは `AuditLoggerInterface` が最初に解決される前に行う。現行構成では `apps/cms/config/container.php` が request ごとに新しい container を生成し、shared container 読み込み直後に CMS 固有定義を追加するため、その位置で差し替えればよい。
 
 ## Business Audit の追加基準
 
@@ -453,11 +441,14 @@ metadata:
 
 - GET `/admin/articles` は記録しない。
 - POST `/admin/articles/10` は記録する。
+- POST `/admin/unknown-operation` は記録する。
 - POST `/admin/login` は記録しない。
 - POST `/admin/logout` は記録しない。
 - POST `/admin/articles/10` の response が 200 / 302 の場合は success として記録する。
 - POST `/admin/articles/10` の response が 400 以上の場合は failure として記録する。
-- handler が例外を投げた場合は failure を記録し、同じ例外を再 throw する。
+- handler が例外を投げた場合は failure 記録を試みる。
+- failure 記録に成功した場合は、handler が投げた例外を再 throw する。
+- failure 記録時に AuditLogger が例外を投げた場合は、AuditLogger の例外が見えることを許容する。
 - session に `cms.user_id` がある場合は actorUserId に入る。
 - request body の `_csrf`、`password` は metadata に入らない。
 
@@ -465,13 +456,9 @@ metadata:
 
 ### PdoAuditLoggerTest
 
-DB 保存実装を追加する場合の必須テスト:
+DB 保存実装を追加する場合は、利用アプリケーションの保存仕様に合わせてテストする。
 
-- `AuditEvent` を `audit_logs` へ保存できる。
-- nullable 項目を保存できる。
-- `before` / `after` / `metadata` が JSON として保存される。
-- JSON encode 不能な値では例外になる。
-- 保存した `action`、`resource_type`、`result`、`actor_user_id`、`request_id` を取得して検証できる。
+この文書では DB schema や mapping を固定しないため、必須テスト項目も固定しない。
 
 ### Container Test
 
@@ -485,10 +472,10 @@ DB 保存実装を追加する場合の必須テスト:
 1. `docs/audit_middleware.md` を確認する。
 2. `CmsAuditMiddlewareTest` を追加する。
 3. `CmsAuditMiddleware` を追加する。
-4. `apps/cms/config/middleware.php` に `CmsAuditMiddleware::class` を追加する。
-5. `PlaceholderAuditLogger` のまま対象 request を実行すると例外になることを確認する。
-6. DB 保存が必要な場合だけ `audit_logs` migration と `PdoAuditLogger` を追加する。
-7. `apps/shared/config/container.php` を対象アプリの要件に合わせて差し替える。
+4. `PlaceholderAuditLogger` のまま対象 request を実行すると例外になることを単体テストで確認する。
+5. 実際に CMS で監査ログを有効化する場合は、対象アプリの container で `AuditLoggerInterface` を実装へ差し替える。
+6. `apps/cms/config/middleware.php` に `CmsAuditMiddleware::class` を追加する。
+7. DB 保存が必要な場合だけ、利用アプリケーションの保存仕様に合わせて migration と AuditLogger 実装を追加する。
 8. 重要操作に Business Audit が必要な場合だけ、UseCase / Controller へ明示的に `AuditLoggerInterface` 呼び出しを追加する。
 9. Docker Compose 経由で lint、PHPUnit、PHPStan を実行する。
 
@@ -513,6 +500,7 @@ git diff --check
 - `PdoAuditLogger` は Infrastructure 実装として shared 配下に置くため、Application / Domain から Infrastructure へ依存しない。
 - `PlaceholderAuditLogger` を維持するため、フレームワーク初期状態で保存先を強制しない。
 - `CmsAuditMiddleware` は `AuditLoggerInterface` に依存し、保存先の具象を知らない。
+- CMS の状態変更 request は denylist 方式で広く対象にするため、新規 CMS 操作の監査漏れを減らせる。
 - Business Audit が必要な場合も、UseCase / Controller から `AuditLoggerInterface` を呼ぶ形にし、HTTP path 解析で業務意味を推測しない。
 - HTTP access log、auth/security log、audit log を概念として分けるため、Audit に全ログ責務を押し込まない。
 
@@ -521,6 +509,7 @@ git diff --check
 本設計は次の要件を満たせる。
 
 - CMS の状態変更操作を監査ログとして記録できる。
+- 新規 CMS 操作も、denylist に入れない限り状態変更 method なら監査対象にできる。
 - 実行ユーザー、結果、IP、user agent、request id、method、path、status code を記録できる。
 - GET を初期対象外にし、必要な GET だけ後から明示的に追加できる。
 - CMS ログインを Audit 対象外にし、必要なら auth/security log として別設計にできる。
@@ -536,6 +525,7 @@ git diff --check
 - `NullAuditLogger` を標準にすること。
 - 全 GET request を監査ログへ保存すること。
 - CMS ログイン成功・失敗を Audit として保存すること。
+- CMS の状態変更操作を allowlist で限定すること。
 - HTTP access log と Audit log を同じ middleware に統合すること。
 - request body 全体を Audit log に保存すること。
 - resource id や before / after を middleware が path や body から推測すること。

@@ -75,6 +75,7 @@
 - 初期実装で追加する middleware は `CmsAuditMiddleware` ひとつにする。
 - HTTP access log、auth/security log、audit log は目的が異なるため概念として分ける。
 - GET と CMS ログインは初期 Audit 対象外にする。
+- CMS の状態変更 request は allowlist ではなく denylist 方式で広く監査対象にする。
 - CMS の状態変更 request を middleware で記録し、before / after などの業務詳細が必要な操作は UseCase / Controller から Business Audit として明示的に記録する。
 - Audit の実保存が必要なアプリケーションだけ `PdoAuditLogger` などへ bind を差し替える。
 

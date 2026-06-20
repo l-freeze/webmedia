@@ -10,16 +10,20 @@
   - `docs/audit_middleware.md` を新規作成し、AI や作業者が現行システムと同文書だけで実装できる粒度で整理。
   - `PlaceholderAuditLogger` はフレームワーク初期状態の意図的な実装として維持し、Audit 未設定のまま使うと例外で気付ける方針を明記。
   - 追加する middleware は初期実装では `CmsAuditMiddleware` ひとつとし、HTTP access log / auth/security log / audit log を概念として分ける理由を明記。
-  - GET と CMS ログインは初期 Audit 対象外とし、CMS の状態変更 request を対象にする方針を明記。
+  - GET と CMS ログインは初期 Audit 対象外とし、CMS の状態変更 request は allowlist ではなく denylist 方式で広く対象にする方針を明記。
+  - AuditLogger の例外は握りつぶさず、監査対象 request では Placeholder による設定漏れ検知を優先する方針を明記。
+  - DB schema や `AuditEvent` の永続化 mapping は利用アプリケーション側の AuditLogger 実装責務とし、監査ミドルウェア設計書では固定しない方針に修正。
   - before / after や resource id などの業務詳細が必要な場合は、middleware では推測せず UseCase / Controller から Business Audit として明示記録する方針を明記。
+  - `apps/cms/src/Infrastructure/Http/Middleware/README.md` に `CmsAuditMiddleware` の対象判定、denylist、例外方針、永続化責務を追記。
   - `docs/README.md` に監査ログミドルウェア文書への参照を追加。
   - `docs/plan.md` に Audit middleware 設計済みの方針を追記。
 - 検査結果。
   - `docs/audit_middleware.md` 内にアーキテクチャ整合性チェックを追加し、`src/Framework` に CMS 固有実装を置かないこと、CMS middleware を `apps/cms/src/Infrastructure/Http/Middleware` に置くこと、`AuditLoggerInterface` の差し込み点を維持することを確認。
-  - `docs/audit_middleware.md` 内に機能要件チェックを追加し、CMS 状態変更操作の記録、Placeholder による設定漏れ検知、GET / login の初期対象外、Business Audit への拡張、秘密情報を保存しない方針を確認。
+  - `docs/audit_middleware.md` 内に機能要件チェックを追加し、CMS 状態変更操作の記録、Placeholder による設定漏れ検知、GET / login の初期対象外、denylist 方式、Business Audit への拡張、秘密情報を保存しない方針を確認。
 - 次回再開地点。
   - Audit middleware を実装する場合は、`docs/audit_middleware.md` の「実装順序」に従い、まず `CmsAuditMiddlewareTest` と `CmsAuditMiddleware` から着手する。
-  - DB 保存まで行う場合だけ、`audit_logs` migration と `PdoAuditLogger` を追加し、対象アプリの container で `AuditLoggerInterface` の bind を差し替える。
+  - 実際に CMS で有効化する場合は、対象アプリの container で `AuditLoggerInterface` の bind を差し替えてから `CmsAuditMiddleware` を middleware config に追加する。
+  - DB 保存まで行う場合だけ、利用アプリケーションの保存仕様に合わせて migration と AuditLogger 実装を追加する。
 
 - ヒーローラベルを不要として削除し、サイト設定画面のヒーロー画像 UI 配置を調整。
   - `hero_label` / `heroLabel` を Settings / SiteSettings / Repository / Controller / Layout global / seed / test / template から削除。
