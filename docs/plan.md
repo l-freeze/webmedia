@@ -65,9 +65,9 @@
 
 このタスクは、今回完了した scaffold template 整備とは別作業として扱う。
 
-### Audit middleware 設計
+### 完了: Audit middleware 設計・初期実装
 
-監査ログミドルウェアの設計・実装手順は `docs/audit_middleware.md` に整理済み。
+監査ログミドルウェアの設計・実装手順は `docs/audit_middleware.md` に整理済み。初期実装として `CmsAuditMiddleware` と単体テスト、CMS middleware config への登録を追加済み。
 
 方針:
 
@@ -78,6 +78,7 @@
 - CMS の状態変更 request は allowlist ではなく denylist 方式で広く監査対象にする。
 - CMS の状態変更 request を middleware で記録し、before / after などの業務詳細が必要な操作は UseCase / Controller から Business Audit として明示的に記録する。
 - Audit の実保存が必要なアプリケーションだけ `PdoAuditLogger` などへ bind を差し替える。
+- 現在の CMS middleware config では `RequireCmsSessionMiddleware` の後に `CmsAuditMiddleware` を登録済み。`PlaceholderAuditLogger` のまま監査対象 request を実行すると、設計どおり例外で設定漏れを検知する。
 
 ### 完了: scaffold-app template 整備
 

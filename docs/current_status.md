@@ -6,6 +6,29 @@
 
 ## 直近作業
 
+- Audit middleware の初期実装を追加。
+  - `apps/cms/src/Infrastructure/Http/Middleware/CmsAuditMiddleware.php` を追加。
+  - `/admin` または `/admin/` 配下の `POST` / `PUT` / `PATCH` / `DELETE` を監査対象にし、`/admin/login` と `/admin/logout` は denylist として対象外にした。
+  - `/administer` のような `/admin` 配下ではない prefix は対象外にし、CMS 境界外の request を誤って監査対象にしないようにした。
+  - handler 実行後に `cms.http_state_changed` の `AuditEvent` を記録し、400 以上は failure、400 未満は success として扱う。
+  - handler が例外を投げた場合は failure 記録を試み、記録成功時は元の例外を再 throw する。
+  - `AuditLoggerInterface` の例外は middleware で握りつぶさず、`PlaceholderAuditLogger` による設定漏れ検知を維持した。
+  - metadata は method / path / status_code のみにし、request body、CSRF token、password、cookie、session id は保存しない。
+  - IP address は `REMOTE_ADDR` を使い、forwarded header を無条件に信用しない設計にした。
+  - `apps/cms/config/middleware.php` に `RequireCmsSessionMiddleware` の後続として `CmsAuditMiddleware` を登録。
+  - `tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php` と `tests/Cms/CmsConfigTest.php` を追加し、対象判定、denylist、success / failure、例外方針、Placeholder 検知、秘密情報を metadata に入れないこと、登録順を検査。
+- 検証結果。
+  - `docker compose run --rm app sh -lc 'php -l apps/cms/src/Infrastructure/Http/Middleware/CmsAuditMiddleware.php && php -l tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php && php -l tests/Cms/CmsConfigTest.php && ./vendor/bin/phpunit tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php tests/Cms/CmsConfigTest.php'`: 成功、11 tests / 39 assertions。
+  - `docker compose run --rm app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+  - `docker compose run --rm app composer test`: 成功、98 tests / 921 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - Audit middleware の初期実装は完了済み。
+  - 実保存が必要な場合は、利用アプリケーション側で `AuditLoggerInterface` を `PdoAuditLogger` などへ差し替える。
+  - before / after、resource id、復元元 version などの業務詳細が必要な操作は、middleware ではなく該当 UseCase / Controller の Business Audit として追加する。
+  - 次に進む場合は、Architecture Test など `docs/refactoring.md` 側で別作業として残している構造検査・リファクタリング候補を、`docs/plan.md` と照合して次の作業単位として切り出す。
+
 - Audit middleware の設計・実装手順を追加。
   - `docs/audit_middleware.md` を新規作成し、AI や作業者が現行システムと同文書だけで実装できる粒度で整理。
   - `PlaceholderAuditLogger` はフレームワーク初期状態の意図的な実装として維持し、Audit 未設定のまま使うと例外で気付ける方針を明記。
