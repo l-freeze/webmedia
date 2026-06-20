@@ -62,6 +62,10 @@ Middleware は Container から解決されるため、コンストラクタで 
 
 `/admin/login` はログインフォーム表示とログイン処理のため public path として通します。それ以外の CMS リクエストで `cms.user_id` が Session に存在しない場合は `/admin/login` へ redirect します。
 
+ログイン済みユーザーの解決は `App\Cms\Infrastructure\Security\CmsGuard` に委譲します。middleware は HTTP pipeline の入口制御だけを担当し、Session の値の正規化、ユーザー取得、現在ユーザー表現の組み立ては Guard 側に寄せます。
+
+Guard は認証境界であり、Permission や Policy の判定は行いません。権限差の強制は、後続の permission middleware、`AuthorizationService`、UseCase / Policy 側で扱います。
+
 ## CmsAuditMiddleware
 
 `CmsAuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`AuditLoggerInterface` に渡します。

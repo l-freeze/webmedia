@@ -6,6 +6,29 @@
 
 ## 直近作業
 
+- CMS Guard の初期実装を追加。
+  - `apps/cms/src/Application/Auth/CurrentUser/Value/CurrentCmsUser.php` を追加し、CMS の認証済み現在ユーザーを表す読み取り用 value にした。
+  - `apps/cms/src/Application/Auth/CurrentUser/Query/ICurrentCmsUserQuery.php` を追加し、現在ユーザー取得を Application 側の Query port として定義した。
+  - `apps/cms/src/Infrastructure/Persistence/PdoCurrentCmsUserQuery.php` を追加し、`users` table から `id` / `email` / `name` / `role` のみを取得する実装にした。ログイン用の password hash 取得とは分けた。
+  - `apps/cms/src/Infrastructure/Security/CmsGuard.php` を追加し、`Session` の `cms.user_id` を正の整数として正規化してから現在ユーザーを解決するようにした。
+  - `CmsGuard` は認証境界に限定し、Permission / Role mapping / Policy 判定は行わない。
+  - `CmsGuard` は request scoped の通常サービスとして扱い、同一 request 内で現在ユーザー解決を一度だけ行うよう instance 内 cache を持つ。worker lifetime singleton にはしていない。
+  - `RequireCmsSessionMiddleware` は `Session` 直読みをやめ、`CmsGuard::isAuthenticated()` に未ログイン判定を委譲した。middleware は HTTP pipeline の入口制御だけを担当する。
+  - CMS container に `ICurrentCmsUserQuery` から `PdoCurrentCmsUserQuery` への binding を追加。
+  - `apps/cms/src/Infrastructure/Http/Middleware/README.md` に Guard と middleware の責務分離を追記。
+  - `tests/Cms/Security/CmsGuardTest.php` を追加し、未ログイン、無効な session 値、DB 上のユーザーなし、正常な現在ユーザー解決、同一 Guard instance 内の解決 cache を検査。
+  - `tests/Cms/Http/Middleware/RequireCmsSessionMiddlewareTest.php` を Guard 経由の認証判定へ更新。
+- 検証結果。
+  - `docker compose run --rm app sh -lc 'php -l apps/cms/src/Application/Auth/CurrentUser/Query/ICurrentCmsUserQuery.php && php -l apps/cms/src/Application/Auth/CurrentUser/Value/CurrentCmsUser.php && php -l apps/cms/src/Infrastructure/Persistence/PdoCurrentCmsUserQuery.php && php -l apps/cms/src/Infrastructure/Security/CmsGuard.php && php -l apps/cms/src/Infrastructure/Http/Middleware/RequireCmsSessionMiddleware.php && php -l tests/Cms/Security/CmsGuardTest.php && php -l tests/Cms/Http/Middleware/RequireCmsSessionMiddlewareTest.php'`: 成功。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/Security/CmsGuardTest.php tests/Cms/Http/Middleware/RequireCmsSessionMiddlewareTest.php tests/Cms/CmsConfigTest.php`: 成功、8 tests / 26 assertions。
+  - `docker compose run --rm app composer test`: 成功、102 tests / 943 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `docker compose run --rm app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
+- 次回再開地点。
+  - Guard 初期実装は完了済み。
+  - 次は `RequireCmsSessionMiddleware` の名前を維持するか `CmsAuthMiddleware` へ寄せるかを判断する。
+  - その後、Permission 名と Role mapping をコード上に定義し、`AuthorizationService` の追加へ進む。
+
 - CMS 認証・認可基盤の実装順を `docs/plan.md` に整理。
   - `Guard` / `Role` / `Permission` / `Policy` / `Audit` / `Log` / `Group` は一括実装せず、`CurrentCmsUser` と `CmsGuard` から段階的に実装する方針にした。
   - Guard は Session の延長として開始してよいが、middleware と同一責務にはしない。middleware は HTTP pipeline の入口制御、Guard は現在ユーザー解決と認証境界を担当する。

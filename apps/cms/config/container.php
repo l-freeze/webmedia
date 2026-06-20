@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Cms\Application\Article;
 use App\Cms\Application\ArticleVersion;
+use App\Cms\Application\Auth;
 use App\Cms\Application\Category;
 use App\Cms\Application\Dashboard;
 use App\Cms\Application\Inquiry;
@@ -26,6 +27,7 @@ use App\Cms\Infrastructure\Persistence\PdoArticleHistoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticlePreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
+use App\Cms\Infrastructure\Persistence\PdoCurrentCmsUserQuery;
 use App\Cms\Infrastructure\Persistence\PdoDashboardQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryQuery;
 use App\Cms\Infrastructure\Persistence\PdoMediaQuery;
@@ -100,6 +102,7 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 });
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
+$container->bind(abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
 $container->bind(abstract: IMediaRepository::class, concrete: PdoMediaRepository::class);
 $container->bind(abstract: IPageRepository::class, concrete: PdoPageRepository::class);

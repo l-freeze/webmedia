@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Http\Middleware;
 
+use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\Security\Session;
 
 final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
 {
@@ -16,7 +16,7 @@ final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
      * @param array<int, string> $publicPaths
      */
     public function __construct(
-        private Session $session,
+        private CmsGuard $guard,
         private array $publicPaths = [
             '/admin/login',
         ],
@@ -29,7 +29,7 @@ final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
             return $handler->handle(request: $request);
         }
 
-        if (!$this->session->has(key: 'cms.user_id')) {
+        if (!$this->guard->isAuthenticated()) {
             return Response::redirect(location: '/admin/login');
         }
 
