@@ -7,6 +7,8 @@
   - Query interface は各ユースケース配下、Repository interface は Domain 配下に置く
   - Front の HTTP Controller や SEO meta は Presentation 層に置く
   - 詳細は ./docs/webmedia_architecture_rules.md を参照する事
+- 監査ログミドルウェアについて
+  - ./docs/audit_middleware.mdを参照する事
 - 要件について
   - ユーザーフロントについて
     - ./docs/webmedia_ui_requirements_final_markdown/webmedia_front_ui_requirements_final.mdを参照する事

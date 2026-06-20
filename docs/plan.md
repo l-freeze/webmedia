@@ -65,6 +65,19 @@
 
 このタスクは、今回完了した scaffold template 整備とは別作業として扱う。
 
+### Audit middleware 設計
+
+監査ログミドルウェアの設計・実装手順は `docs/audit_middleware.md` に整理済み。
+
+方針:
+
+- `PlaceholderAuditLogger` は意図的な初期実装として維持する。
+- 初期実装で追加する middleware は `CmsAuditMiddleware` ひとつにする。
+- HTTP access log、auth/security log、audit log は目的が異なるため概念として分ける。
+- GET と CMS ログインは初期 Audit 対象外にする。
+- CMS の状態変更 request を middleware で記録し、before / after などの業務詳細が必要な操作は UseCase / Controller から Business Audit として明示的に記録する。
+- Audit の実保存が必要なアプリケーションだけ `PdoAuditLogger` などへ bind を差し替える。
+
 ### 完了: scaffold-app template 整備
 
 `bin/scaffold-app` の template 構成を整理済み。
