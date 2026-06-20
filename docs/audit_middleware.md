@@ -184,6 +184,14 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 
 理由は、`PlaceholderAuditLogger` の例外を隠すと、Audit 未設定に気付くという目的を壊すためである。監査対象 request で AuditLogger が例外を投げた場合、その例外が利用者に見えることを許容する。
 
+ただし、実運用で使う AuditLogger 実装は、HTTP envelope audit の保存失敗だけで完了済みの CMS 操作レスポンスを壊さない方針を標準とする。
+
+理由は、handler 実行後に記事更新などの業務処理が完了してから監査ログ保存に失敗した場合、「処理は完了したが画面上は失敗」という不整合が起きるためである。一般的な CMS の HTTP 監査では、AuditLogger 実装側が保存失敗を通常ログや別の通知経路へ記録し、`record()` からは例外を投げない設計にする。
+
+例外を投げる標準ケースは `PlaceholderAuditLogger` である。これは Audit 未設定を検知するための意図した挙動である。
+
+監査ログ保存を業務処理と同じ成否条件にしたい場合は、middleware の HTTP envelope audit ではなく、該当 UseCase / Controller の Business Audit と永続化処理を同じ transaction 境界で設計する。
+
 対象外 request では AuditLogger を呼ばない。そのため、GET、ログイン、ログアウト、denylist に入れた path、`/admin` 以外の request で発生した例外は監査例外に置き換わらない。
 
 権限不足など監査対象操作の実行中に発生した failure は、AuditLogger による検知対象である。一方、監査対象に到達する前のエラーや監査対象外の request は Audit middleware の責務ではない。
@@ -379,6 +387,7 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 
 - `AuditLoggerInterface` を実装する。
 - `AuditEvent` を任意の保存先へ記録する。
+- 実運用の HTTP envelope audit では、保存失敗だけで完了済み CMS 操作の response を壊さない。保存失敗は通常ログや通知経路へ記録する。
 - password、token、cookie の除去は原則として呼び出し側の責務にする。
 - `PdoAuditLogger` が勝手に request body を読む実装にしない。
 - DB schema、timestamp 生成、JSON 変換、`metadata` から列への展開は利用アプリケーションの責務として決める。この文書では固定しない。
@@ -449,6 +458,7 @@ metadata:
 - handler が例外を投げた場合は failure 記録を試みる。
 - failure 記録に成功した場合は、handler が投げた例外を再 throw する。
 - failure 記録時に AuditLogger が例外を投げた場合は、AuditLogger の例外が見えることを許容する。
+- 実運用 AuditLogger の保存失敗方針は AuditLogger 実装側のテストで確認する。HTTP envelope audit では保存失敗だけで完了済み操作の response を壊さないことを標準とする。
 - session に `cms.user_id` がある場合は actorUserId に入る。
 - request body の `_csrf`、`password` は metadata に入らない。
 
@@ -514,6 +524,7 @@ git diff --check
 - GET を初期対象外にし、必要な GET だけ後から明示的に追加できる。
 - CMS ログインを Audit 対象外にし、必要なら auth/security log として別設計にできる。
 - Placeholder により、Audit 未設定のまま監査対象処理を実行した場合に例外で気付ける。
+- 実運用 AuditLogger では、HTTP envelope audit の保存失敗だけで完了済み CMS 操作の response を壊さない方針にできる。
 - DB 保存が必要なアプリケーションでは `PdoAuditLogger` へ差し替えられる。
 - before / after が必要な操作は Business Audit として追加できる。
 - request body 全体や password、CSRF token、cookie、session id を保存しない方針により、不要な秘密情報保存を避けられる。

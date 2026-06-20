@@ -88,4 +88,8 @@ GET は初期対象外です。問い合わせ詳細閲覧、エクスポート�
 
 `CmsAuditMiddleware` は AuditLogger の例外を握りつぶしません。`PlaceholderAuditLogger` のまま監査対象 request を実行した場合に例外が見えることは、Audit 未設定を検知するための意図した挙動です。
 
+実運用の AuditLogger 実装では、HTTP 監査ログの保存失敗だけで完了済み CMS 操作の response を壊さないことを標準にします。保存失敗は通常ログや通知経路へ記録します。監査ログ保存を業務処理と同じ成否条件にしたい場合は、middleware ではなく対象 UseCase / Controller の Business Audit と永続化処理を同じ transaction 境界で設計します。
+
+IP address は `Request::$server['REMOTE_ADDR']` を基本にします。trusted proxy 設計を導入するまで、`X-Forwarded-For` などの forwarded header を無条件に信用してはいけません。
+
 永続化先、DB schema、`AuditEvent` から保存形式への mapping は AuditLogger 実装側の責務です。middleware は request body 全体、password、CSRF token、cookie、session id を保存しません。
