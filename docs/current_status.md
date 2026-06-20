@@ -6,6 +6,20 @@
 
 ## 直近作業
 
+- CMS 認証・認可基盤の実装順を `docs/plan.md` に整理。
+  - `Guard` / `Role` / `Permission` / `Policy` / `Audit` / `Log` / `Group` は一括実装せず、`CurrentCmsUser` と `CmsGuard` から段階的に実装する方針にした。
+  - Guard は Session の延長として開始してよいが、middleware と同一責務にはしない。middleware は HTTP pipeline の入口制御、Guard は現在ユーザー解決と認証境界を担当する。
+  - 既存の `RequireCmsSessionMiddleware` は、将来的に直接 `Session` を解釈する実装から `CmsGuard` を呼ぶ実装へ寄せる。
+  - Permission は操作名、Role は Permission の集合、Policy は対象リソースや状態を含む判定として分ける。
+  - route-level check と UseCase / Policy の二段階で強制し、Latte の `can()` helper は表示制御に限定する。
+  - Role / Permission はまずコード上の mapping で開始し、DB 化や管理画面はルールが安定してから検討する。
+  - Group は複数チーム、複数部署、複数サイトなどの要件が出るまで後回しにする。
+  - Audit は業務証跡、Log は障害調査・アクセス・セキュリティイベントとして分ける。
+- 次回再開地点。
+  - `docs/plan.md` の「次タスク: CMS 認証・認可基盤の段階実装」に従い、まず `CurrentCmsUser` と `CmsGuard` の設計・テスト・実装から着手する。
+  - 実装前に、既存の `RequireCmsSessionMiddleware` を継続利用するか `CmsAuthMiddleware` へ改名するかを判断する。
+  - Architecture Test は後続候補として残し、認可基盤とは別作業単位で扱う。
+
 - Audit middleware の初期実装を追加。
   - `apps/cms/src/Infrastructure/Http/Middleware/CmsAuditMiddleware.php` を追加。
   - `/admin` または `/admin/` 配下の `POST` / `PUT` / `PATCH` / `DELETE` を監査対象にし、`/admin/login` と `/admin/logout` は denylist として対象外にした。

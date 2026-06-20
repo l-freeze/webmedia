@@ -51,9 +51,75 @@
 
 ## 作業順序
 
-### 次タスク: Architecture Test の追加
+### 次タスク: CMS 認証・認可基盤の段階実装
 
-次に作業を再開する場合は、`docs/refactoring.md` の Architecture Test 候補をもとに、アプリケーション構造の依存方向を検査するテストを追加する。
+次に作業を再開する場合は、CMS の `Guard` / `Role` / `Permission` / `Policy` / `Audit` / `Log` / `Group` を一度に全部実装せず、認証・認可の強制境界から段階的に追加する。
+
+基本方針:
+
+- Guard は Session の延長として開始してよいが、middleware と同一責務にしない。
+- Middleware は HTTP pipeline の入口制御を担当する。
+- Guard は「現在の request が CMS ユーザーとして認証済みか」「現在ユーザーは誰か」を解決する認証境界にする。
+- Permission は操作名、Role は Permission の集合、Policy は対象リソースや状態を含む判定として分ける。
+- UI の表示制御だけでは認可にならない。強制チェックは route middleware と UseCase / Policy の二段階で行う。
+- Role / Permission ルールが安定するまでは DB 化せず、コード上の mapping から始める。
+- Group はチーム、部署、複数サイトなどの単位が必要になるまで実装しない。
+- Audit と Log は目的が違うため混ぜない。Audit は業務証跡、Log は障害調査・アクセス・セキュリティイベントに分ける。
+
+実装順:
+
+1. `CurrentCmsUser` と `CmsGuard` を追加する。
+   - `CmsGuard` は `Session` から `cms.user_id` を読み、必要なユーザー情報を解決して `CurrentCmsUser` を返す。
+   - 未ログイン時は `null` または明示的な未認証結果を返し、Permission 判定はしない。
+   - 既存の `RequireCmsSessionMiddleware` は、直接 `Session` を解釈する実装から `CmsGuard` を呼ぶ実装へ寄せる。
+   - この段階では「ログイン済みか」の強制だけを維持し、権限差はまだ付けない。
+2. CMS auth middleware を整理する。
+   - 既存の `RequireCmsSessionMiddleware` を継続利用するか、名前を `CmsAuthMiddleware` へ寄せるかを実装前に判断する。
+   - いずれの場合も middleware は Guard を使って認証済みか確認し、未認証なら `/admin/login` へ redirect する。
+   - Controller ごとの `Session` 直接参照によるログイン必須判定を増やさない。
+3. Permission 名と Role mapping をコード上に定義する。
+   - Permission は `article.create`、`article.update`、`article.delete`、`article.publish`、`page.update`、`media.upload`、`media.delete`、`setting.update`、`taxonomy.manage`、`inquiry.read` のような操作名にする。
+   - Role はまず `admin`、`editor`、`writer`、`viewer` 程度の最小構成にする。
+   - Role / Permission 管理画面や DB テーブルは、この段階では作らない。
+4. `AuthorizationService` を追加する。
+   - `can(CurrentCmsUser $user, string $permission): bool` と `authorize(...)` を用意する。
+   - middleware、Controller、UseCase から同じ入口で使えるようにする。
+   - 権限拒否時の例外または結果型を決め、HTTP 403 へ変換できるようにする。
+5. route-level permission check を追加する。
+   - ルート定義または middleware 設定で `cms.can:article.update` 相当を表現できるようにする。
+   - まずは書き込み系や破壊的操作から適用する。
+   - route-level check は「このルートに入ってよいか」の粗い判定に限定し、対象記事の状態などは見ない。
+6. Latte 用の `can()` helper を追加する。
+   - 管理画面のボタン、リンク、操作導線の表示制御に使う。
+   - これは補助であり、強制力のある認可は middleware / UseCase / Policy で行う。
+7. 重要な UseCase に認可チェックを追加する。
+   - 記事保存、公開、削除、復元、固定ページ保存、メディア削除、設定更新、分類更新、問い合わせ閲覧を優先する。
+   - 直接 POST や将来の CLI / API から実行されても拒否できるよう、UseCase 側にも最終チェックを置く。
+8. 必要になったリソースから Policy を追加する。
+   - 最初から全リソースに空の Policy を作らない。
+   - 「自分の記事だけ編集できる」「公開済み記事は editor 以上のみ」「削除は admin のみ」など、対象リソースや状態を見る条件が出た時点で追加する。
+9. 認可拒否と重要操作の Audit を追加する。
+   - 既存の `CmsAuditMiddleware` は HTTP envelope の証跡として維持する。
+   - `authorization.denied`、`article.updated`、`media.deleted` などの業務イベントは UseCase / Controller から Business Audit として明示記録する。
+   - 実保存が必要な段階で `AuditLoggerInterface` を `PdoAuditLogger` などへ差し替える。
+10. Security / auth log を必要に応じて追加する。
+    - ログイン成功、ログイン失敗、ロックアウト、CSRF 失敗、認可拒否などは audit log と分けて扱う。
+    - HTTP access log も別概念として扱い、全 request を Audit に入れない。
+11. Group は最後に検討する。
+    - 複数チーム、複数部署、複数サイト、所有グループ単位の閲覧・編集制御が必要になった場合だけ実装する。
+    - Group を追加する場合は、Role / Permission / Policy の上に条件として載せ、先に Group テーブルだけを作らない。
+
+実装時の注意:
+
+- `src/Framework` に CMS 固有の Guard / Role / Permission / Policy を置かない。
+- CMS 固有の middleware は、現行方針どおり `apps/cms/src/Infrastructure/Http/Middleware` を基本位置にする。
+- Guard / CurrentUser / AuthorizationService / Policy の置き場所は、CMS に閉じるものは `apps/cms` 配下、Front / CMS 共通の基盤になったものだけ `apps/shared` 配下を検討する。
+- route middleware metadata を追加する場合は、既存の `config/middleware.php` とルーターの責務を壊さないよう、先に最小の設計を切る。
+- テストは `CmsGuard`、auth middleware、`AuthorizationService`、permission middleware、UseCase-level authorization の順で追加する。
+
+### 後続候補: Architecture Test の追加
+
+`docs/refactoring.md` の Architecture Test 候補をもとに、アプリケーション構造の依存方向を検査するテストを追加する。
 
 実装候補:
 
@@ -62,8 +128,6 @@
 - `Application` が `Infrastructure` に依存していないことを検査する。
 - `Domain` が `Application` / `Infrastructure` に依存していないことを検査する。
 - Controller の不要な `as` alias 検査と UseCase `Input` の named arguments 利用検査は、依存方向テストと別テストに分けるか、同一ファイル内でも別 test method として扱う。
-
-このタスクは、今回完了した scaffold template 整備とは別作業として扱う。
 
 ### 完了: Audit middleware 設計・初期実装
 
