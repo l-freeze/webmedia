@@ -167,16 +167,20 @@ viewer < writer < editor < admin
 
 ```text
 Article/Delete
-  論理削除。deleted_at を埋め、通常画面から除外する。
+  論理削除。現行実装では status を trashed にし、通常画面から除外する。
 
 Article/Restore
-  論理削除からの復元。deleted_at を null に戻す。
+  論理削除からの復元。現行実装では trashed ではない状態へ戻す。
 
 Article/PermanentlyDelete
   物理削除。DB row と関連データを削除する。初期実装では作らず、必要になったら admin 限定操作として追加する。
 ```
 
 `forceDelete` という名前は使わない。動作の意味が直感的に伝わる `PermanentlyDelete` を候補にする。
+
+`deleted_at` は現時点では追加しない。記事と固定ページは `status` に `trashed` を持っており、ゴミ箱という業務状態をすでに表現できているためである。
+
+`deleted_at` を追加するのは、削除日時そのものを独立した検索条件、保持期限、完全削除期限、監査表示に使う必要が出た場合に限る。その場合も `trashed` と `deleted_at` を併用するのではなく、どちらを正とするかを再設計する。
 
 要相談:
 

@@ -26,7 +26,12 @@
   - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
   - `docker compose run --rm app composer migrate`: 成功。`20260621000100 AddAuthorIdToArticles` を適用。
 - 次回再開地点。
-  - 次に進む場合は、削除を `status = trashed` から `deleted_at` 論理削除へ寄せるか、Latte `can` 相当ではない別名 helper の表示制御を検討する。
+  - 次に進む場合は、Latte `can` 相当ではない別名 helper の表示制御を検討する。
+
+- CMS middleware README を更新。
+  - `apps/cms/src/Infrastructure/Http/Middleware/README.md` に標準 middleware 順序、初期設定、`RequireCmsPermissionMiddleware`、route metadata `requires_permission` の運用方法を追記。
+  - `requires_permission` が未設定の route は permission middleware では止めず、書き込み route 追加時に Permission / RolePermissions / Policy の更新を確認する方針を明記。
+  - 削除は現行の `status = trashed` を正とし、`deleted_at` は削除日時を独立して使う要件が出るまで追加しない方針に整理。
 
 - CMS Policy 実装計画に追加判断を反映。
   - 初期 Role は `admin` / `editor` / `writer` / `viewer` とし、`system` は将来予約名にした。
