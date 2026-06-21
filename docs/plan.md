@@ -55,6 +55,8 @@
 
 次に作業を再開する場合は、CMS の `Guard` / `Role` / `Permission` / `Policy` / `Audit` / `Log` / `Group` を一度に全部実装せず、認証・認可の強制境界から段階的に追加する。
 
+Policy 実装の詳細計画は `docs/policy_implementation_plan.md` を参照する。Guard 初期実装は完了済みのため、次は Permission / Role mapping、`AuthorizationService`、route-level permission middleware を追加し、その後に最初の具体 Policy として `ArticlePolicy` を検討する。
+
 基本方針:
 
 - Guard は Session の延長として開始してよいが、middleware と同一責務にしない。
@@ -74,7 +76,7 @@
    - 既存の `RequireCmsSessionMiddleware` は、直接 `Session` を解釈する実装から `CmsGuard` を呼ぶ実装へ寄せる。
    - この段階では「ログイン済みか」の強制だけを維持し、権限差はまだ付けない。
 2. CMS auth middleware を整理する。
-   - 既存の `RequireCmsSessionMiddleware` を継続利用するか、名前を `CmsAuthMiddleware` へ寄せるかを実装前に判断する。
+   - 既存の `RequireCmsSessionMiddleware` は当面継続利用する。Guard へ委譲済みで責務は入口制御に寄っているため、改名は route-level permission middleware 追加後に必要性が出た場合だけ検討する。
    - いずれの場合も middleware は Guard を使って認証済みか確認し、未認証なら `/admin/login` へ redirect する。
    - Controller ごとの `Session` 直接参照によるログイン必須判定を増やさない。
 3. Permission 名と Role mapping をコード上に定義する。

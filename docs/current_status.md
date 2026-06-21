@@ -6,6 +6,16 @@
 
 ## 直近作業
 
+- CMS Policy 実装計画の初稿を追加。
+  - `docs/policy_implementation_plan.md` を追加し、Guard 後の認可基盤として Permission / Role mapping、`AuthorizationService`、route-level permission middleware、`ArticlePolicy` の順に進める方針を整理。
+  - `RequireCmsSessionMiddleware` は当面名前を維持し、Policy 計画上は認証済み入口として扱う判断にした。
+  - Policy は最初から全リソース分を作らず、記事の所有者・状態・公開・削除・復元のように対象リソース依存条件が必要になった時点で `ArticlePolicy` から追加する方針にした。
+  - `writer` の所有記事編集、記事所有者カラム、`article.delete` の許可範囲、`viewer` の問い合わせ閲覧、route metadata 導入時期、UseCase Input の actor 表現を要相談事項として明記。
+  - `docs/plan.md` に Policy 実装計画への参照を追加。
+- 次回再開地点。
+  - `docs/policy_implementation_plan.md` の「話し合いたい論点」を確認し、まず Role / Permission の初期ルールと Article 所有者概念を詰める。
+  - 実装に進む場合は、Permission / Role mapping と `AuthorizationService` から着手する。
+
 - CMS Guard の初期実装を追加。
   - `apps/cms/src/Application/Auth/CurrentUser/Value/CurrentCmsUser.php` を追加し、CMS の認証済み現在ユーザーを表す読み取り用 value にした。
   - `apps/cms/src/Application/Auth/CurrentUser/Query/ICurrentCmsUserQuery.php` を追加し、現在ユーザー取得を Application 側の Query port として定義した。
@@ -26,8 +36,8 @@
   - `docker compose run --rm app sh -lc 'find apps src tests database public -type f -name "*.php" -print0 | xargs -0 -n1 php -l'`: 成功。
 - 次回再開地点。
   - Guard 初期実装は完了済み。
-  - 次は `RequireCmsSessionMiddleware` の名前を維持するか `CmsAuthMiddleware` へ寄せるかを判断する。
-  - その後、Permission 名と Role mapping をコード上に定義し、`AuthorizationService` の追加へ進む。
+  - `RequireCmsSessionMiddleware` は当面維持する判断に更新済み。
+  - 次は Permission 名と Role mapping をコード上に定義し、`AuthorizationService` の追加へ進む。
 
 - CMS 認証・認可基盤の実装順を `docs/plan.md` に整理。
   - `Guard` / `Role` / `Permission` / `Policy` / `Audit` / `Log` / `Group` は一括実装せず、`CurrentCmsUser` と `CmsGuard` から段階的に実装する方針にした。
