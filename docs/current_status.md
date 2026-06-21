@@ -29,7 +29,9 @@
   - 次に進む場合は、Latte `can` 相当ではない別名 helper の表示制御を検討する。
 
 - CMS middleware README を更新。
-  - `apps/cms/src/Infrastructure/Http/Middleware/README.md` に標準 middleware 順序、初期設定、`RequireCmsPermissionMiddleware`、route metadata `requires_permission` の運用方法を追記。
+  - `apps/cms/src/Infrastructure/Http/Middleware/README.md` は CMS middleware 全体の索引と共通ルールに整理。
+  - middleware 別 README として `RequireCmsSessionMiddleware.README.md`、`RequireCmsPermissionMiddleware.README.md`、`CmsAuditMiddleware.README.md` を追加。
+  - `RequireCmsPermissionMiddleware.README.md` に標準 middleware 順序、初期設定、route metadata `requires_permission` の運用方法を記載。
   - `requires_permission` が未設定の route は permission middleware では止めず、書き込み route 追加時に Permission / RolePermissions / Policy の更新を確認する方針を明記。
   - 削除は現行の `status = trashed` を正とし、`deleted_at` は削除日時を独立して使う要件が出るまで追加しない方針に整理。
 
