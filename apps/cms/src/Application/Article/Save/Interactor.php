@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Save;
 
+use App\Cms\Application\Article\Policy\ArticlePolicy;
+use App\Cms\Application\Article\Policy\Query\IArticlePolicyQuery;
+use App\Cms\Application\Auth\Authorization\AuthorizationException;
+use App\Cms\Application\Auth\Authorization\Permission;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
@@ -14,8 +18,11 @@ use App\Shared\Validation\ValidationOutput;
 
 final readonly class Interactor
 {
-    public function __construct(private IArticleRepository $articles)
-    {
+    public function __construct(
+        private IArticleRepository $articles,
+        private IArticlePolicyQuery $articlePolicyQuery,
+        private ArticlePolicy $articlePolicy,
+    ) {
     }
 
     public function execute(Input $input): Output
@@ -39,6 +46,32 @@ final readonly class Interactor
             ));
         }
 
-        return Output::saved(articleId: $this->articles->save(article: Article::fromInput(id: $input->id, data: $input->data)));
+        $status = $values->string(field: 'status');
+        $this->authorize(input: $input, status: $status === '' ? 'draft' : $status);
+
+        $articleData = $input->data;
+        if ($input->id === null) {
+            $articleData['author_id'] = $input->currentUser->id;
+        }
+
+        return Output::saved(articleId: $this->articles->save(article: Article::fromInput(id: $input->id, data: $articleData)));
+    }
+
+    private function authorize(Input $input, string $status): void
+    {
+        if ($input->id === null) {
+            if (!$this->articlePolicy->canCreate(user: $input->currentUser)) {
+                throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_CREATE);
+            }
+        } else {
+            $article = $this->articlePolicyQuery->findById(id: $input->id);
+            if ($article === null || !$this->articlePolicy->canUpdate(user: $input->currentUser, article: $article)) {
+                throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_UPDATE);
+            }
+        }
+
+        if ($status === 'published' && !$this->articlePolicy->canPublish(user: $input->currentUser)) {
+            throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_PUBLISH);
+        }
     }
 }

@@ -34,6 +34,7 @@ final readonly class Article
         public ?PublishedEndsAt $publishedEndsAt,
         public SeoTitle $seoTitle,
         public MetaDescription $metaDescription,
+        public ?int $authorId,
     ) {
     }
 
@@ -54,6 +55,7 @@ final readonly class Article
             publishedEndsAt: self::stringValue(data: $data, key: 'published_ends_at') === '' ? null : new PublishedEndsAt(value: self::stringValue(data: $data, key: 'published_ends_at')),
             seoTitle: new SeoTitle(value: self::stringValue(data: $data, key: 'seo_title')),
             metaDescription: new MetaDescription(value: self::stringValue(data: $data, key: 'meta_description')),
+            authorId: self::nullablePositiveInt(data: $data, key: 'author_id'),
         );
     }
 
@@ -79,5 +81,13 @@ final readonly class Article
         }
 
         return $default;
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function nullablePositiveInt(array $data, string $key): ?int
+    {
+        $value = self::intValue(data: $data, key: $key);
+
+        return $value > 0 ? $value : null;
     }
 }

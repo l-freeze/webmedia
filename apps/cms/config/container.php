@@ -25,6 +25,7 @@ use App\Cms\Infrastructure\Persistence\PdoArticleEditCategoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleEditQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleHistoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticlePreviewQuery;
+use App\Cms\Infrastructure\Persistence\PdoArticlePolicyQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoCurrentCmsUserQuery;
@@ -109,6 +110,7 @@ $container->bind(abstract: IPageRepository::class, concrete: PdoPageRepository::
 $container->bind(abstract: ICategoryRepository::class, concrete: PdoCategoryRepository::class);
 $container->bind(abstract: ITagRepository::class, concrete: PdoTagRepository::class);
 $container->bind(abstract: ISettingRepository::class, concrete: PdoSettingRepository::class);
+$container->bind(abstract: Article\Policy\Query\IArticlePolicyQuery::class, concrete: PdoArticlePolicyQuery::class);
 $container->bind(abstract: Article\List\Query\IArticleQuery::class, concrete: PdoArticleQuery::class);
 $container->bind(abstract: Article\Edit\Query\IArticleQuery::class, concrete: PdoArticleEditQuery::class);
 $container->bind(abstract: Article\Edit\Query\ICategoryQuery::class, concrete: PdoArticleEditCategoryQuery::class);

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Restore;
 
+use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+
 final readonly class Input
 {
-    public function __construct(public int $articleId, public int $versionNo)
+    public function __construct(public int $articleId, public int $versionNo, public CurrentCmsUser $currentUser)
     {
     }
 }
