@@ -6,6 +6,20 @@
 
 ## 直近作業
 
+- CMS Policy 実装計画に追加判断を反映。
+  - 初期 Role は `admin` / `editor` / `writer` / `viewer` とし、`system` は将来予約名にした。
+  - Role hierarchy は `viewer < writer < editor < admin` をコード上で管理し、DB 化しない方針にした。
+  - `writer` は自分の記事のみ編集可、`editor` / `admin` は他人の記事も編集可にする方針にした。
+  - 記事所有者カラムは `author_id` を第一候補にし、既存の `author_name` は表示名として認可には使わない方針にした。
+  - 記事削除は `editor` / `admin` が論理削除可、物理削除は初期 UI に出さず、必要になったら admin 限定 purge として二段構えにする方針にした。
+  - `viewer` は CMS の読み取り専用ユーザーであり、apps/front の公開記事閲覧者とは別概念と整理した。問い合わせ閲覧は初期案では `editor` 以上に限定する。
+  - route-level permission は本格運用を見据え、middleware 内 path mapping ではなく route metadata + permission middleware へ寄せる方針にした。
+- 次回再開地点。
+  - `viewer` の code name を `viewer` のままにするか、`read_only` / `auditor` に寄せるかを決める。
+  - 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるかを決める。
+  - `editor` に `setting.update` を許可するかを決める。
+  - UseCase Input に `CurrentCmsUser` を渡すか、actor 用 value を作るかを決める。
+
 - CMS Policy 実装計画の初稿を追加。
   - `docs/policy_implementation_plan.md` を追加し、Guard 後の認可基盤として Permission / Role mapping、`AuthorizationService`、route-level permission middleware、`ArticlePolicy` の順に進める方針を整理。
   - `RequireCmsSessionMiddleware` は当面名前を維持し、Policy 計画上は認証済み入口として扱う判断にした。

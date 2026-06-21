@@ -35,13 +35,32 @@ Policy は最初から全リソース分を作らない。
 - 現時点で Policy が明確に必要なのは、記事の所有者・状態・公開操作のようなリソース依存条件が出る箇所である。
 - まずは `ArticlePolicy` を候補にし、固定ページ、メディア、分類、問い合わせ、設定は Permission だけで不足が出た段階で追加する。
 
+Role の強弱は DB ではなくコード上で管理する。
+
+理由:
+
+- 初期運用ではロール階層を管理画面から変更する必要がない。
+- WordPress では Editor / Author のように役割名と capability の組み合わせで表現されるが、この CMS では `writer` より強い人は他人の記事も編集できる、という Policy 判定が必要になる。
+- 強弱は `RoleHierarchy` のような小さいコード上 mapping で表現し、Permission mapping とは分ける。
+
+`system` role は初期実装では作らず予約名にする。
+
+理由:
+
+- 単一サイト CMS では `admin` が実質的な最高管理者で足りる。
+- `system` は複数サイト、ユーザー管理、role 管理、保守操作、物理削除、監査設定など、通常の CMS 管理より強い操作が必要になった段階で追加する。
+- 先に作ると `admin` と `system` の違いが曖昧になり、権限設計がぶれる。
+
 ## 用語
 
 Permission:
 操作権限。例: `article.update`、`media.delete`。
 
 Role:
-Permission の集合。例: `admin`、`editor`、`writer`、`viewer`。
+Permission の集合。初期実装では `admin`、`editor`、`writer`、`viewer` を使う。`system` は将来予約名にする。
+
+Role hierarchy:
+Role の強弱。初期順序は `viewer < writer < editor < admin` とする。将来 `system` を追加する場合は `admin < system` に置く。
 
 AuthorizationService:
 CurrentCmsUser と Permission を受け取り、大まかな操作権限を判定する入口。
@@ -117,15 +136,35 @@ viewer:
   article.history
   page.list
   media.list
-  inquiry.read
 ```
+
+Role hierarchy:
+
+```text
+viewer < writer < editor < admin
+```
+
+記事編集の初期ルール:
+
+- `writer` は自分の記事だけ編集できる。
+- `editor` と `admin` は他人の記事も編集できる。
+- 公開操作は `editor` 以上にする。
+
+`viewer` は CMS の読み取り専用ユーザーであり、apps/front の公開記事閲覧者ではない。
+
+`viewer` は問い合わせを読まない。問い合わせには個人情報や営業情報が入る可能性があるため、初期実装では `editor` 以上に限定する。問い合わせ担当だけを切りたい場合は、将来 `support` または `inquiry_manager` のような専用 role / permission を検討する。
+
+削除の初期ルール:
+
+- `editor` と `admin` は記事を論理削除できる。
+- 物理削除は初期 UI には出さない。
+- 物理削除が必要になった場合は、ゴミ箱からの purge 操作として `admin` 限定にする。
+- 将来 `system` role を追加した場合は、監査ログや保守操作を含む本当に強い削除を `system` へ寄せる。
 
 要相談:
 
-- `viewer` に問い合わせ閲覧 `inquiry.read` を許可するか。
-- `writer` に既存記事の更新を許可する場合、「自分の記事のみ」にするか。
 - `editor` に設定更新 `setting.update` を許可するか。初期案では admin のみに寄せる。
-- `article.delete` は admin のみにするか、editor まで許可するか。初期案では admin のみに寄せる。
+- `viewer` という名前で読み取り専用 CMS ユーザーの意図が伝わるか。代替は `read_only`、`auditor`。
 
 ## 配置方針
 
@@ -138,6 +177,8 @@ apps/cms/src/Application/Auth/Authorization/
   AuthorizationService.php
   AuthorizationException.php
   Permission.php
+  Role.php
+  RoleHierarchy.php
   RolePermissions.php
 
 apps/cms/src/Application/Article/Policy/
@@ -168,14 +209,17 @@ Policy は対象の Application 配下に置く。
 ### 1. Permission / Role mapping を追加する
 
 - `Permission` は string backed enum ではなく、まず定数クラスにする。
+- `Role` も string backed enum ではなく、まず定数クラスにする。
 - PHP 8.5 前提でも、既存コードとの馴染みとテスト容易性を優先する。
 - `RolePermissions` は `role => permission[]` の private mapping を持つ。
+- `RoleHierarchy` は `viewer < writer < editor < admin` の強弱を持つ。
 - 未知 role は権限なしとして扱う。
 - `admin` の全許可は暗黙にせず、テストで見える形にする。
 
 検証:
 
 - role ごとの許可 Permission。
+- `writer` より強い role を判定できること。
 - 未知 role の拒否。
 - Permission 名の重複がないこと。
 
@@ -200,13 +244,20 @@ authorize(CurrentCmsUser $user, string $permission): void
 
 ### 3. route-level permission check を追加する
 
-既存 route 定義を大きく壊さないため、最初は route metadata 改修を急がない。
+本格運用を見据えるなら、permission は route 定義側の metadata として持つ。
 
-第一候補:
+理由:
 
-- `RequireCmsPermissionMiddleware` を追加する。
-- middleware 内に `method + path pattern => permission` の mapping をコードで持つ。
+- middleware 内に `method + path pattern => permission` の mapping を持つと、route 定義と認可定義が二重管理になる。
+- route を追加した時に permission 付与漏れを見つけにくい。
+- Laravel の `can` middleware のように、route entry から認可要件が読める形の方が運用しやすい。
+
+実装方針:
+
+- route 定義に metadata を追加できるようにする。
+- `RequireCmsPermissionMiddleware` は route metadata を読み、`AuthorizationService` で判定する。
 - まず CMS の書き込み系 route だけを対象にする。
+- route metadata が未指定の route は、permission middleware では止めない。
 
 対象例:
 
@@ -235,7 +286,8 @@ POST /admin/settings               setting.update
 - 未ログインは既存 middleware で redirect。
 - ログイン済みだが権限なしは 403。
 - 権限ありは次の handler へ進む。
-- route mapping 対象外は permission middleware では止めない。
+- permission metadata 対象外は permission middleware では止めない。
+- route 追加時に metadata を付けられること。
 
 ### 4. Policy の最初の対象を Article に絞る
 
@@ -257,19 +309,31 @@ canRestore(CurrentCmsUser $user, ArticlePolicyArticle $article): bool
 ```text
 id
 status
-authorUserId
-createdByUserId
-updatedByUserId
+authorId
 publishedAt
 publishedEndsAt
 deletedAt
 ```
 
-要相談:
+記事所有者カラムは `author_id` を第一候補にする。
 
-- 現在の `articles` table に CMS user id の所有者カラムを追加するか。
-- 既存の `author_name` は表示名であり、認可の所有者判定には使わない方がよい。
-- 所有者概念をまだ入れないなら、初期 `ArticlePolicy` は公開・削除・復元の状態判定に絞る。
+理由:
+
+- `auth_user_id` は「認証ユーザー」の実装詳細に寄り、記事の所有者・著者という業務意味が弱い。
+- 一般的には関連先名に `_id` を付ける形が読みやすい。
+- 既存の `author_name` は表示名であり、認可の所有者判定には使わない。
+
+初期 DB 変更候補:
+
+```text
+articles.author_id nullable FK users.id
+```
+
+既存記事の migration 方針:
+
+- 既存記事は初期 admin user を `author_id` に入れるか、nullable のまま扱う。
+- nullable のままにする場合、`writer` は `author_id` が自分と一致する記事だけ編集可。`author_id` が null の記事は `editor` 以上だけ編集可。
+- 新規記事作成時は actor の user id を `author_id` に保存する。
 
 ### 5. Article UseCase に Policy check を入れる
 
@@ -292,6 +356,8 @@ UseCase Input に `CurrentCmsUser` そのものを入れるか、`actorUserId` /
 - route middleware を通らず UseCase を直接呼んでも拒否される。
 - 公開操作は `article.publish` と Policy の両方を満たす必要がある。
 - 削除操作は `article.delete` と Policy の両方を満たす必要がある。
+- `writer` は `author_id` が自分の article だけ更新できる。
+- `editor` と `admin` は他人の記事も更新できる。
 
 ### 6. Latte can helper は後回しにする
 
@@ -339,12 +405,11 @@ article.published
 
 ## 話し合いたい論点
 
-1. writer は「自分の記事だけ編集可」にするか、それとも所有者カラム追加までは記事編集不可に寄せるか。
-2. article の所有者を表す DB カラム名をどうするか。候補は `created_by_user_id`、`owner_user_id`、`author_user_id`。
-3. `article.delete` は admin のみにするか、editor まで許可するか。
-4. `viewer` に `inquiry.read` を許可するか。
-5. route-level permission mapping を middleware 内に置く短期案で始めるか、先に route metadata を導入するか。
-6. UseCase Input に `CurrentCmsUser` を渡すか、actor 用の小さい value を別に作るか。
+1. `viewer` の code name をこのままにするか、`read_only` / `auditor` に寄せるか。
+2. 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるか。
+3. `editor` に設定更新 `setting.update` を許可するか。
+4. 物理削除を初期実装に含めず、将来の admin 限定 purge として残す方針でよいか。
+5. UseCase Input に `CurrentCmsUser` を渡すか、actor 用の小さい value を別に作るか。
 
 ## 次の一手
 
