@@ -24,11 +24,13 @@
   - 既存記事の `author_id` は nullable のまま始める。
   - `setting.update` は admin のみにする。
   - route metadata 名は `requires_permission` にする。
-  - UseCase Input には初期実装では actor 用の小さい value を渡す。ただし、実装しながら `CurrentCmsUser` だけで十分と分かれば後から寄せる余地を残す。
+- CMS Policy 実装計画の Actor 方針を修正。
+  - UseCase Input には初期実装では `CurrentCmsUser` を渡す。
+  - Actor value は、予約公開、期限切れ記事の一括非公開、定期メンテナンス、外部 importer など、ログイン中 CMS ユーザーを伴わない batch / system 実行主体が必要になった時点で切り出す。
+  - 先に Actor 抽象だけを作らない。
 - 次回再開地点。
-  - actor value の具体名を決める。候補は `CmsActor`、`CurrentActor`、`AuthenticatedCmsActor`。
-  - actor value に `email` を含めるか決める。初期案では監査や表示に必要になるまで含めない。
   - 実装に進む場合は、Permission / Role / RoleHierarchy / RolePermissions / AuthorizationService から着手する。
+  - UseCase-level authorization では、まず `CurrentCmsUser` を Input に渡す形で実装する。
 
 - CMS Policy 実装計画の初稿を追加。
   - `docs/policy_implementation_plan.md` を追加し、Guard 後の認可基盤として Permission / Role mapping、`AuthorizationService`、route-level permission middleware、`ArticlePolicy` の順に進める方針を整理。

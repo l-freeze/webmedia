@@ -367,14 +367,21 @@ articles.author_id nullable FK users.id
 2. `Article/Delete`
 3. `Article/Restore`
 
-UseCase Input には、初期実装では actor 用の小さい value を渡す。
+UseCase Input には、初期実装では `CurrentCmsUser` を渡す。
 
 初期案:
 
-- `CurrentCmsUser` をそのまま全 UseCase Input へ広げず、認可に必要な `id` / `role` / `name` 程度を持つ actor value を作る。
-- Controller は `CmsGuard::currentUser()` で actor を取り出し、actor value に変換して Input へ渡す。
+- Controller は `CmsGuard::currentUser()` で `CurrentCmsUser` を取り出し、Input へ渡す。
 - 未ログインは route middleware で止まる前提だが、UseCase 側も actor 必須にする。
-- actor value の形は今後の実装で見直してよい。`CurrentCmsUser` だけで十分なことが分かった場合は、後から寄せる。
+- Actor value は初期実装では作らない。
+
+Actor value を切り出す条件:
+
+- 予約公開、期限切れ記事の一括非公開、定期メンテナンスなど、ログイン中 CMS ユーザーを伴わない batch / system 実行主体が必要になった場合。
+- 外部 API token、importer、migration など、CMS user とは別種別の実行主体を監査ログや認可で区別したい場合。
+- `CurrentCmsUser` に認証・表示用の情報が増え、UseCase に渡す値を最小化する必要が出た場合。
+
+その段階で `CurrentCmsUser` から `CmsActor` などへ切り出す。先に抽象だけを作らない。
 
 検証:
 
@@ -430,8 +437,12 @@ article.published
 
 ## 話し合いたい論点
 
-1. actor value の具体名をどうするか。候補は `CmsActor`、`CurrentActor`、`AuthenticatedCmsActor`。
-2. actor value に `email` を含めるか。初期案では監査や表示に必要になるまで含めない。
+現時点で大きな未確定事項はない。
+
+実装しながら確認する点:
+
+1. `CurrentCmsUser` を UseCase Input に渡して十分か。
+2. batch / system 実行主体が必要になった時点で Actor value を切り出すか。
 
 ## 次の一手
 
