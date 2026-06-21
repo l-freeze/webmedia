@@ -6,6 +6,28 @@
 
 ## 直近作業
 
+- CMS Policy の初期実装を追加。
+  - `Permission` / `Role` / `RoleHierarchy` / `RolePermissions` / `AuthorizationService` / `AuthorizationException` を `apps/cms/src/Application/Auth/Authorization` に追加。
+  - 初期 Role は `viewer < writer < editor < admin` とし、Permission mapping はコード上で管理する。
+  - route metadata を扱うため、Framework `Request` に request attributes を追加し、`Router` が matched route の metadata を `route.metadata` attribute へ載せるようにした。
+  - CMS route 定義の書き込み系 route に `requires_permission` metadata を追加。
+  - `RequireCmsPermissionMiddleware` を追加し、`requires_permission` を `AuthorizationService` で強制するようにした。
+  - CMS middleware config は `RequireCmsSessionMiddleware`、`RequireCmsPermissionMiddleware`、`CmsAuditMiddleware` の順にした。
+  - `articles.author_id` nullable column を追加する migration を追加。既存記事は nullable のまま始める。
+  - `ArticlePolicy` / `IArticlePolicyQuery` / `ArticlePolicyArticle` / `PdoArticlePolicyQuery` を追加。
+  - `writer` は `author_id` が自分の記事だけ更新可、`editor` / `admin` は他人の記事も更新可にした。
+  - Article Save / Delete / Restore UseCase に `CurrentCmsUser` を渡し、UseCase-level authorization を追加。
+  - Article Store / Update / Delete / Restore Controller は Guard から `CurrentCmsUser` を取り、UseCase-level authorization の拒否を 403 に変換する。
+- 検証結果。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/Authorization/AuthorizationServiceTest.php`: 成功、5 tests / 16 assertions。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Framework/RequestTest.php tests/Framework/RouterTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/CmsConfigTest.php tests/Cms/Authorization/AuthorizationServiceTest.php`: 成功、23 tests / 53 assertions。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/Authorization/ArticlePolicyTest.php tests/Cms/Authorization/AuthorizationServiceTest.php tests/Cms/CmsConfigTest.php`: 成功、11 tests / 38 assertions。
+  - `docker compose run --rm app composer test`: 成功、119 tests / 1010 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `docker compose run --rm app composer migrate`: 成功。`20260621000100 AddAuthorIdToArticles` を適用。
+- 次回再開地点。
+  - 次に進む場合は、削除を `status = trashed` から `deleted_at` 論理削除へ寄せるか、Latte `can` 相当ではない別名 helper の表示制御を検討する。
+
 - CMS Policy 実装計画に追加判断を反映。
   - 初期 Role は `admin` / `editor` / `writer` / `viewer` とし、`system` は将来予約名にした。
   - Role hierarchy は `viewer < writer < editor < admin` をコード上で管理し、DB 化しない方針にした。
