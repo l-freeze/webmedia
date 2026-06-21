@@ -11,13 +11,19 @@
   - Role hierarchy は `viewer < writer < editor < admin` をコード上で管理し、DB 化しない方針にした。
   - `writer` は自分の記事のみ編集可、`editor` / `admin` は他人の記事も編集可にする方針にした。
   - 記事所有者カラムは `author_id` を第一候補にし、既存の `author_name` は表示名として認可には使わない方針にした。
-  - 記事削除は `editor` / `admin` が論理削除可、物理削除は初期 UI に出さず、必要になったら admin 限定 purge として二段構えにする方針にした。
+  - 記事削除は `editor` / `admin` が論理削除可、物理削除は初期 UI に出さず、必要になったら admin 限定の完全削除 `PermanentlyDelete` として二段構えにする方針にした。
   - `viewer` は CMS の読み取り専用ユーザーであり、apps/front の公開記事閲覧者とは別概念と整理した。問い合わせ閲覧は初期案では `editor` 以上に限定する。
   - route-level permission は本格運用を見据え、middleware 内 path mapping ではなく route metadata + permission middleware へ寄せる方針にした。
+- CMS Policy 実装計画に名称判断を追加。
+  - `editor` は名称上の違和感はあるが、一般的な CMS role model に合わせ、他人の記事も編集できる role として扱う。
+  - `author_id` を記事所有者カラム名として確定し、`auth_user_id` は採用しない。
+  - 物理削除 UseCase の候補名は `PermanentlyDelete` とし、`forceDelete` は使わない。
+  - `viewer` は初期実装では role 定義と Permission mapping 上の読み取り専用 role に留め、UI やユーザー管理で前面に出すのは必要になってからにする。
+  - route metadata 名は `can` を避け、`permission` または `requires_permission` を候補にする。
 - 次回再開地点。
-  - `viewer` の code name を `viewer` のままにするか、`read_only` / `auditor` に寄せるかを決める。
   - 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるかを決める。
   - `editor` に `setting.update` を許可するかを決める。
+  - route metadata 名を `permission` にするか、`requires_permission` にするかを決める。
   - UseCase Input に `CurrentCmsUser` を渡すか、actor 用 value を作るかを決める。
 
 - CMS Policy 実装計画の初稿を追加。

@@ -144,13 +144,15 @@ Role hierarchy:
 viewer < writer < editor < admin
 ```
 
+`editor` は名称だけを見ると「編集する人」だが、一般的な CMS role では全員の記事を編集・公開できる運用管理寄りの役割として扱われることが多い。この CMS でも一般的な role model に合わせ、`editor` は writer より強く、他人の記事も編集できる role として扱う。
+
 記事編集の初期ルール:
 
 - `writer` は自分の記事だけ編集できる。
 - `editor` と `admin` は他人の記事も編集できる。
 - 公開操作は `editor` 以上にする。
 
-`viewer` は CMS の読み取り専用ユーザーであり、apps/front の公開記事閲覧者ではない。
+`viewer` は CMS の読み取り専用ユーザーであり、apps/front の公開記事閲覧者ではない。ただし、役割のイメージが曖昧になりやすいため、初期実装では `viewer` を積極的に使う前提にしない。まずは role 定義と Permission mapping 上に読み取り専用 role として置き、UI やユーザー管理で前面に出すのは必要になってからにする。
 
 `viewer` は問い合わせを読まない。問い合わせには個人情報や営業情報が入る可能性があるため、初期実装では `editor` 以上に限定する。問い合わせ担当だけを切りたい場合は、将来 `support` または `inquiry_manager` のような専用 role / permission を検討する。
 
@@ -158,13 +160,28 @@ viewer < writer < editor < admin
 
 - `editor` と `admin` は記事を論理削除できる。
 - 物理削除は初期 UI には出さない。
-- 物理削除が必要になった場合は、ゴミ箱からの purge 操作として `admin` 限定にする。
+- 物理削除が必要になった場合は、ゴミ箱からの完全削除操作として `admin` 限定にする。
 - 将来 `system` role を追加した場合は、監査ログや保守操作を含む本当に強い削除を `system` へ寄せる。
+
+削除 UseCase の名称候補:
+
+```text
+Article/Delete
+  論理削除。deleted_at を埋め、通常画面から除外する。
+
+Article/Restore
+  論理削除からの復元。deleted_at を null に戻す。
+
+Article/PermanentlyDelete
+  物理削除。DB row と関連データを削除する。初期実装では作らず、必要になったら admin 限定操作として追加する。
+```
+
+`forceDelete` という名前は使わない。動作の意味が直感的に伝わる `PermanentlyDelete` を候補にする。
 
 要相談:
 
 - `editor` に設定更新 `setting.update` を許可するか。初期案では admin のみに寄せる。
-- `viewer` という名前で読み取り専用 CMS ユーザーの意図が伝わるか。代替は `read_only`、`auditor`。
+- `viewer` は初期実装では内部定義に留め、必要になった段階で UI 表示名を調整する。
 
 ## 配置方針
 
@@ -250,12 +267,13 @@ authorize(CurrentCmsUser $user, string $permission): void
 
 - middleware 内に `method + path pattern => permission` の mapping を持つと、route 定義と認可定義が二重管理になる。
 - route を追加した時に permission 付与漏れを見つけにくい。
-- Laravel の `can` middleware のように、route entry から認可要件が読める形の方が運用しやすい。
+- route entry から認可要件が読める形の方が運用しやすい。
 
 実装方針:
 
 - route 定義に metadata を追加できるようにする。
 - `RequireCmsPermissionMiddleware` は route metadata を読み、`AuthorizationService` で判定する。
+- `can` という metadata 名は使わない。動作が分かる `permission` または `requires_permission` を候補にする。
 - まず CMS の書き込み系 route だけを対象にする。
 - route metadata が未指定の route は、permission middleware では止めない。
 
@@ -315,7 +333,7 @@ publishedEndsAt
 deletedAt
 ```
 
-記事所有者カラムは `author_id` を第一候補にする。
+記事所有者カラムは `author_id` にする。
 
 理由:
 
@@ -405,11 +423,10 @@ article.published
 
 ## 話し合いたい論点
 
-1. `viewer` の code name をこのままにするか、`read_only` / `auditor` に寄せるか。
-2. 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるか。
-3. `editor` に設定更新 `setting.update` を許可するか。
-4. 物理削除を初期実装に含めず、将来の admin 限定 purge として残す方針でよいか。
-5. UseCase Input に `CurrentCmsUser` を渡すか、actor 用の小さい value を別に作るか。
+1. 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるか。
+2. `editor` に設定更新 `setting.update` を許可するか。
+3. route metadata 名を `permission` にするか、`requires_permission` にするか。
+4. UseCase Input に `CurrentCmsUser` を渡すか、actor 用の小さい value を別に作るか。
 
 ## 次の一手
 
