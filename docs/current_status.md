@@ -20,11 +20,15 @@
   - 物理削除 UseCase の候補名は `PermanentlyDelete` とし、`forceDelete` は使わない。
   - `viewer` は初期実装では role 定義と Permission mapping 上の読み取り専用 role に留め、UI やユーザー管理で前面に出すのは必要になってからにする。
   - route metadata 名は `can` を避け、`permission` または `requires_permission` を候補にする。
+- CMS Policy 実装計画の残論点を確定。
+  - 既存記事の `author_id` は nullable のまま始める。
+  - `setting.update` は admin のみにする。
+  - route metadata 名は `requires_permission` にする。
+  - UseCase Input には初期実装では actor 用の小さい value を渡す。ただし、実装しながら `CurrentCmsUser` だけで十分と分かれば後から寄せる余地を残す。
 - 次回再開地点。
-  - 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるかを決める。
-  - `editor` に `setting.update` を許可するかを決める。
-  - route metadata 名を `permission` にするか、`requires_permission` にするかを決める。
-  - UseCase Input に `CurrentCmsUser` を渡すか、actor 用 value を作るかを決める。
+  - actor value の具体名を決める。候補は `CmsActor`、`CurrentActor`、`AuthenticatedCmsActor`。
+  - actor value に `email` を含めるか決める。初期案では監査や表示に必要になるまで含めない。
+  - 実装に進む場合は、Permission / Role / RoleHierarchy / RolePermissions / AuthorizationService から着手する。
 
 - CMS Policy 実装計画の初稿を追加。
   - `docs/policy_implementation_plan.md` を追加し、Guard 後の認可基盤として Permission / Role mapping、`AuthorizationService`、route-level permission middleware、`ArticlePolicy` の順に進める方針を整理。

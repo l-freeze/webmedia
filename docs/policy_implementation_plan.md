@@ -183,6 +183,12 @@ Article/PermanentlyDelete
 - `editor` に設定更新 `setting.update` を許可するか。初期案では admin のみに寄せる。
 - `viewer` は初期実装では内部定義に留め、必要になった段階で UI 表示名を調整する。
 
+設定更新の初期ルール:
+
+- `setting.update` は admin のみにする。
+- `editor` は記事、固定ページ、分類、メディア、問い合わせなど日常運用の管理を担当する。
+- サイト全体の挙動や表示に影響する設定は、初期実装では admin に寄せる。
+
 ## 配置方針
 
 CMS 固有の認可なので `src/Framework` には置かない。
@@ -273,7 +279,7 @@ authorize(CurrentCmsUser $user, string $permission): void
 
 - route 定義に metadata を追加できるようにする。
 - `RequireCmsPermissionMiddleware` は route metadata を読み、`AuthorizationService` で判定する。
-- `can` という metadata 名は使わない。動作が分かる `permission` または `requires_permission` を候補にする。
+- `can` という metadata 名は使わない。metadata 名は `requires_permission` にする。
 - まず CMS の書き込み系 route だけを対象にする。
 - route metadata が未指定の route は、permission middleware では止めない。
 
@@ -349,7 +355,7 @@ articles.author_id nullable FK users.id
 
 既存記事の migration 方針:
 
-- 既存記事は初期 admin user を `author_id` に入れるか、nullable のまま扱う。
+- 既存記事の `author_id` は nullable のまま扱う。
 - nullable のままにする場合、`writer` は `author_id` が自分と一致する記事だけ編集可。`author_id` が null の記事は `editor` 以上だけ編集可。
 - 新規記事作成時は actor の user id を `author_id` に保存する。
 
@@ -361,13 +367,14 @@ articles.author_id nullable FK users.id
 2. `Article/Delete`
 3. `Article/Restore`
 
-UseCase Input に `CurrentCmsUser` そのものを入れるか、`actorUserId` / `actorRole` を入れるかは実装前に決める。
+UseCase Input には、初期実装では actor 用の小さい value を渡す。
 
 初期案:
 
-- Application 内で閉じるため、`CurrentCmsUser` を Input に含める。
-- Controller は `CmsGuard::currentUser()` で actor を取り出し、Input へ渡す。
+- `CurrentCmsUser` をそのまま全 UseCase Input へ広げず、認可に必要な `id` / `role` / `name` 程度を持つ actor value を作る。
+- Controller は `CmsGuard::currentUser()` で actor を取り出し、actor value に変換して Input へ渡す。
 - 未ログインは route middleware で止まる前提だが、UseCase 側も actor 必須にする。
+- actor value の形は今後の実装で見直してよい。`CurrentCmsUser` だけで十分なことが分かった場合は、後から寄せる。
 
 検証:
 
@@ -423,10 +430,8 @@ article.published
 
 ## 話し合いたい論点
 
-1. 既存記事の `author_id` を初期 admin user で埋めるか、nullable のまま始めるか。
-2. `editor` に設定更新 `setting.update` を許可するか。
-3. route metadata 名を `permission` にするか、`requires_permission` にするか。
-4. UseCase Input に `CurrentCmsUser` を渡すか、actor 用の小さい value を別に作るか。
+1. actor value の具体名をどうするか。候補は `CmsActor`、`CurrentActor`、`AuthenticatedCmsActor`。
+2. actor value に `email` を含めるか。初期案では監査や表示に必要になるまで含めない。
 
 ## 次の一手
 
