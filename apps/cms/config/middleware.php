@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Cms\Infrastructure\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Infrastructure\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Infrastructure\Http\Middleware\RequireCmsSessionMiddleware;
 
 $root = dirname(__DIR__, 3);
@@ -14,5 +15,6 @@ if (!is_array($sharedMiddleware)) {
 return [
     ...$sharedMiddleware,
     RequireCmsSessionMiddleware::class,
+    RequireCmsPermissionMiddleware::class,
     CmsAuditMiddleware::class,
 ];

@@ -75,6 +75,7 @@ final class Application implements ApplicationInterface
         $container->instance(id: Session::class, instance: $session);
 
         $router = $this->routers[$definition->name] ?? throw new RuntimeException("Application router is not loaded: {$definition->name}");
+        $request = $router->withRouteMetadata(request: $request);
 
         return $this->middlewarePipeline->handle(
             request: $request,
@@ -120,7 +121,7 @@ final class Application implements ApplicationInterface
     }
 
     /**
-     * @return array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string}>
+     * @return array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string,3?:array<string, mixed>}>
      */
     private function loadRoutes(string $path): array
     {
@@ -129,7 +130,7 @@ final class Application implements ApplicationInterface
             throw new RuntimeException('Application route configuration is invalid.');
         }
 
-        /** @var array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string}> $routes */
+        /** @var array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string,3?:array<string, mixed>}> $routes */
         return $routes;
     }
 

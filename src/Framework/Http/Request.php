@@ -11,6 +11,7 @@ final readonly class Request
      * @param array<string, mixed> $body
      * @param array<string, string> $server
      * @param array<string, mixed> $files
+     * @param array<string, mixed> $attributes
      */
     public function __construct(
         public string $method,
@@ -19,6 +20,7 @@ final readonly class Request
         public array $body,
         public array $server,
         public array $files = [],
+        public array $attributes = [],
     ) {
     }
 
@@ -97,5 +99,23 @@ final readonly class Request
     public function queryInput(string $key, string $default = ''): string
     {
         return $this->query[$key] ?? $default;
+    }
+
+    public function attribute(string $key, mixed $default = null): mixed
+    {
+        return $this->attributes[$key] ?? $default;
+    }
+
+    public function withAttribute(string $key, mixed $value): self
+    {
+        return new self(
+            method: $this->method,
+            path: $this->path,
+            query: $this->query,
+            body: $this->body,
+            server: $this->server,
+            files: $this->files,
+            attributes: array_merge($this->attributes, [$key => $value]),
+        );
     }
 }

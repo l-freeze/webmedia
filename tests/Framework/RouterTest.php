@@ -38,6 +38,30 @@ final class RouterTest extends TestCase
 
         self::assertSame(404, $response->status);
     }
+
+    public function testAddsMatchedRouteMetadataToRequestAttributes(): void
+    {
+        $router = new Router(routes: [
+            ['POST', '/admin/articles/{id:\d+}', InvokableController::class, ['requires_permission' => 'article.update']],
+        ]);
+
+        $request = $router->withRouteMetadata(
+            request: new Request(method: 'POST', path: '/admin/articles/10', query: [], body: [], server: []),
+        );
+
+        self::assertSame(
+            ['requires_permission' => 'article.update'],
+            $request->attribute(key: Router::ROUTE_METADATA_ATTRIBUTE),
+        );
+    }
+
+    public function testLeavesRequestUnchangedWhenNoRouteMatchesForMetadata(): void
+    {
+        $router = new Router(routes: []);
+        $request = new Request(method: 'GET', path: '/missing', query: [], body: [], server: []);
+
+        self::assertSame($request, $router->withRouteMetadata(request: $request));
+    }
 }
 
 final readonly class InvokableController

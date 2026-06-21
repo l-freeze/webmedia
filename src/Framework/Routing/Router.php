@@ -14,12 +14,29 @@ use function FastRoute\simpleDispatcher;
 
 final class Router
 {
+    public const ROUTE_METADATA_ATTRIBUTE = 'route.metadata';
+
     private ?Dispatcher $dispatcher = null;
 
-    /** @param array<int, array{0:string,1:string,2:class-string|array{0:class-string,1:string}}> $routes */
+    /**
+     * @param array<int, array{0:string,1:string,2:class-string|array{0:class-string,1:string},3?:array<string, mixed>}> $routes
+     */
     public function __construct(
         private array $routes,
     ) {
+    }
+
+    public function withRouteMetadata(Request $request): Request
+    {
+        $result = $this->dispatcher()->dispatch($request->method, $request->path);
+        if ($result[0] !== Dispatcher::FOUND) {
+            return $request;
+        }
+
+        /** @var array{controller: class-string|array{0:class-string,1:string}, metadata: array<string, mixed>} $route */
+        $route = $result[1];
+
+        return $request->withAttribute(key: self::ROUTE_METADATA_ATTRIBUTE, value: $route['metadata']);
     }
 
     public function dispatch(Request $request, Container $container): Response
@@ -34,8 +51,9 @@ final class Router
             return new Response(body: 'Method Not Allowed', status: 405);
         }
 
-        /** @var class-string|array{0:class-string,1:string} $handler */
-        $handler = $result[1];
+        /** @var array{controller: class-string|array{0:class-string,1:string}, metadata: array<string, mixed>} $route */
+        $route = $result[1];
+        $handler = $route['controller'];
         /** @var array<string, string> $vars */
         $vars = $result[2];
 
@@ -70,8 +88,13 @@ final class Router
     private function dispatcher(): Dispatcher
     {
         return $this->dispatcher ??= simpleDispatcher(function (RouteCollector $collector): void {
-            foreach ($this->routes as [$method, $path, $controller]) {
-                $collector->addRoute($method, $path, $controller);
+            foreach ($this->routes as $route) {
+                [$method, $path, $controller] = $route;
+                $metadata = $route[3] ?? [];
+                $collector->addRoute($method, $path, [
+                    'controller' => $controller,
+                    'metadata' => $metadata,
+                ]);
             }
         });
     }
