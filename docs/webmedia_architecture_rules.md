@@ -367,9 +367,8 @@ apps/cms/
     Presentation/
       Http/
         Controller/
-    Infrastructure/
-      Http/
         Middleware/
+    Infrastructure/
       Persistence/
         PdoArticleRepository.php
         PdoArticleQuery.php
@@ -747,7 +746,6 @@ Infrastructure は外部技術の詳細を扱う。
 置いてよいもの:
 
 ```text
-Middleware
 PDO
 SQL
 Repository implementation
@@ -765,9 +763,9 @@ Application と Domain は Infrastructure に依存してはならない。
 
 アプリ固有の HTTP middleware は、現時点では `apps/<app>/src/Presentation/Http/Middleware` に置く。HTTP pipeline に差し込まれるが、ログイン状態、route-level permission、redirect、画面向け request 制約など、HTTP request/response の入口制御は Presentation の責務として扱う。
 
-TODO: middleware が増え、Infrastructure に統一すると責務が読みにくくなった場合だけ、次の基準で分離する。
+middleware が増え、1つの置き場では責務が読みにくくなった場合だけ、次の基準で分離する。
 
-- `apps/<app>/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect など、HTTP 表現に直接関わるもの。
+- `apps/<app>/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect、route-level permission、HTTP envelope audit など、HTTP 表現と入口制御に直接関わるもの。
 - `apps/<app>/src/Infrastructure/Http/Middleware/`: proxy header、upload limit、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いものが必要になった場合だけ作る。
 - `src/Framework/Http/Middleware/`: app に依存しない middleware interface、pipeline、共通実行機構。
 
@@ -1306,6 +1304,49 @@ cms.auth middleware
 ```
 
 Controller ごとに `Session` を直接読んでログイン判定を繰り返してはならない。移行途中は許容するが、最終的には `cms.auth` middleware へ寄せる。
+
+### 15.6 Middleware で扱ってよいこと、扱ってはいけないこと
+
+Middleware は HTTP pipeline の入口制御と横断処理を担当する。コードを差し込める場所ではあるが、対象リソースの業務判断を置く場所ではない。
+
+扱ってよいこと:
+
+- ログイン済みかどうかを確認する。
+- route metadata に書かれた粗い permission を確認する。
+- CSRF token、request method、path prefix のような HTTP request envelope を確認する。
+- request id、IP address、user-agent など、HTTP request metadata をログ用 event に載せる。
+- controller 実行前後で、HTTP envelope としての audit / security event を発火する。
+
+扱ってはいけないこと:
+
+- route variables の `{id}` などを読んで、対象記事や対象ページの所有者判定をする。
+- `article_id` から DB を引き、writer が自分の記事だけ編集できるかを middleware で判断する。
+- 記事の公開状態、予約状態、ゴミ箱状態、復元可否など、対象リソースの状態に依存する業務判断をする。
+- route path や route parameter をもとに UseCase の代替処理を組み立てる。
+
+理由:
+
+- route-level permission は「この入口に入ってよいか」の粗い判定であり、「この対象を操作してよいか」の判定ではない。
+- 対象リソースに依存する判定を middleware に置くと、Controller / UseCase / Policy との責務境界が曖昧になる。
+- HTTP 以外、たとえば CLI、batch、将来の API から同じ UseCase を呼ぶ場合に、middleware の判定が通らない。
+- route variables は URL 表現であり、業務上の対象リソースそのものではない。
+
+それをしたくなった場合:
+
+- まず UseCase `Input` に必要な id と `CurrentCmsUser` を渡す。
+- UseCase 内で `AuthorizationService` や対象リソースの `Policy` を呼ぶ。
+- 対象リソースの所有者、状態、公開可否、復元可否などは Policy または Domain / Application の業務ルールとして判定する。
+- middleware には、必要なら `requires_permission` のような route metadata による粗い入口制御だけを残す。
+
+例:
+
+```text
+RequireCmsPermissionMiddleware
+  -> article.update permission があるかだけを見る
+
+Article/Save/Interactor
+  -> ArticlePolicy で author_id、status、actor role を見て更新可否を判定する
+```
 
 ## 16. CMS と Front のモデル分離
 

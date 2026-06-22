@@ -97,6 +97,78 @@ $request->routeMetadata('requires_permission');
 
 保留。現時点では route metadata の利用箇所が `RequireCmsPermissionMiddleware` だけで、抽象化を先に増やすほどではない。次に route metadata を読む middleware が増えた時点で、`MatchedRoute` value か `RouteMetadataReader` を検討する。
 
+ただし、`requires_permission` のような route metadata key は route 定義と middleware の契約である。利用箇所が増える場合は、文字列 key を各所に散らさず、定数または metadata reader で明示する。
+
+命名の考え方:
+
+- `RouteMetadataReader`: route metadata を読むだけなら最も意味が一致する。
+- `RoutePermissionRequirementReader`: permission requirement だけを読むなら意味が狭く、middleware から見た用途が明確になる。
+- `RequiredRoutePermissionResolver`: permission を導出する意味は伝わるが、複数情報を解決・決定する印象が強く、単に metadata を読むだけなら少し重い。
+
+現時点では reader class を追加しない。理由は、metadata 利用箇所がまだ少なく、ここで抽象化を入れると「何のための概念か」が半端に見えるため。次に route metadata key が増える、または `Router::ROUTE_METADATA_ATTRIBUTE` 参照が複数箇所へ広がる時点で導入する。
+
+## Middleware と Route Variables
+
+### 何をやってよいか
+
+Middleware は HTTP request / response の入口制御と横断処理を担当する。route-level permission を使う場合も、middleware が見るのは「この route に入るための粗い permission」までに留める。
+
+許可する例:
+
+- ログイン済みか確認する。
+- `requires_permission` に設定された permission を確認する。
+- CSRF token を検証する。
+- IP address、user-agent、request-id などの HTTP request metadata を event に載せる。
+- CMS の状態変更 request の HTTP envelope を audit event として記録する。
+
+### 何が危険か
+
+Middleware が route variables、たとえば `/admin/articles/{id}` の `{id}` を読んで、対象リソースの業務判断を始めるのは避ける。
+
+危険な例:
+
+- `{id}` から記事を取得し、`author_id` が現在ユーザーかどうかを middleware で判定する。
+- 記事の `status` を見て、公開、非公開、復元、完全削除の可否を middleware で判定する。
+- route path や route variables によって UseCase 相当の分岐を middleware 内に作る。
+- middleware が対象リソースを取得するために Repository / Query を直接呼び始める。
+
+### 理由と根拠
+
+- route variables は URL の表現であり、業務上の対象リソースそのものではない。
+- 対象リソース依存の判定は HTTP 入口の問題ではなく、UseCase / Policy / Domain の問題である。
+- middleware に業務判断を置くと、同じ UseCase を CLI、batch、将来の API から呼んだ時に認可が抜ける。
+- middleware が Repository / Query を呼び始めると、Presentation の入口制御と Application の業務判断が混ざる。
+- `writer は自分の記事だけ編集可` のようなルールは、route-level permission では表現できない resource-level policy である。
+
+### それをしたいならどうするか
+
+対象リソースを見たくなった場合は、middleware ではなく UseCase / Policy へ寄せる。
+
+推奨する流れ:
+
+```text
+Controller
+  -> route variable から primitive な id を取り出す
+  -> CurrentCmsUser と id を UseCase Input へ渡す
+
+Interactor
+  -> 対象リソースを Query / Repository で取得する
+  -> AuthorizationService / Policy で操作可否を判定する
+  -> 許可された場合だけ業務処理を実行する
+```
+
+例:
+
+```text
+RequireCmsPermissionMiddleware
+  -> article.update permission があるかだけを確認する
+
+Article/Save/Interactor
+  -> ArticlePolicy が author_id、status、actor role を見て更新可否を判定する
+```
+
+この方針により、HTTP route から入った場合も、CLI / batch / API から UseCase を呼んだ場合も、同じ resource-level authorization を通せる。
+
 ## HTTP Request Metadata Extraction
 
 ### 何が問題か
@@ -219,6 +291,7 @@ $router->dispatchMatched($request, $container, $matched);
 改善対象にする条件:
 
 - route metadata を読む middleware が増える。
-- route vars を middleware でも使いたくなる。
 - route 数が増えて match コストが実測で問題になる。
 - `MatchedRoute` value を導入して route metadata attribute 問題も同時に解消したくなった時。
+
+補足: route variables を middleware で使いたくなった場合は、route match 改善より先に「それは middleware の責務か」を確認する。対象リソース依存の判定であれば、`MatchedRoute` 導入ではなく UseCase / Policy へ移す。

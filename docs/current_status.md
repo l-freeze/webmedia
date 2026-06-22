@@ -6,6 +6,18 @@
 
 ## 直近作業
 
+- middleware が route variables を読んで resource-level 判定へ踏み込まないルールを明文化。
+  - `docs/webmedia_architecture_rules.md` に「Middleware で扱ってよいこと、扱ってはいけないこと」を追加。
+  - middleware はログイン済み確認、route-level permission、CSRF、HTTP request metadata、HTTP envelope audit までを担当する。
+  - `{id}` などの route variables を読んで所有者判定、記事状態判定、復元可否判定などを行うことは禁止方針にした。
+  - 対象リソース依存の判定は UseCase / Policy / Domain へ寄せ、Controller は primitive な id と `CurrentCmsUser` を UseCase Input へ渡す。
+  - `docs/middleware_boundary_review.md` から「route vars を middleware でも使いたくなる」を route match 改善条件として扱う表現を外し、まず middleware の責務か確認する方針に修正。
+  - `RouteMetadataReader` / `RoutePermissionRequirementReader` / `RequiredRoutePermissionResolver` の命名判断を整理し、現時点では reader class を追加しない判断にした。
+  - `requires_permission` のような route metadata key は、利用箇所が増えた時点で定数または metadata reader に寄せる方針を明記。
+- 次回再開地点。
+  - route metadata 利用箇所が増える、または `Router::ROUTE_METADATA_ATTRIBUTE` 参照が複数箇所へ広がった時点で、`RouteMetadataReader` またはより狭い `RoutePermissionRequirementReader` を導入する。
+  - 対象リソース依存の認可が必要な場合は middleware ではなく、UseCase-level authorization と Policy を追加する。
+
 - CMS middleware の境界整理を実施。
   - CMS 固有 middleware を `apps/cms/src/Infrastructure/Http/Middleware` から `apps/cms/src/Presentation/Http/Middleware` へ移動。
   - 現時点では `apps/cms/src/Infrastructure/Http` は不要と判断し、空ディレクトリを削除。
