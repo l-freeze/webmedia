@@ -50,7 +50,7 @@ use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;
 use App\Framework\View\TemplateRenderer;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -94,16 +94,16 @@ $container->singleton(id: CsrfMiddleware::class, factory: function (Container $c
     if (!$csrf instanceof Csrf) {
         throw new \RuntimeException('CSRF service is not registered.');
     }
-    $securityLogger = $container->get(id: SecurityLoggerInterface::class);
-    if (!$securityLogger instanceof SecurityLoggerInterface) {
-        throw new \RuntimeException('Security logger service is not registered.');
+    $events = $container->get(id: EventBusInterface::class);
+    if (!$events instanceof EventBusInterface) {
+        throw new \RuntimeException('Event bus service is not registered.');
     }
 
     $appEnv = strtolower($envString('APP_ENV', 'production'));
 
     return new CmsCsrfSecurityMiddleware(
         csrf: $csrf,
-        securityLogger: $securityLogger,
+        events: $events,
         excludedPaths: $csv($envString('CSRF_EXCLUDED_PATHS')),
         enabled: !in_array($appEnv, ['stg', 'staging', 'dev', 'develop', 'development', 'test'], true),
     );

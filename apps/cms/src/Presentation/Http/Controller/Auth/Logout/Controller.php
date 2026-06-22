@@ -7,14 +7,14 @@ namespace App\Cms\Presentation\Http\Controller\Auth\Logout;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class Controller
 {
     public function __construct(
         private Session $session,
-        private SecurityLoggerInterface $securityLogger,
+        private EventBusInterface $events,
     ) {
     }
 
@@ -24,7 +24,7 @@ final readonly class Controller
         $userId = $this->session->get(key: 'cms.user_id');
         $role = $this->session->get(key: 'cms.role');
 
-        $this->securityLogger->record(event: new SecurityLogEvent(
+        $this->events->dispatch(event: new SecurityLogEvent(
             eventType: 'cms.logout',
             result: 'success',
             actorUserId: is_scalar($userId) ? (string) $userId : null,

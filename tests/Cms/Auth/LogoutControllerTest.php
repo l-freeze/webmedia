@@ -9,7 +9,7 @@ use App\Framework\Http\Request;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -22,8 +22,8 @@ final class LogoutControllerTest extends TestCase
             'cms.role' => 'editor',
         ];
         $session = new Session(state: new SessionState(data: $sessionData), runtime: new NativeSessionRuntime());
-        $securityLogger = new RecordingLogoutSecurityLogger();
-        $controller = new Controller(session: $session, securityLogger: $securityLogger);
+        $events = new RecordingLogoutEventBus();
+        $controller = new Controller(session: $session, events: $events);
 
         $response = $controller(new Request(
             method: 'POST',
@@ -40,9 +40,10 @@ final class LogoutControllerTest extends TestCase
         self::assertSame(302, $response->status);
         self::assertSame('/admin/login', $response->headers['Location'] ?? null);
         self::assertFalse($session->has(key: 'cms.user_id'));
-        self::assertCount(1, $securityLogger->events);
+        self::assertCount(1, $events->events);
 
-        $event = $securityLogger->events[0];
+        $event = $events->events[0];
+        self::assertInstanceOf(SecurityLogEvent::class, $event);
         self::assertSame('cms.logout', $event->eventType);
         self::assertSame('success', $event->result);
         self::assertSame('42', $event->actorUserId);
@@ -53,12 +54,12 @@ final class LogoutControllerTest extends TestCase
     }
 }
 
-final class RecordingLogoutSecurityLogger implements SecurityLoggerInterface
+final class RecordingLogoutEventBus implements EventBusInterface
 {
-    /** @var list<SecurityLogEvent> */
+    /** @var list<object> */
     public array $events = [];
 
-    public function record(SecurityLogEvent $event): void
+    public function dispatch(object $event): void
     {
         $this->events[] = $event;
     }

@@ -11,6 +11,8 @@ use App\Shared\ApplicationLog\Application\ApplicationLoggerInterface;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
+use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
 use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
@@ -35,6 +37,7 @@ final class SharedConfigTest extends TestCase
         self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: LoggerInterface::class));
         self::assertInstanceOf(JsonFileAuditLogger::class, $container->get(id: AuditLoggerInterface::class));
         self::assertInstanceOf(JsonFileSecurityLogger::class, $container->get(id: SecurityLoggerInterface::class));
+        self::assertInstanceOf(SynchronousEventBus::class, $container->get(id: EventBusInterface::class));
         self::assertInstanceOf(FileSimpleCache::class, $container->get(id: CacheInterface::class));
     }
 

@@ -6,6 +6,22 @@
 
 ## 直近作業
 
+- CMS の Audit / SecurityLog 発火点を同期 EventBus 経由に変更。
+  - `EventBusInterface::dispatch(object $event)` と `SynchronousEventBus` を `apps/shared/src/Event` に追加。
+  - `RecordAuditEventHandler` は `AuditEvent` を `AuditLoggerInterface` へ保存する。
+  - `RecordSecurityLogEventHandler` は `SecurityLogEvent` を `SecurityLoggerInterface` へ保存する。
+  - CMS の Audit middleware、認可 middleware、CSRF middleware、login/logout controller は logger 直呼びをやめ、EventBus へ event value を dispatch する形に変更。
+  - 現時点の EventBus は同期実行であり、queue や非同期 retry は持たない。将来非同期化する場合も発火側の `dispatch()` 呼び出しは維持する。
+  - テストは EventBus 境界と handler 境界に分け、全 endpoint ごとの重複テストは増やさない。
+- 検証結果。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Shared/Event/SynchronousEventBusTest.php tests/Shared/SharedConfigTest.php tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php tests/Cms/Http/Middleware/CmsCsrfSecurityMiddlewareTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/Auth/LogoutControllerTest.php`: 成功、22 tests / 103 assertions。
+  - `docker compose run --rm app composer test`: 成功、129 tests / 1168 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - Business Audit を入れる場合は、記事保存/削除/復元、メディア削除、設定更新などの UseCase で業務 event value を作り、同じ `EventBusInterface::dispatch()` に流す。
+  - 非同期 EventBus が必要になったら、`EventBusInterface` の実装を差し替えるか、handler 側を queue 投入実装に置き換える。
+
 - CMS Role / Permission の依存境界とログ三種分離を追加。
   - `AuthorizationService` は具象 `RolePermissions` 依存をやめ、`IRolePermissionQuery` へ依存する形に変更。
   - 初期実装として `CodeDefinedRolePermissionQuery` を追加し、現行の role => permission mapping はコード定義のまま維持。
@@ -26,7 +42,7 @@
 - 次回再開地点。
   - UI 表示制御 helper は `hasPermission` 系の分かりやすい名称で検討する。
   - 重要業務操作の Business Audit 接続は後続で追加する。
-  - EventBus / PubSub はまだ導入していない。必要になったら同期 `ApplicationEventPublisher` の薄い contract から始め、後で非同期 EventBus へ置き換えられる境界にする。
+  - EventBus / PubSub はこの時点ではまだ導入していなかった。後続で同期 `EventBusInterface` を導入済み。
 
 - CMS の非 GET 系 request を Audit / SecurityLog に組み込み。
   - 認証・認可を通過した CMS の `POST` / `PUT` / `PATCH` / `DELETE` は既存 `CmsAuditMiddleware` が `AuditEvent(action: cms.http_state_changed)` として記録する。

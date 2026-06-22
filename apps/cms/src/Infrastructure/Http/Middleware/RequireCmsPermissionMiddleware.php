@@ -11,7 +11,7 @@ use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Routing\Router;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterface
@@ -19,7 +19,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
     public function __construct(
         private CmsGuard $guard,
         private AuthorizationService $authorization,
-        private SecurityLoggerInterface $securityLogger,
+        private EventBusInterface $events,
     ) {
     }
 
@@ -32,7 +32,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
 
         $user = $this->guard->currentUser();
         if ($user === null) {
-            $this->securityLogger->record(event: $this->securityEvent(
+            $this->events->dispatch(event: $this->securityEvent(
                 request: $request,
                 eventType: 'cms.authorization.unauthenticated',
                 result: 'failure',
@@ -43,7 +43,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
         }
 
         if (!$this->authorization->can(user: $user, permission: $permission)) {
-            $this->securityLogger->record(event: $this->securityEvent(
+            $this->events->dispatch(event: $this->securityEvent(
                 request: $request,
                 eventType: 'cms.authorization.denied',
                 result: 'failure',

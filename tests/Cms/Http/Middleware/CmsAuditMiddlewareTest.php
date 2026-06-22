@@ -11,9 +11,11 @@ use App\Framework\Http\Response;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\Audit\Application\AuditLoggerInterface;
+use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
+use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -22,8 +24,8 @@ final class CmsAuditMiddlewareTest extends TestCase
 {
     public function testGetAdminRequestIsNotRecorded(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $response = $middleware->process(
             request: $this->request(method: 'GET', path: '/admin/articles'),
@@ -31,28 +33,28 @@ final class CmsAuditMiddlewareTest extends TestCase
         );
 
         self::assertSame(200, $response->status);
-        self::assertSame([], $logger->events);
+        self::assertSame([], $events->events);
     }
 
     public function testNonAdminPrefixIsNotRecorded(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/administer/articles'),
             handler: $this->handler(response: new Response(body: 'ok')),
         );
 
-        self::assertSame([], $logger->events);
+        self::assertSame([], $events->events);
     }
 
     public function testPostAdminRequestIsRecorded(): void
     {
-        $logger = new RecordingAuditLogger();
+        $events = new RecordingEventBus();
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 42);
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $session);
+        $middleware = new CmsAuditMiddleware(events: $events, session: $session);
 
         $response = $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/articles/10'),
@@ -60,9 +62,10 @@ final class CmsAuditMiddlewareTest extends TestCase
         );
 
         self::assertSame(302, $response->status);
-        self::assertCount(1, $logger->events);
+        self::assertCount(1, $events->events);
 
-        $event = $logger->events[0];
+        $event = $events->events[0];
+        self::assertInstanceOf(AuditEvent::class, $event);
         self::assertSame('cms.http_state_changed', $event->action);
         self::assertSame('cms_request', $event->resourceType);
         self::assertSame('success', $event->result);
@@ -83,22 +86,23 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testUnknownAdminStateChangingRequestIsRecorded(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/unknown-operation'),
             handler: $this->handler(response: new Response(body: 'ok')),
         );
 
-        self::assertCount(1, $logger->events);
-        self::assertSame('/admin/unknown-operation', $logger->events[0]->metadata['path'] ?? null);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(AuditEvent::class, $events->events[0]);
+        self::assertSame('/admin/unknown-operation', $events->events[0]->metadata['path'] ?? null);
     }
 
     public function testLoginAndLogoutAreNotRecorded(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/login'),
@@ -109,28 +113,29 @@ final class CmsAuditMiddlewareTest extends TestCase
             handler: $this->handler(response: Response::redirect(location: '/admin/login')),
         );
 
-        self::assertSame([], $logger->events);
+        self::assertSame([], $events->events);
     }
 
     public function testResponseWithClientOrServerErrorIsRecordedAsFailure(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $middleware->process(
             request: $this->request(method: 'PATCH', path: '/admin/articles/10'),
             handler: $this->handler(response: new Response(body: 'invalid', status: 422)),
         );
 
-        self::assertCount(1, $logger->events);
-        self::assertSame('failure', $logger->events[0]->result);
-        self::assertSame(422, $logger->events[0]->metadata['status_code'] ?? null);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(AuditEvent::class, $events->events[0]);
+        self::assertSame('failure', $events->events[0]->result);
+        self::assertSame(422, $events->events[0]->metadata['status_code'] ?? null);
     }
 
     public function testHandlerExceptionIsRecordedAsFailureAndOriginalExceptionIsRethrown(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
         $exception = new RuntimeException('handler failed');
 
         try {
@@ -145,14 +150,15 @@ final class CmsAuditMiddlewareTest extends TestCase
             self::assertSame($exception, $caught);
         }
 
-        self::assertCount(1, $logger->events);
-        self::assertSame('failure', $logger->events[0]->result);
-        self::assertSame(500, $logger->events[0]->metadata['status_code'] ?? null);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(AuditEvent::class, $events->events[0]);
+        self::assertSame('failure', $events->events[0]->result);
+        self::assertSame(500, $events->events[0]->metadata['status_code'] ?? null);
     }
 
     public function testAuditLoggerExceptionIsVisibleWhenRecordingHandlerFailure(): void
     {
-        $middleware = new CmsAuditMiddleware(auditLogger: new ThrowingAuditLogger(), session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: new ThrowingEventBus(), session: $this->session());
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('audit failed');
@@ -167,7 +173,12 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testPlaceholderAuditLoggerThrowsForAuditedRequest(): void
     {
-        $middleware = new CmsAuditMiddleware(auditLogger: new PlaceholderAuditLogger(), session: $this->session());
+        $middleware = new CmsAuditMiddleware(
+            events: new SynchronousEventBus(handlers: [
+                new RecordAuditEventHandler(logger: new PlaceholderAuditLogger()),
+            ]),
+            session: $this->session(),
+        );
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Audit logger is not configured.');
@@ -180,8 +191,8 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testRequestBodySecretsAreNotStoredInMetadata(): void
     {
-        $logger = new RecordingAuditLogger();
-        $middleware = new CmsAuditMiddleware(auditLogger: $logger, session: $this->session());
+        $events = new RecordingEventBus();
+        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
 
         $middleware->process(
             request: $this->request(
@@ -196,10 +207,11 @@ final class CmsAuditMiddlewareTest extends TestCase
             handler: $this->handler(response: new Response(body: 'ok')),
         );
 
-        self::assertCount(1, $logger->events);
-        self::assertArrayNotHasKey('_csrf', $logger->events[0]->metadata);
-        self::assertArrayNotHasKey('password', $logger->events[0]->metadata);
-        self::assertArrayNotHasKey('title', $logger->events[0]->metadata);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(AuditEvent::class, $events->events[0]);
+        self::assertArrayNotHasKey('_csrf', $events->events[0]->metadata);
+        self::assertArrayNotHasKey('password', $events->events[0]->metadata);
+        self::assertArrayNotHasKey('title', $events->events[0]->metadata);
     }
 
     /**
@@ -234,20 +246,20 @@ final class CmsAuditMiddlewareTest extends TestCase
     }
 }
 
-final class RecordingAuditLogger implements AuditLoggerInterface
+final class RecordingEventBus implements EventBusInterface
 {
-    /** @var array<int, AuditEvent> */
+    /** @var list<object> */
     public array $events = [];
 
-    public function record(AuditEvent $event): void
+    public function dispatch(object $event): void
     {
         $this->events[] = $event;
     }
 }
 
-final readonly class ThrowingAuditLogger implements AuditLoggerInterface
+final readonly class ThrowingEventBus implements EventBusInterface
 {
-    public function record(AuditEvent $event): void
+    public function dispatch(object $event): void
     {
         throw new LogicException('audit failed');
     }

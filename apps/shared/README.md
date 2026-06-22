@@ -14,6 +14,7 @@ apps/shared/src/ApplicationLog/Application/ApplicationLoggerInterface.php
 apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Database/PdoHelper.php
+apps/shared/src/Event/Application/EventBusInterface.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
@@ -104,6 +105,8 @@ FRONT_CORS_MAX_AGE=600
 - `SecurityLog` はログイン成功/失敗、認可拒否、CSRF 失敗などの security / auth event を記録します。
 
 CMS では、GET 以外の状態変更 request はまず横断的に記録対象にします。認証・認可を通過した状態変更は Audit、ログイン/ログアウトや認可拒否は SecurityLog に分けます。
+
+イベント発火側は `EventBusInterface::dispatch()` に event value を渡します。標準実装の `SynchronousEventBus` が handler を同期実行し、`AuditEvent` は `RecordAuditEventHandler` 経由で Audit、`SecurityLogEvent` は `RecordSecurityLogEventHandler` 経由で SecurityLog に保存します。
 
 標準保存先は `storage/logs/application.log`、`storage/logs/audit.log`、`storage/logs/security.log` です。
 

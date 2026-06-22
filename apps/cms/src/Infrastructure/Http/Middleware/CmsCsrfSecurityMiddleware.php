@@ -9,7 +9,7 @@ use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class CmsCsrfSecurityMiddleware implements MiddlewareInterface
@@ -17,7 +17,7 @@ final readonly class CmsCsrfSecurityMiddleware implements MiddlewareInterface
     /** @param list<string> $excludedPaths */
     public function __construct(
         private Csrf $csrf,
-        private SecurityLoggerInterface $securityLogger,
+        private EventBusInterface $events,
         private array $excludedPaths = [],
         private bool $enabled = true,
     ) {
@@ -34,7 +34,7 @@ final readonly class CmsCsrfSecurityMiddleware implements MiddlewareInterface
         }
 
         if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
-            $this->securityLogger->record(event: new SecurityLogEvent(
+            $this->events->dispatch(event: new SecurityLogEvent(
                 eventType: 'cms.csrf.denied',
                 result: 'failure',
                 ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR'),

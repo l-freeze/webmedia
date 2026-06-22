@@ -11,7 +11,7 @@ use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 use App\Framework\View\TemplateRenderer;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class Controller
@@ -21,7 +21,7 @@ final readonly class Controller
         private Csrf $csrf,
         private Session $session,
         private Interactor $login,
-        private SecurityLoggerInterface $securityLogger,
+        private EventBusInterface $events,
     ) {
     }
 
@@ -33,7 +33,7 @@ final readonly class Controller
             password: $request->input(key: 'password'),
         ));
         if (!$output->authenticated) {
-            $this->securityLogger->record(event: $this->securityEvent(request: $request, result: 'failure'));
+            $this->events->dispatch(event: $this->securityEvent(request: $request, result: 'failure'));
 
             return $this->form(error: 'メールアドレスまたはパスワードが違います。');
         }
@@ -41,7 +41,7 @@ final readonly class Controller
         $this->session->regenerate();
         $this->session->set(key: 'cms.user_id', value: $output->userId);
         $this->session->set(key: 'cms.role', value: $output->role);
-        $this->securityLogger->record(event: $this->securityEvent(
+        $this->events->dispatch(event: $this->securityEvent(
             request: $request,
             result: 'success',
             actorUserId: $output->userId === null ? null : (string) $output->userId,

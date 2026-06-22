@@ -19,7 +19,7 @@ use App\Framework\Routing\Router;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -40,8 +40,8 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 
     public function testRedirectsWhenPermissionMetadataRequiresLoginButUserIsMissing(): void
     {
-        $securityLogger = new RecordingSecurityLogger();
-        $middleware = $this->middleware(user: null, securityLogger: $securityLogger);
+        $events = new RecordingPermissionEventBus();
+        $middleware = $this->middleware(user: null, events: $events);
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: Permission::ARTICLE_UPDATE),
@@ -50,15 +50,16 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 
         self::assertSame(302, $response->status);
         self::assertSame('/admin/login', $response->headers['Location'] ?? null);
-        self::assertCount(1, $securityLogger->events);
-        self::assertSame('cms.authorization.unauthenticated', $securityLogger->events[0]->eventType);
-        self::assertSame(Permission::ARTICLE_UPDATE, $securityLogger->events[0]->metadata['permission'] ?? null);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(SecurityLogEvent::class, $events->events[0]);
+        self::assertSame('cms.authorization.unauthenticated', $events->events[0]->eventType);
+        self::assertSame(Permission::ARTICLE_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testReturnsForbiddenWhenUserDoesNotHaveRequiredPermission(): void
     {
-        $securityLogger = new RecordingSecurityLogger();
-        $middleware = $this->middleware(user: $this->user(role: Role::WRITER), securityLogger: $securityLogger);
+        $events = new RecordingPermissionEventBus();
+        $middleware = $this->middleware(user: $this->user(role: Role::WRITER), events: $events);
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: Permission::SETTING_UPDATE),
@@ -67,12 +68,13 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 
         self::assertSame(403, $response->status);
         self::assertSame('Forbidden', $response->body);
-        self::assertCount(1, $securityLogger->events);
-        self::assertSame('cms.authorization.denied', $securityLogger->events[0]->eventType);
-        self::assertSame('failure', $securityLogger->events[0]->result);
-        self::assertSame('1', $securityLogger->events[0]->actorUserId);
-        self::assertSame(Role::WRITER, $securityLogger->events[0]->actorRole);
-        self::assertSame(Permission::SETTING_UPDATE, $securityLogger->events[0]->metadata['permission'] ?? null);
+        self::assertCount(1, $events->events);
+        self::assertInstanceOf(SecurityLogEvent::class, $events->events[0]);
+        self::assertSame('cms.authorization.denied', $events->events[0]->eventType);
+        self::assertSame('failure', $events->events[0]->result);
+        self::assertSame('1', $events->events[0]->actorUserId);
+        self::assertSame(Role::WRITER, $events->events[0]->actorRole);
+        self::assertSame(Permission::SETTING_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testAllowsUserWithRequiredPermission(): void
@@ -88,7 +90,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         self::assertSame('ok', $response->body);
     }
 
-    private function middleware(?CurrentCmsUser $user, ?RecordingSecurityLogger $securityLogger = null): RequireCmsPermissionMiddleware
+    private function middleware(?CurrentCmsUser $user, ?RecordingPermissionEventBus $events = null): RequireCmsPermissionMiddleware
     {
         $data = ['cms.user_id' => 1];
         $session = new Session(state: new SessionState(data: $data), runtime: new NativeSessionRuntime());
@@ -96,7 +98,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         return new RequireCmsPermissionMiddleware(
             guard: new CmsGuard(session: $session, users: new FixedPermissionCmsUserQuery(user: $user)),
             authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
-            securityLogger: $securityLogger ?? new RecordingSecurityLogger(),
+            events: $events ?? new RecordingPermissionEventBus(),
         );
     }
 
@@ -139,12 +141,12 @@ final readonly class FixedPermissionCmsUserQuery implements ICurrentCmsUserQuery
     }
 }
 
-final class RecordingSecurityLogger implements SecurityLoggerInterface
+final class RecordingPermissionEventBus implements EventBusInterface
 {
-    /** @var list<SecurityLogEvent> */
+    /** @var list<object> */
     public array $events = [];
 
-    public function record(SecurityLogEvent $event): void
+    public function dispatch(object $event): void
     {
         $this->events[] = $event;
     }

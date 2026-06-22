@@ -6,14 +6,18 @@ use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;
 use App\Framework\Security\Session;
+use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\ApplicationLog\Application\ApplicationLoggerInterface;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
 use App\Shared\Cache\Infrastructure\NullCache;
+use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Application\RecordSecurityLogEventHandler;
 use App\Shared\SecurityLog\Infrastructure\JsonFileSecurityLogger;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -75,6 +79,22 @@ return static function (Container $container, string $root): void {
     });
     $container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new JsonFileAuditLogger($root . '/storage/logs/audit.log'));
     $container->singleton(id: SecurityLoggerInterface::class, factory: fn (): SecurityLoggerInterface => new JsonFileSecurityLogger($root . '/storage/logs/security.log'));
+    $container->singleton(id: EventBusInterface::class, factory: function (Container $container): EventBusInterface {
+        $auditLogger = $container->get(id: AuditLoggerInterface::class);
+        if (!$auditLogger instanceof AuditLoggerInterface) {
+            throw new \RuntimeException('Audit logger service is not registered.');
+        }
+
+        $securityLogger = $container->get(id: SecurityLoggerInterface::class);
+        if (!$securityLogger instanceof SecurityLoggerInterface) {
+            throw new \RuntimeException('Security logger service is not registered.');
+        }
+
+        return new SynchronousEventBus(handlers: [
+            new RecordAuditEventHandler(logger: $auditLogger),
+            new RecordSecurityLogEventHandler(logger: $securityLogger),
+        ]);
+    });
     $container->singleton(id: CacheInterface::class, factory: static function () use ($envString, $root): CacheInterface {
         $driver = $envString('SHARED_CACHE_DRIVER', 'file');
         $driver = strtolower($driver);

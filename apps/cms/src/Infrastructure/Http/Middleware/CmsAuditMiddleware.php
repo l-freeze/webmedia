@@ -9,8 +9,8 @@ use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
-use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Domain\AuditEvent;
+use App\Shared\Event\Application\EventBusInterface;
 use Throwable;
 
 final readonly class CmsAuditMiddleware implements MiddlewareInterface
@@ -30,7 +30,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
     ];
 
     public function __construct(
-        private AuditLoggerInterface $auditLogger,
+        private EventBusInterface $events,
         private Session $session,
     ) {
     }
@@ -78,7 +78,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
     private function record(Request $request, string $result, int $statusCode): void
     {
-        $this->auditLogger->record(event: new AuditEvent(
+        $this->events->dispatch(event: new AuditEvent(
             action: 'cms.http_state_changed',
             resourceType: 'cms_request',
             result: $result,

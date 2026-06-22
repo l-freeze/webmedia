@@ -1,6 +1,6 @@
 # CmsAuditMiddleware
 
-`CmsAuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`AuditLoggerInterface` に渡します。
+`CmsAuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`EventBusInterface` に dispatch します。
 
 ## 対象
 
@@ -39,9 +39,9 @@ RequireCmsSessionMiddleware
 
 ## 例外方針
 
-`CmsAuditMiddleware` は AuditLogger の例外を握りつぶしません。
+`CmsAuditMiddleware` は EventBus / AuditLogger の例外を握りつぶしません。
 
-標準 shared container では `JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
+標準 shared container では `SynchronousEventBus` が `AuditEvent` を `RecordAuditEventHandler` に渡し、`JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
 
 実運用の AuditLogger 実装では、HTTP 監査ログの保存失敗だけで完了済み CMS 操作の response を壊さないことを標準にします。保存失敗は通常ログや通知経路へ記録します。
 

@@ -12,7 +12,7 @@ use App\Framework\Security\Csrf;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -22,10 +22,10 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
     {
         $sessionData = ['_csrf' => 'valid-token'];
         $session = new Session(state: new SessionState(data: $sessionData), runtime: new NativeSessionRuntime());
-        $securityLogger = new RecordingCsrfSecurityLogger();
+        $events = new RecordingCsrfEventBus();
         $middleware = new CmsCsrfSecurityMiddleware(
             csrf: new Csrf(session: $session),
-            securityLogger: $securityLogger,
+            events: $events,
         );
 
         $response = $middleware->process(
@@ -35,9 +35,10 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
 
         self::assertSame(422, $response->status);
         self::assertSame('Invalid CSRF token', $response->body);
-        self::assertCount(1, $securityLogger->events);
+        self::assertCount(1, $events->events);
 
-        $event = $securityLogger->events[0];
+        $event = $events->events[0];
+        self::assertInstanceOf(SecurityLogEvent::class, $event);
         self::assertSame('cms.csrf.denied', $event->eventType);
         self::assertSame('failure', $event->result);
         self::assertSame('127.0.0.1', $event->ipAddress);
@@ -52,10 +53,10 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
     {
         $sessionData = ['_csrf' => 'valid-token'];
         $session = new Session(state: new SessionState(data: $sessionData), runtime: new NativeSessionRuntime());
-        $securityLogger = new RecordingCsrfSecurityLogger();
+        $events = new RecordingCsrfEventBus();
         $middleware = new CmsCsrfSecurityMiddleware(
             csrf: new Csrf(session: $session),
-            securityLogger: $securityLogger,
+            events: $events,
         );
 
         $response = $middleware->process(
@@ -65,7 +66,7 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
 
         self::assertSame(200, $response->status);
         self::assertSame('ok', $response->body);
-        self::assertSame([], $securityLogger->events);
+        self::assertSame([], $events->events);
     }
 
     /**
@@ -92,12 +93,12 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
     }
 }
 
-final class RecordingCsrfSecurityLogger implements SecurityLoggerInterface
+final class RecordingCsrfEventBus implements EventBusInterface
 {
-    /** @var list<SecurityLogEvent> */
+    /** @var list<object> */
     public array $events = [];
 
-    public function record(SecurityLogEvent $event): void
+    public function dispatch(object $event): void
     {
         $this->events[] = $event;
     }
