@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Authorization;
 
-use App\Cms\Application\Auth\Authorization\AuthorizationException;
+use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
-use App\Cms\Application\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Permission;
-use App\Cms\Application\Auth\Authorization\Role;
+use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\Authorization\RoleHierarchy;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use PHPUnit\Framework\TestCase;
@@ -19,61 +19,61 @@ final class AuthorizationServiceTest extends TestCase
     {
         $permissions = new CodeDefinedRolePermissionQuery();
 
-        self::assertTrue($permissions->hasPermission(role: Role::ADMIN, permission: Permission::SETTING_UPDATE));
-        self::assertTrue($permissions->hasPermission(role: Role::EDITOR, permission: Permission::ARTICLE_DELETE));
-        self::assertTrue($permissions->hasPermission(role: Role::WRITER, permission: Permission::ARTICLE_UPDATE));
-        self::assertFalse($permissions->hasPermission(role: Role::WRITER, permission: Permission::ARTICLE_PUBLISH));
-        self::assertFalse($permissions->hasPermission(role: Role::VIEWER, permission: Permission::INQUIRY_READ));
-        self::assertFalse($permissions->hasPermission(role: 'unknown', permission: Permission::DASHBOARD_VIEW));
+        self::assertTrue($permissions->hasPermission(role: RoleCode::ADMIN, permission: PermissionCode::SETTING_UPDATE));
+        self::assertTrue($permissions->hasPermission(role: RoleCode::EDITOR, permission: PermissionCode::ARTICLE_DELETE));
+        self::assertTrue($permissions->hasPermission(role: RoleCode::WRITER, permission: PermissionCode::ARTICLE_UPDATE));
+        self::assertFalse($permissions->hasPermission(role: RoleCode::WRITER, permission: PermissionCode::ARTICLE_PUBLISH));
+        self::assertFalse($permissions->hasPermission(role: RoleCode::VIEWER, permission: PermissionCode::INQUIRY_READ));
+        self::assertFalse($permissions->hasPermission(role: 'unknown', permission: PermissionCode::DASHBOARD_VIEW));
     }
 
     public function testRoleHierarchyComparesRoleStrength(): void
     {
         $hierarchy = new RoleHierarchy();
 
-        self::assertTrue($hierarchy->isAtLeast(actualRole: Role::EDITOR, requiredRole: Role::WRITER));
-        self::assertTrue($hierarchy->isAtLeast(actualRole: Role::ADMIN, requiredRole: Role::EDITOR));
-        self::assertFalse($hierarchy->isAtLeast(actualRole: Role::WRITER, requiredRole: Role::EDITOR));
-        self::assertFalse($hierarchy->isAtLeast(actualRole: 'unknown', requiredRole: Role::VIEWER));
+        self::assertTrue($hierarchy->isAtLeast(actualRole: RoleCode::EDITOR, requiredRole: RoleCode::WRITER));
+        self::assertTrue($hierarchy->isAtLeast(actualRole: RoleCode::ADMIN, requiredRole: RoleCode::EDITOR));
+        self::assertFalse($hierarchy->isAtLeast(actualRole: RoleCode::WRITER, requiredRole: RoleCode::EDITOR));
+        self::assertFalse($hierarchy->isAtLeast(actualRole: 'unknown', requiredRole: RoleCode::VIEWER));
     }
 
     public function testAuthorizationServiceCanAndAuthorizeUseRolePermissions(): void
     {
         $service = new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery());
-        $editor = $this->user(role: Role::EDITOR);
-        $writer = $this->user(role: Role::WRITER);
+        $editor = $this->user(role: RoleCode::EDITOR);
+        $writer = $this->user(role: RoleCode::WRITER);
 
-        self::assertTrue($service->can(user: $editor, permission: Permission::ARTICLE_PUBLISH));
-        self::assertFalse($service->can(user: $writer, permission: Permission::ARTICLE_PUBLISH));
+        self::assertTrue($service->can(user: $editor, permission: PermissionCode::ARTICLE_PUBLISH));
+        self::assertFalse($service->can(user: $writer, permission: PermissionCode::ARTICLE_PUBLISH));
 
-        $service->authorize(user: $editor, permission: Permission::ARTICLE_PUBLISH);
+        $service->authorize(user: $editor, permission: PermissionCode::ARTICLE_PUBLISH);
 
         $this->expectException(AuthorizationException::class);
-        $service->authorize(user: $writer, permission: Permission::ARTICLE_PUBLISH);
+        $service->authorize(user: $writer, permission: PermissionCode::ARTICLE_PUBLISH);
     }
 
     public function testAuthorizationExceptionCarriesUserAndPermission(): void
     {
         $service = new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery());
-        $writer = $this->user(id: 42, role: Role::WRITER);
+        $writer = $this->user(id: 42, role: RoleCode::WRITER);
 
         try {
-            $service->authorize(user: $writer, permission: Permission::SETTING_UPDATE);
+            $service->authorize(user: $writer, permission: PermissionCode::SETTING_UPDATE);
             self::fail('AuthorizationException was not thrown.');
         } catch (AuthorizationException $exception) {
             self::assertSame(42, $exception->userId);
-            self::assertSame(Permission::SETTING_UPDATE, $exception->permission);
+            self::assertSame(PermissionCode::SETTING_UPDATE, $exception->permission);
         }
     }
 
     public function testPermissionNamesAreUnique(): void
     {
-        $permissions = Permission::all();
+        $permissions = PermissionCode::all();
 
         self::assertSame($permissions, array_values(array_unique($permissions)));
     }
 
-    private function user(int $id = 1, string $role = Role::ADMIN): CurrentCmsUser
+    private function user(int $id = 1, string $role = RoleCode::ADMIN): CurrentCmsUser
     {
         return new CurrentCmsUser(
             id: $id,

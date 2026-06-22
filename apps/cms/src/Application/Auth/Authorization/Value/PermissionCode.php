@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\Authorization;
+namespace App\Cms\Application\Auth\Authorization\Value;
 
-final class Permission
+final class PermissionCode
 {
     public const DASHBOARD_VIEW = 'dashboard.view';
     public const ARTICLE_LIST = 'article.list';

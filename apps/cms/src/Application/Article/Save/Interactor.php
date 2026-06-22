@@ -6,8 +6,8 @@ namespace App\Cms\Application\Article\Save;
 
 use App\Cms\Application\Article\Policy\ArticlePolicy;
 use App\Cms\Application\Article\Policy\Query\IArticlePolicyQuery;
-use App\Cms\Application\Auth\Authorization\AuthorizationException;
-use App\Cms\Application\Auth\Authorization\Permission;
+use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
@@ -61,17 +61,17 @@ final readonly class Interactor
     {
         if ($input->id === null) {
             if (!$this->articlePolicy->canCreate(user: $input->currentUser)) {
-                throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_CREATE);
+                throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_CREATE);
             }
         } else {
             $article = $this->articlePolicyQuery->findById(id: $input->id);
             if ($article === null || !$this->articlePolicy->canUpdate(user: $input->currentUser, article: $article)) {
-                throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_UPDATE);
+                throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_UPDATE);
             }
         }
 
         if ($status === 'published' && !$this->articlePolicy->canPublish(user: $input->currentUser)) {
-            throw new AuthorizationException(userId: $input->currentUser->id, permission: Permission::ARTICLE_PUBLISH);
+            throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_PUBLISH);
         }
     }
 }

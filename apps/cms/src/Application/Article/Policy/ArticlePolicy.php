@@ -6,8 +6,8 @@ namespace App\Cms\Application\Article\Policy;
 
 use App\Cms\Application\Article\Policy\Value\ArticlePolicyArticle;
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
-use App\Cms\Application\Auth\Authorization\Permission;
-use App\Cms\Application\Auth\Authorization\Role;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\Authorization\RoleHierarchy;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 
@@ -21,16 +21,16 @@ final readonly class ArticlePolicy
 
     public function canCreate(CurrentCmsUser $user): bool
     {
-        return $this->authorization->can(user: $user, permission: Permission::ARTICLE_CREATE);
+        return $this->authorization->can(user: $user, permission: PermissionCode::ARTICLE_CREATE);
     }
 
     public function canUpdate(CurrentCmsUser $user, ArticlePolicyArticle $article): bool
     {
-        if (!$this->authorization->can(user: $user, permission: Permission::ARTICLE_UPDATE)) {
+        if (!$this->authorization->can(user: $user, permission: PermissionCode::ARTICLE_UPDATE)) {
             return false;
         }
 
-        if ($this->roles->isAtLeast(actualRole: $user->role, requiredRole: Role::EDITOR)) {
+        if ($this->roles->isAtLeast(actualRole: $user->role, requiredRole: RoleCode::EDITOR)) {
             return true;
         }
 
@@ -39,16 +39,16 @@ final readonly class ArticlePolicy
 
     public function canPublish(CurrentCmsUser $user): bool
     {
-        return $this->authorization->can(user: $user, permission: Permission::ARTICLE_PUBLISH);
+        return $this->authorization->can(user: $user, permission: PermissionCode::ARTICLE_PUBLISH);
     }
 
     public function canDelete(CurrentCmsUser $user): bool
     {
-        return $this->authorization->can(user: $user, permission: Permission::ARTICLE_DELETE);
+        return $this->authorization->can(user: $user, permission: PermissionCode::ARTICLE_DELETE);
     }
 
     public function canRestore(CurrentCmsUser $user): bool
     {
-        return $this->authorization->can(user: $user, permission: Permission::ARTICLE_RESTORE);
+        return $this->authorization->can(user: $user, permission: PermissionCode::ARTICLE_RESTORE);
     }
 }

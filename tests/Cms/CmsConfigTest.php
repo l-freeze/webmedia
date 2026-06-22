@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Cms;
 
-use App\Cms\Application\Auth\Authorization\Permission;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
 use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
@@ -35,10 +35,10 @@ final class CmsConfigTest extends TestCase
         self::assertIsArray($routes);
 
         /** @var array<int, array{0:string,1:string,2:mixed,3?:array<string, mixed>}> $routes */
-        self::assertSame(Permission::ARTICLE_CREATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles'));
-        self::assertSame(Permission::ARTICLE_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}'));
-        self::assertSame(Permission::ARTICLE_DELETE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}/delete'));
-        self::assertSame(Permission::SETTING_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/settings'));
+        self::assertSame(PermissionCode::ARTICLE_CREATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles'));
+        self::assertSame(PermissionCode::ARTICLE_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}'));
+        self::assertSame(PermissionCode::ARTICLE_DELETE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}/delete'));
+        self::assertSame(PermissionCode::SETTING_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/settings'));
     }
 
     public function testCmsStateChangingRoutesDeclareRequiredPermissionMetadataExceptAuthSecurityRoutes(): void

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Cms\Http\Middleware;
 
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
-use App\Cms\Application\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Permission;
-use App\Cms\Application\Auth\Authorization\Role;
+use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
@@ -27,7 +27,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 {
     public function testAllowsRequestWithoutPermissionMetadata(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: Role::VIEWER));
+        $middleware = $this->middleware(user: $this->user(role: RoleCode::VIEWER));
 
         $response = $middleware->process(
             request: new Request(method: 'GET', path: '/admin/articles', query: [], body: [], server: []),
@@ -44,7 +44,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         $middleware = $this->middleware(user: null, events: $events);
 
         $response = $middleware->process(
-            request: $this->requestWithPermission(permission: Permission::ARTICLE_UPDATE),
+            request: $this->requestWithPermission(permission: PermissionCode::ARTICLE_UPDATE),
             handler: $this->okHandler(),
         );
 
@@ -53,16 +53,16 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         self::assertCount(1, $events->events);
         self::assertInstanceOf(SecurityLogEvent::class, $events->events[0]);
         self::assertSame('cms.authorization.unauthenticated', $events->events[0]->eventType);
-        self::assertSame(Permission::ARTICLE_UPDATE, $events->events[0]->metadata['permission'] ?? null);
+        self::assertSame(PermissionCode::ARTICLE_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testReturnsForbiddenWhenUserDoesNotHaveRequiredPermission(): void
     {
         $events = new RecordingPermissionEventBus();
-        $middleware = $this->middleware(user: $this->user(role: Role::WRITER), events: $events);
+        $middleware = $this->middleware(user: $this->user(role: RoleCode::WRITER), events: $events);
 
         $response = $middleware->process(
-            request: $this->requestWithPermission(permission: Permission::SETTING_UPDATE),
+            request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
             handler: $this->okHandler(),
         );
 
@@ -73,16 +73,16 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         self::assertSame('cms.authorization.denied', $events->events[0]->eventType);
         self::assertSame('failure', $events->events[0]->result);
         self::assertSame('1', $events->events[0]->actorUserId);
-        self::assertSame(Role::WRITER, $events->events[0]->actorRole);
-        self::assertSame(Permission::SETTING_UPDATE, $events->events[0]->metadata['permission'] ?? null);
+        self::assertSame(RoleCode::WRITER, $events->events[0]->actorRole);
+        self::assertSame(PermissionCode::SETTING_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testAllowsUserWithRequiredPermission(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: Role::ADMIN));
+        $middleware = $this->middleware(user: $this->user(role: RoleCode::ADMIN));
 
         $response = $middleware->process(
-            request: $this->requestWithPermission(permission: Permission::SETTING_UPDATE),
+            request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
             handler: $this->okHandler(),
         );
 

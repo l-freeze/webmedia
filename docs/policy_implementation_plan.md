@@ -6,7 +6,7 @@ Guard が入ったことで、CMS の認可を次の段階へ進められる状�
 
 Guard は「誰がログインしているか」を解決する。Policy は、その認証済みユーザーが「この対象に対して、この操作をしてよいか」を判定する。
 
-このため Policy は Guard の上に直接載せるのではなく、まず `Permission` / `Role` / `AuthorizationService` を最小実装し、その上で対象リソースの状態を見たい操作から追加する。
+このため Policy は Guard の上に直接載せるのではなく、まず `PermissionCode` / `RoleCode` / `AuthorizationService` を最小実装し、その上で対象リソースの状態を見たい操作から追加する。
 
 ## 現状
 
@@ -202,12 +202,14 @@ CMS 固有の認可なので `src/Framework` には置かない。
 ```text
 apps/cms/src/Application/Auth/Authorization/
   AuthorizationService.php
-  AuthorizationException.php
-  Permission.php
-  Role.php
   RoleHierarchy.php
-  CodeDefinedRolePermissionQuery.php
+  Exception/AuthorizationException.php
   Query/IRolePermissionQuery.php
+  Value/PermissionCode.php
+  Value/RoleCode.php
+
+apps/cms/src/Infrastructure/Auth/Authorization/
+  CodeDefinedRolePermissionQuery.php
 
 apps/cms/src/Application/Article/Policy/
   ArticlePolicy.php
@@ -223,7 +225,16 @@ apps/cms/src/Presentation/Http/Middleware/
 
 - middleware、Controller、UseCase の共通入口になる。
 - CMS の業務認可であり、Framework の責務ではない。
-- DB や HTTP に依存しないコード上 mapping から始められる。
+- DB や HTTP に依存しない認可入口として扱える。
+- role / permission の取得元は `IRolePermissionQuery` 越しに差し替える。
+
+`CodeDefinedRolePermissionQuery` は `Infrastructure/Auth/Authorization` に置く。
+
+理由:
+
+- `IRolePermissionQuery` の具象実装であり、Application port の外側にある。
+- 初期実装は DB を使わないが、role => permission mapping の取得元という意味では差し替え対象である。
+- 将来 DB 化する場合も `AuthorizationService` 側を変えずに `PdoRolePermissionQuery` などへ置き換えられる。
 
 Policy は対象の Application 配下に置く。
 
@@ -236,11 +247,11 @@ Policy は対象の Application 配下に置く。
 
 ### 1. Permission / Role mapping を追加する
 
-- `Permission` は string backed enum ではなく、まず定数クラスにする。
-- `Role` も string backed enum ではなく、まず定数クラスにする。
+- `PermissionCode` は string backed enum ではなく、まず定数クラスにする。
+- `RoleCode` も string backed enum ではなく、まず定数クラスにする。
 - PHP 8.5 前提でも、既存コードとの馴染みとテスト容易性を優先する。
 - `IRolePermissionQuery` は role が permission を持つかを問い合わせる Application 側の境界にする。
-- `CodeDefinedRolePermissionQuery` は `role => permission[]` の private mapping を持つ初期実装にする。
+- `CodeDefinedRolePermissionQuery` は `role => permission[]` の private mapping を持つ初期実装にし、`Infrastructure/Auth/Authorization` に置く。
 - `RoleHierarchy` は `viewer < writer < editor < admin` の強弱を持つ。
 - 未知 role は権限なしとして扱う。
 - `admin` の全許可は暗黙にせず、テストで見える形にする。

@@ -10,7 +10,7 @@ CMS permission middleware を有効にするには、次の3点を揃えます�
 2. `apps/cms/config/routes.php` の保護したい route に `requires_permission` metadata を設定する。
 3. `apps/cms/config/container.php` で Guard / Query / AuthorizationService の依存が解決できるようにする。
 
-`AuthorizationService` は `IRolePermissionQuery` に依存します。現状は `CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
+`AuthorizationService` は `IRolePermissionQuery` に依存します。現状は `Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
 
 ## 登録順
 
@@ -41,7 +41,7 @@ CMS の route entry は次の形式を基本にします。
 metadata は任意です。認可が必要な route には `requires_permission` を付けます。
 
 ```php
-use App\Cms\Application\Auth\Authorization\Permission;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
 use App\Cms\Presentation\Http\Controller\Article\Update\Controller as ArticleUpdateController;
 
 return [
@@ -49,7 +49,7 @@ return [
         'POST',
         '/admin/articles/{id:\d+}',
         ArticleUpdateController::class,
-        ['requires_permission' => Permission::ARTICLE_UPDATE],
+        ['requires_permission' => PermissionCode::ARTICLE_UPDATE],
     ],
 ];
 ```
@@ -87,5 +87,5 @@ return [
 
 - route に `requires_permission` が必要か。
 - 既存 Permission で表現できるか。
-- 新しい Permission を追加するなら `Permission`、`CodeDefinedRolePermissionQuery`、テストを同じ変更単位で更新したか。
+- 新しい Permission を追加するなら `PermissionCode`、`CodeDefinedRolePermissionQuery`、テストを同じ変更単位で更新したか。
 - route-level check だけで足りないリソース状態判定があるなら、UseCase / Policy へ追加したか。

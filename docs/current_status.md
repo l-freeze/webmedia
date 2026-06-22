@@ -2,9 +2,28 @@
 
 ## 更新日時
 
-- 2026-06-22
+- 2026-06-23
 
 ## 直近作業
+
+- CMS 認可まわりの Application / Infrastructure 境界を整理。
+  - `Permission` / `Role` は実体が定数コード一覧だったため、`PermissionCode` / `RoleCode` に改名し、`Application/Auth/Authorization/Value` へ移動。
+  - `AuthorizationException` は Application 例外として `Application/Auth/Authorization/Exception` へ移動。
+  - `CodeDefinedRolePermissionQuery` は `IRolePermissionQuery` の具象実装なので、`Application` 直下から `Infrastructure/Auth/Authorization` へ移動。
+  - `AuthorizationService` と `IRolePermissionQuery` は Application 側の認可入口 / port として維持。
+  - CMS route metadata、UseCase-level authorization、Controller の例外変換、middleware / policy テストの参照を新 namespace へ更新。
+  - `docs/policy_implementation_plan.md` と `RequireCmsPermissionMiddleware.README.md` の配置説明を更新。
+- apps/cms 配下の追加確認。
+  - `Application` から `Infrastructure` への依存は見つからなかった。
+  - `SlugValidator` は複数ユースケース横断の CMS 固有入力規則として `Application/Validation` にある。現時点では許容範囲だが、同種 validator が増える場合は責務別に整理する。
+  - `Auth/Login/Interactor` が `password_verify()` を直接呼んでいる。現状は小さいが、パスワード再ハッシュ、アルゴリズム差し替え、監査などが必要になったら password verifier port を切る候補。
+- 検証結果。
+  - `docker compose run --rm app sh -lc 'php -l apps/cms/src/Application/Auth/Authorization/AuthorizationService.php && php -l apps/cms/src/Application/Auth/Authorization/Exception/AuthorizationException.php && php -l apps/cms/src/Application/Auth/Authorization/Value/PermissionCode.php && php -l apps/cms/src/Application/Auth/Authorization/Value/RoleCode.php && php -l apps/cms/src/Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery.php && php -l apps/cms/config/container.php && php -l apps/cms/config/routes.php && ./vendor/bin/phpunit tests/Cms/Authorization/AuthorizationServiceTest.php tests/Cms/Authorization/ArticlePolicyTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/CmsConfigTest.php'`: 成功、16 tests / 103 assertions。
+  - `docker compose run --rm app composer test`: 成功、129 tests / 1167 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - `SlugValidator` と login password verification は、今すぐ分割するほどの重さはない。validator / password policy が増えた段階で、それぞれ `Application/Validation` の責務整理、または password verifier port の導入を検討する。
 
 - middleware が route variables を読んで resource-level 判定へ踏み込まないルールを明文化。
   - `docs/webmedia_architecture_rules.md` に「Middleware で扱ってよいこと、扱ってはいけないこと」を追加。

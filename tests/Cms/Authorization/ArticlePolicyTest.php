@@ -7,8 +7,8 @@ namespace Tests\Cms\Authorization;
 use App\Cms\Application\Article\Policy\ArticlePolicy;
 use App\Cms\Application\Article\Policy\Value\ArticlePolicyArticle;
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
-use App\Cms\Application\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Role;
+use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
+use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\Authorization\RoleHierarchy;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +18,7 @@ final class ArticlePolicyTest extends TestCase
     public function testWriterCanUpdateOwnArticleOnly(): void
     {
         $policy = $this->policy();
-        $writer = $this->user(id: 10, role: Role::WRITER);
+        $writer = $this->user(id: 10, role: RoleCode::WRITER);
 
         self::assertTrue($policy->canUpdate(
             user: $writer,
@@ -39,14 +39,14 @@ final class ArticlePolicyTest extends TestCase
         $policy = $this->policy();
         $article = new ArticlePolicyArticle(id: 1, status: 'draft', authorId: 10);
 
-        self::assertTrue($policy->canUpdate(user: $this->user(id: 20, role: Role::EDITOR), article: $article));
-        self::assertTrue($policy->canUpdate(user: $this->user(id: 30, role: Role::ADMIN), article: $article));
+        self::assertTrue($policy->canUpdate(user: $this->user(id: 20, role: RoleCode::EDITOR), article: $article));
+        self::assertTrue($policy->canUpdate(user: $this->user(id: 30, role: RoleCode::ADMIN), article: $article));
     }
 
     public function testViewerCannotUpdateArticle(): void
     {
         self::assertFalse($this->policy()->canUpdate(
-            user: $this->user(id: 10, role: Role::VIEWER),
+            user: $this->user(id: 10, role: RoleCode::VIEWER),
             article: new ArticlePolicyArticle(id: 1, status: 'draft', authorId: 10),
         ));
     }
@@ -55,11 +55,11 @@ final class ArticlePolicyTest extends TestCase
     {
         $policy = $this->policy();
 
-        self::assertFalse($policy->canPublish(user: $this->user(role: Role::WRITER)));
-        self::assertTrue($policy->canPublish(user: $this->user(role: Role::EDITOR)));
-        self::assertFalse($policy->canDelete(user: $this->user(role: Role::WRITER)));
-        self::assertTrue($policy->canDelete(user: $this->user(role: Role::EDITOR)));
-        self::assertTrue($policy->canRestore(user: $this->user(role: Role::EDITOR)));
+        self::assertFalse($policy->canPublish(user: $this->user(role: RoleCode::WRITER)));
+        self::assertTrue($policy->canPublish(user: $this->user(role: RoleCode::EDITOR)));
+        self::assertFalse($policy->canDelete(user: $this->user(role: RoleCode::WRITER)));
+        self::assertTrue($policy->canDelete(user: $this->user(role: RoleCode::EDITOR)));
+        self::assertTrue($policy->canRestore(user: $this->user(role: RoleCode::EDITOR)));
     }
 
     private function policy(): ArticlePolicy
@@ -70,7 +70,7 @@ final class ArticlePolicyTest extends TestCase
         );
     }
 
-    private function user(int $id = 1, string $role = Role::ADMIN): CurrentCmsUser
+    private function user(int $id = 1, string $role = RoleCode::ADMIN): CurrentCmsUser
     {
         return new CurrentCmsUser(id: $id, email: 'user@example.test', name: 'CMS User', role: $role);
     }

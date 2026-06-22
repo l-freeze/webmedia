@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Auth\Authorization;
 
+use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
 use App\Cms\Application\Auth\Authorization\Query\IRolePermissionQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 

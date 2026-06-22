@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\Update;
 
 use App\Cms\Application\Article\Save\Input;
 use App\Cms\Application\Article\Save\Interactor;
-use App\Cms\Application\Auth\Authorization\AuthorizationException;
+use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;

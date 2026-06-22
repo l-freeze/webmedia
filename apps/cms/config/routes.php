@@ -36,7 +36,7 @@ use App\Cms\Presentation\Http\Controller\Tag\List\Controller as TagListControlle
 use App\Cms\Presentation\Http\Controller\Tag\Store\Controller as TagStoreController;
 use App\Cms\Presentation\Http\Controller\Tag\Update\Controller as TagUpdateController;
 use App\Cms\Presentation\Http\Controller\Trash\List\Controller as TrashListController;
-use App\Cms\Application\Auth\Authorization\Permission;
+use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
 
 /**
  * CMS route definitions.
@@ -62,32 +62,32 @@ $routes = [
     ['GET', '/admin/articles', ArticleListController::class],
     ['GET', '/admin/articles/create', ArticleCreateController::class],
     ['GET', '/admin/articles/{id:\d+}', ArticleEditController::class],
-    ['POST', '/admin/articles', ArticleStoreController::class, ['requires_permission' => Permission::ARTICLE_CREATE]],
-    ['POST', '/admin/articles/{id:\d+}', ArticleUpdateController::class, ['requires_permission' => Permission::ARTICLE_UPDATE]],
-    ['POST', '/admin/articles/{id:\d+}/delete', ArticleDeleteController::class, ['requires_permission' => Permission::ARTICLE_DELETE]],
+    ['POST', '/admin/articles', ArticleStoreController::class, ['requires_permission' => PermissionCode::ARTICLE_CREATE]],
+    ['POST', '/admin/articles/{id:\d+}', ArticleUpdateController::class, ['requires_permission' => PermissionCode::ARTICLE_UPDATE]],
+    ['POST', '/admin/articles/{id:\d+}/delete', ArticleDeleteController::class, ['requires_permission' => PermissionCode::ARTICLE_DELETE]],
     ['GET', '/admin/articles/{id:\d+}/preview', ArticlePreviewController::class],
     ['GET', '/admin/articles/{id:\d+}/history', ArticleHistoryController::class],
     ['GET', '/admin/articles/{id:\d+}/history/{version:\d+}/preview', ArticleVersionPreviewController::class],
-    ['POST', '/admin/articles/{id:\d+}/restore/{version:\d+}', ArticleRestoreController::class, ['requires_permission' => Permission::ARTICLE_RESTORE]],
+    ['POST', '/admin/articles/{id:\d+}/restore/{version:\d+}', ArticleRestoreController::class, ['requires_permission' => PermissionCode::ARTICLE_RESTORE]],
     ['GET', '/admin/pages', PageListController::class],
     ['GET', '/admin/pages/create', PageCreateController::class],
     ['GET', '/admin/pages/{id:\d+}', PageEditController::class],
-    ['POST', '/admin/pages', PageStoreController::class, ['requires_permission' => Permission::PAGE_CREATE]],
-    ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class, ['requires_permission' => Permission::PAGE_UPDATE]],
+    ['POST', '/admin/pages', PageStoreController::class, ['requires_permission' => PermissionCode::PAGE_CREATE]],
+    ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class, ['requires_permission' => PermissionCode::PAGE_UPDATE]],
     ['GET', '/admin/categories', CategoryListController::class],
-    ['POST', '/admin/categories', CategoryStoreController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
-    ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
-    ['POST', '/admin/categories/{id:\d+}/delete', CategoryDeleteController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories', CategoryStoreController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories/{id:\d+}/delete', CategoryDeleteController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
     ['GET', '/admin/tags', TagListController::class],
-    ['POST', '/admin/tags', TagStoreController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
-    ['POST', '/admin/tags/{id:\d+}', TagUpdateController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
-    ['POST', '/admin/tags/{id:\d+}/delete', TagDeleteController::class, ['requires_permission' => Permission::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags', TagStoreController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags/{id:\d+}', TagUpdateController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags/{id:\d+}/delete', TagDeleteController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
     ['GET', '/admin/media', MediaListController::class],
-    ['POST', '/admin/media', MediaStoreController::class, ['requires_permission' => Permission::MEDIA_UPLOAD]],
-    ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => Permission::MEDIA_DELETE]],
+    ['POST', '/admin/media', MediaStoreController::class, ['requires_permission' => PermissionCode::MEDIA_UPLOAD]],
+    ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => PermissionCode::MEDIA_DELETE]],
     ['GET', '/admin/inquiries', InquiryListController::class],
     ['GET', '/admin/settings', SettingEditController::class],
-    ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => Permission::SETTING_UPDATE]],
+    ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],
     ['GET', '/admin/trash', TrashListController::class],
 ];
 

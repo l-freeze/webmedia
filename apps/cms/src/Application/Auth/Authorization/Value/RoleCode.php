@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\Authorization;
+namespace App\Cms\Application\Auth\Authorization\Value;
 
-final class Role
+final class RoleCode
 {
     public const VIEWER = 'viewer';
     public const WRITER = 'writer';

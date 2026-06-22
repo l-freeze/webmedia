@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\Authorization;
+namespace App\Cms\Application\Auth\Authorization\Exception;
 
 use RuntimeException;
 
