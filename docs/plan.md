@@ -103,7 +103,7 @@ Policy 実装の詳細計画は `docs/policy_implementation_plan.md` を参照�
 9. 認可拒否と重要操作の Audit を追加する。
    - 既存の `CmsAuditMiddleware` は HTTP envelope の証跡として維持する。
    - `authorization.denied`、`article.updated`、`media.deleted` などの業務イベントは UseCase / Controller から Business Audit として明示記録する。
-   - 実保存が必要な段階で `AuditLoggerInterface` を `PdoAuditLogger` などへ差し替える。
+   - 現在の標準実装は `JsonFileAuditLogger` で `storage/logs/audit.log` へ保存する。DB 保存が必要な段階で `AuditLoggerInterface` を `PdoAuditLogger` などへ差し替える。
 10. Security / auth log を必要に応じて追加する。
     - ログイン成功、ログイン失敗、ロックアウト、CSRF 失敗、認可拒否などは audit log と分けて扱う。
     - HTTP access log も別概念として扱い、全 request を Audit に入れない。
@@ -137,14 +137,14 @@ Policy 実装の詳細計画は `docs/policy_implementation_plan.md` を参照�
 
 方針:
 
-- `PlaceholderAuditLogger` は意図的な初期実装として維持する。
+- `PlaceholderAuditLogger` は scaffold やテストで未設定検知したい場合の実装として維持する。
 - 初期実装で追加する middleware は `CmsAuditMiddleware` ひとつにする。
 - HTTP access log、auth/security log、audit log は目的が異なるため概念として分ける。
 - GET と CMS ログインは初期 Audit 対象外にする。
 - CMS の状態変更 request は allowlist ではなく denylist 方式で広く監査対象にする。
 - CMS の状態変更 request を middleware で記録し、before / after などの業務詳細が必要な操作は UseCase / Controller から Business Audit として明示的に記録する。
-- Audit の実保存が必要なアプリケーションだけ `PdoAuditLogger` などへ bind を差し替える。
-- 現在の CMS middleware config では `RequireCmsSessionMiddleware` の後に `CmsAuditMiddleware` を登録済み。`PlaceholderAuditLogger` のまま監査対象 request を実行すると、設計どおり例外で設定漏れを検知する。
+- 標準 shared container は `AuditLoggerInterface` に `JsonFileAuditLogger` を登録し、`storage/logs/audit.log` へ保存する。DB 保存が必要なアプリケーションだけ `PdoAuditLogger` などへ bind を差し替える。
+- 現在の CMS middleware config では `RequireCmsSessionMiddleware` の後に `CmsAuditMiddleware` を登録済み。
 
 ### 完了: scaffold-app template 整備
 

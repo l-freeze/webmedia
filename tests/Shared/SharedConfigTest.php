@@ -7,11 +7,14 @@ namespace Tests\Shared;
 use App\Framework\Container\Container;
 use App\Framework\Security\CsrfMiddleware;
 use App\Shared\Audit\Application\AuditLoggerInterface;
-use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
+use App\Shared\ApplicationLog\Application\ApplicationLoggerInterface;
+use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
+use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
-use App\Shared\Logging\Infrastructure\JsonFileLogger;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
+use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Infrastructure\JsonFileSecurityLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -28,8 +31,10 @@ final class SharedConfigTest extends TestCase
         $sharedContainer($container, $root);
 
         self::assertInstanceOf(Markdown::class, $container->get(id: Markdown::class));
-        self::assertInstanceOf(JsonFileLogger::class, $container->get(id: LoggerInterface::class));
-        self::assertInstanceOf(PlaceholderAuditLogger::class, $container->get(id: AuditLoggerInterface::class));
+        self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: ApplicationLoggerInterface::class));
+        self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: LoggerInterface::class));
+        self::assertInstanceOf(JsonFileAuditLogger::class, $container->get(id: AuditLoggerInterface::class));
+        self::assertInstanceOf(JsonFileSecurityLogger::class, $container->get(id: SecurityLoggerInterface::class));
         self::assertInstanceOf(FileSimpleCache::class, $container->get(id: CacheInterface::class));
     }
 

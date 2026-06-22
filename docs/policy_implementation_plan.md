@@ -206,7 +206,8 @@ apps/cms/src/Application/Auth/Authorization/
   Permission.php
   Role.php
   RoleHierarchy.php
-  RolePermissions.php
+  CodeDefinedRolePermissionQuery.php
+  Query/IRolePermissionQuery.php
 
 apps/cms/src/Application/Article/Policy/
   ArticlePolicy.php
@@ -238,7 +239,8 @@ Policy は対象の Application 配下に置く。
 - `Permission` は string backed enum ではなく、まず定数クラスにする。
 - `Role` も string backed enum ではなく、まず定数クラスにする。
 - PHP 8.5 前提でも、既存コードとの馴染みとテスト容易性を優先する。
-- `RolePermissions` は `role => permission[]` の private mapping を持つ。
+- `IRolePermissionQuery` は role が permission を持つかを問い合わせる Application 側の境界にする。
+- `CodeDefinedRolePermissionQuery` は `role => permission[]` の private mapping を持つ初期実装にする。
 - `RoleHierarchy` は `viewer < writer < editor < admin` の強弱を持つ。
 - 未知 role は権限なしとして扱う。
 - `admin` の全許可は暗黙にせず、テストで見える形にする。

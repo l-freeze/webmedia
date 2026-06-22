@@ -11,6 +11,8 @@ use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
 use App\Framework\View\TemplateRenderer;
+use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class Controller
 {
@@ -19,6 +21,7 @@ final readonly class Controller
         private Csrf $csrf,
         private Session $session,
         private Interactor $login,
+        private SecurityLoggerInterface $securityLogger,
     ) {
     }
 
@@ -30,14 +33,45 @@ final readonly class Controller
             password: $request->input(key: 'password'),
         ));
         if (!$output->authenticated) {
+            $this->securityLogger->record(event: $this->securityEvent(request: $request, result: 'failure'));
+
             return $this->form(error: 'メールアドレスまたはパスワードが違います。');
         }
 
         $this->session->regenerate();
         $this->session->set(key: 'cms.user_id', value: $output->userId);
         $this->session->set(key: 'cms.role', value: $output->role);
+        $this->securityLogger->record(event: $this->securityEvent(
+            request: $request,
+            result: 'success',
+            actorUserId: $output->userId === null ? null : (string) $output->userId,
+            actorRole: $output->role,
+        ));
 
         return Response::redirect(location: '/admin');
+    }
+
+    private function securityEvent(
+        Request $request,
+        string $result,
+        ?string $actorUserId = null,
+        ?string $actorRole = null,
+    ): SecurityLogEvent {
+        return new SecurityLogEvent(
+            eventType: 'cms.login',
+            result: $result,
+            actorUserId: $actorUserId,
+            actorRole: $actorRole,
+            ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR'),
+            userAgent: $this->serverString(request: $request, key: 'HTTP_USER_AGENT'),
+        );
+    }
+
+    private function serverString(Request $request, string $key): ?string
+    {
+        $value = $request->server[$key] ?? null;
+
+        return is_scalar($value) ? (string) $value : null;
     }
 
     private function form(string $error): Response

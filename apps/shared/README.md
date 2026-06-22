@@ -10,12 +10,14 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 
 ```text
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
+apps/shared/src/ApplicationLog/Application/ApplicationLoggerInterface.php
 apps/shared/src/Audit/Application/AuditLoggerInterface.php
 apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Database/PdoHelper.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
+apps/shared/src/SecurityLog/Application/SecurityLoggerInterface.php
 apps/shared/src/Validation/FormValidator.php
 apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php
 ```
@@ -92,6 +94,16 @@ FRONT_CORS_MAX_AGE=600
 ```
 
 許可 origin が空の場合、CORS header は付与しません。
+
+### Logs
+
+`ApplicationLog`、`Audit`、`SecurityLog` は目的を分けます。
+
+- `ApplicationLog` は障害調査や運用状態の確認に使う通常ログです。`Psr\Log\LoggerInterface` も同じ application logger を指します。
+- `Audit` は業務証跡です。CMS の状態変更 request や重要 UseCase の業務イベントを `AuditEvent` として記録します。
+- `SecurityLog` はログイン成功/失敗、認可拒否、CSRF 失敗などの security / auth event を記録します。
+
+標準保存先は `storage/logs/application.log`、`storage/logs/audit.log`、`storage/logs/security.log` です。
 
 ### PSR-16 cache
 

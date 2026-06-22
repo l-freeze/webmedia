@@ -10,7 +10,7 @@ CMS permission middleware を有効にするには、次の3点を揃えます�
 2. `apps/cms/config/routes.php` の保護したい route に `requires_permission` metadata を設定する。
 3. `apps/cms/config/container.php` で Guard / Query / AuthorizationService の依存が解決できるようにする。
 
-`AuthorizationService`、`RolePermissions`、`RoleHierarchy` は引数なしまたは自動解決できる依存だけを持つため、現状は明示 binding なしで Container から解決できます。
+`AuthorizationService` は `IRolePermissionQuery` に依存します。現状は `CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
 
 ## 登録順
 
@@ -84,5 +84,5 @@ return [
 
 - route に `requires_permission` が必要か。
 - 既存 Permission で表現できるか。
-- 新しい Permission を追加するなら `Permission`、`RolePermissions`、テストを同じ変更単位で更新したか。
+- 新しい Permission を追加するなら `Permission`、`CodeDefinedRolePermissionQuery`、テストを同じ変更単位で更新したか。
 - route-level check だけで足りないリソース状態判定があるなら、UseCase / Policy へ追加したか。

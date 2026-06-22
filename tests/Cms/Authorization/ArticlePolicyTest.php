@@ -7,9 +7,9 @@ namespace Tests\Cms\Authorization;
 use App\Cms\Application\Article\Policy\ArticlePolicy;
 use App\Cms\Application\Article\Policy\Value\ArticlePolicyArticle;
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
+use App\Cms\Application\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Application\Auth\Authorization\Role;
 use App\Cms\Application\Auth\Authorization\RoleHierarchy;
-use App\Cms\Application\Auth\Authorization\RolePermissions;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use PHPUnit\Framework\TestCase;
 
@@ -65,7 +65,7 @@ final class ArticlePolicyTest extends TestCase
     private function policy(): ArticlePolicy
     {
         return new ArticlePolicy(
-            authorization: new AuthorizationService(rolePermissions: new RolePermissions()),
+            authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
             roles: new RoleHierarchy(),
         );
     }

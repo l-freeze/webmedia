@@ -116,8 +116,8 @@ Worker mode の恩恵はプロセス起動コストの排除で十分に得ら�
 - `LoggerInterface` の実装追加は実施済み。
   - `apps/shared/src/Logging/Infrastructure/JsonFileLogger.php` が追加され、`apps/shared/config/container.php` で `Psr\Log\LoggerInterface` に登録済み。
   - 今後は「実装追加」ではなく「request id 付与」「例外ログ連携」「用途別 channel 相当の整理」を対象にするのがよい。
-- `AuditLoggerInterface` の実装追加は一部実施済み。
-  - `apps/shared/src/Audit/Application/AuditLoggerInterface.php` と `PlaceholderAuditLogger` は存在する。
+- `AuditLoggerInterface` のファイル実装は実施済み。
+  - `apps/shared/src/Audit/Application/AuditLoggerInterface.php`、`JsonFileAuditLogger`、未設定検知用の `PlaceholderAuditLogger` は存在する。
   - ただし placeholder は呼び出されると例外を投げるため、実運用上は未完成。チェックリスト上は「本実装追加」または「CMS 重要操作への接続」に書き換えるのが適切。
 - 例外を HTTP response に変換する error handler の差し込み口は実施済み。
   - `ExceptionHandlerInterface`、`RethrowingExceptionHandler`、`PlainTextExceptionHandler` が存在し、`Application` から利用されている。

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Auth\Authorization;
 
-final class RolePermissions
+use App\Cms\Application\Auth\Authorization\Query\IRolePermissionQuery;
+
+final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
 {
     /** @var array<string, list<string>> */
     private const PERMISSIONS = [
@@ -69,11 +71,9 @@ final class RolePermissions
         ],
     ];
 
-    public function roleHasPermission(string $role, string $permission): bool
+    public function hasPermission(string $role, string $permission): bool
     {
-        $permissions = self::PERMISSIONS[$role] ?? [];
-
-        return in_array($permission, $permissions, true);
+        return in_array($permission, $this->permissionsForRole(role: $role), true);
     }
 
     /**

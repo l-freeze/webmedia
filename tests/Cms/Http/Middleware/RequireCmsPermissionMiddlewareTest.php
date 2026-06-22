@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Cms\Http\Middleware;
 
 use App\Cms\Application\Auth\Authorization\AuthorizationService;
+use App\Cms\Application\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Application\Auth\Authorization\Permission;
 use App\Cms\Application\Auth\Authorization\Role;
-use App\Cms\Application\Auth\Authorization\RolePermissions;
 use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Http\Middleware\RequireCmsPermissionMiddleware;
@@ -82,7 +82,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 
         return new RequireCmsPermissionMiddleware(
             guard: new CmsGuard(session: $session, users: new FixedPermissionCmsUserQuery(user: $user)),
-            authorization: new AuthorizationService(rolePermissions: new RolePermissions()),
+            authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
         );
     }
 

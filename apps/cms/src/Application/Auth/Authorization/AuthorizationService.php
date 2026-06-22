@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Auth\Authorization;
 
+use App\Cms\Application\Auth\Authorization\Query\IRolePermissionQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 
 final readonly class AuthorizationService
 {
     public function __construct(
-        private RolePermissions $rolePermissions,
+        private IRolePermissionQuery $rolePermissions,
     ) {
     }
 
     public function can(CurrentCmsUser $user, string $permission): bool
     {
-        return $this->rolePermissions->roleHasPermission(role: $user->role, permission: $permission);
+        return $this->rolePermissions->hasPermission(role: $user->role, permission: $permission);
     }
 
     public function authorize(CurrentCmsUser $user, string $permission): void

@@ -2,9 +2,31 @@
 
 ## 更新日時
 
-- 2026-06-21
+- 2026-06-22
 
 ## 直近作業
+
+- CMS Role / Permission の依存境界とログ三種分離を追加。
+  - `AuthorizationService` は具象 `RolePermissions` 依存をやめ、`IRolePermissionQuery` へ依存する形に変更。
+  - 初期実装として `CodeDefinedRolePermissionQuery` を追加し、現行の role => permission mapping はコード定義のまま維持。
+  - CMS container で `IRolePermissionQuery` から `CodeDefinedRolePermissionQuery` へ bind した。将来 DB 化する場合は `PdoRolePermissionQuery` などへ差し替える。
+  - `hasPermission()` を role permission 判定名に採用し、旧 `roleHasPermission()` は削除。
+  - ApplicationLog / Audit / SecurityLog を分離。
+  - `ApplicationLoggerInterface` / `JsonFileApplicationLogger` を追加し、PSR-3 `LoggerInterface` も application logger と同じ instance を使う。
+  - `JsonFileAuditLogger` を追加し、標準 shared container では `AuditLoggerInterface` を `storage/logs/audit.log` へ記録する実装にした。
+  - `SecurityLoggerInterface` / `SecurityLogEvent` / `JsonFileSecurityLogger` を追加し、`storage/logs/security.log` へ security / auth event を記録できるようにした。
+  - `JsonLineFileWriter` を追加し、JSON Lines 書き込み処理を ApplicationLog / Audit / SecurityLog で共通化。
+  - CMS login controller でログイン成功/失敗を `SecurityLogEvent(eventType: cms.login)` として記録するようにした。メールアドレスや password は記録しない。
+  - `PlaceholderAuditLogger` は未設定検知用として維持するが、webmedia の標準 shared container では `JsonFileAuditLogger` を使う方針へ docs を更新。
+- 検証結果。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/Authorization/AuthorizationServiceTest.php tests/Cms/Authorization/ArticlePolicyTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Shared/Logging/JsonFileLoggerTest.php tests/Shared/Logging/SeparatedLoggersTest.php tests/Shared/SharedConfigTest.php`: 成功、20 tests / 110 assertions。
+  - `docker compose run --rm app composer test`: 成功、122 tests / 1066 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - UI 表示制御 helper は `hasPermission` 系の分かりやすい名称で検討する。
+  - 認可拒否、CSRF 失敗、重要業務操作の Audit / SecurityLog 接続は後続で追加する。
+  - EventBus / PubSub はまだ導入していない。必要になったら同期 `ApplicationEventPublisher` の薄い contract から始め、後で非同期 EventBus へ置き換えられる境界にする。
 
 - CMS Policy の初期実装を追加。
   - `Permission` / `Role` / `RoleHierarchy` / `RolePermissions` / `AuthorizationService` / `AuthorizationException` を `apps/cms/src/Application/Auth/Authorization` に追加。

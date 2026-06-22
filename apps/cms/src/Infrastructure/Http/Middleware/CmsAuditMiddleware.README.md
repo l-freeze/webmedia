@@ -41,7 +41,7 @@ RequireCmsSessionMiddleware
 
 `CmsAuditMiddleware` は AuditLogger の例外を握りつぶしません。
 
-`PlaceholderAuditLogger` のまま監査対象 request を実行した場合に例外が見えることは、Audit 未設定を検知するための意図した挙動です。
+標準 shared container では `JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
 
 実運用の AuditLogger 実装では、HTTP 監査ログの保存失敗だけで完了済み CMS 操作の response を壊さないことを標準にします。保存失敗は通常ログや通知経路へ記録します。
 
@@ -53,4 +53,4 @@ middleware は request body 全体、password、CSRF token、cookie、session id
 
 IP address は `Request::$server['REMOTE_ADDR']` を基本にします。trusted proxy 設計を導入するまで、`X-Forwarded-For` などの forwarded header を無条件に信用してはいけません。
 
-永続化先、DB schema、`AuditEvent` から保存形式への mapping は AuditLogger 実装側の責務です。
+DB schema、`AuditEvent` から DB 保存形式への mapping は AuditLogger 実装側の責務です。DB 永続化が必要になったら `PdoAuditLogger` を追加し、`AuditLoggerInterface` の binding を差し替えます。

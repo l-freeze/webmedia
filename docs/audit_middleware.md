@@ -14,6 +14,7 @@ CMS の監査対象操作について、「誰が、いつ、何を行い、結�
 - `apps/cms` 固有の HTTP middleware は、現時点では `apps/cms/src/Infrastructure/Http/Middleware` に置く。
 - `App\Shared\Audit\Application\AuditLoggerInterface` は既に存在する。
 - `App\Shared\Audit\Domain\AuditEvent` は既に存在する。
+- `App\Shared\Audit\Infrastructure\JsonFileAuditLogger` は標準実装であり、`storage/logs/audit.log` へ 1 行 1 JSON で記録する。
 - `App\Shared\Audit\Infrastructure\PlaceholderAuditLogger` は意図的な実装であり、削除しない。
 
 ## PlaceholderAuditLogger の扱い
@@ -22,12 +23,13 @@ CMS の監査対象操作について、「誰が、いつ、何を行い、結�
 
 理由は、フレームワークとして新規アプリケーションを作成した直後は、監査ログの保存先がまだ決まっていない状態が自然だからである。その状態で Audit を使うコードを書いた場合、何も記録せずに処理が成功すると、監査ログ未設定に気付けない。
 
-そのため、初期状態では `AuditLoggerInterface` に `PlaceholderAuditLogger` を bind し、Audit を記録しようとした時点で例外を出す。
+そのため、未設定検知を明示したい scaffold やテストでは `AuditLoggerInterface` に `PlaceholderAuditLogger` を bind し、Audit を記録しようとした時点で例外を出す。現行 webmedia の shared container は、CMS をそのまま動作確認できるよう `JsonFileAuditLogger` を標準登録する。
 
 方針:
 
-- scaffold や初期 shared container では `PlaceholderAuditLogger` を使ってよい。
-- Audit を実際に使うアプリケーションは、明示的に `PdoAuditLogger` などの実装へ差し替える。
+- scaffold やテストで未設定検知を見せる場合は `PlaceholderAuditLogger` を使ってよい。
+- webmedia の標準 shared container では `JsonFileAuditLogger` を使う。
+- DB 保存が必要なアプリケーションは、明示的に `PdoAuditLogger` などの実装へ差し替える。
 - `NullAuditLogger` は標準実装にしない。監査対象操作を沈黙して捨てると設定漏れに気付けないためである。
 - 本番で監査ログが必須のアプリケーションでは、`PlaceholderAuditLogger` のまま起動しないように container test または bootstrap check を追加してよい。
 - `CmsAuditMiddleware` を有効化した状態で `PlaceholderAuditLogger` のまま監査対象 request を実行すると例外になる。これは設定漏れにすぐ気付くための意図した挙動であり、隠してはならない。
@@ -152,7 +154,7 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 
 `PdoAuditLogger` は shared に置く。理由は、AuditLogger の保存先実装は CMS 固有の画面・Controller 事情ではなく、`front` や将来 app でも使える共有のアプリケーション基盤だからである。
 
-ただし、scaffold 初期状態の `PlaceholderAuditLogger` は維持する。
+ただし、未設定検知用の `PlaceholderAuditLogger` は維持する。
 
 永続化先、DB schema、`AuditEvent` から保存形式への mapping は、AuditLogger 実装側の責務である。この文書では規約化しない。
 
@@ -188,7 +190,7 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 
 理由は、handler 実行後に記事更新などの業務処理が完了してから監査ログ保存に失敗した場合、「処理は完了したが画面上は失敗」という不整合が起きるためである。一般的な CMS の HTTP 監査では、AuditLogger 実装側が保存失敗を通常ログや別の通知経路へ記録し、`record()` からは例外を投げない設計にする。
 
-例外を投げる標準ケースは `PlaceholderAuditLogger` である。これは Audit 未設定を検知するための意図した挙動である。
+例外を投げる代表例は `PlaceholderAuditLogger` である。これは Audit 未設定を検知するための意図した挙動である。
 
 監査ログ保存を業務処理と同じ成否条件にしたい場合は、middleware の HTTP envelope audit ではなく、該当 UseCase / Controller の Business Audit と永続化処理を同じ transaction 境界で設計する。
 
@@ -474,16 +476,17 @@ DB 保存実装を追加する場合は、利用アプリケーションの保�
 
 監査ログを必須にするアプリケーションでは、container test を追加する。
 
-- 初期 scaffold または framework sample では `PlaceholderAuditLogger` でよい。
-- 実アプリで Audit を有効化する場合は `AuditLoggerInterface` が `PdoAuditLogger` などの実装へ差し替わっていることを検査する。
+- 未設定検知を見せる scaffold または framework sample では `PlaceholderAuditLogger` でよい。
+- webmedia の標準 shared container では `AuditLoggerInterface` が `JsonFileAuditLogger` に bind されていることを検査する。
+- DB 保存が必要な実アプリでは `AuditLoggerInterface` が `PdoAuditLogger` などの実装へ差し替わっていることを検査する。
 
 ## 実装順序
 
 1. `docs/audit_middleware.md` を確認する。
 2. `CmsAuditMiddlewareTest` を追加する。
 3. `CmsAuditMiddleware` を追加する。
-4. `PlaceholderAuditLogger` のまま対象 request を実行すると例外になることを単体テストで確認する。
-5. 実際に CMS で監査ログを有効化する場合は、対象アプリの container で `AuditLoggerInterface` を実装へ差し替える。
+4. `JsonFileAuditLogger` が `AuditEvent` を 1 行 1 JSON で記録することを単体テストで確認する。
+5. `PlaceholderAuditLogger` のまま対象 request を実行すると例外になることを単体テストで確認する。
 6. `apps/cms/config/middleware.php` に `CmsAuditMiddleware::class` を追加する。
 7. DB 保存が必要な場合だけ、利用アプリケーションの保存仕様に合わせて migration と AuditLogger 実装を追加する。
 8. 重要操作に Business Audit が必要な場合だけ、UseCase / Controller へ明示的に `AuditLoggerInterface` 呼び出しを追加する。
@@ -508,7 +511,7 @@ git diff --check
 - CMS 固有の middleware は `apps/cms/src/Infrastructure/Http/Middleware` に置くため、既存の middleware 配置ルールに合う。
 - `AuditLoggerInterface` は shared の差し込み点であり、複数 app から使える基盤機能として妥当である。
 - `PdoAuditLogger` は Infrastructure 実装として shared 配下に置くため、Application / Domain から Infrastructure へ依存しない。
-- `PlaceholderAuditLogger` を維持するため、フレームワーク初期状態で保存先を強制しない。
+- `PlaceholderAuditLogger` を維持しつつ、webmedia の標準 shared container では `JsonFileAuditLogger` を登録する。
 - `CmsAuditMiddleware` は `AuditLoggerInterface` に依存し、保存先の具象を知らない。
 - CMS の状態変更 request は denylist 方式で広く対象にするため、新規 CMS 操作の監査漏れを減らせる。
 - Business Audit が必要な場合も、UseCase / Controller から `AuditLoggerInterface` を呼ぶ形にし、HTTP path 解析で業務意味を推測しない。
