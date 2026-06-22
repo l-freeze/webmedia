@@ -41,6 +41,29 @@ final class CmsConfigTest extends TestCase
         self::assertSame(Permission::SETTING_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/settings'));
     }
 
+    public function testCmsStateChangingRoutesDeclareRequiredPermissionMetadataExceptAuthSecurityRoutes(): void
+    {
+        $routes = require dirname(__DIR__, 2) . '/apps/cms/config/routes.php';
+        self::assertIsArray($routes);
+
+        /** @var array<int, array{0:string,1:string,2:mixed,3?:array<string, mixed>}> $routes */
+        foreach ($routes as $route) {
+            [$method, $path] = $route;
+            if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+                continue;
+            }
+
+            if (in_array($path, ['/admin/login', '/admin/logout'], true)) {
+                continue;
+            }
+
+            $metadata = $route[3] ?? [];
+            self::assertArrayHasKey('requires_permission', $metadata, "{$method} {$path} must declare requires_permission.");
+            self::assertIsString($metadata['requires_permission']);
+            self::assertNotSame('', $metadata['requires_permission']);
+        }
+    }
+
     /**
      * @param array<int, array{0:string,1:string,2:mixed,3?:array<string, mixed>}> $routes
      */

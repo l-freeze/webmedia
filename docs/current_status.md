@@ -25,8 +25,25 @@
   - `git diff --check`: 成功。
 - 次回再開地点。
   - UI 表示制御 helper は `hasPermission` 系の分かりやすい名称で検討する。
-  - 認可拒否、CSRF 失敗、重要業務操作の Audit / SecurityLog 接続は後続で追加する。
+  - 重要業務操作の Business Audit 接続は後続で追加する。
   - EventBus / PubSub はまだ導入していない。必要になったら同期 `ApplicationEventPublisher` の薄い contract から始め、後で非同期 EventBus へ置き換えられる境界にする。
+
+- CMS の非 GET 系 request を Audit / SecurityLog に組み込み。
+  - 認証・認可を通過した CMS の `POST` / `PUT` / `PATCH` / `DELETE` は既存 `CmsAuditMiddleware` が `AuditEvent(action: cms.http_state_changed)` として記録する。
+  - `/admin/login` は既存どおり SecurityLog の `cms.login` として成功/失敗を記録する。
+  - `/admin/logout` を SecurityLog の `cms.logout` として記録するようにした。session destroy 前に `cms.user_id` / `cms.role` を取得する。
+  - `RequireCmsPermissionMiddleware` で未ログイン拒否を `cms.authorization.unauthenticated`、Permission 不足を `cms.authorization.denied` として SecurityLog に記録するようにした。
+  - CMS container で shared の `CsrfMiddleware::class` binding を `CmsCsrfSecurityMiddleware` に差し替え、CSRF 失敗を `cms.csrf.denied` として SecurityLog に記録するようにした。Framework 側の `CsrfMiddleware` には shared / CMS 固有依存を入れていない。
+  - CMS route 構成テストで、`/admin/login` / `/admin/logout` を除く非 GET route が `requires_permission` metadata を持つことをまとめて検査するようにした。
+  - テストはエンドポイントごとではなく、CSRF 拒否、認可拒否、logout、Audit middleware、route 構成の横断境界ごとに追加。
+- 検証結果。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/CmsConfigTest.php tests/Cms/Http/Middleware/CmsCsrfSecurityMiddlewareTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/Auth/LogoutControllerTest.php tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php`: 成功、20 tests / 149 assertions。
+  - `docker compose run --rm app composer test`: 成功、126 tests / 1162 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+- 次回再開地点。
+  - Business Audit を入れる場合は、全 endpoint ではなく、記事保存/削除/復元、メディア削除、設定更新などの UseCase 境界で代表イベントを publish / record する。
+  - EventBus 化する場合も、イベント発火点は自動では生えない。middleware で拾える横断 event は一度の組み込みで済むが、業務 event は UseCase ごとに「何が起きたか」を明示する必要がある。
 
 - CMS Policy の初期実装を追加。
   - `Permission` / `Role` / `RoleHierarchy` / `RolePermissions` / `AuthorizationService` / `AuthorizationException` を `apps/cms/src/Application/Auth/Authorization` に追加。

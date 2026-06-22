@@ -44,10 +44,13 @@ use App\Cms\Infrastructure\Persistence\PdoTagQuery;
 use App\Cms\Infrastructure\Persistence\PdoTagRepository;
 use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
+use App\Cms\Infrastructure\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
+use App\Framework\Security\CsrfMiddleware;
 use App\Framework\View\TemplateRenderer;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
+use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -85,6 +88,26 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
     allowCredentials: filter_var($envString('CMS_CORS_ALLOW_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOL),
     maxAge: (int) $envString('CMS_CORS_MAX_AGE', '600'),
 ));
+
+$container->singleton(id: CsrfMiddleware::class, factory: function (Container $container) use ($csv, $envString): CmsCsrfSecurityMiddleware {
+    $csrf = $container->get(id: Csrf::class);
+    if (!$csrf instanceof Csrf) {
+        throw new \RuntimeException('CSRF service is not registered.');
+    }
+    $securityLogger = $container->get(id: SecurityLoggerInterface::class);
+    if (!$securityLogger instanceof SecurityLoggerInterface) {
+        throw new \RuntimeException('Security logger service is not registered.');
+    }
+
+    $appEnv = strtolower($envString('APP_ENV', 'production'));
+
+    return new CmsCsrfSecurityMiddleware(
+        csrf: $csrf,
+        securityLogger: $securityLogger,
+        excludedPaths: $csv($envString('CSRF_EXCLUDED_PATHS')),
+        enabled: !in_array($appEnv, ['stg', 'staging', 'dev', 'develop', 'development', 'test'], true),
+    );
+});
 
 $container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
     $renderer = new LatteTemplateRenderer(

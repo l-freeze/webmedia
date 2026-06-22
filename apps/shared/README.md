@@ -103,6 +103,8 @@ FRONT_CORS_MAX_AGE=600
 - `Audit` は業務証跡です。CMS の状態変更 request や重要 UseCase の業務イベントを `AuditEvent` として記録します。
 - `SecurityLog` はログイン成功/失敗、認可拒否、CSRF 失敗などの security / auth event を記録します。
 
+CMS では、GET 以外の状態変更 request はまず横断的に記録対象にします。認証・認可を通過した状態変更は Audit、ログイン/ログアウトや認可拒否は SecurityLog に分けます。
+
 標準保存先は `storage/logs/application.log`、`storage/logs/audit.log`、`storage/logs/security.log` です。
 
 ### PSR-16 cache

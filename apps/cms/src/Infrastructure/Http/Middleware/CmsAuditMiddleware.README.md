@@ -35,7 +35,7 @@ RequireCmsSessionMiddleware
   -> Controller
 ```
 
-`CmsAuditMiddleware` は認証・認可を通過した CMS 状態変更 request の HTTP envelope を記録します。
+`CmsAuditMiddleware` は認証・認可を通過した CMS 状態変更 request の HTTP envelope を記録します。認証・認可で拒否された request はこの middleware に到達しないため、`RequireCmsPermissionMiddleware` が SecurityLog として記録します。
 
 ## 例外方針
 

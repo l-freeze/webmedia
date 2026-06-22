@@ -11,12 +11,15 @@ use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Routing\Router;
+use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private CmsGuard $guard,
         private AuthorizationService $authorization,
+        private SecurityLoggerInterface $securityLogger,
     ) {
     }
 
@@ -29,10 +32,26 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
 
         $user = $this->guard->currentUser();
         if ($user === null) {
+            $this->securityLogger->record(event: $this->securityEvent(
+                request: $request,
+                eventType: 'cms.authorization.unauthenticated',
+                result: 'failure',
+                permission: $permission,
+            ));
+
             return Response::redirect(location: '/admin/login');
         }
 
         if (!$this->authorization->can(user: $user, permission: $permission)) {
+            $this->securityLogger->record(event: $this->securityEvent(
+                request: $request,
+                eventType: 'cms.authorization.denied',
+                result: 'failure',
+                permission: $permission,
+                actorUserId: (string) $user->id,
+                actorRole: $user->role,
+            ));
+
             return new Response(body: 'Forbidden', status: 403);
         }
 
@@ -49,5 +68,36 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
         $permission = $metadata['requires_permission'] ?? null;
 
         return is_string($permission) && $permission !== '' ? $permission : null;
+    }
+
+    private function securityEvent(
+        Request $request,
+        string $eventType,
+        string $result,
+        string $permission,
+        ?string $actorUserId = null,
+        ?string $actorRole = null,
+    ): SecurityLogEvent {
+        return new SecurityLogEvent(
+            eventType: $eventType,
+            result: $result,
+            actorUserId: $actorUserId,
+            actorRole: $actorRole,
+            ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR'),
+            userAgent: $this->serverString(request: $request, key: 'HTTP_USER_AGENT'),
+            requestId: $this->serverString(request: $request, key: 'HTTP_X_REQUEST_ID'),
+            metadata: [
+                'method' => $request->method,
+                'path' => $request->path,
+                'permission' => $permission,
+            ],
+        );
+    }
+
+    private function serverString(Request $request, string $key): ?string
+    {
+        $value = $request->server[$key] ?? null;
+
+        return is_scalar($value) ? (string) $value : null;
     }
 }

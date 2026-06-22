@@ -62,6 +62,9 @@ return [
 
 - 未ログインの場合は `/admin/login` へ redirect する。
 - ログイン済みだが Permission 不足の場合は `403 Forbidden` を返す。
+- どちらも `SecurityLoggerInterface` に security event を記録する。
+  - 未ログイン: `cms.authorization.unauthenticated`
+  - Permission 不足: `cms.authorization.denied`
 
 ## 責務
 
