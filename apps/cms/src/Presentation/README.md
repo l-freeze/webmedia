@@ -64,12 +64,12 @@ ViewModel は HTML の見せ方に寄せた値を持ちます。UseCase の戻�
 
 ## Middleware
 
-CMS 固有 middleware は `apps/cms/src/Infrastructure/Http/Middleware` に置きます。Controller と同じ HTTP 周辺ではありますが、middleware は HTTP pipeline に差し込むアプリ固有の基盤部品として扱います。
+CMS 固有 middleware は `apps/cms/src/Presentation/Http/Middleware` に置きます。現在の CMS middleware は、ログイン状態、route-level permission、CMS 固有の CSRF security event、CMS request audit event など、すべて HTTP request/response の入口制御と表現に関わるためです。
 
 ただし将来 middleware が増え、すべてを Infrastructure に置く方がかえって分かりにくくなった場合は、次の基準で分離を検討します。
 
-- `Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect など、CMS の HTTP 表現に直接関わるもの。
-- `Infrastructure/Http/Middleware/`: session adapter、proxy header、upload limit、監査ログ送出、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いもの。
+- `Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect、CMS 固有の認証/認可入口、CMS 固有 event 発火など、CMS の HTTP 表現に直接関わるもの。
+- `Infrastructure/Http/Middleware/`: proxy header、upload limit、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いものが必要になった場合だけ作る。
 - `src/Framework/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
 
-TODO: middleware が複数増えた時点で、この分離基準に照らして `Infrastructure/Http/Middleware` のまま統一するか、`Presentation/Http/Middleware` を追加するかを判断します。判断時は class の移動だけでなく、`apps/cms/config/middleware.php` の import と README の配置説明も同じコミットで更新します。
+現在 `apps/cms/src/Infrastructure/Http` は使いません。Infrastructure に置くべき HTTP 入出力実装が出た時点で追加します。

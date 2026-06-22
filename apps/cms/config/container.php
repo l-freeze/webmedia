@@ -44,7 +44,7 @@ use App\Cms\Infrastructure\Persistence\PdoTagQuery;
 use App\Cms\Infrastructure\Persistence\PdoTagRepository;
 use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
-use App\Cms\Infrastructure\Http\Middleware\CmsCsrfSecurityMiddleware;
+use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;

@@ -9,6 +9,8 @@
   - 詳細は ./docs/webmedia_architecture_rules.md を参照する事
 - 監査ログミドルウェアについて
   - ./docs/audit_middleware.mdを参照する事
+- middleware 境界の見直し論点について
+  - ./docs/middleware_boundary_review.mdを参照する事
 - 要件について
   - ユーザーフロントについて
     - ./docs/webmedia_ui_requirements_final_markdown/webmedia_front_ui_requirements_final.mdを参照する事

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Cms;
 
 use App\Cms\Application\Auth\Authorization\Permission;
-use App\Cms\Infrastructure\Http\Middleware\CmsAuditMiddleware;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsPermissionMiddleware;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsSessionMiddleware;
+use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 use PHPUnit\Framework\TestCase;
 
 final class CmsConfigTest extends TestCase

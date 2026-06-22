@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Infrastructure\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -25,7 +28,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testGetAdminRequestIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $response = $middleware->process(
             request: $this->request(method: 'GET', path: '/admin/articles'),
@@ -39,7 +42,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testNonAdminPrefixIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/administer/articles'),
@@ -54,7 +57,15 @@ final class CmsAuditMiddlewareTest extends TestCase
         $events = new RecordingEventBus();
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 42);
-        $middleware = new CmsAuditMiddleware(events: $events, session: $session);
+        $middleware = new CmsAuditMiddleware(
+            events: $events,
+            guard: $this->guard(session: $session, user: new CurrentCmsUser(
+                id: 42,
+                email: 'editor@example.test',
+                name: 'Editor',
+                role: 'editor',
+            )),
+        );
 
         $response = $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/articles/10'),
@@ -87,7 +98,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testUnknownAdminStateChangingRequestIsRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/unknown-operation'),
@@ -102,7 +113,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testLoginAndLogoutAreNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/login'),
@@ -119,7 +130,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testResponseWithClientOrServerErrorIsRecordedAsFailure(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $middleware->process(
             request: $this->request(method: 'PATCH', path: '/admin/articles/10'),
@@ -135,7 +146,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testHandlerExceptionIsRecordedAsFailureAndOriginalExceptionIsRethrown(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
         $exception = new RuntimeException('handler failed');
 
         try {
@@ -158,7 +169,7 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testAuditLoggerExceptionIsVisibleWhenRecordingHandlerFailure(): void
     {
-        $middleware = new CmsAuditMiddleware(events: new ThrowingEventBus(), session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: new ThrowingEventBus(), guard: $this->guard());
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('audit failed');
@@ -177,7 +188,7 @@ final class CmsAuditMiddlewareTest extends TestCase
             events: new SynchronousEventBus(handlers: [
                 new RecordAuditEventHandler(logger: new PlaceholderAuditLogger()),
             ]),
-            session: $this->session(),
+            guard: $this->guard(),
         );
 
         $this->expectException(LogicException::class);
@@ -192,7 +203,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testRequestBodySecretsAreNotStoredInMetadata(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, session: $this->session());
+        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
 
         $middleware->process(
             request: $this->request(
@@ -243,6 +254,30 @@ final class CmsAuditMiddlewareTest extends TestCase
         $data = [];
 
         return new Session(state: new SessionState(data: $data), runtime: new NativeSessionRuntime());
+    }
+
+    private function guard(?Session $session = null, ?CurrentCmsUser $user = null): CmsGuard
+    {
+        return new CmsGuard(
+            session: $session ?? $this->session(),
+            users: new FixedAuditCmsUserQuery(user: $user),
+        );
+    }
+}
+
+final readonly class FixedAuditCmsUserQuery implements ICurrentCmsUserQuery
+{
+    public function __construct(private ?CurrentCmsUser $user)
+    {
+    }
+
+    public function findById(int $id): ?CurrentCmsUser
+    {
+        if ($this->user === null || $this->user->id !== $id) {
+            return null;
+        }
+
+        return $this->user;
     }
 }
 

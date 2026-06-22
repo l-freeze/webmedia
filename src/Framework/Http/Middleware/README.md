@@ -38,7 +38,7 @@ final readonly class ExampleMiddleware implements MiddlewareInterface
 
 declare(strict_types=1);
 
-use App\Cms\Infrastructure\Http\Middleware\RequireAdminSessionMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireAdminSessionMiddleware;
 
 return [
     RequireAdminSessionMiddleware::class,

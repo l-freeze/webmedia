@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Infrastructure\Http\Middleware;
+namespace App\Cms\Presentation\Http\Middleware;
 
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;

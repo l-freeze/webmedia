@@ -11,7 +11,7 @@ CMS の監査対象操作について、「誰が、いつ、何を行い、結�
 - このプロジェクトは Web メディア本体であると同時に、軽量 PHP フレームワークの性格を持つ。
 - `src/Framework` はアプリケーション都合を持たない。
 - `apps/shared` は `cms` / `front` の両方から使うアプリケーション側の共有基盤である。
-- `apps/cms` 固有の HTTP middleware は、現時点では `apps/cms/src/Infrastructure/Http/Middleware` に置く。
+- `apps/cms` 固有の HTTP middleware は、現時点では `apps/cms/src/Presentation/Http/Middleware` に置く。
 - `App\Shared\Audit\Application\AuditLoggerInterface` は既に存在する。
 - `App\Shared\Audit\Domain\AuditEvent` は既に存在する。
 - `App\Shared\Audit\Infrastructure\JsonFileAuditLogger` は標準実装であり、`storage/logs/audit.log` へ 1 行 1 JSON で記録する。
@@ -141,7 +141,7 @@ GET でも監査対象にしてよいケースはある。
 ### 追加する class
 
 ```text
-apps/cms/src/Infrastructure/Http/Middleware/CmsAuditMiddleware.php
+apps/cms/src/Presentation/Http/Middleware/CmsAuditMiddleware.php
 ```
 
 ### 必要に応じて追加する class
@@ -168,7 +168,7 @@ apps/shared/src/Audit/Infrastructure/Persistence/PdoAuditLogger.php
 - 対象外なら何も記録せず次へ進める。
 - 対象なら handler 実行後に `AuditEvent` を作る。
 - 対象 request で handler が例外を投げた場合は failure として記録を試みる。
-- `AuditLoggerInterface::record()` を呼ぶ。
+- `EventBusInterface::dispatch()` へ `AuditEvent` を渡す。
 
 `CmsAuditMiddleware` が行わないこと:
 
@@ -260,15 +260,15 @@ private function shouldAudit(Request $request): bool
 
 declare(strict_types=1);
 
-namespace App\Cms\Infrastructure\Http\Middleware;
+namespace App\Cms\Presentation\Http\Middleware;
 
+use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\Security\Session;
-use App\Shared\Audit\Application\AuditLoggerInterface;
 use App\Shared\Audit\Domain\AuditEvent;
+use App\Shared\Event\Application\EventBusInterface;
 use Throwable;
 
 final readonly class CmsAuditMiddleware implements MiddlewareInterface
@@ -280,8 +280,8 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
     ];
 
     public function __construct(
-        private AuditLoggerInterface $auditLogger,
-        private Session $session,
+        private EventBusInterface $events,
+        private CmsGuard $guard,
     ) {
     }
 
@@ -322,7 +322,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
     private function record(Request $request, string $result, int $statusCode): void
     {
-        $this->auditLogger->record(new AuditEvent(
+        $this->events->dispatch(event: new AuditEvent(
             action: 'cms.http_state_changed',
             resourceType: 'cms_request',
             result: $result,
@@ -340,14 +340,14 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
     private function actorUserId(): ?string
     {
-        $value = $this->session->get(key: 'cms.user_id');
+        $user = $this->guard->currentUser();
 
-        return is_scalar($value) ? (string) $value : null;
+        return $user === null ? null : (string) $user->id;
     }
 }
 ```
 
-この例では AuditLogger の例外を握りつぶしていない。
+この例では EventBus / AuditLogger の例外を握りつぶしていない。
 
 理由は、`PlaceholderAuditLogger` の例外を隠すと、未設定に気付くという placeholder の目的を壊すためである。監査ログ保存失敗時にも業務処理を継続したいアプリケーションでは、AuditLogger 実装側、または別の decorator で failure policy を明示する。
 
@@ -356,8 +356,8 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 `apps/cms/config/middleware.php` に追加する。
 
 ```php
-use App\Cms\Infrastructure\Http\Middleware\CmsAuditMiddleware;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsSessionMiddleware;
+use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 
 return [
     ...$sharedMiddleware,
@@ -508,13 +508,13 @@ git diff --check
 本設計は次の理由で既存アーキテクチャに反しない。
 
 - `src/Framework` に CMS 固有の Audit middleware を置かないため、Framework がアプリケーション都合を持たない。
-- CMS 固有の middleware は `apps/cms/src/Infrastructure/Http/Middleware` に置くため、既存の middleware 配置ルールに合う。
+- CMS 固有の middleware は `apps/cms/src/Presentation/Http/Middleware` に置くため、現在の middleware 配置ルールに合う。
 - `AuditLoggerInterface` は shared の差し込み点であり、複数 app から使える基盤機能として妥当である。
 - `PdoAuditLogger` は Infrastructure 実装として shared 配下に置くため、Application / Domain から Infrastructure へ依存しない。
 - `PlaceholderAuditLogger` を維持しつつ、webmedia の標準 shared container では `JsonFileAuditLogger` を登録する。
-- `CmsAuditMiddleware` は `AuditLoggerInterface` に依存し、保存先の具象を知らない。
+- `CmsAuditMiddleware` は `EventBusInterface` に依存し、保存先の具象を知らない。
 - CMS の状態変更 request は denylist 方式で広く対象にするため、新規 CMS 操作の監査漏れを減らせる。
-- Business Audit が必要な場合も、UseCase / Controller から `AuditLoggerInterface` を呼ぶ形にし、HTTP path 解析で業務意味を推測しない。
+- Business Audit が必要な場合も、UseCase / Controller から `EventBusInterface` へ業務 event を dispatch する形にし、HTTP path 解析で業務意味を推測しない。
 - HTTP access log、auth/security log、audit log を概念として分けるため、Audit に全ログ責務を押し込まない。
 
 ## 機能要件チェック

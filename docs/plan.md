@@ -114,9 +114,10 @@ Policy 実装の詳細計画は `docs/policy_implementation_plan.md` を参照�
 実装時の注意:
 
 - `src/Framework` に CMS 固有の Guard / Role / Permission / Policy を置かない。
-- CMS 固有の middleware は、現行方針どおり `apps/cms/src/Infrastructure/Http/Middleware` を基本位置にする。
+- CMS 固有の middleware は、現行方針どおり `apps/cms/src/Presentation/Http/Middleware` を基本位置にする。`apps/cms/src/Infrastructure/Http` は、proxy header、upload limit、外部基盤都合の request/response 制約など Infrastructure と呼べる責務が出た時点で追加する。
 - Guard / CurrentUser / AuthorizationService / Policy の置き場所は、CMS に閉じるものは `apps/cms` 配下、Front / CMS 共通の基盤になったものだけ `apps/shared` 配下を検討する。
 - route middleware metadata を追加する場合は、既存の `config/middleware.php` とルーターの責務を壊さないよう、先に最小の設計を切る。
+- route metadata attribute、HTTP request metadata 抽出、route match の重複など、middleware 境界の保留論点は `docs/middleware_boundary_review.md` を参照する。
 - テストは `CmsGuard`、auth middleware、`AuthorizationService`、permission middleware、UseCase-level authorization の順で追加する。
 
 ### 後続候補: Architecture Test の追加

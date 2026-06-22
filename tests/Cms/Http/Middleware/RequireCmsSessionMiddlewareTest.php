@@ -6,8 +6,8 @@ namespace Tests\Cms\Http\Middleware;
 
 use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsSessionMiddleware;
 use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;

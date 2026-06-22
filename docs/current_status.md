@@ -6,6 +6,23 @@
 
 ## 直近作業
 
+- CMS middleware の境界整理を実施。
+  - CMS 固有 middleware を `apps/cms/src/Infrastructure/Http/Middleware` から `apps/cms/src/Presentation/Http/Middleware` へ移動。
+  - 現時点では `apps/cms/src/Infrastructure/Http` は不要と判断し、空ディレクトリを削除。
+  - `CmsAuditMiddleware` は session key `cms.user_id` の直接参照をやめ、`CmsGuard::currentUser()` から actor user id を取得する形に変更。
+  - Framework `CsrfMiddleware` はアプリ側 container で差し替え可能であることを `src/Framework/Security/CsrfMiddleware.README.md` に明記。
+  - route metadata attribute、HTTP request metadata 抽出、route match 2回の扱い、HTTP request actor context の考え方を `docs/middleware_boundary_review.md` に整理。
+  - route match 2回は現時点では理解容易性を優先して現状維持。route metadata 利用箇所や route vars 利用要求が増えたら `MatchedRoute` 化を検討する。
+- 検証結果。
+  - `docker compose run --rm app php -l apps/cms/src/Presentation/Http/Middleware/CmsAuditMiddleware.php`: 成功。
+  - `docker compose run --rm app php -l apps/cms/src/Presentation/Http/Middleware/CmsCsrfSecurityMiddleware.php`: 成功。
+  - `docker compose run --rm app php -l apps/cms/src/Presentation/Http/Middleware/RequireCmsPermissionMiddleware.php`: 成功。
+  - `docker compose run --rm app php -l apps/cms/src/Presentation/Http/Middleware/RequireCmsSessionMiddleware.php`: 成功。
+  - `docker compose run --rm app ./vendor/bin/phpunit tests/Cms/CmsConfigTest.php tests/Cms/Http/Middleware/CmsAuditMiddlewareTest.php tests/Cms/Http/Middleware/CmsCsrfSecurityMiddlewareTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/Http/Middleware/RequireCmsSessionMiddlewareTest.php tests/Cms/Auth/LogoutControllerTest.php tests/Shared/Event/SynchronousEventBusTest.php`: 成功、26 tests / 155 assertions。
+  - `docker compose run --rm app composer test`: 成功、129 tests / 1168 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+
 - CMS の Audit / SecurityLog 発火点を同期 EventBus 経由に変更。
   - `EventBusInterface::dispatch(object $event)` と `SynchronousEventBus` を `apps/shared/src/Event` に追加。
   - `RecordAuditEventHandler` は `AuditEvent` を `AuditLoggerInterface` へ保存する。

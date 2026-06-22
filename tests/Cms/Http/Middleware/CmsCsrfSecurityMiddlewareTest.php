@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Infrastructure\Http\Middleware\CmsCsrfSecurityMiddleware;
+use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;

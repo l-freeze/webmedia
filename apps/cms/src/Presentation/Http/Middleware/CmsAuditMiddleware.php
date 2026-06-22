@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Infrastructure\Http\Middleware;
+namespace App\Cms\Presentation\Http\Middleware;
 
+use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\Security\Session;
 use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Event\Application\EventBusInterface;
 use Throwable;
@@ -31,7 +31,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
     public function __construct(
         private EventBusInterface $events,
-        private Session $session,
+        private CmsGuard $guard,
     ) {
     }
 
@@ -96,8 +96,8 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
 
     private function actorUserId(): ?string
     {
-        $value = $this->session->get(key: 'cms.user_id');
+        $user = $this->guard->currentUser();
 
-        return is_scalar($value) ? (string) $value : null;
+        return $user === null ? null : (string) $user->id;
     }
 }

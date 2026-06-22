@@ -10,7 +10,7 @@
 - `src/Presentation/`: HTTP/HTML としてどう見せるかを扱う。Controller、管理画面用 ViewModel など、表現上の関心事を置く。詳細は `src/Presentation/README.md` を参照する。
 - `src/Presentation/Http/Controller/`: Request を受け、Application Interactor を呼び、Response または template params を組み立てる。
 - `src/Infrastructure/`: DB、外部I/O、技術的 adapter を置く。Application Query interface や Domain Repository interface の実装はここに置く。
-- `src/Infrastructure/Http/Middleware/`: CMS 固有の HTTP middleware を置く。将来 middleware が増え、責務の違いが明確になった場合だけ `Presentation/Http/Middleware` との分離を検討する。
+- `src/Presentation/Http/Middleware/`: CMS 固有の HTTP middleware を置く。ログイン状態、route-level permission、CMS 固有 audit/security event など、HTTP 表現の入口制御を担当する。
 - `templates/`: Latte template を置く。Controller が渡した view data を HTML として表現する。
 
 ## Dependency Rules
@@ -23,4 +23,4 @@
 
 ## Notes
 
-CMS の Controller は Front と同じく表示層の入口なので `Presentation/Http/Controller` に置きます。認証必須判定などの middleware は HTTP pipeline に差し込むアプリ固有の基盤部品として `Infrastructure/Http/Middleware` に置きます。
+CMS の Controller は Front と同じく表示層の入口なので `Presentation/Http/Controller` に置きます。認証必須判定などの middleware も HTTP request/response の入口制御なので `Presentation/Http/Middleware` に置きます。

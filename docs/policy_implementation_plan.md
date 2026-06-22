@@ -213,7 +213,7 @@ apps/cms/src/Application/Article/Policy/
   ArticlePolicy.php
   ArticlePolicyArticle.php
 
-apps/cms/src/Infrastructure/Http/Middleware/
+apps/cms/src/Presentation/Http/Middleware/
   RequireCmsPermissionMiddleware.php
 ```
 

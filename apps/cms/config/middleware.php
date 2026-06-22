@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Cms\Infrastructure\Http\Middleware\CmsAuditMiddleware;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsPermissionMiddleware;
-use App\Cms\Infrastructure\Http\Middleware\RequireCmsSessionMiddleware;
+use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
+use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 
 $root = dirname(__DIR__, 3);
 $sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
