@@ -38,7 +38,23 @@ use App\Cms\Presentation\Http\Controller\Tag\Update\Controller as TagUpdateContr
 use App\Cms\Presentation\Http\Controller\Trash\List\Controller as TrashListController;
 use App\Cms\Application\Auth\Authorization\Permission;
 
-return [
+/**
+ * CMS route definitions.
+ *
+ * Route array shape:
+ * - 0: HTTP method. FastRouteへ渡す大文字のHTTPメソッド。
+ * - 1: Path pattern. `/admin/articles/{id:\d+}` のようなFastRoute形式のパス。
+ * - 2: Controller class. DI containerから解決して呼び出すController FQCN。
+ * - 3: Route metadata. 省略可。`requires_permission` はこのrouteへ入るために必要なPermission名。
+ *
+ * @var list<array{
+ *     0: 'GET'|'POST'|'PUT'|'PATCH'|'DELETE',
+ *     1: non-empty-string,
+ *     2: class-string,
+ *     3?: array{requires_permission?: non-empty-string}
+ * }> $routes
+ */
+$routes = [
     ['GET', '/admin/login', LoginFormController::class],
     ['POST', '/admin/login', LoginController::class],
     ['POST', '/admin/logout', LogoutController::class],
@@ -74,3 +90,5 @@ return [
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => Permission::SETTING_UPDATE]],
     ['GET', '/admin/trash', TrashListController::class],
 ];
+
+return $routes;
