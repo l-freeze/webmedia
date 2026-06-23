@@ -6,6 +6,11 @@
 
 ## 直近作業
 
+- 銀行業務を含む Port 用途パターンを追加。
+  - `docs/application_ports.md` の外部能力一覧に、銀行の口座照会、残高拘束、振込、勘定系記帳、AML / CFT、制裁リスト、不正検知、営業日 / カットオフ判定、取引証跡を追記。
+  - 業種別の見方に、銀行、保険、物流 / 航空 / 交通、公共 / 税務 / 行政、エネルギー / 通信インフラを追加。
+  - Port を使うケースパターンとして、参照系 Port、命令系 Port、証明系 Port、調整系 Port、通知系 Port を整理。
+
 - Port が本当に必要になりやすいケースを整理。
   - `docs/application_ports.md` に、Audit / Log は通常 shared / framework / presentation 側の横断基盤として扱い、Application Port 化は業務成立条件になった場合だけ検討する方針を追記。
   - 基幹、医療、大規模企業、EC、契約書、政治系システムを横断して、Port 候補を「外部の事実確認」「不可欠な外部副作用」「外部時刻と証明」「暗号・署名・鍵管理」「業務上の外部境界である保存」「transaction / lock / idempotency」「到達保証が必要な通知」に整理。
