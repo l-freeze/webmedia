@@ -6,6 +6,13 @@
 
 ## 直近作業
 
+- Port が本当に必要になりやすいケースを整理。
+  - `docs/application_ports.md` に、Audit / Log は通常 shared / framework / presentation 側の横断基盤として扱い、Application Port 化は業務成立条件になった場合だけ検討する方針を追記。
+  - 基幹、医療、大規模企業、EC、契約書、政治系システムを横断して、Port 候補を「外部の事実確認」「不可欠な外部副作用」「外部時刻と証明」「暗号・署名・鍵管理」「業務上の外部境界である保存」「transaction / lock / idempotency」「到達保証が必要な通知」に整理。
+  - Port は最終手段に近い扱いとし、Repository / Query / event handler / Presentation / Infrastructure / 標準 contract で責務が説明できるなら作らない方針を明記。
+- 次回再開地点。
+  - 新しい Port を追加したくなった場合は、まず `docs/application_ports.md` の「原則」と「本当に Port が必要になりやすい外部能力」に照らし、業務成立条件かどうかを確認する。
+
 - Shared logger contract の過剰整理を revert。
   - `b073615 Sharedログ契約のPSR依存を整理` は、`ApplicationLoggerInterface` から PSR-3 継承を外す変更だったが、PSR-3 は具象実装ではなく標準 contract であり、現状の用途では独自 contract 化が過剰と判断して revert した。
   - Port は最初の選択肢ではなく、Application が外側の能力を本当に要求し、他の配置では依存方向や責務が崩れる場合の手段として扱う方針へ `docs/application_ports.md` を補足。

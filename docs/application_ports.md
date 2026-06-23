@@ -78,6 +78,20 @@ Infrastructure -> implements those ports
 
 ## 例
 
+### Audit / Log
+
+通常ログ、HTTP envelope audit、security log は、まず shared / framework / presentation 側の横断基盤として扱う。これらは「ユースケースを成立させるために Application が外部能力を要求している」よりも、「実行基盤が操作や通信の事実を記録している」性質が強い。
+
+そのため、PSR-3 logger や標準的な `AuditLoggerInterface` を薄く包むだけの Application Port は作らない。
+
+一方で、次のように監査記録そのものが業務成立条件になる場合は、Application 側の要求として扱う余地がある。
+
+- 承認、契約、医療記録、投票、決済などで、監査証跡の保存に失敗したら業務操作も成立させてはいけない。
+- 証跡を改ざん困難な外部台帳、WORM storage、電子署名付き保管庫などへ保存する必要がある。
+- 業務ルール上、操作の before / after、承認者、根拠文書、署名、時刻証明を同一 transaction 境界で扱う必要がある。
+
+この場合でも、最初に `AuditLogger` という汎用 Port を作るのではなく、`RecordContractSigningEvidence`、`RecordMedicalRecordAccessEvidence`、`RecordApprovalEvidence` のように、業務上の証跡名で表現できるかを先に検討する。
+
 ### パスワード検証
 
 Application が必要とする言葉:
@@ -108,6 +122,100 @@ Presentation や Infrastructure が表示用に Markdown を HTML へ変換す�
 
 - そもそもその変換は Application の責務か見直す。
 - Application の責務であるなら `MarkdownRenderer` などの Port を切る。
+
+## 本当に Port が必要になりやすい外部能力
+
+業種ごとに機能を洗い出しても、Port が必要になる理由はおおむね次の外部能力に集約できる。
+
+### 外部の事実確認
+
+Application が業務判断のために外部の現在状態を確認しないといけない場合。
+
+- 本人確認、法人確認、資格確認、反社チェック、政治献金の適格性確認。
+- 医療保険資格、診療資格、薬剤相互作用、検査結果、紹介状、外部 EHR / EMR 照会。
+- 在庫引当、与信、支払承認、配送可否、契約ステータス、電子署名ステータス。
+
+候補名は `IdentityVerificationGateway` ではなく、Application の語彙で `VerifyCustomerIdentity`、`CheckPatientEligibility`、`AuthorizePayment` などにする。
+
+### 外部への不可欠な副作用
+
+Application の完了条件に外部副作用が含まれる場合。
+
+- 決済の確定、返金、売上計上、請求書発行、電子契約の送信、署名依頼。
+- 医療機関や行政機関への届出、処方箋送信、検査依頼。
+- 基幹システムへの受注連携、会計仕訳連携、在庫引当、配送依頼。
+- 政治資金報告、選挙運動関連の届出、公開義務のある記録送信。
+
+外部通知メールのように失敗しても後で再送できるものは、まず event / queue / notification 基盤でよい。業務成立条件なら Port 候補になる。
+
+### 外部時刻と証明
+
+時刻が業務判断や証明に直接関わる場合。
+
+- 契約締結時刻、電子署名時刻、医療記録作成時刻、投票締切、注文締切。
+- SLA、期限超過、公開予約、予約受付、キャンペーン適用、監査証跡の時刻証明。
+- 外部 timestamp authority、NTP、クラウド署名時刻などを使う場合。
+
+単に `new DateTimeImmutable()` をテストで固定したいだけなら安易に広域 `Clock` を作らない。複数ユースケースの業務判断で時刻が中心になるなら `Clock` または用途別の時刻 Port を検討する。
+
+### 暗号、署名、鍵管理
+
+Application が秘密鍵、署名、暗号処理の技術詳細を知るべきでない場合。
+
+- 電子署名、契約書ハッシュ、改ざん検知、医療文書署名、投票データ署名。
+- KMS / HSM による鍵管理、トークン発行、パスワード検証、証明書検証。
+
+`PasswordVerifier` はこの分類に入る。PHP 組み込み関数を直接呼ぶかどうかより、Application が暗号アルゴリズムや鍵管理を知るべきでない点が判断理由である。
+
+### 永続化先が業務上の外部境界である保存
+
+Repository で扱う通常 DB 永続化とは別に、保存先そのものが業務上の外部境界になる場合。
+
+- 電子契約原本、医療画像、診療記録、証憑、請求書、監査証跡の WORM storage。
+- オブジェクトストレージ、文書管理システム、電子帳簿保存法対応ストレージなど。
+
+単なるファイルアップロード保存は Infrastructure / Repository 実装で足りることが多い。保存の成否、保管方式、改ざん困難性、保存証明が業務ルールに入るなら Port 候補になる。
+
+### transaction / lock / idempotency が外部調整になる場合
+
+複数の外部システムや DB 更新をまたぎ、二重実行や競合を Application が制御する必要がある場合。
+
+- 決済、在庫、配送、会計の連携。
+- 医療予約枠、検査依頼、受診受付の排他制御。
+- 契約締結、承認ワークフロー、重複送信防止。
+
+ただし、単一 DB の repository 保存を囲むだけなら、まず Infrastructure 側の実装や transaction script を検討する。Application に `TransactionRunner` を持ち込むのは、UseCase が複数 repository / 外部副作用の一貫性を明示的に要求する場合に限る。
+
+### 外部通知と到達保証
+
+通知自体が業務成立条件、または到達保証・再送・証跡が業務要件になる場合。
+
+- 契約締結通知、医療予約通知、処方関連通知、決済通知、重要な行政・政治系通知。
+- メール、SMS、郵送、外部メッセージング、Webhook。
+
+単なるお知らせメールは Port より event handler / notification infrastructure でよい。通知の到達、既読、配達証明、法的通知性が業務判断になるなら Port 候補になる。
+
+## 業種別の見方
+
+- 基幹業務 / 基幹システム: 会計、在庫、受発注、与信、配送、マスタ連携、排他制御、idempotency が Port 候補になりやすい。
+- 医療業務 / 医療システム: 患者資格、医療者資格、EHR / EMR、検査、処方、医療文書署名、アクセス証跡が候補になりやすい。
+- 大規模企業システム: SSO、権限基盤、組織マスタ、承認ワークフロー、DWH / ERP / CRM 連携が候補になりやすい。
+- EC 業務 / EC システム: 決済、返金、在庫引当、配送、請求、クーポン適用、外部モール連携が候補になりやすい。
+- 契約書 / 誓約書システム: 電子署名、本人確認、時刻証明、原本保管、締結証跡、閲覧証跡が候補になりやすい。
+- 政治系業務 / システム: 本人確認、資格確認、期限判定、公開義務、届出、寄付適格性、改ざん困難な証跡が候補になりやすい。
+
+業種名だけで Port を作らない。上の外部能力が、対象 UseCase の成立条件に入った時だけ Port 候補にする。
+
+## 原則
+
+Port は最終手段に近い。正確には、最後まで避けるものではなく、次の条件が揃ったときにだけ使う。
+
+- Application がその能力なしでは業務判断または業務完了を表現できない。
+- その能力の実体が Application 内に置けない外部世界、実行環境、暗号、時刻、I/O、外部システムである。
+- 標準 contract、Repository、Query、event handler、Presentation / Infrastructure 配置では責務が説明できない。
+- Interface 名が実装技術名ではなく、業務または Application の要求を表している。
+
+この条件を満たさないなら、Port を作らない方がよい。
 
 ## Laravel の Contract との違い
 
