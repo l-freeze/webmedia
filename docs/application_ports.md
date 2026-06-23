@@ -23,6 +23,8 @@ Infrastructure / Presentation / Framework / Shared
 
 Port は、Application に内包してはいけないものを安全に使うための入口である。
 
+ただし、Port は設計を良く見せるための道具ではない。本プロジェクトでは、Port は最初に選ぶ選択肢ではなく、Application が外側の能力を本当に要求していて、他の配置では依存方向や責務が崩れる場合の手段として扱う。
+
 ## Port を切ってよい条件
 
 Port を切ってよいのは、次の条件を満たす場合に限る。
@@ -44,8 +46,12 @@ Port を切ってよいのは、次の条件を満たす場合に限る。
 - DI コンテナに登録しやすい。
 - class 名に対して機械的に interface 名を作れる。
 - 技術名を抽象化すれば設計が良く見える。
+- PSR などの標準 contract を見た目上だけ独自 contract で包める。
+- 横断的な framework / shared 基盤を、ユースケース固有の要求がないまま Application Port に見立てられる。
 
 Port が必要に見える場合でも、先に責務分割、UseCase 分割、配置、データ構造を疑う。
+
+たとえば通常の application logger は、現時点では PSR-3 `LoggerInterface` を shared / framework 側で扱えばよい。PSR-3 は具象実装ではなく、ロギング相互運用のための標準 contract である。Application のユースケースが「業務イベントとして何を記録するか」を要求しているなら event value や用途別 logger を検討するが、PSR-3 を薄く包むだけの `ApplicationLoggerInterface` は作らない。
 
 ## Port と Infrastructure の関係
 
@@ -126,6 +132,8 @@ Port が必要か迷ったら、次の順で判断する。
 3 と 4 が true なら Port を切る候補である。
 
 5 が false なら、Port 名ではなく責務理解がまだ曖昧である。先に名前と責務を詰める。
+
+さらに、標準 contract や既存 framework の interface で十分に境界が表現できている場合は、独自 Port を追加しない。独自 Port を切るのは、Application 側の語彙として別名を与える必然性がある場合に限る。
 
 ## このプロジェクトでの配置
 

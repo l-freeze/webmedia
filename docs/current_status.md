@@ -6,6 +6,15 @@
 
 ## 直近作業
 
+- Shared logger contract の過剰整理を revert。
+  - `b073615 Sharedログ契約のPSR依存を整理` は、`ApplicationLoggerInterface` から PSR-3 継承を外す変更だったが、PSR-3 は具象実装ではなく標準 contract であり、現状の用途では独自 contract 化が過剰と判断して revert した。
+  - Port は最初の選択肢ではなく、Application が外側の能力を本当に要求し、他の配置では依存方向や責務が崩れる場合の手段として扱う方針へ `docs/application_ports.md` を補足。
+  - Logger は現状どおり shared / framework の横断基盤として扱い、Application のユースケース固有の要求が出るまでは PSR-3 を薄く包むだけの Port は作らない。
+- 検証結果。
+  - `docker compose run --rm app composer test`: 成功、133 tests / 1179 assertions。
+  - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
+  - `git diff --check`: 成功。
+
 - CMS login の password verification を Application Port 化。
   - `apps/cms/src/Application/Auth/Login/PasswordVerifier.php` を追加し、Login ユースケースが必要とする「平文パスワードと保存済みハッシュの照合」能力を Application 側の Port として定義。
   - `apps/cms/src/Infrastructure/Auth/Password/NativePasswordVerifier.php` を追加し、PHP の `password_verify()` 呼び出しを Infrastructure 実装に閉じ込めた。
