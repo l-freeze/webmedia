@@ -8,14 +8,19 @@ use App\Cms\Domain\Repository\IUserRepository;
 
 final readonly class Interactor
 {
-    public function __construct(private IUserRepository $users)
-    {
+    public function __construct(
+        private IUserRepository $users,
+        private PasswordVerifier $passwordVerifier,
+    ) {
     }
 
     public function execute(Input $input): Output
     {
         $user = $this->users->findByEmail(email: $input->email);
-        if ($user === null || !password_verify($input->password, $user->passwordHash)) {
+        if ($user === null || !$this->passwordVerifier->verify(
+            plainPassword: $input->password,
+            passwordHash: $user->passwordHash,
+        )) {
             return Output::failed();
         }
 

@@ -6,13 +6,21 @@
 
 ## 直近作業
 
+- CMS login の password verification を Application Port 化。
+  - `apps/cms/src/Application/Auth/Login/PasswordVerifier.php` を追加し、Login ユースケースが必要とする「平文パスワードと保存済みハッシュの照合」能力を Application 側の Port として定義。
+  - `apps/cms/src/Infrastructure/Auth/Password/NativePasswordVerifier.php` を追加し、PHP の `password_verify()` 呼び出しを Infrastructure 実装に閉じ込めた。
+  - `Auth/Login/Interactor` は `password_verify()` 直接呼び出しをやめ、`PasswordVerifier` に依存する形へ変更。
+  - CMS container で `PasswordVerifier` から `NativePasswordVerifier` へ bind。
+  - `tests/Cms/Auth/LoginInteractorTest.php` を追加し、Interactor が Port 経由で認証判定することと、Native 実装が PHP password hash を検証することを確認。
+- 次回再開地点。
+  - password rehash やアルゴリズム移行を入れる場合は、`PasswordVerifier` の戻り値を bool から result value に拡張するか、別 Port として `PasswordHasher` / `PasswordRehashPolicy` を追加する。
+
 - Application Port の判断基準を文書化。
   - `docs/application_ports.md` を追加し、Port は独立レイヤーではなく「Application が外側に要求する能力を表す Interface」と整理。
   - Port を切ってよい条件、切るべきではない条件、Infrastructure 実装との関係、Laravel Contract との違いを明記。
   - `password_verify()`、現在時刻、Markdown 変換を例に、Application に内包してはいけない技術詳細を Port 経由で扱う判断基準を整理。
   - `docs/README.md` から参照できるようにした。
-- 次回再開地点。
-  - CMS login の `password_verify()` 直接呼び出しは、`Application/Auth/Login/PasswordVerifier.php` と `Infrastructure/Auth/Password/NativePasswordVerifier.php` のような小さい Port と実装へ分ける候補。
+- その後の実装で、CMS login の `password_verify()` 直接呼び出しは `PasswordVerifier` port と `NativePasswordVerifier` 実装へ分離済み。
 
 - CMS 認可まわりの Application / Infrastructure 境界を整理。
   - `Permission` / `Role` は実体が定数コード一覧だったため、`PermissionCode` / `RoleCode` に改名し、`Application/Auth/Authorization/Value` へ移動。
@@ -24,14 +32,14 @@
 - apps/cms 配下の追加確認。
   - `Application` から `Infrastructure` への依存は見つからなかった。
   - `SlugValidator` は複数ユースケース横断の CMS 固有入力規則として `Application/Validation` にある。現時点では許容範囲だが、同種 validator が増える場合は責務別に整理する。
-  - `Auth/Login/Interactor` が `password_verify()` を直接呼んでいる。現状は小さいが、パスワード再ハッシュ、アルゴリズム差し替え、監査などが必要になったら password verifier port を切る候補。
+  - `Auth/Login/Interactor` の `password_verify()` 直接呼び出しは、後続で `PasswordVerifier` port へ分離済み。
 - 検証結果。
   - `docker compose run --rm app sh -lc 'php -l apps/cms/src/Application/Auth/Authorization/AuthorizationService.php && php -l apps/cms/src/Application/Auth/Authorization/Exception/AuthorizationException.php && php -l apps/cms/src/Application/Auth/Authorization/Value/PermissionCode.php && php -l apps/cms/src/Application/Auth/Authorization/Value/RoleCode.php && php -l apps/cms/src/Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery.php && php -l apps/cms/config/container.php && php -l apps/cms/config/routes.php && ./vendor/bin/phpunit tests/Cms/Authorization/AuthorizationServiceTest.php tests/Cms/Authorization/ArticlePolicyTest.php tests/Cms/Http/Middleware/RequireCmsPermissionMiddlewareTest.php tests/Cms/CmsConfigTest.php'`: 成功、16 tests / 103 assertions。
   - `docker compose run --rm app composer test`: 成功、129 tests / 1167 assertions。
   - `docker compose run --rm app composer analyse`: 成功、PHPStan No errors。
   - `git diff --check`: 成功。
 - 次回再開地点。
-  - `SlugValidator` と login password verification は、今すぐ分割するほどの重さはない。validator / password policy が増えた段階で、それぞれ `Application/Validation` の責務整理、または password verifier port の導入を検討する。
+  - `SlugValidator` は今すぐ分割するほどの重さはない。同種 validator が増えた段階で `Application/Validation` の責務整理を検討する。
 
 - middleware が route variables を読んで resource-level 判定へ踏み込まないルールを明文化。
   - `docs/webmedia_architecture_rules.md` に「Middleware で扱ってよいこと、扱ってはいけないこと」を追加。

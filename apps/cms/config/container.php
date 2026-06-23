@@ -45,6 +45,7 @@ use App\Cms\Infrastructure\Persistence\PdoTagRepository;
 use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
+use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
 use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
@@ -127,6 +128,7 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 });
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
+$container->bind(abstract: Auth\Login\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
 $container->bind(abstract: Auth\Authorization\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
