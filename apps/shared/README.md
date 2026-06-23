@@ -100,7 +100,7 @@ FRONT_CORS_MAX_AGE=600
 
 `ApplicationLog`、`Audit`、`SecurityLog` は目的を分けます。
 
-- `ApplicationLog` は障害調査や運用状態の確認に使う通常ログです。Application 側の契約は `ApplicationLoggerInterface` に閉じ、`Psr\Log\LoggerInterface` も同じ具象 logger を指すよう container で接続します。
+- `ApplicationLog` は障害調査や運用状態の確認に使う通常ログです。`Psr\Log\LoggerInterface` も同じ application logger を指します。
 - `Audit` は業務証跡です。CMS の状態変更 request や重要 UseCase の業務イベントを `AuditEvent` として記録します。
 - `SecurityLog` はログイン成功/失敗、認可拒否、CSRF 失敗などの security / auth event を記録します。
 
