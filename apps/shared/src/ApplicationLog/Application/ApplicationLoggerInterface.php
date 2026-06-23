@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\ApplicationLog\Application;
 
-use Psr\Log\LoggerInterface;
-
-interface ApplicationLoggerInterface extends LoggerInterface
+interface ApplicationLoggerInterface
 {
+    /** @param array<string, mixed> $context */
+    public function log(string $severity, string $message, array $context = []): void;
 }

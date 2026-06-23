@@ -6,6 +6,13 @@
 
 ## 直近作業
 
+- Shared application logger の契約から PSR-3 継承を除去。
+  - `apps/shared/src/ApplicationLog/Application/ApplicationLoggerInterface.php` は `Psr\Log\LoggerInterface` を継承せず、Application 側で必要な `log()` だけを持つ contract に変更。
+  - 具象 `JsonFileApplicationLogger` は引き続き PSR-3 logger 実装でもあるため、shared container では `ApplicationLoggerInterface` と `Psr\Log\LoggerInterface` が同じ logger instance を指す構成を維持。
+  - Application 側の port / contract が外部標準の型へ不要に依存しない形へ寄せた。
+- 次回再開地点。
+  - Application 側で通常ログを本格利用する場合は、`log()` の汎用メソッドを増やす前に「何を記録したいか」を event value または用途別 method として表現できるか確認する。
+
 - CMS login の password verification を Application Port 化。
   - `apps/cms/src/Application/Auth/Login/PasswordVerifier.php` を追加し、Login ユースケースが必要とする「平文パスワードと保存済みハッシュの照合」能力を Application 側の Port として定義。
   - `apps/cms/src/Infrastructure/Auth/Password/NativePasswordVerifier.php` を追加し、PHP の `password_verify()` 呼び出しを Infrastructure 実装に閉じ込めた。

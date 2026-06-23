@@ -40,7 +40,7 @@ storage/logs/security.log
 
 ```php
 ApplicationLoggerInterface::class => JsonFileApplicationLogger(storage/logs/application.log)
-LoggerInterface::class => ApplicationLoggerInterface::class と同じ instance
+LoggerInterface::class => JsonFileApplicationLogger と同じ instance
 AuditLoggerInterface::class => JsonFileAuditLogger(storage/logs/audit.log)
 SecurityLoggerInterface::class => JsonFileSecurityLogger(storage/logs/security.log)
 EventBusInterface::class => SynchronousEventBus([Audit handler, SecurityLog handler])
