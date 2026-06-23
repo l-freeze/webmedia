@@ -7,6 +7,7 @@
   - Query interface は各ユースケース配下、Repository interface は Domain 配下に置く
   - Front の HTTP Controller や SEO meta は Presentation 層に置く
   - 詳細は ./docs/webmedia_architecture_rules.md を参照する事
+  - Application Port の判断基準は ./docs/application_ports.md を参照する事
 - 監査ログミドルウェアについて
   - ./docs/audit_middleware.mdを参照する事
 - middleware 境界の見直し論点について

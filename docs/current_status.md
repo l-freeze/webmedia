@@ -6,6 +6,14 @@
 
 ## 直近作業
 
+- Application Port の判断基準を文書化。
+  - `docs/application_ports.md` を追加し、Port は独立レイヤーではなく「Application が外側に要求する能力を表す Interface」と整理。
+  - Port を切ってよい条件、切るべきではない条件、Infrastructure 実装との関係、Laravel Contract との違いを明記。
+  - `password_verify()`、現在時刻、Markdown 変換を例に、Application に内包してはいけない技術詳細を Port 経由で扱う判断基準を整理。
+  - `docs/README.md` から参照できるようにした。
+- 次回再開地点。
+  - CMS login の `password_verify()` 直接呼び出しは、`Application/Auth/Login/PasswordVerifier.php` と `Infrastructure/Auth/Password/NativePasswordVerifier.php` のような小さい Port と実装へ分ける候補。
+
 - CMS 認可まわりの Application / Infrastructure 境界を整理。
   - `Permission` / `Role` は実体が定数コード一覧だったため、`PermissionCode` / `RoleCode` に改名し、`Application/Auth/Authorization/Value` へ移動。
   - `AuthorizationException` は Application 例外として `Application/Auth/Authorization/Exception` へ移動。
