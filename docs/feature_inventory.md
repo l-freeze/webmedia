@@ -90,6 +90,7 @@
 | 文書 | 扱い |
 |---|---|
 | `docs/application_ports.md` | Port 判断基準。現行規約として維持 |
+| `docs/decisions.md` | なぜやる / やらないの設計判断記録として維持 |
 | `docs/webmedia_architecture_rules.md` | 依存方向、配置、命名、middleware 境界の現行規約として維持 |
 
 ### 整理対象

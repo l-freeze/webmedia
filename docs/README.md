@@ -12,6 +12,7 @@
 - `docs/current_status.md`: 現在地、未完了、次回再開地点。
 - `docs/plan.md`: 直近の作業順序。
 - `docs/feature_inventory.md`: CMS / Front / Shared / Framework の機能棚卸し。
+- `docs/decisions.md`: なぜやる / やらないの設計判断記録。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。
 - `docs/webmedia_technical_stack.md`: 技術スタック。
@@ -21,5 +22,6 @@
 ## 整理方針
 
 - 完了済みの実装計画、過去レビュー、学習メモ、将来構想だけの文書は残さない。
-- 現行判断として必要な内容は、規約なら `webmedia_architecture_rules.md`、作業判断なら `plan.md`、機能差分なら `feature_inventory.md` に寄せる。
+- 「なぜやる / やらない」の根拠は `decisions.md` に残す。
+- 現行判断として必要な内容は、規約なら `webmedia_architecture_rules.md`、作業判断なら `plan.md`、機能差分なら `feature_inventory.md`、判断理由なら `decisions.md` に寄せる。
 - docs を増やす前に、既存資料へ追記できないか確認する。

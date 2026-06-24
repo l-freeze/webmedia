@@ -18,6 +18,13 @@
 - `docs/current_status.md` を現在地と再開地点だけに整理。
 - `docs/feature_inventory.md` の docs 棚卸しを、残す資料と削除済み資料が分かる形に整理。
 - 古い・重複した・実装済み計画系 docs を削除。
+- 削りすぎた判断根拠を補うため、`docs/decisions.md` を追加。
+  - View コンパイルキャッシュ
+  - Layout Global Provider の cache
+  - Middleware 境界
+  - Route metadata
+  - Audit / SecurityLog
+  - Application Port
 
 ## 次回再開地点
 
