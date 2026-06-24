@@ -23,35 +23,35 @@
 | 機能 | 状態 | 現行実装 | 残作業 |
 |---|---|---|---|
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
-| ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データでの表示確認 |
-| 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | 絞り込み・検索・ページングの要件充足度確認 |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存 | 更新系ブラウザ確認、Business Audit |
-| 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 予約公開の運用確認、公開状態の UI 表示確認 |
+| ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
+| 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存 | HTTP 経由で作成/編集確認済み。Business Audit は未実装 |
+| 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
-| 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | 差分比較 UI は未確認。復元の更新系操作確認 |
+| 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
 | 固定ページ管理 | 一部完了 | list/create/edit/store/update routes, Page UseCase | 固定ページ履歴 / 復元 UI は route 未接続。複製は未実装 |
-| カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | SEO 詳細編集は未実装 |
-| タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | SEO 詳細編集は未実装 |
+| カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
+| タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
 | 問い合わせ管理 | 一部完了 | `/admin/inquiries`, Inquiry List UseCase | 詳細、既読/対応状態、削除、通知運用は未実装 |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy` | template helper、Article 以外の UseCase-level authorization 拡張 |
 | Audit / SecurityLog | 一部完了 | HTTP 状態変更 Audit、認可/CSRF/login/logout SecurityLog | 業務イベントの Business Audit は未実装 |
-| PC/SP 表示 | 要検証 | CMS template / CSS は存在 | Playwright またはブラウザで主要画面の目視確認 |
+| PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 
 ## Front
 
 | 機能 | 状態 | 現行実装 | 残作業 |
 |---|---|---|---|
-| トップページ | 完了 | `/`, Home Show UseCase, pagination test | 実データでの目視確認 |
-| 記事詳細 | 完了 | `/articles/{slug}`, Article Show UseCase, canonical | 関連記事、人気記事、更新日 UI の充足度確認 |
-| カテゴリ一覧 / 詳細 | 完了 | `/categories`, `/categories/{slug}` | 実 HTTP 表示確認 |
-| タグ一覧 / 詳細 | 完了 | `/tags`, `/tags/{slug}` | 実 HTTP 表示確認 |
-| 検索結果 / 検索結果なし | 一部完了 | `/search`, Article Search UseCase | 検索機能 ON/OFF、検索結果なし表示の回帰テスト |
+| トップページ | 完了 | `/`, Home Show UseCase, pagination test | HTTP / ヘッドレス Chrome で実データ表示確認済み |
+| 記事詳細 | 完了 | `/articles/{slug}`, Article Show UseCase, canonical | HTTP 表示確認済み。関連記事、人気記事、更新日 UI の充足度確認は必要時に行う |
+| カテゴリ一覧 / 詳細 | 完了 | `/categories`, `/categories/{slug}` | HTTP 表示確認済み |
+| タグ一覧 / 詳細 | 完了 | `/tags`, `/tags/{slug}` | HTTP 表示確認済み |
+| 検索結果 / 検索結果なし | 一部完了 | `/search`, Article Search UseCase | 現在設定では検索停止中として 404 を返すことを確認。検索 ON 時の結果なし表示は未確認 |
 | 固定ページ | 完了 | `/pages/{slug}`, Page Show UseCase | 法務ページ本文の本番用整備 |
-| 問い合わせ入力 / エラー / 完了 | 一部完了 | `/contact`, `/contact/success`, Inquiry Create UseCase | rate limit、honeypot/CAPTCHA、管理者通知、プライバシー同意文言 |
-| 404 | 一部完了 | NotFound controller / state template | route からの実表示と本番表示確認 |
+| 問い合わせ入力 / エラー / 完了 | 一部完了 | `/contact`, `/contact/success`, Inquiry Create UseCase | CSRF 付き POST と完了遷移は確認済み。rate limit、honeypot/CAPTCHA、管理者通知、プライバシー同意文言 |
+| 404 | 完了 | NotFound controller / state template | route からの 404 表示確認済み |
 | ローディング / 記事なし状態 | 完了 | `/loading`, `/no-articles` state routes | 本番 route として残すか、デザイン確認専用にするか判断 |
 | スマホメニュー | 完了 | `/menu` state route / template | 実画面導線との統合確認 |
 | 共通レイアウト | 完了 | `LayoutGlobalProvider`, page links, settings, categories | cache invalidation は複雑化時に検討 |
@@ -103,9 +103,8 @@
 
 ## 次にやるとよい順番
 
-1. Front / CMS の主要画面をブラウザで確認し、要件の「一部完了」「要検証」を実画面ベースで潰す。
-2. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
-3. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を実装する。
-4. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
-5. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
-6. 画面が揃った段階で、PC/SP のデザインリファインと Playwright 目視確認を行う。
+1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
+2. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を実装する。
+3. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
+4. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
+5. 画面が揃った段階で、日本語フォントがある環境または Playwright 環境で PC/SP のデザインリファインを行う。

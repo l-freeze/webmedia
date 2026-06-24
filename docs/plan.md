@@ -11,13 +11,11 @@
 
 ## 現在の優先順
 
-1. `docs/feature_inventory.md` の「一部完了」「要検証」を実画面で確認する。
-2. Front / CMS の主要画面をブラウザで確認する。
-3. 記事作成・編集・プレビュー・履歴復元、カテゴリ、タグ、検索、問い合わせの実動作を確認する。
-4. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
-5. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を追加する。
-6. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
-7. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
+1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
+2. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を追加する。
+3. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
+4. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
+5. CMS / Front の PC/SP 表示を、日本語フォントがある環境または Playwright 環境で再確認する。
 
 ## 完了済みの大枠
 
@@ -30,6 +28,8 @@
 - Audit / SecurityLog の初期実装。
 - Architecture Test の初期実装。
 - scaffold-app template 整備。
+- 主要 Front / CMS 画面の HTTP 確認。
+- 記事作成・編集・プレビュー・履歴復元、カテゴリ、タグ、問い合わせ送信の HTTP 経由確認。
 
 ## 公開前に必ず確認すること
 
