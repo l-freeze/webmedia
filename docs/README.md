@@ -1,4 +1,6 @@
 # 各資料について
+- 機能棚卸しと次の優先候補について
+  - ./docs/feature_inventory.mdを参照する事
 - 技術スタックについて
   - ./docs/webmedia_technical_stack.mdを参照する事
 - アーキテクチャーについて
@@ -20,3 +22,9 @@
 - デザインについて
   - ./docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/README.mdを参照する事
   - 機能を実装するために必要な改変や、ベターなUI/UXのための改変であれば許可する
+
+## docs の扱い
+
+- 現行判断を確認する場合は `feature_inventory.md`、`current_status.md`、`plan.md`、`webmedia_architecture_rules.md` を優先する。
+- `review.md`、`refactoring.md`、`knowledge.md`、`if_story_*.md` は判断履歴・参考資料であり、現在の作業指示としては扱わない。
+- docs 配下の重複や古い判断を見つけた場合は、削除より先に `feature_inventory.md` か該当する現行規約へ有効な内容を移してから整理する。

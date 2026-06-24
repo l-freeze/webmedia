@@ -2,9 +2,19 @@
 
 ## 更新日時
 
-- 2026-06-23
+- 2026-06-24
 
 ## 直近作業
+
+- 機能棚卸しと docs 整理を実施。
+  - `docs/feature_inventory.md` を追加し、CMS / Front / Shared / Framework の機能を「完了」「一部完了」「未実装」「要検証」で整理。
+  - docs について、一次資料、現行判断として有効な設計メモ、将来構想・参考資料、整理対象を分類。
+  - `docs/README.md` に `feature_inventory.md` を入口として追加し、`review.md` / `refactoring.md` / `knowledge.md` / `if_story_*.md` は参考資料として扱う方針を追記。
+  - `docs/plan.md` の次タスクを、認証・認可基盤から機能棚卸しに基づく要検証項目へ更新。
+  - Windows の ZoneTransfer メタ情報である `docs/webmedia_architecture_rules.md:Zone.Identifier` と `docs/webmedia_technical_stack.md:Zone.Identifier` を削除。
+- 次回再開地点。
+  - `docs/feature_inventory.md` の「次にやるとよい順番」に従い、まず主要画面のブラウザ確認と更新系操作確認を進める。
+  - 未追跡の `docs/php85-optimize.md` はユーザー作業の可能性があるため触っていない。
 
 - 銀行業務を含む Port 用途パターンを追加。
   - `docs/application_ports.md` の外部能力一覧に、銀行の口座照会、残高拘束、振込、勘定系記帳、AML / CFT、制裁リスト、不正検知、営業日 / カットオフ判定、取引証跡を追記。
