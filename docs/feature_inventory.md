@@ -85,27 +85,12 @@
 | `docs/webmedia_ui_requirements_final_markdown/*.md` | UI 要件の一次資料として維持 |
 | `docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/` | 初期デザイン参照。実装後も比較・目視確認用として維持 |
 
-### 現行判断として有効な設計メモ
+### 現行判断として残す設計資料
 
 | 文書 | 扱い |
 |---|---|
 | `docs/application_ports.md` | Port 判断基準。現行規約として維持 |
-| `docs/audit_middleware.md` | Audit middleware の設計詳細。実装済みだが Business Audit 判断に使うため維持 |
-| `docs/middleware_boundary_review.md` | middleware 境界の保留判断。現行規約の補助として維持 |
-| `docs/policy_implementation_plan.md` | 認可・Policy の履歴と残論点。実装済み部分は多いが、template helper など残作業があるため維持 |
-| `docs/view-compiled-cached.md` | view compile cache 方針。運用判断用として維持 |
-| `docs/layout_global_provider_refactoring.md` | 複雑化時の改善条件が明確なため維持 |
-
-### 将来構想・参考資料
-
-| 文書 | 扱い |
-|---|---|
-| `docs/authorization_workflow_extension.md` | 承認ワークフローの将来構想。現行認可は `policy_implementation_plan.md` を優先 |
-| `docs/if_story_api.md` | Front API 化の将来構想。現時点では実装計画ではない |
-| `docs/if_story_replace.md` | Node.js / TypeScript リプレイスの検討メモ。現時点では実装計画ではない |
-| `docs/knowledge.md` | 学習・用語メモ。規約ではなく参考資料 |
-| `docs/review.md` | 2026-06-06 時点の評価ログ。現状とずれがあるため、次の作業判断はこの棚卸しを優先 |
-| `docs/refactoring.md` | 過去のリファクタリング判断ログ。未完了候補はこの棚卸しと `plan.md` へ移してから実行 |
+| `docs/webmedia_architecture_rules.md` | 依存方向、配置、命名、middleware 境界の現行規約として維持 |
 
 ### 整理対象
 

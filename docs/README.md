@@ -1,30 +1,25 @@
-# 各資料について
-- 機能棚卸しと次の優先候補について
-  - ./docs/feature_inventory.mdを参照する事
-- 技術スタックについて
-  - ./docs/webmedia_technical_stack.mdを参照する事
-- アーキテクチャーについて
-  - `front` / `cms` をアプリケーション単位で分離する
-  - Application は `<対象>/<ユースケース>` 配下に `Input` / `Interactor` / `Output` を置く
-  - Query interface は各ユースケース配下、Repository interface は Domain 配下に置く
-  - Front の HTTP Controller や SEO meta は Presentation 層に置く
-  - 詳細は ./docs/webmedia_architecture_rules.md を参照する事
-  - Application Port の判断基準は ./docs/application_ports.md を参照する事
-- 監査ログミドルウェアについて
-  - ./docs/audit_middleware.mdを参照する事
-- middleware 境界の見直し論点について
-  - ./docs/middleware_boundary_review.mdを参照する事
-- 要件について
-  - ユーザーフロントについて
-    - ./docs/webmedia_ui_requirements_final_markdown/webmedia_front_ui_requirements_final.mdを参照する事
-  - CMSについて
-    - ./docs/webmedia_ui_requirements_final_markdown/webmedia_cms_ui_requirements_final.mdを参照する事
-- デザインについて
-  - ./docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/README.mdを参照する事
-  - 機能を実装するために必要な改変や、ベターなUI/UXのための改変であれば許可する
+# docs
 
-## docs の扱い
+作業開始時は、まず以下を確認する。
 
-- 現行判断を確認する場合は `feature_inventory.md`、`current_status.md`、`plan.md`、`webmedia_architecture_rules.md` を優先する。
-- `review.md`、`refactoring.md`、`knowledge.md`、`if_story_*.md` は判断履歴・参考資料であり、現在の作業指示としては扱わない。
-- docs 配下の重複や古い判断を見つけた場合は、削除より先に `feature_inventory.md` か該当する現行規約へ有効な内容を移してから整理する。
+1. `docs/current_status.md`
+2. `docs/plan.md`
+3. `docs/feature_inventory.md`
+4. `docs/webmedia_architecture_rules.md`
+
+## 主要資料
+
+- `docs/current_status.md`: 現在地、未完了、次回再開地点。
+- `docs/plan.md`: 直近の作業順序。
+- `docs/feature_inventory.md`: CMS / Front / Shared / Framework の機能棚卸し。
+- `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
+- `docs/application_ports.md`: Application Port の判断基準。
+- `docs/webmedia_technical_stack.md`: 技術スタック。
+- `docs/webmedia_ui_requirements_final_markdown/`: Front / CMS の UI 要件。
+- `docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/`: 初期デザイン参照。
+
+## 整理方針
+
+- 完了済みの実装計画、過去レビュー、学習メモ、将来構想だけの文書は残さない。
+- 現行判断として必要な内容は、規約なら `webmedia_architecture_rules.md`、作業判断なら `plan.md`、機能差分なら `feature_inventory.md` に寄せる。
+- docs を増やす前に、既存資料へ追記できないか確認する。
