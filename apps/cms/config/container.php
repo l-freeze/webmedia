@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Cms\Application\Article;
 use App\Cms\Application\ArticleVersion;
+use App\Cms\Application\Audit;
 use App\Cms\Application\Auth;
 use App\Cms\Application\Category;
 use App\Cms\Application\Dashboard;
@@ -46,6 +47,7 @@ use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
+use App\Cms\Infrastructure\Logging\JsonFileAuditLogQuery;
 use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
@@ -146,6 +148,7 @@ $container->bind(abstract: ArticleVersion\Preview\Query\IArticleVersionQuery::cl
 $container->bind(abstract: Article\History\Query\IArticleHistoryQuery::class, concrete: PdoArticleHistoryQuery::class);
 $container->bind(abstract: Dashboard\Show\Query\IDashboardQuery::class, concrete: PdoDashboardQuery::class);
 $container->bind(abstract: Inquiry\List\Query\IInquiryQuery::class, concrete: PdoInquiryQuery::class);
+$container->set(id: Audit\List\Query\IAuditLogQuery::class, factory: static fn (): JsonFileAuditLogQuery => new JsonFileAuditLogQuery($root . '/storage/logs/audit.log'));
 $container->bind(abstract: Media\List\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
 $container->bind(abstract: Article\Edit\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
 $container->bind(abstract: Page\List\Query\IPageQuery::class, concrete: PdoPageQuery::class);

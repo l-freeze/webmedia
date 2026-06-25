@@ -25,7 +25,7 @@
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存 | HTTP 経由で作成/編集確認済み。Business Audit は未実装 |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent | HTTP 経由で作成/編集確認済み |
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
@@ -37,7 +37,7 @@
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy` | template helper、Article 以外の UseCase-level authorization 拡張 |
-| Audit / SecurityLog | 一部完了 | HTTP 状態変更 Audit、認可/CSRF/login/logout SecurityLog | 業務イベントの Business Audit は未実装 |
+| Audit / SecurityLog | 完了 | HTTP 状態変更 Audit、記事/メディア/設定の業務 AuditEvent、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` | before / after の詳細差分が必要になったら対象 UseCase ごとに追加 |
 | PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 
 ## Front
@@ -66,7 +66,7 @@
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
 | Markdown / HTML sanitize | 完了 | Shared Markdown | UseCase 内で必要になったら contract 検討 |
-| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus | request id、例外ログ連携、Business Audit |
+| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧 | request id の運用、例外ログ連携、必要に応じた before / after 差分 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
 | Scaffold | 完了 | scaffold tests | fullpack template は将来候補 |
@@ -103,8 +103,7 @@
 
 ## 次にやるとよい順番
 
-1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
-2. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を実装する。
-3. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
-4. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
-5. 画面が揃った段階で、日本語フォントがある環境または Playwright 環境で PC/SP のデザインリファインを行う。
+1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
+2. 問い合わせフォームの最低限の rate limit / spam 対策 / プライバシー同意文言を実装する。
+3. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
+4. 画面が揃った段階で、日本語フォントがある環境または Playwright 環境で PC/SP のデザインリファインを行う。

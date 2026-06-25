@@ -104,13 +104,16 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 Audit、SecurityLog、HTTP access log は分ける。
 
-CMS の状態変更 HTTP request は `CmsAuditMiddleware` で HTTP envelope として記録する。業務上の before / after や resource id が必要なものは、UseCase / Controller から Business Audit として明示する。
+CMS の状態変更 HTTP request は `CmsAuditMiddleware` で HTTP envelope として記録する。業務上の before / after や resource id が必要なものは、UseCase / Controller から業務イベントとして明示する。
+
+BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に集約する。区別は `action`、`resource_type`、`metadata` で表現する。
 
 ### 理由
 
 - HTTP request と業務操作は一対一とは限らない。
 - middleware は path と status code しか正確に知らない。
 - 記事保存、復元、メディア削除、設定更新などは、業務イベントとして明示した方が後から説明しやすい。
+- HTTP envelope と業務イベントはどちらも監査証跡であり、保存先や閲覧 UI を分けるほどの運用要件は現時点ではない。
 
 ### 採用しないこと
 
@@ -119,6 +122,25 @@ CMS の状態変更 HTTP request は `CmsAuditMiddleware` で HTTP envelope と�
 - request body 全体、password、CSRF token、cookie、session id を保存しない。
 - middleware が path や body から resource id、before / after を推測しない。
 - `NullAuditLogger` を標準にしない。未設定を黙って捨てると検知できない。
+- `BusinessAuditLogger` のような別 logger を作らない。必要になるまでは `AuditEvent` に集約する。
+
+## 公開前仕様
+
+### 判断
+
+`robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom は場当たり的に実装しない。公開前必須に近いが、先に仕様を決めてから着手する。
+
+問い合わせフォームは当面積極運用しない。ただし外部入力口であるため、運用を開始しない場合でも最低限の rate limit / spam 対策 / 個人情報取得説明は残す。
+
+### 理由
+
+- SEO / SNS / 配信系は一度公開すると外部 crawler や reader に観測されるため、後から雑に変えると挙動が読みにくい。
+- 問い合わせフォームは小規模でも spam と個人情報取得の入口になる。
+
+### 採用しないこと
+
+- 仕様未確定のまま OGP / sitemap / feed を仮実装しない。
+- 問い合わせフォームを運用しないことを理由に、防御を完全に省略しない。
 
 ## Application Port
 

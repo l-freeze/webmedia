@@ -30,6 +30,7 @@ final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
             PermissionCode::MEDIA_UPLOAD,
             PermissionCode::MEDIA_DELETE,
             PermissionCode::INQUIRY_READ,
+            PermissionCode::AUDIT_VIEW,
             PermissionCode::SETTING_UPDATE,
             PermissionCode::TRASH_VIEW,
         ],

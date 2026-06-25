@@ -23,6 +23,7 @@ final class PermissionCode
     public const MEDIA_UPLOAD = 'media.upload';
     public const MEDIA_DELETE = 'media.delete';
     public const INQUIRY_READ = 'inquiry.read';
+    public const AUDIT_VIEW = 'audit.view';
     public const SETTING_UPDATE = 'setting.update';
     public const TRASH_VIEW = 'trash.view';
 
@@ -49,6 +50,7 @@ final class PermissionCode
             self::MEDIA_UPLOAD,
             self::MEDIA_DELETE,
             self::INQUIRY_READ,
+            self::AUDIT_VIEW,
             self::SETTING_UPDATE,
             self::TRASH_VIEW,
         ];

@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-06-25
+- 2026-06-26
 
 ## 現在地
 
@@ -36,13 +36,16 @@
   - カテゴリ / タグの作成、更新、削除を HTTP 経由で確認。
   - 検証用データは削除済み。
 - CMS 記事編集画面で `sr-only` radio input に共通 `w-full` が当たり横スクロールが出ていたため、CMS layout の Presentation 側で修正。
+- BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に業務イベントを集約する方針にした。
+- `/admin/audit-logs` を追加し、`storage/logs/audit.log` を CMS から確認できるようにした。
+- 記事作成・更新・削除・復元、メディア削除、設定更新の成功時に業務 AuditEvent を記録するようにした。
+- `article.created` / `article.trashed` は HTTP 経由で記録と表示を確認済み。検証用記事は削除済み。
 
 ## 次回再開地点
 
-1. `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の方針を決める。
-2. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言 / 管理者通知を追加する。
-3. CMS の Business Audit を記事保存・削除・復元、メディア削除、設定更新から追加する。
-4. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
+1. `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的な仮実装はしない。
+2. 問い合わせフォームの最低限の rate limit / spam 対策 / プライバシー同意文言を追加する。
+3. 固定ページ履歴 / 復元、問い合わせ詳細 / 対応状態など、CMS 運用で不足する機能を追加する。
 
 ## 注意点
 

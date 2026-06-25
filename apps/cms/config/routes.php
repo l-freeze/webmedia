@@ -12,6 +12,7 @@ use App\Cms\Presentation\Http\Controller\Article\Restore\Controller as ArticleRe
 use App\Cms\Presentation\Http\Controller\Article\Store\Controller as ArticleStoreController;
 use App\Cms\Presentation\Http\Controller\Article\Update\Controller as ArticleUpdateController;
 use App\Cms\Presentation\Http\Controller\Article\VersionPreview\Controller as ArticleVersionPreviewController;
+use App\Cms\Presentation\Http\Controller\Audit\List\Controller as AuditListController;
 use App\Cms\Presentation\Http\Controller\Auth\Login\Controller as LoginController;
 use App\Cms\Presentation\Http\Controller\Auth\LoginForm\Controller as LoginFormController;
 use App\Cms\Presentation\Http\Controller\Auth\Logout\Controller as LogoutController;
@@ -86,6 +87,7 @@ $routes = [
     ['POST', '/admin/media', MediaStoreController::class, ['requires_permission' => PermissionCode::MEDIA_UPLOAD]],
     ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => PermissionCode::MEDIA_DELETE]],
     ['GET', '/admin/inquiries', InquiryListController::class],
+    ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],
     ['GET', '/admin/trash', TrashListController::class],
