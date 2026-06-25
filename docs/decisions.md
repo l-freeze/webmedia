@@ -108,12 +108,16 @@ CMS の状態変更 HTTP request は `CmsAuditMiddleware` で HTTP envelope と�
 
 BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に集約する。区別は `action`、`resource_type`、`metadata` で表現する。
 
+監査ログは「操作名だけ」では不足する。後から説明・調査できるように、重要な更新系では対象 ID、結果、変更された項目、主要項目の before / after 要約を残す。ただし本文全文、問い合わせ本文、password、CSRF token、cookie、session id、過度な個人情報は残さない。
+
 ### 理由
 
 - HTTP request と業務操作は一対一とは限らない。
 - middleware は path と status code しか正確に知らない。
 - 記事保存、復元、メディア削除、設定更新などは、業務イベントとして明示した方が後から説明しやすい。
 - HTTP envelope と業務イベントはどちらも監査証跡であり、保存先や閲覧 UI を分けるほどの運用要件は現時点ではない。
+- OWASP Logging Cheat Sheet は、ログの目的に合わせて十分な情報を残し、when / where / who / what、action、object、result などを記録する考え方を示している。一方で sensitive personal data や secrets は除外・mask・sanitize するべきとしている。
+- NIST SP 800-92 は、ログ管理の policy / process / infrastructure を整えることを重視している。つまり粒度は実装都合ではなく、後から何を検証したいかで決める。
 
 ### 採用しないこと
 
@@ -123,6 +127,15 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - middleware が path や body から resource id、before / after を推測しない。
 - `NullAuditLogger` を標準にしない。未設定を黙って捨てると検知できない。
 - `BusinessAuditLogger` のような別 logger を作らない。必要になるまでは `AuditEvent` に集約する。
+- 変更内容を知るために request body 全体を保存しない。対象 UseCase ごとに必要な項目だけを要約する。
+
+### 次に追加する粒度
+
+- 記事更新: `title`、`slug`、`status`、`category_id`、公開日時、SEO 項目などの before / after。本文は全文ではなく hash、文字数、変更有無に留める。
+- 記事作成 / 削除 / 復元: 対象 ID、title、slug、status、復元元 version。
+- 設定更新: 変更された setting key と before / after。秘密値が出る設定が増えたら mask 対象にする。
+- メディア削除: 対象 ID、file_name、path、mime_type。
+- 問い合わせ閲覧や export を追加する場合: 個人情報アクセスとして Audit 対象にする。問い合わせ本文は Audit に複製しない。
 
 ## 公開前仕様
 

@@ -23,10 +23,13 @@ final readonly class Interactor
             'message' => $input->message,
         ])))
             ->required(field: 'name', label: '名前')
+            ->maxLength(field: 'name', label: '名前', max: 16)
             ->required(field: 'email', label: 'メールアドレス')
             ->email(field: 'email', label: 'メールアドレス')
             ->required(field: 'subject', label: '件名')
+            ->maxLength(field: 'subject', label: '件名', max: 100)
             ->required(field: 'message', label: '内容')
+            ->maxLength(field: 'message', label: '内容', max: 1000)
             ->output();
 
         if (!$validation->isValid()) {

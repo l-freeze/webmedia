@@ -9,5 +9,7 @@ use App\Cms\Application\Inquiry\List\Value\Inquiry;
 interface IInquiryQuery
 {
     /** @return array<int, Inquiry> */
-    public function list(): array;
+    public function list(int $limit, int $offset): array;
+
+    public function count(): int;
 }

@@ -21,13 +21,19 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(input: new Input());
+        $output = $this->interactor->execute(input: new Input(page: (int) $request->queryInput(key: 'page', default: '1')));
 
-        return new Response(body: $this->renderer->render(template: 'simple-list.latte', params: [
+        return new Response(body: $this->renderer->render(template: 'inquiry/index.latte', params: [
             'title' => '問い合わせ管理',
-            'heading' => '問い合わせ管理',
-            'columns' => ['名前', 'メール', '件名', '状態', '受信日'],
-            'rows' => array_map(fn ($row): array => $row->toArray(), $output->rows),
+            'inquiries' => $output->rows,
+            'pagination' => [
+                'current_page' => $output->currentPage,
+                'per_page' => $output->perPage,
+                'total_items' => $output->totalItems,
+                'total_pages' => $output->totalPages,
+                'previous_page' => $output->previousPage(),
+                'next_page' => $output->nextPage(),
+            ],
         ]));
     }
 }

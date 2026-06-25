@@ -17,6 +17,7 @@ use App\Cms\Presentation\Http\Controller\Auth\Login\Controller as LoginControlle
 use App\Cms\Presentation\Http\Controller\Auth\LoginForm\Controller as LoginFormController;
 use App\Cms\Presentation\Http\Controller\Auth\Logout\Controller as LogoutController;
 use App\Cms\Presentation\Http\Controller\Dashboard\Show\Controller as DashboardShowController;
+use App\Cms\Presentation\Http\Controller\Inquiry\Detail\Controller as InquiryDetailController;
 use App\Cms\Presentation\Http\Controller\Inquiry\List\Controller as InquiryListController;
 use App\Cms\Presentation\Http\Controller\Media\Delete\Controller as MediaDeleteController;
 use App\Cms\Presentation\Http\Controller\Media\List\Controller as MediaListController;
@@ -87,6 +88,7 @@ $routes = [
     ['POST', '/admin/media', MediaStoreController::class, ['requires_permission' => PermissionCode::MEDIA_UPLOAD]],
     ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => PermissionCode::MEDIA_DELETE]],
     ['GET', '/admin/inquiries', InquiryListController::class],
+    ['GET', '/admin/inquiries/{id:\d+}', InquiryDetailController::class, ['requires_permission' => PermissionCode::INQUIRY_READ]],
     ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],

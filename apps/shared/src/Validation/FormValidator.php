@@ -32,6 +32,16 @@ final class FormValidator
         return $this;
     }
 
+    public function maxLength(string $field, string $label, int $max): self
+    {
+        $value = $this->input->string(field: $field);
+        if ($value !== '' && mb_strlen($value) > $max) {
+            $this->errors[] = new ValidationError(field: $field, message: "{$label}は{$max}文字以内で入力してください。");
+        }
+
+        return $this;
+    }
+
     public function output(): ValidationOutput
     {
         return new ValidationOutput(errors: $this->errors);

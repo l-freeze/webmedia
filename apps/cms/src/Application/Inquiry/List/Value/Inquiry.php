@@ -7,6 +7,7 @@ namespace App\Cms\Application\Inquiry\List\Value;
 final readonly class Inquiry
 {
     public function __construct(
+        public int $id,
         public string $name,
         public string $email,
         public string $subject,
@@ -18,6 +19,6 @@ final readonly class Inquiry
     /** @return array<int, string> */
     public function toArray(): array
     {
-        return [$this->name, $this->email, $this->subject, $this->status, $this->createdAt];
+        return [(string) $this->id, $this->name, $this->email, $this->subject, $this->status, $this->createdAt];
     }
 }
