@@ -11,6 +11,9 @@ use JsonException;
 
 final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
 {
+    private const MIN_OFFSET = 0;
+    private const MIN_LIMIT = 1;
+
     public function __construct(private string $path)
     {
     }
@@ -20,7 +23,7 @@ final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
     {
         $rows = $this->filteredRows(search: $search, sortDirection: $sortDirection);
 
-        return array_slice($rows, max(0, $offset), max(1, $limit));
+        return array_slice($rows, max(self::MIN_OFFSET, $offset), max(self::MIN_LIMIT, $limit));
     }
 
     public function count(AuditLogSearch $search): int

@@ -46,7 +46,7 @@ final readonly class CmsCsrfSecurityMiddleware implements MiddlewareInterface
                 ],
             ));
 
-            return new Response(body: 'Invalid CSRF token', status: 422);
+            return new Response(body: 'Invalid CSRF token', status: Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         return $handler->handle(request: $request);

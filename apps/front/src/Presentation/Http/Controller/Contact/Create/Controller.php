@@ -8,6 +8,7 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\View\TemplateRenderer;
+use App\Front\Application\Inquiry\Create\InquiryInputLimits;
 
 final readonly class Controller
 {
@@ -25,6 +26,17 @@ final readonly class Controller
             'csrf' => $this->csrf->token(),
             'error' => null,
             'old' => [],
+            'limits' => $this->limits(),
         ]));
+    }
+
+    /** @return array{name:int,subject:int,message:int} */
+    private function limits(): array
+    {
+        return [
+            'name' => InquiryInputLimits::NAME_MAX_LENGTH,
+            'subject' => InquiryInputLimits::SUBJECT_MAX_LENGTH,
+            'message' => InquiryInputLimits::MESSAGE_MAX_LENGTH,
+        ];
     }
 }

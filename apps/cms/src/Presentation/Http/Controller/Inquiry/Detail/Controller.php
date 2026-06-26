@@ -23,7 +23,7 @@ final readonly class Controller
     {
         $output = $this->interactor->execute(input: new Input(id: (int) ($vars['id'] ?? 0)));
         if ($output->inquiry === null) {
-            return new Response(body: 'Not Found', status: 404);
+            return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }
 
         return new Response(body: $this->renderer->render(template: 'inquiry/detail.latte', params: [

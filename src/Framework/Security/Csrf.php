@@ -6,6 +6,8 @@ namespace App\Framework\Security;
 
 final class Csrf
 {
+    private const TOKEN_RANDOM_BYTES = 32;
+
     public function __construct(private Session $session)
     {
     }
@@ -14,7 +16,7 @@ final class Csrf
     {
         $token = $this->session->get(key: '_csrf');
         if (!is_string($token)) {
-            $token = bin2hex(random_bytes(32));
+            $token = bin2hex(random_bytes(self::TOKEN_RANDOM_BYTES));
             $this->session->set(key: '_csrf', value: $token);
         }
 

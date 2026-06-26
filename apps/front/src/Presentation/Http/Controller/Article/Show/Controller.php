@@ -31,7 +31,7 @@ final readonly class Controller
                 'title' => '404',
                 'heading' => 'ページが見つかりません',
                 'message' => '指定された記事は見つかりませんでした。',
-            ]), status: 404);
+            ]), status: Response::HTTP_NOT_FOUND);
         }
 
         $article = $article->toArray();

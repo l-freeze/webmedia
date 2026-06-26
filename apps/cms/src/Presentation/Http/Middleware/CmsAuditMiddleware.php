@@ -44,14 +44,14 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
         try {
             $response = $handler->handle(request: $request);
         } catch (Throwable $exception) {
-            $this->record(request: $request, result: 'failure', statusCode: 500);
+            $this->record(request: $request, result: 'failure', statusCode: Response::HTTP_INTERNAL_SERVER_ERROR);
 
             throw $exception;
         }
 
         $this->record(
             request: $request,
-            result: $response->status >= 400 ? 'failure' : 'success',
+            result: $response->status >= Response::HTTP_BAD_REQUEST ? 'failure' : 'success',
             statusCode: $response->status,
         );
 

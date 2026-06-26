@@ -13,6 +13,9 @@ use PDO;
 
 final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, Article\Show\Query\IArticleQuery, Article\Search\Query\IArticleQuery
 {
+    private const RELATED_ARTICLES_LIMIT = 3;
+    private const GENERATED_EXCERPT_MAX_LENGTH = 120;
+
     public function __construct(private PDO $pdo, private Markdown $markdown)
     {
     }
@@ -75,7 +78,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
     public function related(int $articleId, ?int $categoryId): array
     {
         if ($categoryId === null) {
-            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id ORDER BY a.published_at DESC LIMIT 3');
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id ORDER BY a.published_at DESC LIMIT ' . self::RELATED_ARTICLES_LIMIT);
             PdoHelper::execute(statement: $stmt, params: ['id' => $articleId]);
             $articles = [];
             foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
@@ -85,7 +88,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
             return $articles;
         }
 
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT 3');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND a.id <> :id AND a.category_id = :category_id ORDER BY a.published_at DESC LIMIT ' . self::RELATED_ARTICLES_LIMIT);
         PdoHelper::execute(statement: $stmt, params: ['id' => $articleId, 'category_id' => $categoryId]);
         $articles = [];
         foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
@@ -195,6 +198,6 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
             return $excerpt;
         }
 
-        return mb_substr(strip_tags($row->string(key: 'body_markdown')), 0, 120);
+        return mb_substr(strip_tags($row->string(key: 'body_markdown')), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
     }
 }

@@ -36,7 +36,7 @@ final readonly class Controller
         try {
             $output = $this->save->execute(input: new Input(id: $id, data: $request->body, currentUser: $currentUser));
         } catch (AuthorizationException) {
-            return new Response(body: 'Forbidden', status: 403);
+            return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 
         if ($output->articleId === null) {

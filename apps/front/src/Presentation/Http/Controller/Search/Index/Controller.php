@@ -25,7 +25,7 @@ final readonly class Controller
                 'title' => '検索停止中',
                 'heading' => '検索機能は現在停止中です',
                 'message' => 'カテゴリ一覧またはタグ一覧から記事を探してください。',
-            ]), status: 404);
+            ]), status: Response::HTTP_NOT_FOUND);
         }
 
         $output = $this->interactor->execute(input: new Input(keyword: $request->input(key: 'q')));

@@ -25,7 +25,7 @@ final readonly class Controller
     {
         $article = $this->preview->execute(input: new Input(id: (int) $vars['id']))->article;
         if ($article === null) {
-            return new Response(body: 'Not Found', status: 404);
+            return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }
 
         return new Response(body: $this->renderer->render(template: 'article/preview.latte', params: [

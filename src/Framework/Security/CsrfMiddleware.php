@@ -30,7 +30,7 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
         }
 
         if (!$this->csrf->validate(token: $request->bodyInput(key: '_csrf'))) {
-            return new Response(body: 'Invalid CSRF token', status: 422);
+            return new Response(body: 'Invalid CSRF token', status: Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         return $handler->handle(request: $request);

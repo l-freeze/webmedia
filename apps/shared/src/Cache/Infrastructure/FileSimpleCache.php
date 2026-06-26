@@ -18,6 +18,10 @@ use const LOCK_EX;
 
 final readonly class FileSimpleCache implements CacheInterface
 {
+    private const MAX_KEY_LENGTH = 64;
+    private const HASH_DIRECTORY_PREFIX_LENGTH = 2;
+    private const DIRECTORY_PERMISSIONS = 0775;
+
     public function __construct(
         private string $directory,
     ) {
@@ -154,7 +158,7 @@ final readonly class FileSimpleCache implements CacheInterface
 
     private function assertValidKey(string $key): void
     {
-        if ($key === '' || strlen($key) > 64 || preg_match('/^[A-Za-z0-9_.]+$/', $key) !== 1) {
+        if ($key === '' || strlen($key) > self::MAX_KEY_LENGTH || preg_match('/^[A-Za-z0-9_.]+$/', $key) !== 1) {
             throw new InvalidCacheKeyException("Invalid cache key: {$key}");
         }
     }
@@ -163,7 +167,7 @@ final readonly class FileSimpleCache implements CacheInterface
     {
         $hash = hash('sha256', $key);
 
-        return $this->directory . DIRECTORY_SEPARATOR . substr($hash, 0, 2) . DIRECTORY_SEPARATOR . $hash . '.cache';
+        return $this->directory . DIRECTORY_SEPARATOR . substr($hash, 0, self::HASH_DIRECTORY_PREFIX_LENGTH) . DIRECTORY_SEPARATOR . $hash . '.cache';
     }
 
     private function ensureKeyDirectory(string $key): void
@@ -173,7 +177,7 @@ final readonly class FileSimpleCache implements CacheInterface
             return;
         }
 
-        if (!mkdir($directory, 0775, true) && !is_dir($directory)) {
+        if (!mkdir($directory, self::DIRECTORY_PERMISSIONS, true) && !is_dir($directory)) {
             throw new RuntimeException("Failed to create cache directory: {$directory}");
         }
     }

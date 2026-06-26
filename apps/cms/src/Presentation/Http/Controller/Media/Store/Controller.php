@@ -12,6 +12,8 @@ use App\Framework\Security\Session;
 
 final readonly class Controller
 {
+    private const BYTES_PER_KILOBYTE = 1024;
+
     public function __construct(
         private Session $session,
         private Interactor $upload,
@@ -65,9 +67,9 @@ final readonly class Controller
         $number = (float) $value;
 
         return (int) match ($unit) {
-            'g' => $number * 1024 * 1024 * 1024,
-            'm' => $number * 1024 * 1024,
-            'k' => $number * 1024,
+            'g' => $number * self::BYTES_PER_KILOBYTE * self::BYTES_PER_KILOBYTE * self::BYTES_PER_KILOBYTE,
+            'm' => $number * self::BYTES_PER_KILOBYTE * self::BYTES_PER_KILOBYTE,
+            'k' => $number * self::BYTES_PER_KILOBYTE,
             default => $number,
         };
     }

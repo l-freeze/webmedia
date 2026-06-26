@@ -42,7 +42,7 @@ final readonly class Controller
     }
 
     /** @param array<string, mixed>|null $formPage */
-    private function editForm(Edit\Output $output, string $action, ?array $formPage = null, ?string $error = null, int $status = 200): Response
+    private function editForm(Edit\Output $output, string $action, ?array $formPage = null, ?string $error = null, int $status = Response::HTTP_OK): Response
     {
         $page = $formPage ?? $output->page?->toArray();
         $pageIdValue = $page['id'] ?? null;

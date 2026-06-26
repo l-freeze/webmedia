@@ -11,6 +11,8 @@ use App\Framework\Http\Response;
 
 final readonly class CorsMiddleware implements MiddlewareInterface
 {
+    private const DEFAULT_PREFLIGHT_MAX_AGE_SECONDS = 600;
+
     /**
      * @param array<int, string> $allowedOrigins
      * @param array<int, string> $allowedMethods
@@ -21,7 +23,7 @@ final readonly class CorsMiddleware implements MiddlewareInterface
         private array $allowedMethods = ['GET', 'POST', 'OPTIONS'],
         private array $allowedHeaders = ['Content-Type', 'X-Requested-With'],
         private bool $allowCredentials = false,
-        private int $maxAge = 600,
+        private int $maxAge = self::DEFAULT_PREFLIGHT_MAX_AGE_SECONDS,
     ) {
     }
 
@@ -33,7 +35,7 @@ final readonly class CorsMiddleware implements MiddlewareInterface
         }
 
         $response = $this->isPreflight(request: $request)
-            ? new Response(body: '', status: 204, headers: ['Content-Type' => 'text/plain; charset=utf-8'])
+            ? new Response(body: '', status: Response::HTTP_NO_CONTENT, headers: ['Content-Type' => 'text/plain; charset=utf-8'])
             : $handler->handle(request: $request);
 
         $response = $response

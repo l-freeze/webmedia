@@ -19,7 +19,7 @@ final readonly class PlainTextExceptionHandler implements ExceptionHandlerInterf
     {
         return new Response(
             body: $this->message,
-            status: 500,
+            status: Response::HTTP_INTERNAL_SERVER_ERROR,
             headers: ['Content-Type' => 'text/plain; charset=utf-8'],
         );
     }

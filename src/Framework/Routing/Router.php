@@ -44,11 +44,11 @@ final class Router
         $result = $this->dispatcher()->dispatch($request->method, $request->path);
 
         if ($result[0] === Dispatcher::NOT_FOUND) {
-            return new Response(body: 'Not Found', status: 404);
+            return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }
 
         if ($result[0] === Dispatcher::METHOD_NOT_ALLOWED) {
-            return new Response(body: 'Method Not Allowed', status: 405);
+            return new Response(body: 'Method Not Allowed', status: Response::HTTP_METHOD_NOT_ALLOWED);
         }
 
         /** @var array{controller: class-string|array{0:class-string,1:string}, metadata: array<string, mixed>} $route */

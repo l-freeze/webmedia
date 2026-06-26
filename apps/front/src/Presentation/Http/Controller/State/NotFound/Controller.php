@@ -21,6 +21,6 @@ final readonly class Controller
             'title' => 'ページが見つかりません',
             'heading' => 'ページが見つかりません',
             'message' => 'URLを確認するか、トップページから記事を探してください。',
-        ]), status: 404);
+        ]), status: Response::HTTP_NOT_FOUND);
     }
 }

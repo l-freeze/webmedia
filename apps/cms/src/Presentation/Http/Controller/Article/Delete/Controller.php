@@ -35,7 +35,7 @@ final readonly class Controller
         try {
             $output = $this->delete->execute(input: new Input(id: (int) $vars['id'], currentUser: $currentUser));
         } catch (AuthorizationException) {
-            return new Response(body: 'Forbidden', status: 403);
+            return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 
         $this->session->flash(key: 'success', value: $output->deleted ? '記事をゴミ箱へ移動しました' : ($output->error ?? '記事を削除できませんでした'));

@@ -26,7 +26,7 @@ final readonly class Controller
     {
         $page = $this->interactor->execute(input: new Input(slug: $vars['slug'] ?? ''))->page;
         if ($page === null) {
-            return new Response(body: 'Not Found', status: 404);
+            return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }
         $page = $page->toArray();
         $slug = is_string($page['slug'] ?? null) ? $page['slug'] : '';

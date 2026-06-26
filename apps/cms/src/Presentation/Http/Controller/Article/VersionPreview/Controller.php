@@ -27,7 +27,7 @@ final readonly class Controller
             input: new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'])
         )->articleVersion;
         if ($articleVersion === null) {
-            return new Response(body: 'Not Found', status: 404);
+            return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }
 
         return new Response(body: $this->renderer->render(template: 'article/version-preview.latte', params: [

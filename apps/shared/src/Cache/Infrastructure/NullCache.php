@@ -9,6 +9,8 @@ use Psr\SimpleCache\CacheInterface;
 
 final readonly class NullCache implements CacheInterface
 {
+    private const MAX_KEY_LENGTH = 64;
+
     public function get(string $key, mixed $default = null): mixed
     {
         $this->assertValidKey(key: $key);
@@ -88,7 +90,7 @@ final readonly class NullCache implements CacheInterface
 
     private function assertValidKey(string $key): void
     {
-        if ($key === '' || strlen($key) > 64 || preg_match('/^[A-Za-z0-9_.]+$/', $key) !== 1) {
+        if ($key === '' || strlen($key) > self::MAX_KEY_LENGTH || preg_match('/^[A-Za-z0-9_.]+$/', $key) !== 1) {
             throw new InvalidCacheKeyException("Invalid cache key: {$key}");
         }
     }

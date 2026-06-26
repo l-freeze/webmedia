@@ -14,8 +14,15 @@ use Throwable;
 
 final readonly class PdoMediaRepository implements IMediaRepository
 {
-    private const MAX_IMAGE_SIZE = 20971520;
-    private const MAX_VIDEO_SIZE = 536870912;
+    private const BYTES_PER_MEGABYTE = 1048576;
+    private const IMAGE_MAX_MEGABYTES = 20;
+    private const VIDEO_MAX_MEGABYTES = 512;
+    private const MAX_IMAGE_SIZE = self::IMAGE_MAX_MEGABYTES * self::BYTES_PER_MEGABYTE;
+    private const MAX_VIDEO_SIZE = self::VIDEO_MAX_MEGABYTES * self::BYTES_PER_MEGABYTE;
+    private const UPLOAD_DIRECTORY_PERMISSIONS = 0775;
+    private const STORED_FILE_RANDOM_BYTES = 8;
+    private const PROJECT_ROOT_PARENT_DEPTH = 5;
+    private const ORIGINAL_FILE_NAME_MAX_LENGTH = 190;
 
     /** @var array<string, string> */
     private const EXTENSIONS = [
@@ -61,11 +68,11 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
         $publicDir = $this->publicUploadDir();
         if (!is_dir($publicDir)) {
-            mkdir($publicDir, 0775, true);
+            mkdir($publicDir, self::UPLOAD_DIRECTORY_PERMISSIONS, true);
         }
 
         $extension = self::EXTENSIONS[$mimeType];
-        $storedFileName = date('YmdHis') . '-' . bin2hex(random_bytes(8)) . '.' . $extension;
+        $storedFileName = date('YmdHis') . '-' . bin2hex(random_bytes(self::STORED_FILE_RANDOM_BYTES)) . '.' . $extension;
         $destination = $publicDir . '/' . $storedFileName;
 
         if (!$this->moveUploadedFile(tmpName: $tmpName, destination: $destination)) {
@@ -154,7 +161,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
     private function publicUploadDir(): string
     {
-        return dirname(__DIR__, 5) . '/public/uploads/media';
+        return dirname(__DIR__, self::PROJECT_ROOT_PARENT_DEPTH) . '/public/uploads/media';
     }
 
     private function moveUploadedFile(string $tmpName, string $destination): bool
@@ -171,7 +178,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
         $fileName = basename($fileName);
         $fileName = preg_replace('/[^\w.\-]+/u', '-', $fileName) ?: 'upload';
 
-        return mb_substr($fileName, 0, 190);
+        return mb_substr($fileName, 0, self::ORIGINAL_FILE_NAME_MAX_LENGTH);
     }
 
     private function clearEyecatchReferences(string $path): void

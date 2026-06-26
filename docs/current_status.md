@@ -52,6 +52,10 @@
 - 監査ログ管理:
   - `/admin/audit-logs` にページング UI、表示件数、日時昇順/降順ソート、日時/結果/操作/対象/ID/ユーザーの絞り込みを追加した。
   - 表示条件は Application の Query port へ検索条件として渡し、JSONL 実装側で絞り込み後に count / slice する形にした。
+- マジックナンバー整理:
+  - production PHP 内の HTTP status は `Response::HTTP_*` に寄せた。
+  - 問い合わせ文字数上限は Application の `InquiryInputLimits` に集約し、Front template へ渡す形にした。
+  - 抜粋長、関連記事件数、Audit 表示上限、フィルタ入力長、CSRF token bytes、cache key 長、upload サイズ、directory permission など、各 source に閉じる値は名前付き定数へ置き換えた。
 
 ## 次回再開地点
 

@@ -13,6 +13,10 @@ use App\Framework\View\TemplateRenderer;
 
 final readonly class Controller
 {
+    private const FILTER_VALUE_MAX_LENGTH = 120;
+    private const START_OF_DAY_TIME = 'T00:00:00';
+    private const END_OF_DAY_TIME = 'T23:59:59';
+
     public function __construct(
         private TemplateRenderer $renderer,
         private Interactor $interactor,
@@ -31,7 +35,7 @@ final readonly class Controller
             'resource_id' => $this->queryValue(request: $request, key: 'resource_id'),
             'actor_user_id' => $this->queryValue(request: $request, key: 'actor_user_id'),
         ];
-        $limit = (int) $request->queryInput(key: 'limit', default: '50');
+        $limit = (int) $request->queryInput(key: 'limit', default: (string) Input::DEFAULT_LIMIT);
         $page = (int) $request->queryInput(key: 'page', default: '1');
         $sort = $request->queryInput(key: 'sort', default: 'desc') === 'asc' ? 'asc' : 'desc';
 
@@ -84,7 +88,7 @@ final readonly class Controller
 
     private function queryValue(Request $request, string $key): string
     {
-        return mb_substr(trim($request->queryInput(key: $key)), 0, 120);
+        return mb_substr(trim($request->queryInput(key: $key)), 0, self::FILTER_VALUE_MAX_LENGTH);
     }
 
     private function dateBoundary(string $value, bool $endOfDay): string
@@ -93,6 +97,6 @@ final readonly class Controller
             return '';
         }
 
-        return $value . ($endOfDay ? 'T23:59:59' : 'T00:00:00');
+        return $value . ($endOfDay ? self::END_OF_DAY_TIME : self::START_OF_DAY_TIME);
     }
 }

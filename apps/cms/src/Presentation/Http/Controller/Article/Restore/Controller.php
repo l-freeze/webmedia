@@ -33,7 +33,7 @@ final readonly class Controller
         try {
             $this->restore->execute(input: new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
         } catch (AuthorizationException) {
-            return new Response(body: 'Forbidden', status: 403);
+            return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 
         $this->events->dispatch(event: new AuditEvent(

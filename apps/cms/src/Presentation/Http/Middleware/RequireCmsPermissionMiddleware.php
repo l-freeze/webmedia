@@ -52,7 +52,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
                 actorRole: $user->role,
             ));
 
-            return new Response(body: 'Forbidden', status: 403);
+            return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 
         return $handler->handle(request: $request);

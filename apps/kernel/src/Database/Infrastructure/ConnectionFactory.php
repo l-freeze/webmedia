@@ -8,11 +8,13 @@ use PDO;
 
 final class ConnectionFactory
 {
+    private const DEFAULT_PORT = '5432';
+
     public function create(): PDO
     {
         $dsn = getenv('DB_DSN');
         $host = getenv('DB_HOST') ?: 'db';
-        $port = getenv('DB_PORT') ?: '5432';
+        $port = getenv('DB_PORT') ?: self::DEFAULT_PORT;
         $database = getenv('DB_DATABASE') ?: 'webmedia';
         $username = getenv('DB_USERNAME') ?: 'webmedia';
         $password = getenv('DB_PASSWORD') ?: 'webmedia';

@@ -9,6 +9,8 @@ use RuntimeException;
 
 final readonly class JsonLineFileWriter
 {
+    private const LOG_DIRECTORY_PERMISSIONS = 0775;
+
     public function __construct(
         private string $path,
     ) {
@@ -18,7 +20,7 @@ final readonly class JsonLineFileWriter
     public function write(array $record): void
     {
         $directory = dirname($this->path);
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+        if (!is_dir($directory) && !mkdir($directory, self::LOG_DIRECTORY_PERMISSIONS, true) && !is_dir($directory)) {
             throw new RuntimeException("Cannot create log directory: {$directory}");
         }
 

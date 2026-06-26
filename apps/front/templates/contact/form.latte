@@ -5,10 +5,10 @@
   {if isset($error)}<p class="error">{$error}</p>{/if}
   <form class="form-stack" method="post" action="/contact">
     <input type="hidden" name="_csrf" value="{$csrf}">
-    <label>名前<input name="name" value="{$old['name'] ?? ''}" maxlength="16" required></label>
+    <label>名前<input name="name" value="{$old['name'] ?? ''}" maxlength="{$limits['name']}" required></label>
     <label>メールアドレス<input type="email" name="email" value="{$old['email'] ?? ''}" required></label>
-    <label>件名<input name="subject" value="{$old['subject'] ?? ''}" maxlength="100" required></label>
-    <label>内容<textarea name="message" maxlength="1000" required>{$old['message'] ?? ''}</textarea></label>
+    <label>件名<input name="subject" value="{$old['subject'] ?? ''}" maxlength="{$limits['subject']}" required></label>
+    <label>内容<textarea name="message" maxlength="{$limits['message']}" required>{$old['message'] ?? ''}</textarea></label>
     <button type="submit">送信する</button>
   </form>
 </section>

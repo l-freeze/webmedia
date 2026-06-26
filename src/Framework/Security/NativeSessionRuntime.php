@@ -6,6 +6,8 @@ namespace App\Framework\Security;
 
 final class NativeSessionRuntime
 {
+    private const EXPIRED_COOKIE_OFFSET_SECONDS = 42000;
+
     public function __construct(
         private readonly string $cookieSameSite = 'Lax',
         private readonly bool $forceSecureCookie = false,
@@ -90,7 +92,7 @@ final class NativeSessionRuntime
         $name = session_name();
         if ($name !== false) {
             setcookie($name, '', [
-                'expires' => time() - 42000,
+                'expires' => time() - self::EXPIRED_COOKIE_OFFSET_SECONDS,
                 'path' => $params['path'],
                 'domain' => $params['domain'],
                 'secure' => $params['secure'],

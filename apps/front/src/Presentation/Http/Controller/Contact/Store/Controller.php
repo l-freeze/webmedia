@@ -9,6 +9,7 @@ use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Inquiry\Create\Input;
+use App\Front\Application\Inquiry\Create\InquiryInputLimits;
 use App\Front\Application\Inquiry\Create\Interactor;
 
 final readonly class Controller
@@ -44,6 +45,17 @@ final readonly class Controller
             'csrf' => $this->csrf->token(),
             'error' => $error,
             'old' => $old,
-        ]), status: $error === null ? 200 : 422);
+            'limits' => $this->limits(),
+        ]), status: $error === null ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /** @return array{name:int,subject:int,message:int} */
+    private function limits(): array
+    {
+        return [
+            'name' => InquiryInputLimits::NAME_MAX_LENGTH,
+            'subject' => InquiryInputLimits::SUBJECT_MAX_LENGTH,
+            'message' => InquiryInputLimits::MESSAGE_MAX_LENGTH,
+        ];
     }
 }

@@ -79,6 +79,6 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'auth/login.latte', params: [
             'csrf' => $this->csrf->token(),
             'error' => $error,
-        ]), status: 422);
+        ]), status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }
