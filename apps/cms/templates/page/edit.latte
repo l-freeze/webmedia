@@ -36,8 +36,16 @@
       <ol class="grid list-decimal gap-3 pl-5">
         {foreach $versions as $version}
           <li class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
-            <span>{$version['created_at']}</span>
-            <span class="text-sm text-slate-500">版 {$version['version_no']}</span>
+            <div class="grid gap-2">
+              <div>
+                <span>{$version['created_at']}</span>
+                <span class="text-sm text-slate-500">版 {$version['version_no']}</span>
+              </div>
+              <form class="m-0" method="post" action="/admin/pages/{$page['id']}/restore/{$version['version_no']}">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700" data-confirm="この版へ復元しますか？">復元</button>
+              </form>
+            </div>
           </li>
         {/foreach}
       </ol>

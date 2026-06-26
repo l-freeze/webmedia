@@ -19,12 +19,14 @@ use App\Cms\Presentation\Http\Controller\Auth\Logout\Controller as LogoutControl
 use App\Cms\Presentation\Http\Controller\Dashboard\Show\Controller as DashboardShowController;
 use App\Cms\Presentation\Http\Controller\Inquiry\Detail\Controller as InquiryDetailController;
 use App\Cms\Presentation\Http\Controller\Inquiry\List\Controller as InquiryListController;
+use App\Cms\Presentation\Http\Controller\Inquiry\Update\Controller as InquiryUpdateController;
 use App\Cms\Presentation\Http\Controller\Media\Delete\Controller as MediaDeleteController;
 use App\Cms\Presentation\Http\Controller\Media\List\Controller as MediaListController;
 use App\Cms\Presentation\Http\Controller\Media\Store\Controller as MediaStoreController;
 use App\Cms\Presentation\Http\Controller\Page\Create\Controller as PageCreateController;
 use App\Cms\Presentation\Http\Controller\Page\Edit\Controller as PageEditController;
 use App\Cms\Presentation\Http\Controller\Page\List\Controller as PageListController;
+use App\Cms\Presentation\Http\Controller\Page\Restore\Controller as PageRestoreController;
 use App\Cms\Presentation\Http\Controller\Page\Store\Controller as PageStoreController;
 use App\Cms\Presentation\Http\Controller\Page\Update\Controller as PageUpdateController;
 use App\Cms\Presentation\Http\Controller\Setting\Edit\Controller as SettingEditController;
@@ -76,6 +78,7 @@ $routes = [
     ['GET', '/admin/pages/{id:\d+}', PageEditController::class],
     ['POST', '/admin/pages', PageStoreController::class, ['requires_permission' => PermissionCode::PAGE_CREATE]],
     ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class, ['requires_permission' => PermissionCode::PAGE_UPDATE]],
+    ['POST', '/admin/pages/{id:\d+}/restore/{version:\d+}', PageRestoreController::class, ['requires_permission' => PermissionCode::PAGE_UPDATE]],
     ['GET', '/admin/categories', CategoryListController::class],
     ['POST', '/admin/categories', CategoryStoreController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
     ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
@@ -89,6 +92,7 @@ $routes = [
     ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => PermissionCode::MEDIA_DELETE]],
     ['GET', '/admin/inquiries', InquiryListController::class],
     ['GET', '/admin/inquiries/{id:\d+}', InquiryDetailController::class, ['requires_permission' => PermissionCode::INQUIRY_READ]],
+    ['POST', '/admin/inquiries/{id:\d+}', InquiryUpdateController::class, ['requires_permission' => PermissionCode::INQUIRY_UPDATE]],
     ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],

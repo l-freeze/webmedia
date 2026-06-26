@@ -12,6 +12,7 @@ final readonly class Inquiry
         public string $email,
         public string $subject,
         public string $status,
+        public string $statusLabel,
         public string $createdAt,
     ) {
     }
@@ -19,6 +20,6 @@ final readonly class Inquiry
     /** @return array<int, string> */
     public function toArray(): array
     {
-        return [(string) $this->id, $this->name, $this->email, $this->subject, $this->status, $this->createdAt];
+        return [(string) $this->id, $this->name, $this->email, $this->subject, $this->statusLabel, $this->createdAt];
     }
 }

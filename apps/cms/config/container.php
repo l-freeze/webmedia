@@ -32,6 +32,7 @@ use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoCurrentCmsUserQuery;
 use App\Cms\Infrastructure\Persistence\PdoDashboardQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryQuery;
+use App\Cms\Infrastructure\Persistence\PdoInquiryRepository;
 use App\Cms\Infrastructure\Persistence\PdoMediaQuery;
 use App\Cms\Infrastructure\Persistence\PdoMediaRepository;
 use App\Cms\Infrastructure\Persistence\PdoPageEditQuery;
@@ -149,6 +150,7 @@ $container->bind(abstract: Article\History\Query\IArticleHistoryQuery::class, co
 $container->bind(abstract: Dashboard\Show\Query\IDashboardQuery::class, concrete: PdoDashboardQuery::class);
 $container->bind(abstract: Inquiry\List\Query\IInquiryQuery::class, concrete: PdoInquiryQuery::class);
 $container->bind(abstract: Inquiry\Detail\Query\IInquiryQuery::class, concrete: PdoInquiryQuery::class);
+$container->bind(abstract: Inquiry\Update\Repository\IInquiryRepository::class, concrete: PdoInquiryRepository::class);
 $container->set(id: Audit\List\Query\IAuditLogQuery::class, factory: static fn (): JsonFileAuditLogQuery => new JsonFileAuditLogQuery($root . '/storage/logs/audit.log'));
 $container->bind(abstract: Media\List\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
 $container->bind(abstract: Article\Edit\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);

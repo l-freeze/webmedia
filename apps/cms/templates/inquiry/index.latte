@@ -13,7 +13,7 @@
         <td><a class="font-bold text-blue-600 hover:text-blue-700" href="/admin/inquiries/{$inquiry->id}">{$inquiry->subject}</a></td>
         <td>{$inquiry->name}</td>
         <td><a class="text-blue-600 hover:text-blue-700" href="mailto:{$inquiry->email}">{$inquiry->email}</a></td>
-        <td><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$inquiry->status}</span></td>
+        <td><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$inquiry->statusLabel}</span></td>
         <td>{$inquiry->createdAt}</td>
         <td>
           <div class="flex flex-wrap items-center gap-2">

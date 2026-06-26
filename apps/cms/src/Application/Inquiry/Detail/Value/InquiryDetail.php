@@ -13,6 +13,7 @@ final readonly class InquiryDetail
         public string $subject,
         public string $message,
         public string $status,
+        public string $statusLabel,
         public string $adminNote,
         public string $createdAt,
         public string $updatedAt,

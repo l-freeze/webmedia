@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Value\PageId;
+use App\Cms\Domain\Value\PageVersionNo;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -45,6 +46,26 @@ final readonly class PdoPageRepository implements IPageRepository
         PdoHelper::execute(statement: $stmt, params: $params);
 
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
+    }
+
+    public function restore(PageId $pageId, PageVersionNo $versionNo): void
+    {
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT * FROM page_versions WHERE page_id = :id AND version_no = :version_no');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $pageId->value, 'version_no' => $versionNo->value]);
+        $version = PdoHelper::fetch(statement: $stmt);
+        if ($version === null) {
+            return;
+        }
+
+        $this->save(page: Page::fromInput(id: $pageId->value, data: [
+            'title' => $version['title'],
+            'slug' => $version['slug'],
+            'body_markdown' => $version['body_markdown'],
+            'status' => $version['status'],
+            'display_order' => $version['display_order'],
+            'seo_title' => $version['seo_title'] ?? '',
+            'meta_description' => $version['meta_description'] ?? '',
+        ]));
     }
 
     private function saveWithinTransaction(Page $page): PageId

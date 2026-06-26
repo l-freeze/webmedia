@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Inquiry\Detail;
 use App\Cms\Application\Inquiry\List\Query\IInquiryQuery;
 use App\Cms\Application\Inquiry\List\Value\Inquiry;
+use App\Cms\Application\Inquiry\Value\InquiryStatus;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -35,6 +36,7 @@ final readonly class PdoInquiryQuery implements IInquiryQuery, Detail\Query\IInq
                 email: $pdoRow->string(key: 'email'),
                 subject: $pdoRow->string(key: 'subject'),
                 status: $pdoRow->string(key: 'status'),
+                statusLabel: InquiryStatus::label(status: $pdoRow->string(key: 'status')),
                 createdAt: $pdoRow->string(key: 'created_at'),
             );
         }
@@ -67,6 +69,7 @@ final readonly class PdoInquiryQuery implements IInquiryQuery, Detail\Query\IInq
             subject: $pdoRow->string(key: 'subject'),
             message: $pdoRow->string(key: 'message'),
             status: $pdoRow->string(key: 'status'),
+            statusLabel: InquiryStatus::label(status: $pdoRow->string(key: 'status')),
             adminNote: $pdoRow->string(key: 'admin_note'),
             createdAt: $pdoRow->string(key: 'created_at'),
             updatedAt: $pdoRow->string(key: 'updated_at'),
