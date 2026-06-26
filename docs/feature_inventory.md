@@ -37,7 +37,7 @@
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy` | template helper、Article 以外の UseCase-level authorization 拡張 |
-| Audit / SecurityLog | 完了 | HTTP 状態変更 Audit、記事/メディア/設定の業務 AuditEvent、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` | before / after の詳細差分が必要になったら対象 UseCase ごとに追加 |
+| Audit / SecurityLog | 一部完了 | HTTP 状態変更 Audit、記事/メディア/設定の業務 AuditEvent、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` のページング/日時ソート/絞り込み | 記事/設定/メディアの before / after 要約 |
 | PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 
 ## Front
@@ -66,7 +66,7 @@
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
 | Markdown / HTML sanitize | 完了 | Shared Markdown | UseCase 内で必要になったら contract 検討 |
-| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧 | request id の運用、例外ログ連携、記事/設定/メディアの before / after 要約 |
+| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み | request id の運用、例外ログ連携、記事/設定/メディアの before / after 要約 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
 | Scaffold | 完了 | scaffold tests | fullpack template は将来候補 |

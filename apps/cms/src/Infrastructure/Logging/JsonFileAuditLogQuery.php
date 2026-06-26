@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Logging;
 
 use App\Cms\Application\Audit\List\Query\IAuditLogQuery;
 use App\Cms\Application\Audit\List\Value\AuditLog;
+use App\Cms\Application\Audit\List\Value\AuditLogSearch;
 use JsonException;
 
 final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
@@ -15,7 +16,20 @@ final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
     }
 
     /** @return list<AuditLog> */
-    public function list(int $limit): array
+    public function list(AuditLogSearch $search, int $limit, int $offset, string $sortDirection): array
+    {
+        $rows = $this->filteredRows(search: $search, sortDirection: $sortDirection);
+
+        return array_slice($rows, max(0, $offset), max(1, $limit));
+    }
+
+    public function count(AuditLogSearch $search): int
+    {
+        return count($this->filteredRows(search: $search, sortDirection: 'desc'));
+    }
+
+    /** @return list<AuditLog> */
+    private function filteredRows(AuditLogSearch $search, string $sortDirection): array
     {
         if (!is_file($this->path)) {
             return [];
@@ -27,17 +41,22 @@ final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
         }
 
         $rows = [];
-        foreach (array_reverse($lines) as $line) {
+        foreach ($lines as $line) {
             $row = $this->decode(line: (string) $line);
             if ($row === null) {
                 continue;
             }
 
-            $rows[] = $row;
-            if (count($rows) >= $limit) {
-                break;
+            if ($this->matches(row: $row, search: $search)) {
+                $rows[] = $row;
             }
         }
+
+        usort($rows, static function (AuditLog $left, AuditLog $right) use ($sortDirection): int {
+            $compared = strcmp($left->timestamp, $right->timestamp);
+
+            return $sortDirection === 'asc' ? $compared : -$compared;
+        });
 
         return $rows;
     }
@@ -86,5 +105,27 @@ final readonly class JsonFileAuditLogQuery implements IAuditLogQuery
         } catch (JsonException) {
             return '';
         }
+    }
+
+    private function matches(AuditLog $row, AuditLogSearch $search): bool
+    {
+        if ($search->timestampFrom !== '' && strcmp($row->timestamp, $search->timestampFrom) < 0) {
+            return false;
+        }
+
+        if ($search->timestampTo !== '' && strcmp($row->timestamp, $search->timestampTo) > 0) {
+            return false;
+        }
+
+        return $this->contains(haystack: $row->result, needle: $search->result)
+            && $this->contains(haystack: $row->action, needle: $search->action)
+            && $this->contains(haystack: $row->resourceType, needle: $search->resourceType)
+            && $this->contains(haystack: $row->resourceId, needle: $search->resourceId)
+            && $this->contains(haystack: $row->actorUserId, needle: $search->actorUserId);
+    }
+
+    private function contains(string $haystack, string $needle): bool
+    {
+        return $needle === '' || str_contains($haystack, $needle);
     }
 }

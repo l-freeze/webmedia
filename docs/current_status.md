@@ -49,6 +49,9 @@
 - 監査ログ粒度:
   - 操作名だけでは不足するため、重要な更新では before / after の要約を残す方針にした。
   - ただし本文全文、問い合わせ本文、password、token、cookie、session id、過度な個人情報は Audit に残さない。
+- 監査ログ管理:
+  - `/admin/audit-logs` にページング UI、表示件数、日時昇順/降順ソート、日時/結果/操作/対象/ID/ユーザーの絞り込みを追加した。
+  - 表示条件は Application の Query port へ検索条件として渡し、JSONL 実装側で絞り込み後に count / slice する形にした。
 
 ## 次回再開地点
 
