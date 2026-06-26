@@ -33,7 +33,7 @@
 | カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
-| 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail UseCase, 100件ページング | 既読/対応状態、削除、通知運用は未実装 |
+| 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail UseCase, 100件ページング | 既読/対応状態は要件上すでに見えている機能不足。削除、通知運用は運用方針が固まってから判断 |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy` | template helper、Article 以外の UseCase-level authorization 拡張 |
@@ -50,7 +50,7 @@
 | タグ一覧 / 詳細 | 完了 | `/tags`, `/tags/{slug}` | HTTP 表示確認済み |
 | 検索結果 / 検索結果なし | 一部完了 | `/search`, Article Search UseCase | 現在設定では検索停止中として 404 を返すことを確認。検索 ON 時の結果なし表示は未確認 |
 | 固定ページ | 完了 | `/pages/{slug}`, Page Show UseCase | 法務ページ本文の本番用整備 |
-| 問い合わせ入力 / エラー / 完了 | 一部完了 | `/contact`, `/contact/success`, Inquiry Create UseCase, 文字数上限 | CSRF 付き POST と完了遷移は確認済み。rate limit、honeypot/CAPTCHA、管理者通知、プライバシー同意文言 |
+| 問い合わせ入力 / エラー / 完了 | 一部完了 | `/contact`, `/contact/success`, Inquiry Create UseCase, 文字数上限 | CSRF 付き POST と完了遷移は確認済み。rate limit、honeypot/CAPTCHA、プライバシー同意文言は公開前の保留判断。管理者通知は運用方針が固まってから判断 |
 | 404 | 完了 | NotFound controller / state template | route からの 404 表示確認済み |
 | ローディング / 記事なし状態 | 完了 | `/loading`, `/no-articles` state routes | 本番 route として残すか、デザイン確認専用にするか判断 |
 | スマホメニュー | 完了 | `/menu` state route / template | 実画面導線との統合確認 |
@@ -104,7 +104,7 @@
 ## 次にやるとよい順番
 
 1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
-2. 問い合わせフォームの最低限の rate limit / spam 対策 / プライバシー同意文言を実装する。
-3. AuditEvent の粒度を改善する。記事更新、設定更新、メディア削除は before / after の要約を残す。
-4. 固定ページ履歴 / 復元、問い合わせ対応状態など、CMS 運用で不足する機能を追加する。
+2. 固定ページ履歴 / 復元、問い合わせ対応状態など、要件上すでに見えている CMS 機能不足を追加する。
+3. AuditEvent の粒度は、既存ログでは後から説明できない更新操作に限って改善する。
+4. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言は、公開前に忘れず判断する。
 5. 画面が揃った段階で、日本語フォントがある環境または Playwright 環境で PC/SP のデザインリファインを行う。
