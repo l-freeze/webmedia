@@ -168,3 +168,31 @@ Port は最初の選択肢ではなく、Application が外側の能力を本当
 - password verification は Application が必要とする外側の暗号処理能力なので Port 化してよい。
 - Logger は PSR-3 を shared / framework の横断基盤として使えば足りる間は、Application Port 化しない。
 - Audit も通常は shared / framework / presentation 側の横断基盤でよい。業務成立条件として証跡記録が必要になった場合だけ、業務名を持つ Port を検討する。
+
+## Commit 粒度
+
+### 判断
+
+実装作業の commit は、意味のある作業単位に分ける。特に変更対象の境界が異なる場合は、同じリファクタリングテーマでも commit を分ける。
+
+基本の分け方:
+
+- Framework の変更
+- Kernel の変更
+- Shared の変更
+- `apps/cms` の変更
+- `apps/front` の変更
+- docs / tests の追随
+
+docs / tests は、対応する実装 commit に含める方が追いやすい場合は同じ commit に入れてよい。複数境界にまたがる純粋な機械的変更は、境界ごとに commit を分ける。
+
+### 理由
+
+- 依存境界ごとに review しやすくする。
+- revert するときに Framework / Kernel / Shared / app の影響範囲を分離できるようにする。
+- 「同じ目的」でも責務の違う層をまとめると、後から変更理由を追いにくくなる。
+
+### 採用しないこと
+
+- 1行ごとの過度に細かい commit。
+- Framework、Kernel、Shared、app の変更を、単に同じリファクタリング名だけで一つにまとめること。
