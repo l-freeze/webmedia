@@ -56,6 +56,12 @@
   - production PHP 内の HTTP status は `Response::HTTP_*` に寄せた。
   - 問い合わせ文字数上限は Application の `InquiryInputLimits` に集約し、Front template へ渡す形にした。
   - 抜粋長、関連記事件数、Audit 表示上限、フィルタ入力長、CSRF token bytes、cache key 長、upload サイズ、directory permission など、各 source に閉じる値は名前付き定数へ置き換えた。
+- docs の判断基準:
+  - 作業順序は `docs/plan.md`、機能差分は `docs/feature_inventory.md`、判断理由は `docs/decisions.md` を正とし、同じ判断基準を複数文書へ複製しない方針にした。
+- CMS 機能不足対応:
+  - 固定ページ編集画面の履歴欄から `/admin/pages/{id}/restore/{version}` で復元できるようにした。
+  - 問い合わせ詳細画面から状態と管理メモを更新できるようにした。
+  - 固定ページ復元画面と問い合わせ詳細画面は HTTP GET で導線を確認済み。実データ更新を避けるため POST の手動実行はしていない。
 
 ## 次回再開地点
 

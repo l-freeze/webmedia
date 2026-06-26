@@ -29,11 +29,11 @@
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
-| 固定ページ管理 | 一部完了 | list/create/edit/store/update routes, Page UseCase | 固定ページ履歴 / 復元 UI は route 未接続。複製は未実装 |
+| 固定ページ管理 | 一部完了 | list/create/edit/store/update/restore routes, Page UseCase, 編集画面の履歴復元 UI | 複製は未実装 |
 | カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
-| 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail UseCase, 100件ページング | 既読/対応状態は要件上すでに見えている機能不足。削除、通知運用は運用方針が固まってから判断 |
+| 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail/Update UseCase, 100件ページング, 状態更新, 管理メモ | 削除、通知運用は運用方針が固まってから判断 |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy` | template helper、Article 以外の UseCase-level authorization 拡張 |
