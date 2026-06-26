@@ -101,10 +101,6 @@
 | `docs/webmedia_technical_stack.md:Zone.Identifier` | Windows の ZoneTransfer メタ情報であり、設計資料ではないため削除 |
 | `docs/php85-optimize.md` | 未追跡ファイル。ユーザー作業の可能性があるため今回は触らない |
 
-## 次にやるとよい順番
+## 作業順序
 
-1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
-2. 固定ページ履歴 / 復元、問い合わせ対応状態など、要件上すでに見えている CMS 機能不足を追加する。
-3. AuditEvent の粒度は、既存ログでは後から説明できない更新操作に限って改善する。
-4. 問い合わせフォームの rate limit / spam 対策 / プライバシー同意文言は、公開前に忘れず判断する。
-5. 画面が揃った段階で、日本語フォントがある環境または Playwright 環境で PC/SP のデザインリファインを行う。
+作業順序は `docs/plan.md` を正とする。この文書には機能差分だけを残し、優先順位の判断基準は複製しない。
