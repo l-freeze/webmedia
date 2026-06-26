@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Cms\Application\Article;
 use App\Cms\Application\ArticleVersion;
+use App\Cms\Application\AdminUser;
 use App\Cms\Application\Audit;
 use App\Cms\Application\Auth;
 use App\Cms\Application\Category;
@@ -29,6 +30,7 @@ use App\Cms\Infrastructure\Persistence\PdoArticlePreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticlePolicyQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
+use App\Cms\Infrastructure\Persistence\PdoAdminUserRepository;
 use App\Cms\Infrastructure\Persistence\PdoCurrentCmsUserQuery;
 use App\Cms\Infrastructure\Persistence\PdoDashboardQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryQuery;
@@ -48,6 +50,7 @@ use App\Cms\Infrastructure\Persistence\PdoTrashQuery;
 use App\Cms\Infrastructure\Persistence\PdoUserRepository;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
+use App\Cms\Infrastructure\Auth\Password\NativePasswordHasher;
 use App\Cms\Infrastructure\Logging\JsonFileAuditLogQuery;
 use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
 use App\Framework\Container\Container;
@@ -132,6 +135,7 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
 $container->bind(abstract: Auth\Login\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
+$container->bind(abstract: Auth\Password\PasswordHasher::class, concrete: NativePasswordHasher::class);
 $container->bind(abstract: Auth\Authorization\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
@@ -161,5 +165,7 @@ $container->bind(abstract: Setting\Edit\Query\ISettingQuery::class, concrete: Pd
 $container->bind(abstract: Category\List\Query\ICategoryQuery::class, concrete: PdoCategoryQuery::class);
 $container->bind(abstract: Tag\List\Query\ITagQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Trash\List\Query\ITrashQuery::class, concrete: PdoTrashQuery::class);
+$container->bind(abstract: AdminUser\Repository\IAdminUserRepository::class, concrete: PdoAdminUserRepository::class);
+$container->bind(abstract: AdminUser\List\Query\IAdminUserQuery::class, concrete: PdoAdminUserRepository::class);
 
 return $container;

@@ -34,6 +34,7 @@ final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
             PermissionCode::AUDIT_VIEW,
             PermissionCode::SETTING_UPDATE,
             PermissionCode::TRASH_VIEW,
+            PermissionCode::ADMIN_USER_MANAGE,
         ],
         RoleCode::EDITOR => [
             PermissionCode::DASHBOARD_VIEW,

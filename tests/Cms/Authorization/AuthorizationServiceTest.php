@@ -20,8 +20,10 @@ final class AuthorizationServiceTest extends TestCase
         $permissions = new CodeDefinedRolePermissionQuery();
 
         self::assertTrue($permissions->hasPermission(role: RoleCode::ADMIN, permission: PermissionCode::SETTING_UPDATE));
+        self::assertTrue($permissions->hasPermission(role: RoleCode::ADMIN, permission: PermissionCode::ADMIN_USER_MANAGE));
         self::assertTrue($permissions->hasPermission(role: RoleCode::EDITOR, permission: PermissionCode::ARTICLE_DELETE));
         self::assertTrue($permissions->hasPermission(role: RoleCode::EDITOR, permission: PermissionCode::INQUIRY_UPDATE));
+        self::assertFalse($permissions->hasPermission(role: RoleCode::EDITOR, permission: PermissionCode::ADMIN_USER_MANAGE));
         self::assertTrue($permissions->hasPermission(role: RoleCode::WRITER, permission: PermissionCode::ARTICLE_UPDATE));
         self::assertFalse($permissions->hasPermission(role: RoleCode::WRITER, permission: PermissionCode::ARTICLE_PUBLISH));
         self::assertFalse($permissions->hasPermission(role: RoleCode::VIEWER, permission: PermissionCode::INQUIRY_READ));

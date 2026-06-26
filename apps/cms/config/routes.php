@@ -12,6 +12,10 @@ use App\Cms\Presentation\Http\Controller\Article\Restore\Controller as ArticleRe
 use App\Cms\Presentation\Http\Controller\Article\Store\Controller as ArticleStoreController;
 use App\Cms\Presentation\Http\Controller\Article\Update\Controller as ArticleUpdateController;
 use App\Cms\Presentation\Http\Controller\Article\VersionPreview\Controller as ArticleVersionPreviewController;
+use App\Cms\Presentation\Http\Controller\AdminUser\Create\Controller as AdminUserCreateController;
+use App\Cms\Presentation\Http\Controller\AdminUser\Delete\Controller as AdminUserDeleteController;
+use App\Cms\Presentation\Http\Controller\AdminUser\List\Controller as AdminUserListController;
+use App\Cms\Presentation\Http\Controller\AdminUser\Update\Controller as AdminUserUpdateController;
 use App\Cms\Presentation\Http\Controller\Audit\List\Controller as AuditListController;
 use App\Cms\Presentation\Http\Controller\Auth\Login\Controller as LoginController;
 use App\Cms\Presentation\Http\Controller\Auth\LoginForm\Controller as LoginFormController;
@@ -93,6 +97,10 @@ $routes = [
     ['GET', '/admin/inquiries', InquiryListController::class],
     ['GET', '/admin/inquiries/{id:\d+}', InquiryDetailController::class, ['requires_permission' => PermissionCode::INQUIRY_READ]],
     ['POST', '/admin/inquiries/{id:\d+}', InquiryUpdateController::class, ['requires_permission' => PermissionCode::INQUIRY_UPDATE]],
+    ['GET', '/admin/users', AdminUserListController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users', AdminUserCreateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users/{id:\d+}', AdminUserUpdateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users/{id:\d+}/delete', AdminUserDeleteController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
     ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],

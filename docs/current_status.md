@@ -62,6 +62,13 @@
   - 固定ページ編集画面の履歴欄から `/admin/pages/{id}/restore/{version}` で復元できるようにした。
   - 問い合わせ詳細画面から状態と管理メモを更新できるようにした。
   - 固定ページ復元画面と問い合わせ詳細画面は HTTP GET で導線を確認済み。実データ更新を避けるため POST の手動実行はしていない。
+- 管理者アカウント管理:
+  - `/admin/users` を追加し、管理者アカウントの一覧、作成、更新、削除ができるようにした。
+  - 既存の `users.role`、`RoleCode`、`PermissionCode` を使い、`admin_user.manage` permission は admin のみに付与した。
+  - 画面上でロール別パーミッションを確認できるようにした。
+  - 最後の admin ロール変更/削除、ログイン中ユーザー自身の削除を UseCase で防ぐようにした。
+  - 管理者アカウントの作成/更新/削除は `AuditEvent` に記録する。password は監査ログに残さない。
+  - PHPUnit、PHPStan、HTTP GET、HTTP 経由の作成/更新/削除を確認済み。検証用アカウントは削除済み。
 
 ## 次回再開地点
 

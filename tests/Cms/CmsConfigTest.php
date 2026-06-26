@@ -43,6 +43,10 @@ final class CmsConfigTest extends TestCase
         self::assertSame(PermissionCode::INQUIRY_READ, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/inquiries/{id:\d+}'));
         self::assertSame(PermissionCode::INQUIRY_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/inquiries/{id:\d+}'));
         self::assertSame(PermissionCode::PAGE_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/pages/{id:\d+}/restore/{version:\d+}'));
+        self::assertSame(PermissionCode::ADMIN_USER_MANAGE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/users'));
+        self::assertSame(PermissionCode::ADMIN_USER_MANAGE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/users'));
+        self::assertSame(PermissionCode::ADMIN_USER_MANAGE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/users/{id:\d+}'));
+        self::assertSame(PermissionCode::ADMIN_USER_MANAGE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/users/{id:\d+}/delete'));
     }
 
     public function testCmsStateChangingRoutesDeclareRequiredPermissionMetadataExceptAuthSecurityRoutes(): void
