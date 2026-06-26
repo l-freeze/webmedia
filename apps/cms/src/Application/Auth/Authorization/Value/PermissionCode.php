@@ -28,6 +28,8 @@ final class PermissionCode
     public const SETTING_UPDATE = 'setting.update';
     public const TRASH_VIEW = 'trash.view';
     public const ADMIN_USER_MANAGE = 'admin_user.manage';
+    public const ROLE_VIEW = 'role.view';
+    public const PERMISSION_VIEW = 'permission.view';
 
     /**
      * @return list<string>
@@ -57,6 +59,8 @@ final class PermissionCode
             self::SETTING_UPDATE,
             self::TRASH_VIEW,
             self::ADMIN_USER_MANAGE,
+            self::ROLE_VIEW,
+            self::PERMISSION_VIEW,
         ];
     }
 }

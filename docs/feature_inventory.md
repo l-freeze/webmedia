@@ -34,10 +34,12 @@
 | タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
 | 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail/Update UseCase, 100件ページング, 状態更新, 管理メモ | 削除、通知運用は運用方針が固まってから判断 |
-| 管理者アカウント管理 | 完了 | `/admin/users`, AdminUser List/Create/Update/Delete UseCase, `admin_user.manage` permission, ロール別パーミッション表示, 業務 AuditEvent | HTTP 経由で作成/更新/削除確認済み。検証用アカウントは削除済み |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
-| 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy`, `admin_user.manage` | template helper、Article 以外の UseCase-level authorization 拡張 |
+| 管理者管理 | 完了 | `/admin/users`, AdminUser List/Create/Update/Delete UseCase, `admin_user.manage` permission, 業務 AuditEvent | HTTP 経由で作成/更新/削除確認済み。検証用アカウントは削除済み |
+| ロール管理 | 完了 | `/admin/roles`, Role List UseCase, `role.view` permission, コード定義ロールの権限表示 | 現時点では読み取り専用。ロールをDB管理にするかは運用要件が出た時点で判断 |
+| パーミッション管理 | 完了 | `/admin/permissions`, Permission List UseCase, `permission.view` permission, パーミッション別付与ロール表示 | 現時点では読み取り専用。権限付与をDB管理にするかは運用要件が出た時点で判断 |
+| 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy`, 管理系 permissions | template helper、Article 以外の UseCase-level authorization 拡張 |
 | Audit / SecurityLog | 一部完了 | HTTP 状態変更 Audit、記事/メディア/設定の業務 AuditEvent、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` のページング/日時ソート/絞り込み | 記事/設定/メディアの before / after 要約 |
 | PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 

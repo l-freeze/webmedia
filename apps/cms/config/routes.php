@@ -33,6 +33,8 @@ use App\Cms\Presentation\Http\Controller\Page\List\Controller as PageListControl
 use App\Cms\Presentation\Http\Controller\Page\Restore\Controller as PageRestoreController;
 use App\Cms\Presentation\Http\Controller\Page\Store\Controller as PageStoreController;
 use App\Cms\Presentation\Http\Controller\Page\Update\Controller as PageUpdateController;
+use App\Cms\Presentation\Http\Controller\Permission\List\Controller as PermissionListController;
+use App\Cms\Presentation\Http\Controller\Role\List\Controller as RoleListController;
 use App\Cms\Presentation\Http\Controller\Setting\Edit\Controller as SettingEditController;
 use App\Cms\Presentation\Http\Controller\Setting\Update\Controller as SettingUpdateController;
 use App\Cms\Presentation\Http\Controller\Category\Delete\Controller as CategoryDeleteController;
@@ -101,6 +103,8 @@ $routes = [
     ['POST', '/admin/users', AdminUserCreateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
     ['POST', '/admin/users/{id:\d+}', AdminUserUpdateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
     ['POST', '/admin/users/{id:\d+}/delete', AdminUserDeleteController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
+    ['GET', '/admin/roles', RoleListController::class, ['requires_permission' => PermissionCode::ROLE_VIEW]],
+    ['GET', '/admin/permissions', PermissionListController::class, ['requires_permission' => PermissionCode::PERMISSION_VIEW]],
     ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],
