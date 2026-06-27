@@ -25,7 +25,7 @@
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, リンク/画像/区切り線/テーブル挿入 | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で表示。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入 | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で表示。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |

@@ -210,6 +210,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageManualForm = imagePanel.querySelector('[data-rich-image-manual]')
     const imageManualSrc = imageManualForm?.querySelector('input[name="src"]')
     const imageManualAlt = imageManualForm?.querySelector('input[name="alt"]')
+    const selectionMenu = document.createElement('div')
+    selectionMenu.className = 'absolute z-30 hidden rounded-lg border border-slate-200 bg-white p-2 shadow-xl'
+    selectionMenu.innerHTML = `
+      <div class="flex flex-wrap items-center gap-1" data-selection-format-row>
+        <button class="min-h-8 rounded-md px-2 text-sm font-black text-slate-800 hover:bg-slate-100" type="button" data-selection-action="bold" title="太字">B</button>
+        <button class="min-h-8 rounded-md px-2 text-sm font-bold italic text-slate-800 hover:bg-slate-100" type="button" data-selection-action="italic" title="斜体">I</button>
+        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-slate-800 line-through hover:bg-slate-100" type="button" data-selection-action="strike" title="取り消し線">S</button>
+        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-slate-800 hover:bg-slate-100" type="button" data-selection-action="code" title="コード">Code</button>
+        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-blue-700 hover:bg-blue-50" type="button" data-selection-action="link" title="リンク">Link</button>
+      </div>
+      <form class="mt-2 hidden grid min-w-72 grid-cols-[minmax(0,1fr)_auto_auto] gap-2 border-t border-slate-200 pt-2" data-selection-link-form>
+        <input class="min-h-9 rounded-md border border-slate-300 px-3 py-1.5 text-sm" name="href" autocomplete="off" placeholder="https://example.com">
+        <button class="min-h-9 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700" type="submit">設定</button>
+        <button class="min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100" type="button" data-selection-unlink>解除</button>
+      </form>
+    `
+    shell.append(selectionMenu)
+    const selectionLinkForm = selectionMenu.querySelector('[data-selection-link-form]')
+    const selectionLinkInput = selectionLinkForm?.querySelector('input[name="href"]')
+    const selectionFormatRow = selectionMenu.querySelector('[data-selection-format-row]')
 
     let slashState = null
     let selectedSlashIndex = 0
@@ -227,6 +247,11 @@ document.addEventListener('DOMContentLoaded', () => {
       slashState = null
       selectedSlashIndex = 0
       filteredSlashItems = []
+    }
+
+    const hideSelectionMenu = () => {
+      selectionMenu.classList.add('hidden')
+      selectionLinkForm?.classList.add('hidden')
     }
 
     const closeImagePicker = () => {
@@ -287,6 +312,65 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    const updateSelectionMenuState = () => {
+      selectionMenu.querySelectorAll('[data-selection-action]').forEach((item) => {
+        if (!(item instanceof HTMLElement)) {
+          return
+        }
+
+        const action = item.dataset.selectionAction || ''
+        const active = action === 'link' ? editor.isActive('link') : editor.isActive(action)
+        item.classList.toggle('bg-slate-900', active)
+        item.classList.toggle('text-white', active)
+        item.classList.toggle('hover:bg-slate-800', active)
+        item.classList.toggle('text-blue-700', action === 'link' && !active)
+      })
+
+      if (selectionLinkInput instanceof HTMLInputElement) {
+        selectionLinkInput.value = editor.getAttributes('link').href || ''
+      }
+    }
+
+    const updateSelectionMenu = () => {
+      const current = radios.find((radio) => radio.checked)?.value || 'markdown'
+      if (current !== 'rich_text' || !editor.isEditable || !editor.isFocused) {
+        hideSelectionMenu()
+        return
+      }
+
+      const { from, to, empty } = editor.state.selection
+      if (empty || from === to || !selectionFormatRow) {
+        hideSelectionMenu()
+        return
+      }
+
+      hideSlashMenu()
+      closeImagePicker()
+      updateSelectionMenuState()
+
+      const start = editor.view.coordsAtPos(from)
+      const end = editor.view.coordsAtPos(to)
+      const shellRect = shell.getBoundingClientRect()
+      selectionMenu.style.visibility = 'hidden'
+      selectionMenu.classList.remove('hidden')
+      const center = (start.left + end.right) / 2 - shellRect.left
+      const menuWidth = selectionMenu.offsetWidth || 360
+      const left = Math.max(12, Math.min(center - menuWidth / 2, shellRect.width - menuWidth - 12))
+      const top = Math.max(12, start.top - shellRect.top - selectionMenu.offsetHeight - 10)
+      selectionMenu.style.left = `${left}px`
+      selectionMenu.style.top = `${top}px`
+      selectionMenu.style.visibility = ''
+    }
+
+    const openSelectionLinkForm = () => {
+      updateSelectionMenuState()
+      selectionLinkForm?.classList.remove('hidden')
+      if (selectionLinkInput instanceof HTMLInputElement) {
+        selectionLinkInput.focus()
+        selectionLinkInput.select()
+      }
+    }
+
     const runSlashItem = (item) => {
       if (!slashState) {
         return
@@ -318,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const current = radios.find((radio) => radio.checked)?.value || 'markdown'
       if (current !== 'rich_text') {
         hideSlashMenu()
+        hideSelectionMenu()
         return
       }
 
@@ -325,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { from, empty } = state.selection
       if (!empty) {
         hideSlashMenu()
+        updateSelectionMenu()
         return
       }
 
@@ -369,6 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
           autolink: true,
           defaultProtocol: 'https',
           openOnClick: false,
+          enableClickSelection: true,
         }),
         Image.configure({
           allowBase64: false,
@@ -386,6 +473,14 @@ document.addEventListener('DOMContentLoaded', () => {
       editorProps: {
         attributes: {
           class: 'min-h-[28rem] px-5 py-4 text-base leading-8 text-slate-900 focus:outline-none',
+        },
+        handleClick(view, pos, event) {
+          if (event.target instanceof Element && event.target.closest('a')) {
+            event.preventDefault()
+            return true
+          }
+
+          return false
         },
         handleKeyDown(view, event) {
           if (slashMenu.classList.contains('hidden')) {
@@ -429,8 +524,23 @@ document.addEventListener('DOMContentLoaded', () => {
       onUpdate: ({ editor: activeEditor }) => {
         drafts.rich_text = JSON.stringify(activeEditor.getJSON())
         updateSlashMenu()
+        updateSelectionMenu()
       },
-      onSelectionUpdate: updateSlashMenu,
+      onSelectionUpdate: () => {
+        updateSlashMenu()
+        updateSelectionMenu()
+      },
+      onBlur: ({ event }) => {
+        if (event.relatedTarget instanceof Node && selectionMenu.contains(event.relatedTarget)) {
+          return
+        }
+
+        window.setTimeout(() => {
+          if (!selectionMenu.contains(document.activeElement)) {
+            hideSelectionMenu()
+          }
+        }, 0)
+      },
     })
 
     if (currentMode === 'rich_text') {
@@ -477,6 +587,55 @@ document.addEventListener('DOMContentLoaded', () => {
         insertImage(imageManualSrc.value, imageManualAlt.value)
       }
     })
+    selectionMenu.addEventListener('mousedown', (event) => {
+      const target = event.target
+      if (target instanceof HTMLElement && !target.closest('input')) {
+        event.preventDefault()
+      }
+    })
+    selectionMenu.addEventListener('click', (event) => {
+      const target = event.target
+      if (!(target instanceof HTMLElement)) {
+        return
+      }
+
+      const button = target.closest('[data-selection-action]')
+      if (button instanceof HTMLElement) {
+        const action = button.dataset.selectionAction || ''
+        if (action === 'bold') {
+          editor.chain().focus().toggleBold().run()
+        } else if (action === 'italic') {
+          editor.chain().focus().toggleItalic().run()
+        } else if (action === 'strike') {
+          editor.chain().focus().toggleStrike().run()
+        } else if (action === 'code') {
+          editor.chain().focus().toggleCode().run()
+        } else if (action === 'link') {
+          openSelectionLinkForm()
+          return
+        }
+
+        updateSelectionMenu()
+      }
+    })
+    selectionLinkForm?.addEventListener('submit', (event) => {
+      event.preventDefault()
+      if (!(selectionLinkInput instanceof HTMLInputElement)) {
+        return
+      }
+
+      const href = selectionLinkInput.value.trim()
+      if (href === '') {
+        editor.chain().focus().unsetLink().run()
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href }).run()
+      }
+      hideSelectionMenu()
+    })
+    selectionMenu.querySelector('[data-selection-unlink]')?.addEventListener('click', () => {
+      editor.chain().focus().unsetLink().run()
+      hideSelectionMenu()
+    })
 
     const saveCurrentDraft = () => {
       if (currentMode === 'rich_text') {
@@ -519,6 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         textarea.value = drafts[current] || ''
         hideSlashMenu()
+        hideSelectionMenu()
       }
     }
 
@@ -540,6 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mousedown', (event) => {
       if (!root.contains(event.target)) {
         hideSlashMenu()
+        hideSelectionMenu()
         closeImagePicker()
       }
     })
