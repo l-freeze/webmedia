@@ -155,6 +155,39 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - 仕様未確定のまま OGP / sitemap / feed を仮実装しない。
 - 問い合わせフォームを運用しないことを理由に、防御を完全に省略しない。
 
+## 記事本文エディター
+
+### 判断
+
+CMS の記事本文は Markdown とリッチエディターの二択にする。Markdown は捨てない。
+
+リッチエディターは Tiptap の OSS editor を採用する。ただし利用範囲は自前ホストの editor package に限定し、Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない。
+
+保存形式は `body_format = rich_text` とし、既存の `body_markdown` カラムに Tiptap / ProseMirror JSON 文字列を保存する。公開表示では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。既存の `markdown` と互換用 `html` のレンダリングは残すが、CMS UI の主選択肢は Markdown / リッチエディターとする。
+
+### 理由
+
+- Markdown 記事資産と運用感を維持できる。
+- Tiptap は ProseMirror を直接扱うより UI 実装が薄く済み、Notion-like な編集体験へ寄せやすい。
+- Tiptap GmbH はドイツ Berlin の法人として Legal Notice を公開しており、OSS editor は MIT license で公開されている。外部 SaaS に本文を預けず、自前ビルド・自前DB保存に限定すれば、運用上のチャイナリスクや vendor SaaS 依存を抑えられる。
+- JSON を正本にすると、段落、見出し、リスト、画像、引用などを構造として扱える。
+- 表示用 HTML をクライアントから信頼せず、サーバ側 renderer と sanitizer を通す方が XSS 境界が明確になる。
+
+### 採用しないこと
+
+- 本文形式を EAV や汎用フィールド定義エンジンにしない。
+- Tiptap Cloud / AI / Collaboration へ接続しない。
+- CDN から Tiptap を読み込まない。
+- クライアント生成 HTML だけを正として保存しない。
+- リッチ本文のために公開 front を Node.js rendering へ依存させない。
+
+### 拡張を検討する条件
+
+- 画像挿入を既存メディア管理と統合する。
+- Markdown から rich_text への明示変換が必要になる。
+- リッチ本文の検索品質を上げるため、plain text cache を別カラムへ持つ。
+- 記事履歴差分で JSON の node 単位比較が必要になる。
+
 ## Application Port
 
 ### 判断

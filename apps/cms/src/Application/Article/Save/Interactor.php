@@ -11,6 +11,7 @@ use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationInput;
@@ -40,6 +41,11 @@ final readonly class Interactor
             return Output::invalid(validation: $validation);
         }
 
+        $richTextValidation = $this->validateRichTextBody(values: $values);
+        if (!$richTextValidation->isValid()) {
+            return Output::invalid(validation: $richTextValidation);
+        }
+
         if ($this->articles->slugExists(slug: $values->string(field: 'slug'), exceptId: $input->id)) {
             return Output::invalid(validation: ValidationOutput::invalid(
                 new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),
@@ -55,6 +61,55 @@ final readonly class Interactor
         }
 
         return Output::saved(articleId: $this->articles->save(article: Article::fromInput(id: $input->id, data: $articleData)));
+    }
+
+    private function validateRichTextBody(ValidationInput $values): ValidationOutput
+    {
+        if ($values->string(field: 'body_format') !== ArticleBodyFormat::RICH_TEXT) {
+            return ValidationOutput::valid();
+        }
+
+        $decoded = json_decode($values->string(field: 'body_markdown'), true);
+        if (!is_array($decoded) || ($decoded['type'] ?? '') !== 'doc') {
+            return ValidationOutput::invalid(new ValidationError(field: 'body_markdown', message: 'リッチエディター本文の形式が正しくありません。'));
+        }
+        /** @var array<string, mixed> $decoded */
+
+        if ($this->isEmptyRichTextDocument(node: $decoded)) {
+            return ValidationOutput::invalid(new ValidationError(field: 'body_markdown', message: '本文を入力してください。'));
+        }
+
+        return ValidationOutput::valid();
+    }
+
+    /** @param array<string, mixed> $node */
+    private function isEmptyRichTextDocument(array $node): bool
+    {
+        $text = is_string($node['text'] ?? null) ? trim($node['text']) : '';
+        if ($text !== '') {
+            return false;
+        }
+
+        $type = is_string($node['type'] ?? null) ? $node['type'] : '';
+        if ($type === 'image') {
+            return false;
+        }
+
+        $content = $node['content'] ?? [];
+        if (!is_array($content)) {
+            return true;
+        }
+
+        foreach ($content as $child) {
+            if (is_array($child)) {
+                /** @var array<string, mixed> $child */
+                if (!$this->isEmptyRichTextDocument(node: $child)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private function authorize(Input $input, string $status): void

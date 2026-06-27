@@ -14,6 +14,8 @@ final readonly class Markdown
 
     private HTMLPurifier $purifier;
 
+    private TiptapJsonRenderer $tiptapJsonRenderer;
+
     public function __construct()
     {
         $this->converter = new CommonMarkConverter([
@@ -22,9 +24,10 @@ final readonly class Markdown
         ]);
 
         $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', 'p,br,strong,em,a[href|title],ul,ol,li,blockquote,pre,code,h2,h3,h4,table,thead,tbody,tr,th,td,img[src|alt|title]');
+        $config->set('HTML.Allowed', 'p,br,strong,em,s,a[href|title],ul,ol,li,blockquote,pre,code,h2,h3,h4,table,thead,tbody,tr,th,td,img[src|alt|title],hr');
         $config->set('URI.SafeIframeRegexp', null);
         $this->purifier = new HTMLPurifier($config);
+        $this->tiptapJsonRenderer = new TiptapJsonRenderer();
     }
 
     public function toSafeHtml(string $markdown): string
@@ -39,6 +42,10 @@ final readonly class Markdown
 
     public function bodyToSafeHtml(string $body, string $format): string
     {
+        if ($format === 'rich_text') {
+            return $this->htmlToSafeHtml(html: $this->tiptapJsonRenderer->toHtml(json: $body));
+        }
+
         if ($format === 'html') {
             return $this->htmlToSafeHtml(html: $body);
         }

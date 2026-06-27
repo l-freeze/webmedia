@@ -30,4 +30,9 @@ final class ArticleStatusTest extends TestCase
     {
         self::assertSame('markdown', (new ArticleBodyFormat(value: 'plain'))->value);
     }
+
+    public function testRichTextArticleBodyFormatIsAllowed(): void
+    {
+        self::assertSame('rich_text', (new ArticleBodyFormat(value: 'rich_text'))->value);
+    }
 }

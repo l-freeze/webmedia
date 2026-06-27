@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-06-26
+- 2026-06-27
 
 ## 現在地
 
@@ -71,6 +71,12 @@
   - 管理者の作成/更新/削除は `AuditEvent` に記録する。password は監査ログに残さない。
   - 左メニューはゴミ箱までをコンテンツ運用系とし、その下に管理者、ロール、パーミッション、監査ログ、サイト設定を置く形にした。
   - PHPUnit、PHPStan、管理者/ロール/パーミッション各画面の HTTP GET、HTTP 経由の管理者作成/更新/削除を確認済み。検証用アカウントは削除済み。
+- CMS 記事本文リッチエディター:
+  - 記事編集画面の本文入力を Markdown / リッチエディターの二択にした。
+  - リッチエディターは Tiptap OSS packages を pnpm / Vite で自前ビルドし、`public/assets/js/cms-rich-editor.js` として記事編集画面だけで読み込む。
+  - `body_format=rich_text` を追加し、本文は Tiptap / ProseMirror JSON 文字列として既存 `body_markdown` に保存する。
+  - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。
+  - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。
 
 ## 次回再開地点
 
