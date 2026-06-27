@@ -17347,7 +17347,7 @@ R.create({
 	}
 });
 //#endregion
-//#region resources/cms/rich-editor.js
+//#region resources/cms/rich-editor/content.js
 var xb = () => ({
 	type: "doc",
 	content: [{ type: "paragraph" }]
@@ -17367,51 +17367,118 @@ var xb = () => ({
 			}]
 		}))
 	};
-}, $ = (e, t, n = {}) => {
-	let r = document.createElement("button");
-	return r.type = "button", r.textContent = e, r.className = "min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200", r.addEventListener("click", t), n.title && (r.title = n.title), r;
-}, Cb = (e, t = {}) => {
-	let n = t.label || "";
-	return `
-    <svg aria-hidden="true" viewBox="${t.viewBox || "0 0 24 24"}" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      ${e}
-    </svg>
-    <span class="sr-only">${Tb(n)}</span>
-  `;
-}, wb = (e) => /^(https?:\/\/|\/)[^\s]+$/i.test(e.trim()), Tb = (e) => e.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), Eb = (e, t) => {
+}, Cb = (e, t) => {
 	t.value = JSON.stringify(e.getJSON());
-}, Db = (e) => {
+}, wb = (e) => {
 	if (!e || typeof e != "object") return "";
 	if (e.type === "text") return e.text || "";
-	let t = Array.isArray(e.content) ? e.content.map((e) => Db(e)).join("") : "";
+	let t = Array.isArray(e.content) ? e.content.map((e) => wb(e)).join("") : "";
 	switch (e.type) {
-		case "doc": return Array.isArray(e.content) ? e.content.map((e) => Db(e)).filter(Boolean).join("\n\n") : "";
+		case "doc": return Array.isArray(e.content) ? e.content.map((e) => wb(e)).filter(Boolean).join("\n\n") : "";
 		case "paragraph": return t;
 		case "heading": return `${"#".repeat(Math.max(1, Math.min(Number(e.attrs?.level || 2), 6)))} ${t}`.trim();
 		case "bulletList":
-		case "orderedList": return Array.isArray(e.content) ? e.content.map((t, n) => kb(t, e.type === "orderedList" ? `${n + 1}. ` : "- ")).join("\n") : "";
+		case "orderedList": return Array.isArray(e.content) ? e.content.map((t, n) => Eb(t, e.type === "orderedList" ? `${n + 1}. ` : "- ")).join("\n") : "";
 		case "listItem": return t;
 		case "blockquote": return t.split("\n").map((e) => `> ${e}`).join("\n");
 		case "codeBlock": return `\`\`\`\n${t}\n\`\`\``;
 		case "horizontalRule": return "---";
 		case "hardBreak": return "\n";
 		case "image": return e.attrs?.src ? `![${e.attrs?.alt || ""}](${e.attrs.src})` : "";
-		case "table": return Ob(e);
-		case "tableRow": return Array.isArray(e.content) ? e.content.map((e) => Db(e).replace(/\|/g, "\\|")).join(" | ") : "";
+		case "table": return Tb(e);
+		case "tableRow": return Array.isArray(e.content) ? e.content.map((e) => wb(e).replace(/\|/g, "\\|")).join(" | ") : "";
 		case "tableHeader":
 		case "tableCell": return t;
 		default: return t;
 	}
-}, Ob = (e) => {
+}, Tb = (e) => {
 	let t = Array.isArray(e.content) ? e.content : [];
 	if (t.length === 0) return "";
-	let n = t.map((e) => `| ${Db(e)} |`), r = `| ${(Array.isArray(t[0]?.content) ? t[0].content : []).map(() => "---").join(" | ")} |`;
+	let n = t.map((e) => `| ${wb(e)} |`), r = `| ${(Array.isArray(t[0]?.content) ? t[0].content : []).map(() => "---").join(" | ")} |`;
 	return [
 		n[0],
 		r,
 		...n.slice(1)
 	].join("\n");
-}, kb = (e, t) => Db(e).split("\n").map((e, n) => n === 0 ? `${t}${e}` : `  ${e}`).join("\n").trimEnd(), Ab = [
+}, Eb = (e, t) => wb(e).split("\n").map((e, n) => n === 0 ? `${t}${e}` : `  ${e}`).join("\n").trimEnd(), Db = (e) => e.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), $ = (e, t, n = {}) => {
+	let r = document.createElement("button");
+	return r.type = "button", r.textContent = e, r.className = "min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200", r.addEventListener("click", t), n.title && (r.title = n.title), r;
+}, Ob = (e, t = {}) => {
+	let n = t.label || "";
+	return `
+    <svg aria-hidden="true" viewBox="${t.viewBox || "0 0 24 24"}" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      ${e}
+    </svg>
+    <span class="sr-only">${Db(n)}</span>
+  `;
+}, kb = (e) => /^(https?:\/\/|\/)[^\s]+$/i.test(e.trim()), Ab = ({ root: e, textarea: t, mount: n, toolbar: r, radios: i, editor: a, hideSlashMenu: o, hideSelectionMenu: s, onModeChanged: c = () => {} }) => {
+	let l = i.find((e) => e.checked)?.value || "markdown", u = t.value, d = {
+		markdown: l === "markdown" ? u : "",
+		html: l === "html" ? u : "",
+		rich_text: l === "rich_text" ? u : ""
+	}, f = () => {
+		if (l === "rich_text") {
+			d.rich_text = JSON.stringify(a.getJSON());
+			return;
+		}
+		d[l] = t.value;
+	}, p = (e) => e === "html" ? a.getHTML() : wb(a.getJSON()), m = () => {
+		let u = i.find((e) => e.checked)?.value || "markdown";
+		f(), u !== "rich_text" && d[u] === "" && l === "rich_text" && (d[u] = p(u)), l = u;
+		let m = u === "rich_text";
+		e.classList.toggle("is-rich-mode", m), n.closest("[data-rich-editor-shell]")?.classList.toggle("hidden", !m), r.classList.toggle("hidden", !m), t.classList.toggle("hidden", m), t.required = !0, m ? d.rich_text === "" ? t.value.trim() !== "" && (a.commands.setContent(Sb(t.value), !1), d.rich_text = JSON.stringify(a.getJSON())) : a.commands.setContent(Sb(d.rich_text), !1) : (t.value = d[u] || "", o(), s()), c();
+	};
+	l === "rich_text" && (d.rich_text = JSON.stringify(a.getJSON()));
+	for (let e of i) e.addEventListener("change", m);
+	return t.form?.addEventListener("submit", () => {
+		(i.find((e) => e.checked)?.value || "markdown") === "rich_text" ? Cb(a, t) : (f(), t.value = d[l] || "");
+	}), {
+		getMode: () => l,
+		update: m
+	};
+}, jb = ({ shell: e, imageLibrary: t, onSelect: n }) => {
+	let r = t instanceof HTMLElement ? Array.from(t.querySelectorAll("[data-rich-image-option]")).map((e) => ({
+		src: e.dataset.src || "",
+		name: e.dataset.name || "",
+		alt: e.dataset.alt || ""
+	})).filter((e) => e.src !== "") : [], i = document.createElement("div");
+	i.className = "absolute left-3 right-3 top-16 z-20 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-xl", i.innerHTML = "\n    <div class=\"grid gap-3\">\n      <div class=\"flex flex-wrap items-end justify-between gap-3\">\n        <label class=\"min-w-56 flex-1 text-sm font-bold text-slate-700\">登録済み画像\n          <input class=\"mt-1\" type=\"search\" autocomplete=\"off\" placeholder=\"画像名・代替テキストで検索\" data-rich-image-search>\n        </label>\n        <button class=\"min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100\" type=\"button\" data-rich-image-close>閉じる</button>\n      </div>\n      <div class=\"max-h-72 overflow-y-auto pr-1 [scrollbar-gutter:stable]\" data-rich-image-list></div>\n      <form class=\"grid gap-2 border-t border-slate-200 pt-3\" data-rich-image-manual>\n        <label class=\"text-sm font-bold text-slate-700\">画像URLまたは /uploads/... のパス\n          <input class=\"mt-1\" name=\"src\" autocomplete=\"off\" placeholder=\"/uploads/media/example.webp\">\n        </label>\n        <label class=\"text-sm font-bold text-slate-700\">代替テキスト\n          <input class=\"mt-1\" name=\"alt\" autocomplete=\"off\">\n        </label>\n        <div class=\"flex justify-end\">\n          <button class=\"min-h-9 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700\" type=\"submit\">挿入</button>\n        </div>\n      </form>\n    </div>\n  ", e.append(i);
+	let a = i.querySelector("[data-rich-image-search]"), o = i.querySelector("[data-rich-image-list]"), s = i.querySelector("[data-rich-image-manual]"), c = s?.querySelector("input[name=\"src\"]"), l = s?.querySelector("input[name=\"alt\"]"), u = () => {
+		i.classList.add("hidden");
+	}, d = (e, t = "") => {
+		let r = e.trim();
+		r !== "" && (n(r, t.trim()), u());
+	}, f = () => {
+		if (!(o instanceof HTMLElement)) return;
+		let e = a instanceof HTMLInputElement ? a.value.trim().toLowerCase() : "", t = r.filter((t) => {
+			let n = `${t.name} ${t.alt}`.toLowerCase();
+			return e === "" || n.includes(e);
+		});
+		if (o.textContent = "", t.length === 0) {
+			let e = document.createElement("div");
+			e.className = "rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500", e.textContent = r.length === 0 ? "登録済み画像はありません。" : "一致する画像はありません。", o.append(e);
+			return;
+		}
+		let n = document.createElement("div");
+		n.className = "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
+		for (let e of t) {
+			let t = document.createElement("button");
+			t.type = "button", t.className = "overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300", t.innerHTML = `
+        <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="${Db(e.src)}" alt="${Db(e.alt || e.name)}" loading="lazy">
+        <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">${Db(e.name)}</span>
+      `, t.addEventListener("click", () => d(e.src, e.alt)), n.append(t);
+		}
+		o.append(n);
+	};
+	return a?.addEventListener("input", f), i.querySelector("[data-rich-image-close]")?.addEventListener("click", u), s?.addEventListener("submit", (e) => {
+		e.preventDefault(), c instanceof HTMLInputElement && l instanceof HTMLInputElement && d(c.value, l.value);
+	}), {
+		open: () => {
+			f(), i.classList.remove("hidden"), a instanceof HTMLInputElement && a.focus();
+		},
+		close: u
+	};
+}, Mb = [
 	{
 		label: "本文",
 		hint: "通常の段落",
@@ -17486,7 +17553,7 @@ var xb = () => ({
 		keywords: ["image", "img"],
 		run: (e, t) => t?.openImagePicker?.()
 	}
-], jb = [
+], Nb = [
 	{
 		name: "bold",
 		label: "太字",
@@ -17528,57 +17595,15 @@ var xb = () => ({
 		classes: "text-blue-700 hover:bg-blue-50",
 		icon: "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"></path><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"></path>"
 	}
-], Mb = (e) => `
-  <button class="inline-flex h-8 w-8 items-center justify-center rounded-md ${e.classes}" type="button" data-selection-action="${e.name}" title="${Tb(e.label)}" aria-label="${Tb(e.label)}">
-    ${Cb(e.icon, { label: e.label })}
+], Pb = (e) => `
+  <button class="inline-flex h-8 w-8 items-center justify-center rounded-md ${e.classes}" type="button" data-selection-action="${e.name}" title="${Db(e.label)}" aria-label="${Db(e.label)}">
+    ${Ob(e.icon, { label: e.label })}
   </button>
-`, Nb = ({ shell: e, imageLibrary: t, onSelect: n }) => {
-	let r = t instanceof HTMLElement ? Array.from(t.querySelectorAll("[data-rich-image-option]")).map((e) => ({
-		src: e.dataset.src || "",
-		name: e.dataset.name || "",
-		alt: e.dataset.alt || ""
-	})).filter((e) => e.src !== "") : [], i = document.createElement("div");
-	i.className = "absolute left-3 right-3 top-16 z-20 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-xl", i.innerHTML = "\n    <div class=\"grid gap-3\">\n      <div class=\"flex flex-wrap items-end justify-between gap-3\">\n        <label class=\"min-w-56 flex-1 text-sm font-bold text-slate-700\">登録済み画像\n          <input class=\"mt-1\" type=\"search\" autocomplete=\"off\" placeholder=\"画像名・代替テキストで検索\" data-rich-image-search>\n        </label>\n        <button class=\"min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100\" type=\"button\" data-rich-image-close>閉じる</button>\n      </div>\n      <div class=\"max-h-72 overflow-y-auto pr-1 [scrollbar-gutter:stable]\" data-rich-image-list></div>\n      <form class=\"grid gap-2 border-t border-slate-200 pt-3\" data-rich-image-manual>\n        <label class=\"text-sm font-bold text-slate-700\">画像URLまたは /uploads/... のパス\n          <input class=\"mt-1\" name=\"src\" autocomplete=\"off\" placeholder=\"/uploads/media/example.webp\">\n        </label>\n        <label class=\"text-sm font-bold text-slate-700\">代替テキスト\n          <input class=\"mt-1\" name=\"alt\" autocomplete=\"off\">\n        </label>\n        <div class=\"flex justify-end\">\n          <button class=\"min-h-9 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700\" type=\"submit\">挿入</button>\n        </div>\n      </form>\n    </div>\n  ", e.append(i);
-	let a = i.querySelector("[data-rich-image-search]"), o = i.querySelector("[data-rich-image-list]"), s = i.querySelector("[data-rich-image-manual]"), c = s?.querySelector("input[name=\"src\"]"), l = s?.querySelector("input[name=\"alt\"]"), u = () => {
-		i.classList.add("hidden");
-	}, d = (e, t = "") => {
-		let r = e.trim();
-		r !== "" && (n(r, t.trim()), u());
-	}, f = () => {
-		if (!(o instanceof HTMLElement)) return;
-		let e = a instanceof HTMLInputElement ? a.value.trim().toLowerCase() : "", t = r.filter((t) => {
-			let n = `${t.name} ${t.alt}`.toLowerCase();
-			return e === "" || n.includes(e);
-		});
-		if (o.textContent = "", t.length === 0) {
-			let e = document.createElement("div");
-			e.className = "rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500", e.textContent = r.length === 0 ? "登録済み画像はありません。" : "一致する画像はありません。", o.append(e);
-			return;
-		}
-		let n = document.createElement("div");
-		n.className = "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
-		for (let e of t) {
-			let t = document.createElement("button");
-			t.type = "button", t.className = "overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300", t.innerHTML = `
-        <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="${Tb(e.src)}" alt="${Tb(e.alt || e.name)}" loading="lazy">
-        <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">${Tb(e.name)}</span>
-      `, t.addEventListener("click", () => d(e.src, e.alt)), n.append(t);
-		}
-		o.append(n);
-	};
-	return a?.addEventListener("input", f), i.querySelector("[data-rich-image-close]")?.addEventListener("click", u), s?.addEventListener("submit", (e) => {
-		e.preventDefault(), c instanceof HTMLInputElement && l instanceof HTMLInputElement && d(c.value, l.value);
-	}), {
-		open: () => {
-			f(), i.classList.remove("hidden"), a instanceof HTMLInputElement && a.focus();
-		},
-		close: u
-	};
-}, Pb = ({ editor: e, shell: t, mount: n, getMode: r, hideSlashMenu: i, closeImagePicker: a }) => {
+`, Fb = ({ editor: e, shell: t, mount: n, getMode: r, hideSlashMenu: i, closeImagePicker: a }) => {
 	let o = document.createElement("div");
 	o.className = "absolute z-30 hidden rounded-lg border border-slate-200 bg-white p-2 shadow-xl", o.innerHTML = `
     <div class="flex flex-wrap items-center gap-1" data-selection-format-row>
-      ${jb.map((e) => Mb(e)).join("")}
+      ${Nb.map((e) => Pb(e)).join("")}
     </div>
     <form class="mt-2 hidden grid min-w-72 grid-cols-[minmax(0,1fr)_auto_auto] gap-2 border-t border-slate-200 pt-2" data-selection-link-form>
       <input class="min-h-9 rounded-md border border-slate-300 px-3 py-1.5 text-sm" name="href" autocomplete="off" placeholder="https://example.com">
@@ -17629,7 +17654,7 @@ var xb = () => ({
 			m();
 			return;
 		}
-		jb.find((e) => e.name === i)?.run?.(e), p();
+		Nb.find((e) => e.name === i)?.run?.(e), p();
 	}), s?.addEventListener("submit", (t) => {
 		if (t.preventDefault(), !(c instanceof HTMLInputElement)) return;
 		let n = c.value.trim();
@@ -17645,7 +17670,7 @@ var xb = () => ({
 		update: p,
 		contains: (e) => o.contains(e)
 	};
-}, Fb = ({ editor: e, shell: t, getMode: n, openImagePicker: r, hideSelectionMenu: i }) => {
+}, Ib = ({ editor: e, shell: t, getMode: n, openImagePicker: r, hideSelectionMenu: i }) => {
 	let a = document.createElement("div");
 	a.className = "absolute z-30 hidden w-72 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl", a.setAttribute("role", "listbox"), t.append(a);
 	let o = null, s = 0, c = [], l = () => {
@@ -17658,7 +17683,7 @@ var xb = () => ({
 	}, d = () => {
 		a.textContent = "", c.forEach((e, t) => {
 			let n = document.createElement("button");
-			n.type = "button", n.className = `grid w-full gap-0.5 px-4 py-2 text-left hover:bg-slate-100 ${t === s ? "bg-slate-100" : ""}`, n.setAttribute("role", "option"), n.setAttribute("aria-selected", t === s ? "true" : "false"), n.innerHTML = `<span class="text-sm font-bold text-slate-900">${Tb(e.label)}</span><span class="text-xs text-slate-500">${Tb(e.hint)}</span>`, n.addEventListener("mousedown", (t) => {
+			n.type = "button", n.className = `grid w-full gap-0.5 px-4 py-2 text-left hover:bg-slate-100 ${t === s ? "bg-slate-100" : ""}`, n.setAttribute("role", "option"), n.setAttribute("aria-selected", t === s ? "true" : "false"), n.innerHTML = `<span class="text-sm font-bold text-slate-900">${Db(e.label)}</span><span class="text-xs text-slate-500">${Db(e.hint)}</span>`, n.addEventListener("mousedown", (t) => {
 				t.preventDefault(), u(e);
 			}), a.append(n);
 		});
@@ -17681,7 +17706,7 @@ var xb = () => ({
 				return;
 			}
 			let _ = (g[1] || "").toLowerCase();
-			if (c = Ab.filter((e) => {
+			if (c = Mb.filter((e) => {
 				let t = [
 					e.label,
 					e.hint,
@@ -17701,7 +17726,7 @@ var xb = () => ({
 		},
 		handleKeyDown: (e) => a.classList.contains("hidden") ? !1 : e.key === "ArrowDown" ? (e.preventDefault(), s = (s + 1) % c.length, d(), !0) : e.key === "ArrowUp" ? (e.preventDefault(), s = (s - 1 + c.length) % c.length, d(), !0) : e.key === "Enter" ? (e.preventDefault(), u(c[s]), !0) : e.key === "Escape" ? (e.preventDefault(), l(), !0) : !1
 	};
-}, Ib = ({ toolbar: e, editor: t, openImagePicker: n }) => {
+}, Lb = ({ toolbar: e, editor: t, openImagePicker: n }) => {
 	e.append($("H1", () => t.chain().focus().toggleHeading({ level: 1 }).run(), { title: "見出し1" }), $("H2", () => t.chain().focus().toggleHeading({ level: 2 }).run(), { title: "見出し2" }), $("H3", () => t.chain().focus().toggleHeading({ level: 3 }).run(), { title: "見出し3" }), $("B", () => t.chain().focus().toggleBold().run(), { title: "太字" }), $("I", () => t.chain().focus().toggleItalic().run(), { title: "斜体" }), $("箇条書き", () => t.chain().focus().toggleBulletList().run()), $("番号", () => t.chain().focus().toggleOrderedList().run()), $("引用", () => t.chain().focus().toggleBlockquote().run()), $("コード", () => t.chain().focus().toggleCodeBlock().run()), $("区切り線", () => t.chain().focus().setHorizontalRule().run(), { title: "区切り線を挿入" }), $("リンク", () => {
 		let e = t.getAttributes("link").href || "", n = window.prompt("URL", e);
 		if (n !== null) {
@@ -17716,122 +17741,107 @@ var xb = () => ({
 		cols: 3,
 		withHeaderRow: !0
 	}).run(), { title: "3 x 3 の表を挿入" }), $("行+", () => t.chain().focus().addRowAfter().run(), { title: "下に行を追加" }), $("列+", () => t.chain().focus().addColumnAfter().run(), { title: "右に列を追加" }), $("行削除", () => t.chain().focus().deleteRow().run()), $("列削除", () => t.chain().focus().deleteColumn().run()), $("表削除", () => t.chain().focus().deleteTable().run()));
-}, Lb = ({ root: e, textarea: t, mount: n, toolbar: r, radios: i, editor: a, hideSlashMenu: o, hideSelectionMenu: s, onModeChanged: c = () => {} }) => {
-	let l = i.find((e) => e.checked)?.value || "markdown", u = t.value, d = {
-		markdown: l === "markdown" ? u : "",
-		html: l === "html" ? u : "",
-		rich_text: l === "rich_text" ? u : ""
-	}, f = () => {
-		if (l === "rich_text") {
-			d.rich_text = JSON.stringify(a.getJSON());
-			return;
+}, Rb = ({ mount: e, textarea: t, refreshFloatingMenus: n, getEditor: r, getSlashMenu: i, getSelectionMenu: a }) => new Fd({
+	element: e,
+	content: Sb(t.value),
+	extensions: [
+		hv.configure({ heading: { levels: [
+			1,
+			2,
+			3,
+			4
+		] } }),
+		Zh.configure({
+			autolink: !0,
+			defaultProtocol: "https",
+			openOnClick: !1,
+			enableClickSelection: !0
+		}),
+		d_,
+		_v.configure({ allowBase64: !1 }),
+		bb.configure({ resizable: !0 }),
+		sb,
+		ob,
+		ab,
+		vv.configure({ placeholder: "本文を入力" })
+	],
+	editorProps: {
+		attributes: { class: "min-h-[28rem] px-5 py-4 text-base leading-8 text-slate-900 focus:outline-none" },
+		handleClick(e, t, n) {
+			return n.target instanceof Element && n.target.closest("a") ? (n.preventDefault(), !0) : !1;
+		},
+		handleKeyDown(e, t) {
+			return i()?.handleKeyDown(t) || !1;
+		},
+		handlePaste(e, t) {
+			let n = t.clipboardData?.getData("text/plain")?.trim() || "";
+			return !kb(n) || e.state.selection.empty ? !1 : (t.preventDefault(), r()?.chain().focus().setLink({ href: n }).run(), !0);
 		}
-		d[l] = t.value;
-	}, p = (e) => e === "html" ? a.getHTML() : Db(a.getJSON()), m = () => {
-		let u = i.find((e) => e.checked)?.value || "markdown";
-		f(), u !== "rich_text" && d[u] === "" && l === "rich_text" && (d[u] = p(u)), l = u;
-		let m = u === "rich_text";
-		e.classList.toggle("is-rich-mode", m), n.closest("[data-rich-editor-shell]")?.classList.toggle("hidden", !m), r.classList.toggle("hidden", !m), t.classList.toggle("hidden", m), t.required = !0, m ? d.rich_text === "" ? t.value.trim() !== "" && (a.commands.setContent(Sb(t.value), !1), d.rich_text = JSON.stringify(a.getJSON())) : a.commands.setContent(Sb(d.rich_text), !1) : (t.value = d[u] || "", o(), s()), c();
+	},
+	onUpdate: n,
+	onSelectionUpdate: n,
+	onBlur: ({ event: e }) => {
+		let t = a();
+		e.relatedTarget instanceof Node && t?.contains(e.relatedTarget) || window.setTimeout(() => {
+			t?.contains(document.activeElement) || t?.hide();
+		}, 0);
+	}
+}), zb = (e) => {
+	let t = e.querySelector("[data-rich-editor-source]"), n = e.querySelector("[data-rich-editor-mount]"), r = e.querySelector("[data-rich-editor-toolbar]"), i = e.querySelector("[data-rich-editor-shell]"), a = e.querySelector("[data-rich-image-library]"), o = Array.from(document.querySelectorAll("input[name=\"body_format\"]"));
+	if (!(t instanceof HTMLTextAreaElement) || !(n instanceof HTMLElement) || !(r instanceof HTMLElement) || !(i instanceof HTMLElement)) return;
+	let s = null, c = null, l = null, u = () => o.find((e) => e.checked)?.value || "markdown", d = () => l?.getMode() || u(), f = () => {
+		s?.update(), c?.update();
+	}, p = null;
+	p = Rb({
+		mount: n,
+		textarea: t,
+		refreshFloatingMenus: f,
+		getEditor: () => p,
+		getSlashMenu: () => s,
+		getSelectionMenu: () => c
+	});
+	let m = jb({
+		shell: i,
+		imageLibrary: a,
+		onSelect: (e, t) => p.chain().focus().setImage({
+			src: e,
+			alt: t
+		}).run()
+	}), h = () => {
+		s?.hide(), c?.hide(), m.open();
 	};
-	l === "rich_text" && (d.rich_text = JSON.stringify(a.getJSON()));
-	for (let e of i) e.addEventListener("change", m);
-	return t.form?.addEventListener("submit", () => {
-		(i.find((e) => e.checked)?.value || "markdown") === "rich_text" ? Eb(a, t) : (f(), t.value = d[l] || "");
-	}), {
-		getMode: () => l,
-		update: m
-	};
+	c = Fb({
+		editor: p,
+		shell: i,
+		mount: n,
+		getMode: d,
+		hideSlashMenu: () => s?.hide(),
+		closeImagePicker: m.close
+	}), s = Ib({
+		editor: p,
+		shell: i,
+		getMode: d,
+		openImagePicker: h,
+		hideSelectionMenu: () => c?.hide()
+	}), Lb({
+		toolbar: r,
+		editor: p,
+		openImagePicker: h
+	}), l = Ab({
+		root: e,
+		textarea: t,
+		mount: n,
+		toolbar: r,
+		radios: o,
+		editor: p,
+		hideSlashMenu: () => s?.hide(),
+		hideSelectionMenu: () => c?.hide(),
+		onModeChanged: f
+	}), l.update(), document.addEventListener("mousedown", (t) => {
+		(!(t.target instanceof Node) || !e.contains(t.target)) && (s?.hide(), c?.hide(), m.close());
+	});
 };
 document.addEventListener("DOMContentLoaded", () => {
-	document.querySelectorAll("[data-rich-editor]").forEach((e) => {
-		let t = e.querySelector("[data-rich-editor-source]"), n = e.querySelector("[data-rich-editor-mount]"), r = e.querySelector("[data-rich-editor-toolbar]"), i = e.querySelector("[data-rich-editor-shell]"), a = e.querySelector("[data-rich-image-library]"), o = Array.from(document.querySelectorAll("input[name=\"body_format\"]"));
-		if (!(t instanceof HTMLTextAreaElement) || !(n instanceof HTMLElement) || !(r instanceof HTMLElement) || !(i instanceof HTMLElement)) return;
-		let s = null, c = null, l = null, u = () => o.find((e) => e.checked)?.value || "markdown", d = () => l?.getMode() || u(), f = () => {
-			s?.update(), c?.update();
-		}, p = new Fd({
-			element: n,
-			content: Sb(t.value),
-			extensions: [
-				hv.configure({ heading: { levels: [
-					1,
-					2,
-					3,
-					4
-				] } }),
-				Zh.configure({
-					autolink: !0,
-					defaultProtocol: "https",
-					openOnClick: !1,
-					enableClickSelection: !0
-				}),
-				d_,
-				_v.configure({ allowBase64: !1 }),
-				bb.configure({ resizable: !0 }),
-				sb,
-				ob,
-				ab,
-				vv.configure({ placeholder: "本文を入力" })
-			],
-			editorProps: {
-				attributes: { class: "min-h-[28rem] px-5 py-4 text-base leading-8 text-slate-900 focus:outline-none" },
-				handleClick(e, t, n) {
-					return n.target instanceof Element && n.target.closest("a") ? (n.preventDefault(), !0) : !1;
-				},
-				handleKeyDown(e, t) {
-					return s?.handleKeyDown(t) || !1;
-				},
-				handlePaste(e, t) {
-					let n = t.clipboardData?.getData("text/plain")?.trim() || "";
-					return !wb(n) || e.state.selection.empty ? !1 : (t.preventDefault(), p.chain().focus().setLink({ href: n }).run(), !0);
-				}
-			},
-			onUpdate: f,
-			onSelectionUpdate: f,
-			onBlur: ({ event: e }) => {
-				e.relatedTarget instanceof Node && c?.contains(e.relatedTarget) || window.setTimeout(() => {
-					c?.contains(document.activeElement) || c?.hide();
-				}, 0);
-			}
-		}), m = Nb({
-			shell: i,
-			imageLibrary: a,
-			onSelect: (e, t) => p.chain().focus().setImage({
-				src: e,
-				alt: t
-			}).run()
-		}), h = () => {
-			s?.hide(), c?.hide(), m.open();
-		};
-		c = Pb({
-			editor: p,
-			shell: i,
-			mount: n,
-			getMode: d,
-			hideSlashMenu: () => s?.hide(),
-			closeImagePicker: m.close
-		}), s = Fb({
-			editor: p,
-			shell: i,
-			getMode: d,
-			openImagePicker: h,
-			hideSelectionMenu: () => c?.hide()
-		}), Ib({
-			toolbar: r,
-			editor: p,
-			openImagePicker: h
-		}), l = Lb({
-			root: e,
-			textarea: t,
-			mount: n,
-			toolbar: r,
-			radios: o,
-			editor: p,
-			hideSlashMenu: () => s?.hide(),
-			hideSelectionMenu: () => c?.hide(),
-			onModeChanged: f
-		}), l.update(), document.addEventListener("mousedown", (t) => {
-			(!(t.target instanceof Node) || !e.contains(t.target)) && (s?.hide(), c?.hide(), m.close());
-		});
-	});
+	document.querySelectorAll("[data-rich-editor]").forEach(zb);
 });
 //#endregion
