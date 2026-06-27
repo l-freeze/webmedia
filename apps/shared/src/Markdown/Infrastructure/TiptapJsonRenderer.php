@@ -7,7 +7,7 @@ namespace App\Shared\Markdown\Infrastructure;
 final readonly class TiptapJsonRenderer
 {
     /** @var array<int, int> */
-    private const HEADING_LEVELS = [2, 3, 4];
+    private const HEADING_LEVELS = [1, 2, 3, 4];
 
     public function toHtml(string $json): string
     {

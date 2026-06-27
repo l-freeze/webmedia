@@ -51,15 +51,126 @@ const syncBody = (editor, textarea) => {
   textarea.value = JSON.stringify(editor.getJSON())
 }
 
+const slashItems = [
+  { label: '本文', hint: '通常の段落', keywords: ['paragraph', 'text'], run: (editor) => editor.chain().focus().setParagraph().run() },
+  { label: '見出し1', hint: '# 見出し', keywords: ['h1', 'heading'], run: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run() },
+  { label: '見出し2', hint: '## 見出し', keywords: ['h2', 'heading'], run: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+  { label: '見出し3', hint: '### 見出し', keywords: ['h3', 'heading'], run: (editor) => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+  { label: '箇条書き', hint: 'リスト', keywords: ['bullet', 'list'], run: (editor) => editor.chain().focus().toggleBulletList().run() },
+  { label: '番号リスト', hint: '順序付きリスト', keywords: ['ordered', 'number', 'list'], run: (editor) => editor.chain().focus().toggleOrderedList().run() },
+  { label: '引用', hint: '引用ブロック', keywords: ['quote', 'blockquote'], run: (editor) => editor.chain().focus().toggleBlockquote().run() },
+  { label: 'コード', hint: 'コードブロック', keywords: ['code'], run: (editor) => editor.chain().focus().toggleCodeBlock().run() },
+  { label: '区切り線', hint: '水平線', keywords: ['hr', 'rule'], run: (editor) => editor.chain().focus().setHorizontalRule().run() },
+  {
+    label: '画像',
+    hint: '画像URLを挿入',
+    keywords: ['image', 'img'],
+    run: (editor) => {
+      const src = window.prompt('画像URLまたは /uploads/... のパス')
+      if (src && src.trim() !== '') {
+        editor.chain().focus().setImage({ src: src.trim(), alt: '' }).run()
+      }
+    },
+  },
+]
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-rich-editor]').forEach((root) => {
     const textarea = root.querySelector('[data-rich-editor-source]')
     const mount = root.querySelector('[data-rich-editor-mount]')
     const toolbar = root.querySelector('[data-rich-editor-toolbar]')
+    const shell = root.querySelector('[data-rich-editor-shell]')
     const radios = Array.from(document.querySelectorAll('input[name="body_format"]'))
 
-    if (!(textarea instanceof HTMLTextAreaElement) || !(mount instanceof HTMLElement) || !(toolbar instanceof HTMLElement)) {
+    if (!(textarea instanceof HTMLTextAreaElement) || !(mount instanceof HTMLElement) || !(toolbar instanceof HTMLElement) || !(shell instanceof HTMLElement)) {
       return
+    }
+
+    const slashMenu = document.createElement('div')
+    slashMenu.className = 'absolute z-30 hidden w-72 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl'
+    slashMenu.setAttribute('role', 'listbox')
+    shell.append(slashMenu)
+
+    let slashState = null
+    let selectedSlashIndex = 0
+    let filteredSlashItems = []
+
+    const hideSlashMenu = () => {
+      slashMenu.classList.add('hidden')
+      slashState = null
+      selectedSlashIndex = 0
+      filteredSlashItems = []
+    }
+
+    const runSlashItem = (item) => {
+      if (!slashState) {
+        return
+      }
+
+      editor.chain().focus().deleteRange({ from: slashState.from, to: slashState.to }).run()
+      item.run(editor)
+      hideSlashMenu()
+    }
+
+    const renderSlashMenu = () => {
+      slashMenu.textContent = ''
+      filteredSlashItems.forEach((item, index) => {
+        const option = document.createElement('button')
+        option.type = 'button'
+        option.className = `grid w-full gap-0.5 px-4 py-2 text-left hover:bg-slate-100 ${index === selectedSlashIndex ? 'bg-slate-100' : ''}`
+        option.setAttribute('role', 'option')
+        option.setAttribute('aria-selected', index === selectedSlashIndex ? 'true' : 'false')
+        option.innerHTML = `<span class="text-sm font-bold text-slate-900">${item.label}</span><span class="text-xs text-slate-500">${item.hint}</span>`
+        option.addEventListener('mousedown', (event) => {
+          event.preventDefault()
+          runSlashItem(item)
+        })
+        slashMenu.append(option)
+      })
+    }
+
+    const updateSlashMenu = () => {
+      const current = radios.find((radio) => radio.checked)?.value || 'markdown'
+      if (current !== 'rich_text') {
+        hideSlashMenu()
+        return
+      }
+
+      const { state, view } = editor
+      const { from, empty } = state.selection
+      if (!empty) {
+        hideSlashMenu()
+        return
+      }
+
+      const $from = state.selection.$from
+      const blockStart = $from.start()
+      const textBeforeCursor = state.doc.textBetween(blockStart, from, '\n', '\n')
+      const match = textBeforeCursor.match(/^\/([\p{L}\p{N}_-]*)?$/u)
+      if (!match) {
+        hideSlashMenu()
+        return
+      }
+
+      const query = (match[1] || '').toLowerCase()
+      filteredSlashItems = slashItems.filter((item) => {
+        const haystack = [item.label, item.hint, ...item.keywords].join(' ').toLowerCase()
+        return query === '' || haystack.includes(query)
+      })
+      if (filteredSlashItems.length === 0) {
+        hideSlashMenu()
+        return
+      }
+
+      slashState = { from: from - textBeforeCursor.length, to: from }
+      selectedSlashIndex = Math.min(selectedSlashIndex, filteredSlashItems.length - 1)
+      renderSlashMenu()
+
+      const caret = view.coordsAtPos(from)
+      const shellRect = shell.getBoundingClientRect()
+      slashMenu.style.left = `${Math.max(12, Math.min(caret.left - shellRect.left, shellRect.width - 300))}px`
+      slashMenu.style.top = `${caret.bottom - shellRect.top + 8}px`
+      slashMenu.classList.remove('hidden')
     }
 
     const editor = new Editor({
@@ -67,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       content: parseContent(textarea.value),
       extensions: [
         StarterKit.configure({
-          heading: { levels: [2, 3, 4] },
+          heading: { levels: [1, 2, 3, 4] },
         }),
         Link.configure({
           autolink: true,
@@ -85,11 +196,44 @@ document.addEventListener('DOMContentLoaded', () => {
         attributes: {
           class: 'min-h-[28rem] px-5 py-4 text-base leading-8 text-slate-900 focus:outline-none',
         },
+        handleKeyDown(view, event) {
+          if (slashMenu.classList.contains('hidden')) {
+            return false
+          }
+          if (event.key === 'ArrowDown') {
+            event.preventDefault()
+            selectedSlashIndex = (selectedSlashIndex + 1) % filteredSlashItems.length
+            renderSlashMenu()
+            return true
+          }
+          if (event.key === 'ArrowUp') {
+            event.preventDefault()
+            selectedSlashIndex = (selectedSlashIndex - 1 + filteredSlashItems.length) % filteredSlashItems.length
+            renderSlashMenu()
+            return true
+          }
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            runSlashItem(filteredSlashItems[selectedSlashIndex])
+            return true
+          }
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            hideSlashMenu()
+            return true
+          }
+          return false
+        },
       },
-      onUpdate: ({ editor: activeEditor }) => syncBody(activeEditor, textarea),
+      onUpdate: ({ editor: activeEditor }) => {
+        syncBody(activeEditor, textarea)
+        updateSlashMenu()
+      },
+      onSelectionUpdate: updateSlashMenu,
     })
 
     toolbar.append(
+      button('H1', () => editor.chain().focus().toggleHeading({ level: 1 }).run(), { title: '見出し1' }),
       button('H2', () => editor.chain().focus().toggleHeading({ level: 2 }).run(), { title: '見出し2' }),
       button('H3', () => editor.chain().focus().toggleHeading({ level: 3 }).run(), { title: '見出し3' }),
       button('B', () => editor.chain().focus().toggleBold().run(), { title: '太字' }),
@@ -129,6 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
       textarea.required = true
       if (rich) {
         syncBody(editor, textarea)
+        updateSlashMenu()
+      } else {
+        hideSlashMenu()
       }
     }
 
@@ -143,5 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     updateMode()
+
+    document.addEventListener('mousedown', (event) => {
+      if (!root.contains(event.target)) {
+        hideSlashMenu()
+      }
+    })
   })
 })

@@ -161,7 +161,7 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 
 CMS の記事本文は Markdown とリッチエディターの二択にする。Markdown は捨てない。
 
-リッチエディターは Tiptap の OSS editor を採用する。ただし利用範囲は自前ホストの editor package に限定し、Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない。
+リッチエディターは Tiptap の OSS editor を採用する。ただし利用範囲は自前ホストの editor package に限定し、Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない。Notion-like な `/` コマンドメニューは Tiptap core / StarterKit のデフォルト機能ではなく、公式 docs でも Slash Commands は実験的で未公開 package 扱いのため、この CMS に必要な最小機能だけを自前 UI として実装する。
 
 保存形式は `body_format = rich_text` とし、既存の `body_markdown` カラムに Tiptap / ProseMirror JSON 文字列を保存する。公開表示では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。既存の `markdown` と互換用 `html` のレンダリングは残すが、CMS UI の主選択肢は Markdown / リッチエディターとする。
 
@@ -169,6 +169,7 @@ CMS の記事本文は Markdown とリッチエディターの二択にする。
 
 - Markdown 記事資産と運用感を維持できる。
 - Tiptap は ProseMirror を直接扱うより UI 実装が薄く済み、Notion-like な編集体験へ寄せやすい。
+- `# ` などの Markdown shortcut は Tiptap Heading input rule を使う。`/` メニューは候補表示と node 変換だけを CMS 側で薄く実装する。
 - Tiptap GmbH はドイツ Berlin の法人として Legal Notice を公開しており、OSS editor は MIT license で公開されている。外部 SaaS に本文を預けず、自前ビルド・自前DB保存に限定すれば、運用上のチャイナリスクや vendor SaaS 依存を抑えられる。
 - JSON を正本にすると、段落、見出し、リスト、画像、引用などを構造として扱える。
 - 表示用 HTML をクライアントから信頼せず、サーバ側 renderer と sanitizer を通す方が XSS 境界が明確になる。
@@ -178,6 +179,7 @@ CMS の記事本文は Markdown とリッチエディターの二択にする。
 - 本文形式を EAV や汎用フィールド定義エンジンにしない。
 - Tiptap Cloud / AI / Collaboration へ接続しない。
 - CDN から Tiptap を読み込まない。
+- 公式 Slash Commands 実験 extension をそのまま vendor copy しない。
 - クライアント生成 HTML だけを正として保存しない。
 - リッチ本文のために公開 front を Node.js rendering へ依存させない。
 

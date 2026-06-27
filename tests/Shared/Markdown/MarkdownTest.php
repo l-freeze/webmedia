@@ -34,7 +34,7 @@ final class MarkdownTest extends TestCase
         $body = json_encode([
             'type' => 'doc',
             'content' => [
-                ['type' => 'heading', 'attrs' => ['level' => 2], 'content' => [['type' => 'text', 'text' => '見出し']]],
+                ['type' => 'heading', 'attrs' => ['level' => 1], 'content' => [['type' => 'text', 'text' => '見出し']]],
                 ['type' => 'paragraph', 'content' => [
                     ['type' => 'text', 'text' => '本文'],
                     ['type' => 'text', 'text' => 'リンク', 'marks' => [['type' => 'link', 'attrs' => ['href' => 'javascript:alert(1)']]]],
@@ -44,7 +44,7 @@ final class MarkdownTest extends TestCase
 
         $html = $markdown->bodyToSafeHtml(body: $body, format: 'rich_text');
 
-        self::assertStringContainsString('<h2>見出し</h2>', $html);
+        self::assertStringContainsString('<h1>見出し</h1>', $html);
         self::assertStringContainsString('<p>本文リンク</p>', $html);
         self::assertStringNotContainsString('javascript:', $html);
     }
