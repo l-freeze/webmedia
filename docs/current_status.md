@@ -86,6 +86,7 @@
   - CMS 編集画面では Markdown / HTML / rich_text の形式別ドラフトをブラウザ上で保持し、リッチエディターから Markdown / HTML へ切り替えた時に textarea を JSON で上書きしない。
   - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。表、区切り線、画像、リンクも許可範囲内でレンダリングする。
   - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。
+  - `resources/cms/rich-editor.js` は、画像ピッカー、選択範囲装飾メニュー、slash menu、toolbar、本文形式切替をファイル内 factory に切り出し、意味単位で状態と操作を閉じる構成へ整理した。
 
 ## 次回再開地点
 
