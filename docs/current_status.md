@@ -72,11 +72,12 @@
   - 左メニューはゴミ箱までをコンテンツ運用系とし、その下に管理者、ロール、パーミッション、監査ログ、サイト設定を置く形にした。
   - PHPUnit、PHPStan、管理者/ロール/パーミッション各画面の HTTP GET、HTTP 経由の管理者作成/更新/削除を確認済み。検証用アカウントは削除済み。
 - CMS 記事本文リッチエディター:
-  - 記事編集画面の本文入力を Markdown / リッチエディターの二択にした。
+  - 記事編集画面の本文入力を Markdown / HTML / リッチエディターから選べるようにした。
   - リッチエディターは Tiptap OSS packages を pnpm / Vite で自前ビルドし、`public/assets/js/cms-rich-editor.js` として記事編集画面だけで読み込む。
   - Tiptap StarterKit の heading shortcut を使い、`# ` / `## ` / `### ` で見出し化できるようにした。
   - 公式 Notion-like demo の `/` 候補表示は StarterKit 標準ではないため、段落、見出し、リスト、引用、コード、区切り線、画像の簡易 slash menu を自前実装した。
   - `body_format=rich_text` を追加し、本文は Tiptap / ProseMirror JSON 文字列として既存 `body_markdown` に保存する。
+  - CMS 編集画面では Markdown / HTML / rich_text の形式別ドラフトをブラウザ上で保持し、リッチエディターから Markdown / HTML へ切り替えた時に textarea を JSON で上書きしない。
   - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。
   - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。
 

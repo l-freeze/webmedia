@@ -51,6 +51,56 @@ const syncBody = (editor, textarea) => {
   textarea.value = JSON.stringify(editor.getJSON())
 }
 
+const richTextToMarkdown = (node) => {
+  if (!node || typeof node !== 'object') {
+    return ''
+  }
+
+  if (node.type === 'text') {
+    return node.text || ''
+  }
+
+  const children = Array.isArray(node.content)
+    ? node.content.map((child) => richTextToMarkdown(child)).join('')
+    : ''
+
+  switch (node.type) {
+    case 'doc':
+      return Array.isArray(node.content)
+        ? node.content.map((child) => richTextToMarkdown(child)).filter(Boolean).join('\n\n')
+        : ''
+    case 'paragraph':
+      return children
+    case 'heading':
+      return `${'#'.repeat(Math.max(1, Math.min(Number(node.attrs?.level || 2), 6)))} ${children}`.trim()
+    case 'bulletList':
+    case 'orderedList':
+      return Array.isArray(node.content)
+        ? node.content.map((child, index) => richTextListItemToMarkdown(child, node.type === 'orderedList' ? `${index + 1}. ` : '- ')).join('\n')
+        : ''
+    case 'listItem':
+      return children
+    case 'blockquote':
+      return children.split('\n').map((line) => `> ${line}`).join('\n')
+    case 'codeBlock':
+      return `\`\`\`\n${children}\n\`\`\``
+    case 'horizontalRule':
+      return '---'
+    case 'hardBreak':
+      return '\n'
+    case 'image':
+      return node.attrs?.src ? `![${node.attrs?.alt || ''}](${node.attrs.src})` : ''
+    default:
+      return children
+  }
+}
+
+const richTextListItemToMarkdown = (node, marker) => {
+  const text = richTextToMarkdown(node).split('\n').map((line, index) => index === 0 ? `${marker}${line}` : `  ${line}`).join('\n')
+
+  return text.trimEnd()
+}
+
 const slashItems = [
   { label: '本文', hint: '通常の段落', keywords: ['paragraph', 'text'], run: (editor) => editor.chain().focus().setParagraph().run() },
   { label: '見出し1', hint: '# 見出し', keywords: ['h1', 'heading'], run: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run() },
@@ -94,6 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let slashState = null
     let selectedSlashIndex = 0
     let filteredSlashItems = []
+    let currentMode = radios.find((radio) => radio.checked)?.value || 'markdown'
+    const initialBody = textarea.value
+    const drafts = {
+      markdown: currentMode === 'markdown' ? initialBody : '',
+      html: currentMode === 'html' ? initialBody : '',
+      rich_text: currentMode === 'rich_text' ? initialBody : '',
+    }
 
     const hideSlashMenu = () => {
       slashMenu.classList.add('hidden')
@@ -226,11 +283,15 @@ document.addEventListener('DOMContentLoaded', () => {
         },
       },
       onUpdate: ({ editor: activeEditor }) => {
-        syncBody(activeEditor, textarea)
+        drafts.rich_text = JSON.stringify(activeEditor.getJSON())
         updateSlashMenu()
       },
       onSelectionUpdate: updateSlashMenu,
     })
+
+    if (currentMode === 'rich_text') {
+      drafts.rich_text = JSON.stringify(editor.getJSON())
+    }
 
     toolbar.append(
       button('H1', () => editor.chain().focus().toggleHeading({ level: 1 }).run(), { title: '見出し1' }),
@@ -263,8 +324,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }),
     )
 
+    const saveCurrentDraft = () => {
+      if (currentMode === 'rich_text') {
+        drafts.rich_text = JSON.stringify(editor.getJSON())
+        return
+      }
+
+      drafts[currentMode] = textarea.value
+    }
+
+    const bodyFromRichTextFor = (mode) => {
+      if (mode === 'html') {
+        return editor.getHTML()
+      }
+
+      return richTextToMarkdown(editor.getJSON())
+    }
+
     const updateMode = () => {
       const current = radios.find((radio) => radio.checked)?.value || 'markdown'
+      saveCurrentDraft()
+      if (current !== 'rich_text' && drafts[current] === '' && currentMode === 'rich_text') {
+        drafts[current] = bodyFromRichTextFor(current)
+      }
+      currentMode = current
       const rich = current === 'rich_text'
       root.classList.toggle('is-rich-mode', rich)
       mount.closest('[data-rich-editor-shell]')?.classList.toggle('hidden', !rich)
@@ -272,9 +355,15 @@ document.addEventListener('DOMContentLoaded', () => {
       textarea.classList.toggle('hidden', rich)
       textarea.required = true
       if (rich) {
-        syncBody(editor, textarea)
+        if (drafts.rich_text !== '') {
+          editor.commands.setContent(parseContent(drafts.rich_text), false)
+        } else if (textarea.value.trim() !== '') {
+          editor.commands.setContent(parseContent(textarea.value), false)
+          drafts.rich_text = JSON.stringify(editor.getJSON())
+        }
         updateSlashMenu()
       } else {
+        textarea.value = drafts[current] || ''
         hideSlashMenu()
       }
     }
@@ -286,6 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
     textarea.form?.addEventListener('submit', () => {
       if ((radios.find((radio) => radio.checked)?.value || 'markdown') === 'rich_text') {
         syncBody(editor, textarea)
+      } else {
+        saveCurrentDraft()
+        textarea.value = drafts[currentMode] || ''
       }
     })
 

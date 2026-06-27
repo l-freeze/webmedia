@@ -159,11 +159,13 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 
 ### 判断
 
-CMS の記事本文は Markdown とリッチエディターの二択にする。Markdown は捨てない。
+CMS の記事本文は Markdown、HTML、リッチエディターから選べるようにする。Markdown は捨てない。HTML は既存互換と直接HTMLを書きたい場合のために残す。
 
 リッチエディターは Tiptap の OSS editor を採用する。ただし利用範囲は自前ホストの editor package に限定し、Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない。Notion-like な `/` コマンドメニューは Tiptap core / StarterKit のデフォルト機能ではなく、公式 docs でも Slash Commands は実験的で未公開 package 扱いのため、この CMS に必要な最小機能だけを自前 UI として実装する。
 
-保存形式は `body_format = rich_text` とし、既存の `body_markdown` カラムに Tiptap / ProseMirror JSON 文字列を保存する。公開表示では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。既存の `markdown` と互換用 `html` のレンダリングは残すが、CMS UI の主選択肢は Markdown / リッチエディターとする。
+保存形式は、選択中の `body_format` に対応する本文ソースを既存の `body_markdown` カラムに保存する。`markdown` は Markdown 文字列、`html` は HTML 文字列、`rich_text` は Tiptap / ProseMirror JSON 文字列を保存する。公開表示では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。
+
+CMS の形式切替は保存済みの正本を即時変換する処理ではなく、編集画面内で形式別ドラフトを保持する UI とする。リッチエディターから Markdown / HTML へ切り替えた時は textarea を JSON で上書きしない。選択先のドラフトが空の場合だけ、リッチ本文から Markdown 風テキストまたは HTML へフォールバック変換して表示する。
 
 ### 理由
 
@@ -173,6 +175,7 @@ CMS の記事本文は Markdown とリッチエディターの二択にする。
 - Tiptap GmbH はドイツ Berlin の法人として Legal Notice を公開しており、OSS editor は MIT license で公開されている。外部 SaaS に本文を預けず、自前ビルド・自前DB保存に限定すれば、運用上のチャイナリスクや vendor SaaS 依存を抑えられる。
 - JSON を正本にすると、段落、見出し、リスト、画像、引用などを構造として扱える。
 - 表示用 HTML をクライアントから信頼せず、サーバ側 renderer と sanitizer を通す方が XSS 境界が明確になる。
+- 表示用 HTML カラムを今すぐ持つと、記事保存時の派生データ同期、履歴復元、renderer 変更時の再生成が必要になる。現状は Front の Query で Shared renderer を通せばよく、View cache / response cache が必要になった段階で派生 HTML cache として検討する方が責務が分かりやすい。
 
 ### 採用しないこと
 
@@ -182,12 +185,14 @@ CMS の記事本文は Markdown とリッチエディターの二択にする。
 - 公式 Slash Commands 実験 extension をそのまま vendor copy しない。
 - クライアント生成 HTML だけを正として保存しない。
 - リッチ本文のために公開 front を Node.js rendering へ依存させない。
+- 編集用 JSON と表示用 HTML の二重正本を持たない。
 
 ### 拡張を検討する条件
 
 - 画像挿入を既存メディア管理と統合する。
 - Markdown から rich_text への明示変換が必要になる。
 - リッチ本文の検索品質を上げるため、plain text cache を別カラムへ持つ。
+- Front の表示性能や本文検索で実測上の問題が出た場合、表示用 HTML / plain text を派生 cache として保存する。
 - 記事履歴差分で JSON の node 単位比較が必要になる。
 
 ## Application Port

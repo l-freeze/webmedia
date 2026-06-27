@@ -15637,7 +15637,25 @@ var cv = H.create({
 	return r.type = "button", r.textContent = e, r.className = "min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200", r.addEventListener("click", t), n.title && (r.title = n.title), r;
 }, _v = (e, t) => {
 	t.value = JSON.stringify(e.getJSON());
-}, vv = [
+}, vv = (e) => {
+	if (!e || typeof e != "object") return "";
+	if (e.type === "text") return e.text || "";
+	let t = Array.isArray(e.content) ? e.content.map((e) => vv(e)).join("") : "";
+	switch (e.type) {
+		case "doc": return Array.isArray(e.content) ? e.content.map((e) => vv(e)).filter(Boolean).join("\n\n") : "";
+		case "paragraph": return t;
+		case "heading": return `${"#".repeat(Math.max(1, Math.min(Number(e.attrs?.level || 2), 6)))} ${t}`.trim();
+		case "bulletList":
+		case "orderedList": return Array.isArray(e.content) ? e.content.map((t, n) => yv(t, e.type === "orderedList" ? `${n + 1}. ` : "- ")).join("\n") : "";
+		case "listItem": return t;
+		case "blockquote": return t.split("\n").map((e) => `> ${e}`).join("\n");
+		case "codeBlock": return `\`\`\`\n${t}\n\`\`\``;
+		case "horizontalRule": return "---";
+		case "hardBreak": return "\n";
+		case "image": return e.attrs?.src ? `![${e.attrs?.alt || ""}](${e.attrs.src})` : "";
+		default: return t;
+	}
+}, yv = (e, t) => vv(e).split("\n").map((e, n) => n === 0 ? `${t}${e}` : `  ${e}`).join("\n").trimEnd(), bv = [
 	{
 		label: "本文",
 		hint: "通常の段落",
@@ -15715,54 +15733,58 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!(t instanceof HTMLTextAreaElement) || !(n instanceof HTMLElement) || !(r instanceof HTMLElement) || !(i instanceof HTMLElement)) return;
 		let o = document.createElement("div");
 		o.className = "absolute z-30 hidden w-72 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl", o.setAttribute("role", "listbox"), i.append(o);
-		let s = null, c = 0, l = [], u = () => {
+		let s = null, c = 0, l = [], u = a.find((e) => e.checked)?.value || "markdown", d = t.value, f = {
+			markdown: u === "markdown" ? d : "",
+			html: u === "html" ? d : "",
+			rich_text: u === "rich_text" ? d : ""
+		}, p = () => {
 			o.classList.add("hidden"), s = null, c = 0, l = [];
-		}, d = (e) => {
-			s && (m.chain().focus().deleteRange({
+		}, m = (e) => {
+			s && (_.chain().focus().deleteRange({
 				from: s.from,
 				to: s.to
-			}).run(), e.run(m), u());
-		}, f = () => {
+			}).run(), e.run(_), p());
+		}, h = () => {
 			o.textContent = "", l.forEach((e, t) => {
 				let n = document.createElement("button");
 				n.type = "button", n.className = `grid w-full gap-0.5 px-4 py-2 text-left hover:bg-slate-100 ${t === c ? "bg-slate-100" : ""}`, n.setAttribute("role", "option"), n.setAttribute("aria-selected", t === c ? "true" : "false"), n.innerHTML = `<span class="text-sm font-bold text-slate-900">${e.label}</span><span class="text-xs text-slate-500">${e.hint}</span>`, n.addEventListener("mousedown", (t) => {
-					t.preventDefault(), d(e);
+					t.preventDefault(), m(e);
 				}), o.append(n);
 			});
-		}, p = () => {
+		}, g = () => {
 			if ((a.find((e) => e.checked)?.value || "markdown") !== "rich_text") {
-				u();
+				p();
 				return;
 			}
-			let { state: e, view: t } = m, { from: n, empty: r } = e.selection;
+			let { state: e, view: t } = _, { from: n, empty: r } = e.selection;
 			if (!r) {
-				u();
+				p();
 				return;
 			}
-			let d = e.selection.$from.start(), p = e.doc.textBetween(d, n, "\n", "\n"), h = p.match(/^\/([\p{L}\p{N}_-]*)?$/u);
-			if (!h) {
-				u();
+			let u = e.selection.$from.start(), d = e.doc.textBetween(u, n, "\n", "\n"), f = d.match(/^\/([\p{L}\p{N}_-]*)?$/u);
+			if (!f) {
+				p();
 				return;
 			}
-			let g = (h[1] || "").toLowerCase();
-			if (l = vv.filter((e) => {
+			let m = (f[1] || "").toLowerCase();
+			if (l = bv.filter((e) => {
 				let t = [
 					e.label,
 					e.hint,
 					...e.keywords
 				].join(" ").toLowerCase();
-				return g === "" || t.includes(g);
+				return m === "" || t.includes(m);
 			}), l.length === 0) {
-				u();
+				p();
 				return;
 			}
 			s = {
-				from: n - p.length,
+				from: n - d.length,
 				to: n
-			}, c = Math.min(c, l.length - 1), f();
-			let _ = t.coordsAtPos(n), v = i.getBoundingClientRect();
-			o.style.left = `${Math.max(12, Math.min(_.left - v.left, v.width - 300))}px`, o.style.top = `${_.bottom - v.top + 8}px`, o.classList.remove("hidden");
-		}, m = new jd({
+			}, c = Math.min(c, l.length - 1), h();
+			let g = t.coordsAtPos(n), v = i.getBoundingClientRect();
+			o.style.left = `${Math.max(12, Math.min(g.left - v.left, v.width - 300))}px`, o.style.top = `${g.bottom - v.top + 8}px`, o.classList.remove("hidden");
+		}, _ = new jd({
 			element: n,
 			content: hv(t.value),
 			extensions: [
@@ -15783,39 +15805,47 @@ document.addEventListener("DOMContentLoaded", () => {
 			editorProps: {
 				attributes: { class: "min-h-[28rem] px-5 py-4 text-base leading-8 text-slate-900 focus:outline-none" },
 				handleKeyDown(e, t) {
-					return o.classList.contains("hidden") ? !1 : t.key === "ArrowDown" ? (t.preventDefault(), c = (c + 1) % l.length, f(), !0) : t.key === "ArrowUp" ? (t.preventDefault(), c = (c - 1 + l.length) % l.length, f(), !0) : t.key === "Enter" ? (t.preventDefault(), d(l[c]), !0) : t.key === "Escape" ? (t.preventDefault(), u(), !0) : !1;
+					return o.classList.contains("hidden") ? !1 : t.key === "ArrowDown" ? (t.preventDefault(), c = (c + 1) % l.length, h(), !0) : t.key === "ArrowUp" ? (t.preventDefault(), c = (c - 1 + l.length) % l.length, h(), !0) : t.key === "Enter" ? (t.preventDefault(), m(l[c]), !0) : t.key === "Escape" ? (t.preventDefault(), p(), !0) : !1;
 				}
 			},
 			onUpdate: ({ editor: e }) => {
-				_v(e, t), p();
+				f.rich_text = JSON.stringify(e.getJSON()), g();
 			},
-			onSelectionUpdate: p
+			onSelectionUpdate: g
 		});
-		r.append(gv("H1", () => m.chain().focus().toggleHeading({ level: 1 }).run(), { title: "見出し1" }), gv("H2", () => m.chain().focus().toggleHeading({ level: 2 }).run(), { title: "見出し2" }), gv("H3", () => m.chain().focus().toggleHeading({ level: 3 }).run(), { title: "見出し3" }), gv("B", () => m.chain().focus().toggleBold().run(), { title: "太字" }), gv("I", () => m.chain().focus().toggleItalic().run(), { title: "斜体" }), gv("箇条書き", () => m.chain().focus().toggleBulletList().run()), gv("番号", () => m.chain().focus().toggleOrderedList().run()), gv("引用", () => m.chain().focus().toggleBlockquote().run()), gv("コード", () => m.chain().focus().toggleCodeBlock().run()), gv("リンク", () => {
-			let e = m.getAttributes("link").href || "", t = window.prompt("URL", e);
+		u === "rich_text" && (f.rich_text = JSON.stringify(_.getJSON())), r.append(gv("H1", () => _.chain().focus().toggleHeading({ level: 1 }).run(), { title: "見出し1" }), gv("H2", () => _.chain().focus().toggleHeading({ level: 2 }).run(), { title: "見出し2" }), gv("H3", () => _.chain().focus().toggleHeading({ level: 3 }).run(), { title: "見出し3" }), gv("B", () => _.chain().focus().toggleBold().run(), { title: "太字" }), gv("I", () => _.chain().focus().toggleItalic().run(), { title: "斜体" }), gv("箇条書き", () => _.chain().focus().toggleBulletList().run()), gv("番号", () => _.chain().focus().toggleOrderedList().run()), gv("引用", () => _.chain().focus().toggleBlockquote().run()), gv("コード", () => _.chain().focus().toggleCodeBlock().run()), gv("リンク", () => {
+			let e = _.getAttributes("link").href || "", t = window.prompt("URL", e);
 			if (t !== null) {
 				if (t.trim() === "") {
-					m.chain().focus().unsetLink().run();
+					_.chain().focus().unsetLink().run();
 					return;
 				}
-				m.chain().focus().extendMarkRange("link").setLink({ href: t.trim() }).run();
+				_.chain().focus().extendMarkRange("link").setLink({ href: t.trim() }).run();
 			}
 		}), gv("画像", () => {
 			let e = window.prompt("画像URLまたは /uploads/... のパス");
-			!e || e.trim() === "" || m.chain().focus().setImage({
+			!e || e.trim() === "" || _.chain().focus().setImage({
 				src: e.trim(),
 				alt: ""
 			}).run();
 		}));
-		let h = () => {
-			let i = (a.find((e) => e.checked)?.value || "markdown") === "rich_text";
-			e.classList.toggle("is-rich-mode", i), n.closest("[data-rich-editor-shell]")?.classList.toggle("hidden", !i), r.classList.toggle("hidden", !i), t.classList.toggle("hidden", i), t.required = !0, i ? (_v(m, t), p()) : u();
+		let v = () => {
+			if (u === "rich_text") {
+				f.rich_text = JSON.stringify(_.getJSON());
+				return;
+			}
+			f[u] = t.value;
+		}, y = (e) => e === "html" ? _.getHTML() : vv(_.getJSON()), b = () => {
+			let i = a.find((e) => e.checked)?.value || "markdown";
+			v(), i !== "rich_text" && f[i] === "" && u === "rich_text" && (f[i] = y(i)), u = i;
+			let o = i === "rich_text";
+			e.classList.toggle("is-rich-mode", o), n.closest("[data-rich-editor-shell]")?.classList.toggle("hidden", !o), r.classList.toggle("hidden", !o), t.classList.toggle("hidden", o), t.required = !0, o ? (f.rich_text === "" ? t.value.trim() !== "" && (_.commands.setContent(hv(t.value), !1), f.rich_text = JSON.stringify(_.getJSON())) : _.commands.setContent(hv(f.rich_text), !1), g()) : (t.value = f[i] || "", p());
 		};
-		for (let e of a) e.addEventListener("change", h);
+		for (let e of a) e.addEventListener("change", b);
 		t.form?.addEventListener("submit", () => {
-			(a.find((e) => e.checked)?.value || "markdown") === "rich_text" && _v(m, t);
-		}), h(), document.addEventListener("mousedown", (t) => {
-			e.contains(t.target) || u();
+			(a.find((e) => e.checked)?.value || "markdown") === "rich_text" ? _v(_, t) : (v(), t.value = f[u] || "");
+		}), b(), document.addEventListener("mousedown", (t) => {
+			e.contains(t.target) || p();
 		});
 	});
 });
