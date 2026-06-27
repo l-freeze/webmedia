@@ -24,7 +24,7 @@ final readonly class Markdown
         ]);
 
         $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', 'p,br,strong,em,s,a[href|title],ul,ol,li,blockquote,pre,code,h1,h2,h3,h4,table,thead,tbody,tr,th,td,img[src|alt|title],hr');
+        $config->set('HTML.Allowed', 'p,br,strong,em,s,u,a[href|title],ul,ol,li,blockquote,pre,code,h1,h2,h3,h4,table,thead,tbody,tr,th,td,img[src|alt|title],hr');
         $config->set('URI.SafeIframeRegexp', null);
         $this->purifier = new HTMLPurifier($config);
         $this->tiptapJsonRenderer = new TiptapJsonRenderer();

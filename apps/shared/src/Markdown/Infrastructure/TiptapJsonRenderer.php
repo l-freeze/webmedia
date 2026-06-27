@@ -107,6 +107,7 @@ final readonly class TiptapJsonRenderer
             'italic' => '<em>' . $html . '</em>',
             'code' => '<code>' . $html . '</code>',
             'strike' => '<s>' . $html . '</s>',
+            'underline' => '<u>' . $html . '</u>',
             'link' => $this->renderLink(html: $html, mark: $mark),
             default => $html,
         };

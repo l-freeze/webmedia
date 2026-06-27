@@ -3,6 +3,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
 import { Table } from '@tiptap/extension-table'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
@@ -49,6 +50,18 @@ const button = (label, action, options = {}) => {
     element.title = options.title
   }
   return element
+}
+
+const icon = (path, options = {}) => {
+  const label = options.label || ''
+  const viewBox = options.viewBox || '0 0 24 24'
+
+  return `
+    <svg aria-hidden="true" viewBox="${viewBox}" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      ${path}
+    </svg>
+    <span class="sr-only">${escapeHtml(label)}</span>
+  `
 }
 
 const isLikelyUrl = (value) => /^(https?:\/\/|\/)[^\s]+$/i.test(value.trim())
@@ -214,11 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
     selectionMenu.className = 'absolute z-30 hidden rounded-lg border border-slate-200 bg-white p-2 shadow-xl'
     selectionMenu.innerHTML = `
       <div class="flex flex-wrap items-center gap-1" data-selection-format-row>
-        <button class="min-h-8 rounded-md px-2 text-sm font-black text-slate-800 hover:bg-slate-100" type="button" data-selection-action="bold" title="太字">B</button>
-        <button class="min-h-8 rounded-md px-2 text-sm font-bold italic text-slate-800 hover:bg-slate-100" type="button" data-selection-action="italic" title="斜体">I</button>
-        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-slate-800 line-through hover:bg-slate-100" type="button" data-selection-action="strike" title="取り消し線">S</button>
-        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-slate-800 hover:bg-slate-100" type="button" data-selection-action="code" title="コード">Code</button>
-        <button class="min-h-8 rounded-md px-2 text-sm font-bold text-blue-700 hover:bg-blue-50" type="button" data-selection-action="link" title="リンク">Link</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-800 hover:bg-slate-100" type="button" data-selection-action="bold" title="太字" aria-label="太字">${icon('<path d="M7 5h6a4 4 0 0 1 0 8H7z"></path><path d="M7 13h7a4 4 0 0 1 0 8H7z"></path>', { label: '太字' })}</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-800 hover:bg-slate-100" type="button" data-selection-action="italic" title="斜体" aria-label="斜体">${icon('<path d="M19 4h-9"></path><path d="M14 20H5"></path><path d="M15 4 9 20"></path>', { label: '斜体' })}</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-800 hover:bg-slate-100" type="button" data-selection-action="underline" title="下線" aria-label="下線">${icon('<path d="M6 4v6a6 6 0 0 0 12 0V4"></path><path d="M4 21h16"></path>', { label: '下線' })}</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-800 hover:bg-slate-100" type="button" data-selection-action="strike" title="取り消し線" aria-label="取り消し線">${icon('<path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a3 3 0 0 1 0 6H6"></path><path d="M4 12h16"></path>', { label: '取り消し線' })}</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-800 hover:bg-slate-100" type="button" data-selection-action="code" title="コード" aria-label="コード">${icon('<path d="m8 9-4 3 4 3"></path><path d="m16 9 4 3-4 3"></path><path d="m14 5-4 14"></path>', { label: 'コード' })}</button>
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-700 hover:bg-blue-50" type="button" data-selection-action="link" title="リンク" aria-label="リンク">${icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>', { label: 'リンク' })}</button>
       </div>
       <form class="mt-2 hidden grid min-w-72 grid-cols-[minmax(0,1fr)_auto_auto] gap-2 border-t border-slate-200 pt-2" data-selection-link-form>
         <input class="min-h-9 rounded-md border border-slate-300 px-3 py-1.5 text-sm" name="href" autocomplete="off" placeholder="https://example.com">
@@ -234,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let slashState = null
     let selectedSlashIndex = 0
     let filteredSlashItems = []
+    let isMouseSelecting = false
     let currentMode = radios.find((radio) => radio.checked)?.value || 'markdown'
     const initialBody = textarea.value
     const drafts = {
@@ -332,6 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const updateSelectionMenu = () => {
+      if (isMouseSelecting) {
+        hideSelectionMenu()
+        return
+      }
+
       const current = radios.find((radio) => radio.checked)?.value || 'markdown'
       if (current !== 'rich_text' || !editor.isEditable || !editor.isFocused) {
         hideSelectionMenu()
@@ -457,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
           openOnClick: false,
           enableClickSelection: true,
         }),
+        Underline,
         Image.configure({
           allowBase64: false,
         }),
@@ -589,13 +610,13 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     selectionMenu.addEventListener('mousedown', (event) => {
       const target = event.target
-      if (target instanceof HTMLElement && !target.closest('input')) {
+      if (target instanceof Element && !target.closest('input')) {
         event.preventDefault()
       }
     })
     selectionMenu.addEventListener('click', (event) => {
       const target = event.target
-      if (!(target instanceof HTMLElement)) {
+      if (!(target instanceof Element)) {
         return
       }
 
@@ -606,6 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
           editor.chain().focus().toggleBold().run()
         } else if (action === 'italic') {
           editor.chain().focus().toggleItalic().run()
+        } else if (action === 'underline') {
+          editor.chain().focus().toggleUnderline().run()
         } else if (action === 'strike') {
           editor.chain().focus().toggleStrike().run()
         } else if (action === 'code') {
@@ -635,6 +658,27 @@ document.addEventListener('DOMContentLoaded', () => {
     selectionMenu.querySelector('[data-selection-unlink]')?.addEventListener('click', () => {
       editor.chain().focus().unsetLink().run()
       hideSelectionMenu()
+    })
+
+    mount.addEventListener('mousedown', (event) => {
+      if (event.button !== 0 || !(event.target instanceof Element) || !event.target.closest('.ProseMirror')) {
+        return
+      }
+
+      isMouseSelecting = true
+      hideSelectionMenu()
+    })
+
+    document.addEventListener('mouseup', () => {
+      if (!isMouseSelecting) {
+        return
+      }
+
+      isMouseSelecting = false
+      window.setTimeout(() => {
+        updateSlashMenu()
+        updateSelectionMenu()
+      }, 0)
     })
 
     const saveCurrentDraft = () => {
