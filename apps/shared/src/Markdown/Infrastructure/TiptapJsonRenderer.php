@@ -37,6 +37,10 @@ final readonly class TiptapJsonRenderer
             'hardBreak' => '<br>',
             'horizontalRule' => '<hr>',
             'image' => $this->renderImage(node: $node),
+            'table' => '<table>' . $this->renderChildren(node: $node) . '</table>',
+            'tableRow' => '<tr>' . $this->renderChildren(node: $node) . '</tr>',
+            'tableHeader' => '<th>' . $this->renderChildren(node: $node) . '</th>',
+            'tableCell' => '<td>' . $this->renderChildren(node: $node) . '</td>',
             default => $this->renderChildren(node: $node),
         };
     }

@@ -48,4 +48,38 @@ final class MarkdownTest extends TestCase
         self::assertStringContainsString('<p>本文リンク</p>', $html);
         self::assertStringNotContainsString('javascript:', $html);
     }
+
+    public function testRichTextJsonTableRuleAndImageAreConvertedToSafeHtml(): void
+    {
+        $markdown = new Markdown();
+        $paragraph = static fn (string $text): array => [
+            'type' => 'paragraph',
+            'content' => [['type' => 'text', 'text' => $text]],
+        ];
+        $body = json_encode([
+            'type' => 'doc',
+            'content' => [
+                ['type' => 'horizontalRule'],
+                ['type' => 'image', 'attrs' => ['src' => '/uploads/media/sample.webp', 'alt' => 'sample']],
+                ['type' => 'table', 'content' => [
+                    ['type' => 'tableRow', 'content' => [
+                        ['type' => 'tableHeader', 'content' => [$paragraph('銘柄')]],
+                        ['type' => 'tableHeader', 'content' => [$paragraph('評価')]],
+                    ]],
+                    ['type' => 'tableRow', 'content' => [
+                        ['type' => 'tableCell', 'content' => [$paragraph('山崎')]],
+                        ['type' => 'tableCell', 'content' => [$paragraph('5')]],
+                    ]],
+                ]],
+            ],
+        ], JSON_THROW_ON_ERROR);
+
+        $html = $markdown->bodyToSafeHtml(body: $body, format: 'rich_text');
+
+        self::assertStringContainsString('<hr', $html);
+        self::assertStringContainsString('<img src="/uploads/media/sample.webp" alt="sample"', $html);
+        self::assertStringContainsString('<table>', $html);
+        self::assertStringContainsString('<th><p>銘柄</p></th>', $html);
+        self::assertStringContainsString('<td><p>山崎</p></td>', $html);
+    }
 }

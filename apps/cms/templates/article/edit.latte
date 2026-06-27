@@ -14,6 +14,14 @@
     .article-rich-editor .ProseMirror code { border-radius: 0.25rem; background: #e2e8f0; padding: 0.125rem 0.25rem; }
     .article-rich-editor .ProseMirror pre code { background: transparent; padding: 0; }
     .article-rich-editor .ProseMirror img { max-width: 100%; border-radius: 0.5rem; }
+    .article-rich-editor .ProseMirror a { color: #2563eb; text-decoration: underline; text-underline-offset: 0.18em; }
+    .article-rich-editor .ProseMirror hr { margin: 1.5rem 0; border: 0; border-top: 1px solid #cbd5e1; }
+    .article-rich-editor .ProseMirror table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .article-rich-editor .ProseMirror th,
+    .article-rich-editor .ProseMirror td { min-width: 1em; border: 1px solid #cbd5e1; padding: 0.5rem 0.625rem; vertical-align: top; }
+    .article-rich-editor .ProseMirror th { background: #f1f5f9; font-weight: 700; }
+    .article-rich-editor .ProseMirror .selectedCell::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: rgba(37, 99, 235, .12); }
+    .article-rich-editor .ProseMirror .tableWrapper { overflow-x: auto; }
     .article-rich-editor .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: #94a3b8; pointer-events: none; }
   </style>
 {/block}
@@ -118,6 +126,13 @@
           <div class="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-50 p-3" data-rich-editor-toolbar></div>
           <div data-rich-editor-mount></div>
         </div>
+        <div class="hidden" data-rich-image-library>
+          {foreach $media as $item}
+            <button type="button" data-rich-image-option data-src="{$item['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}">
+              <img src="{$item['path']}" alt="{$item['alt_text'] !== '' ? $item['alt_text'] : $item['file_name']}" loading="lazy">
+            </button>
+          {/foreach}
+        </div>
         <textarea id="article-body" name="body_markdown" required data-rich-editor-source>{$article['body_markdown'] ?? ''}</textarea>
       </div>
     </div>
@@ -154,7 +169,7 @@
 {block scripts}
   <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ja.js"></script>
-  <script type="module" src="/assets/js/cms-rich-editor.js?v=20260627-rich-editor-drafts"></script>
+  <script type="module" src="/assets/js/cms-rich-editor.js?v=20260627-rich-editor-tools"></script>
   <script>
     flatpickr('.datetime-picker', {
       allowInput: true,
