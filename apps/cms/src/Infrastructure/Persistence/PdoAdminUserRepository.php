@@ -6,7 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\AdminUser\List\Query\IAdminUserQuery;
 use App\Cms\Application\AdminUser\List\Value\AdminUser;
-use App\Cms\Application\AdminUser\Repository\IAdminUserRepository;
+use App\Cms\Domain\Entity\AdminUser as AdminUserEntity;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -41,7 +42,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
         return $users;
     }
 
-    public function create(array $data): int
+    public function create(AdminUserEntity $user): int
     {
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(
@@ -49,10 +50,10 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
             sql: 'INSERT INTO users (email, password_hash, name, role, created_at, updated_at) VALUES (:email, :password_hash, :name, :role, :created_at, :updated_at)',
         );
         PdoHelper::execute(statement: $stmt, params: [
-            'email' => $data['email'],
-            'password_hash' => $data['password_hash'],
-            'name' => $data['name'],
-            'role' => $data['role'],
+            'email' => $user->email,
+            'password_hash' => $user->passwordHash,
+            'name' => $user->name,
+            'role' => $user->role,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -60,20 +61,24 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function update(int $id, array $data): bool
+    public function update(AdminUserEntity $user): bool
     {
+        if ($user->id === null) {
+            return false;
+        }
+
         $params = [
-            'id' => $id,
-            'email' => $data['email'],
-            'name' => $data['name'],
-            'role' => $data['role'],
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => $user->role,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
         $passwordSql = '';
 
-        if (isset($data['password_hash'])) {
+        if ($user->passwordHash !== '') {
             $passwordSql = ', password_hash = :password_hash';
-            $params['password_hash'] = $data['password_hash'];
+            $params['password_hash'] = $user->passwordHash;
         }
 
         $stmt = PdoHelper::prepare(
@@ -82,7 +87,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
         );
         PdoHelper::execute(statement: $stmt, params: $params);
 
-        return $stmt->rowCount() > 0 || $this->roleOf(id: $id) !== null;
+        return $stmt->rowCount() > 0 || $this->roleOf(id: $user->id) !== null;
     }
 
     public function delete(int $id): bool

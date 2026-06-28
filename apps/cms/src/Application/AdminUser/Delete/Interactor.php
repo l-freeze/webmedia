@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Delete;
 
-use App\Cms\Application\AdminUser\Repository\IAdminUserRepository;
 use App\Cms\Application\Auth\Authorization\Value\RoleCode;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 
 final readonly class Interactor
 {

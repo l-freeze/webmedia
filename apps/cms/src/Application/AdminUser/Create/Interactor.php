@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Create;
 
-use App\Cms\Application\AdminUser\Repository\IAdminUserRepository;
 use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\Password\PasswordHasher;
+use App\Cms\Domain\Entity\AdminUser;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
 
@@ -53,12 +54,13 @@ final readonly class Interactor
             return new Output(created: false, error: 'このメールアドレスは既に使われています。');
         }
 
-        $userId = $this->users->create(data: [
-            'email' => $email,
-            'name' => $values->string(field: 'name'),
-            'role' => $role,
-            'password_hash' => $this->passwords->hash(plainPassword: $password),
-        ]);
+        $userId = $this->users->create(user: new AdminUser(
+            id: null,
+            email: $email,
+            name: $values->string(field: 'name'),
+            role: $role,
+            passwordHash: $this->passwords->hash(plainPassword: $password),
+        ));
 
         return new Output(created: true, userId: $userId);
     }

@@ -71,6 +71,8 @@
   - 管理者の作成/更新/削除は `AuditEvent` に記録する。password は監査ログに残さない。
   - 左メニューはゴミ箱までをコンテンツ運用系とし、その下に管理者、ロール、パーミッション、監査ログ、サイト設定を置く形にした。
   - PHPUnit、PHPStan、管理者/ロール/パーミッション各画面の HTTP GET、HTTP 経由の管理者作成/更新/削除を確認済み。検証用アカウントは削除済み。
+  - 管理者アカウントの永続化 port は Application 配下ではなく `Domain/Repository/IAdminUserRepository` に置き、保存対象は `Domain/Entity/AdminUser` として扱う形へ整理した。
+  - 問い合わせ状態更新の永続化 port も `Domain/Repository/IInquiryRepository` へ移し、Application 配下に Repository port を置かない形へ整理した。
 - CMS 記事本文リッチエディター:
   - 記事編集画面の本文入力を Markdown / HTML / リッチエディターから選べるようにした。
   - リッチエディターは Tiptap OSS packages を pnpm / Vite で自前ビルドし、`public/assets/js/cms-rich-editor.js` として記事編集画面だけで読み込む。

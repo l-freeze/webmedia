@@ -8,12 +8,13 @@ use App\Cms\Application\AdminUser\Create\Input as CreateInput;
 use App\Cms\Application\AdminUser\Create\Interactor as CreateInteractor;
 use App\Cms\Application\AdminUser\Delete\Input as DeleteInput;
 use App\Cms\Application\AdminUser\Delete\Interactor as DeleteInteractor;
-use App\Cms\Application\AdminUser\Repository\IAdminUserRepository;
 use App\Cms\Application\AdminUser\Update\Input as UpdateInput;
 use App\Cms\Application\AdminUser\Update\Interactor as UpdateInteractor;
 use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use App\Cms\Application\Auth\Password\PasswordHasher;
+use App\Cms\Domain\Entity\AdminUser;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 use PHPUnit\Framework\TestCase;
 
 final class AdminUserInteractorTest extends TestCase
@@ -108,22 +109,32 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         ],
     ];
 
-    public function create(array $data): int
+    public function create(AdminUser $user): int
     {
         $ids = array_keys($this->records);
         $id = ($ids === [] ? 0 : max($ids)) + 1;
-        $this->records[$id] = $data;
+        $this->records[$id] = [
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => $user->role,
+            'password_hash' => $user->passwordHash,
+        ];
 
         return $id;
     }
 
-    public function update(int $id, array $data): bool
+    public function update(AdminUser $user): bool
     {
-        if (!isset($this->records[$id])) {
+        if ($user->id === null || !isset($this->records[$user->id])) {
             return false;
         }
 
-        $this->records[$id] = array_merge($this->records[$id], $data);
+        $this->records[$user->id]['email'] = $user->email;
+        $this->records[$user->id]['name'] = $user->name;
+        $this->records[$user->id]['role'] = $user->role;
+        if ($user->passwordHash !== '') {
+            $this->records[$user->id]['password_hash'] = $user->passwordHash;
+        }
 
         return true;
     }

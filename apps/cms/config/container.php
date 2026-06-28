@@ -15,9 +15,11 @@ use App\Cms\Application\Page;
 use App\Cms\Application\Setting;
 use App\Cms\Application\Tag;
 use App\Cms\Application\Trash;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Repository\IArticleRepository;
-use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Repository\ICategoryRepository;
+use App\Cms\Domain\Repository\IInquiryRepository;
+use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Repository\ISettingRepository;
 use App\Cms\Domain\Repository\ITagRepository;
@@ -154,7 +156,7 @@ $container->bind(abstract: Article\History\Query\IArticleHistoryQuery::class, co
 $container->bind(abstract: Dashboard\Show\Query\IDashboardQuery::class, concrete: PdoDashboardQuery::class);
 $container->bind(abstract: Inquiry\List\Query\IInquiryQuery::class, concrete: PdoInquiryQuery::class);
 $container->bind(abstract: Inquiry\Detail\Query\IInquiryQuery::class, concrete: PdoInquiryQuery::class);
-$container->bind(abstract: Inquiry\Update\Repository\IInquiryRepository::class, concrete: PdoInquiryRepository::class);
+$container->bind(abstract: IInquiryRepository::class, concrete: PdoInquiryRepository::class);
 $container->set(id: Audit\List\Query\IAuditLogQuery::class, factory: static fn (): JsonFileAuditLogQuery => new JsonFileAuditLogQuery($root . '/storage/logs/audit.log'));
 $container->bind(abstract: Media\List\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
 $container->bind(abstract: Article\Edit\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
@@ -165,7 +167,7 @@ $container->bind(abstract: Setting\Edit\Query\ISettingQuery::class, concrete: Pd
 $container->bind(abstract: Category\List\Query\ICategoryQuery::class, concrete: PdoCategoryQuery::class);
 $container->bind(abstract: Tag\List\Query\ITagQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Trash\List\Query\ITrashQuery::class, concrete: PdoTrashQuery::class);
-$container->bind(abstract: AdminUser\Repository\IAdminUserRepository::class, concrete: PdoAdminUserRepository::class);
+$container->bind(abstract: IAdminUserRepository::class, concrete: PdoAdminUserRepository::class);
 $container->bind(abstract: AdminUser\List\Query\IAdminUserQuery::class, concrete: PdoAdminUserRepository::class);
 
 return $container;

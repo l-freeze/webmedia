@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Inquiry\Update\Repository;
+namespace App\Cms\Domain\Repository;
 
 interface IInquiryRepository
 {

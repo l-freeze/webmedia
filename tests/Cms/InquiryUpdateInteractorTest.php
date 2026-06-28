@@ -6,8 +6,8 @@ namespace Tests\Cms;
 
 use App\Cms\Application\Inquiry\Update\Input;
 use App\Cms\Application\Inquiry\Update\Interactor;
-use App\Cms\Application\Inquiry\Update\Repository\IInquiryRepository;
 use App\Cms\Application\Inquiry\Value\InquiryStatus;
+use App\Cms\Domain\Repository\IInquiryRepository;
 use PHPUnit\Framework\TestCase;
 
 final class InquiryUpdateInteractorTest extends TestCase

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Inquiry\Update;
 
-use App\Cms\Application\Inquiry\Update\Repository\IInquiryRepository;
 use App\Cms\Application\Inquiry\Value\InquiryStatus;
+use App\Cms\Domain\Repository\IInquiryRepository;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 

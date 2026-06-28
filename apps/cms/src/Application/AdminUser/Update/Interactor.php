@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Update;
 
-use App\Cms\Application\AdminUser\Repository\IAdminUserRepository;
 use App\Cms\Application\Auth\Authorization\Value\RoleCode;
 use App\Cms\Application\Auth\Password\PasswordHasher;
+use App\Cms\Domain\Entity\AdminUser;
+use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
 
@@ -56,20 +57,21 @@ final readonly class Interactor
             return new Output(updated: false, error: 'このメールアドレスは既に使われています。');
         }
 
-        $data = [
-            'email' => $email,
-            'name' => $values->string(field: 'name'),
-            'role' => $role,
-        ];
-
         $password = $values->string(field: 'password');
+        $passwordHash = '';
         if ($password !== '') {
             if (strlen($password) < self::PASSWORD_MIN_LENGTH) {
                 return new Output(updated: false, error: 'パスワードは8文字以上で入力してください。');
             }
-            $data['password_hash'] = $this->passwords->hash(plainPassword: $password);
+            $passwordHash = $this->passwords->hash(plainPassword: $password);
         }
 
-        return new Output(updated: $this->users->update(id: $input->id, data: $data));
+        return new Output(updated: $this->users->update(user: new AdminUser(
+            id: $input->id,
+            email: $email,
+            name: $values->string(field: 'name'),
+            role: $role,
+            passwordHash: $passwordHash,
+        )));
     }
 }

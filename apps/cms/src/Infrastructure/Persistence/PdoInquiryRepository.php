@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Inquiry\Update\Repository\IInquiryRepository;
+use App\Cms\Domain\Repository\IInquiryRepository;
 use App\Shared\Database\PdoHelper;
 use PDO;
 
