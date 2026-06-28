@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Article;
 use App\Cms\Application\Media;
+use App\Cms\Application\Media\ImagePicker;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
 
-final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery, Article\Edit\Query\IMediaQuery
+final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery, ImagePicker\Query\IImageQuery
 {
     public function __construct(private PDO $pdo)
     {
@@ -38,14 +38,14 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery, Arti
         return $media;
     }
 
-    /** @return array<int, Article\Edit\Value\Media> */
-    public function media(): array
+    /** @return array<int, ImagePicker\Value\Image> */
+    public function images(): array
     {
         $media = [];
         foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT id, file_name, path, alt_text FROM media_files WHERE mime_type LIKE 'image/%' ORDER BY created_at DESC")) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
-            $media[] = new Article\Edit\Value\Media(
+            $media[] = new ImagePicker\Value\Image(
                 id: $pdoRow->int(key: 'id'),
                 fileName: $pdoRow->string(key: 'file_name'),
                 path: $pdoRow->string(key: 'path'),

@@ -163,7 +163,7 @@ CMS の記事本文は Markdown、HTML、リッチエディターから選べる
 
 リッチエディターは Tiptap の OSS editor を採用する。ただし利用範囲は自前ホストの editor package に限定し、Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない。Notion-like な `/` コマンドメニューは Tiptap core / StarterKit のデフォルト機能ではなく、公式 docs でも Slash Commands は実験的で未公開 package 扱いのため、この CMS に必要な最小機能だけを自前 UI として実装する。文字列選択時の装飾メニューも CMS 側の自前 UI とし、マウスでの範囲選択中はドラッグを妨げないようにメニューを出さず、mouseup 後に表示する。画像挿入は URL 手入力に寄せず、CMS 登録済み画像を選べる UI を優先する。
 
-保存形式は、選択中の `body_format` に対応する本文ソースを `body` カラムに保存する。`markdown` は Markdown 文字列、`html` は HTML 文字列、`rich_text` は Tiptap / ProseMirror JSON 文字列を保存する。`rendered_body_html` は本文ソースから生成した表示用 HTML の派生 cache として保存し、正本にはしない。公開表示では `rendered_body_html` を優先し、未生成の既存行では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。
+保存形式は、選択中の `body_format` に対応する本文ソースを `body` カラムに保存する。`markdown` は Markdown 文字列、`html` は HTML 文字列、`rich_text` は Tiptap / ProseMirror JSON 文字列を保存する。`rendered_body_html` は本文ソースから生成した表示用 HTML の派生 cache として保存し、正本にはしない。記事は検索・抜粋用の派生 plain text として `search_body_text` も保存する。公開表示では `rendered_body_html` を優先し、未生成の既存行では PHP 側で許可 node / mark だけ HTML 化し、既存の HTMLPurifier を通してから出力する。
 
 CMS の形式切替は保存済みの正本を即時変換する処理ではなく、編集画面内で形式別ドラフトを保持する UI とする。リッチエディターから Markdown / HTML へ切り替えた時は textarea を JSON で上書きしない。選択先のドラフトが空の場合だけ、リッチ本文から Markdown 風テキストまたは HTML へフォールバック変換して表示する。
 
@@ -183,6 +183,9 @@ CMS の形式切替は保存済みの正本を即時変換する処理ではな�
 - Front が欲しいのは rich_text 限定 HTML ではなく、本文形式に関係なく表示できる安全な HTML である。そのため列名は `rich_text_html` ではなく `rendered_body_html` とする。
 - `content` は記事全体や content type まで広く読めるため、記事本文の正本には英語圏の CMS / blog 文脈で自然な `body` を使う。
 - 表示用 HTML を派生 cache として保存すると Front は表示時の JSON parsing / HTML 変換を避けられる。一方で renderer 変更時は再生成が必要になるため、正本はあくまで `body` と `body_format` とする。
+- rich_text の正本は JSON であり、Front の検索・抜粋が本文 source を直接 `strip_tags` する設計は形式依存になる。検索と未入力時抜粋には、CMS 保存時に生成した `search_body_text` を使う。
+- 固定ページも本文編集体験と表示境界は記事と同じなので、`body` / `body_format` / `rendered_body_html` に揃える。ただし現時点の Front 検索対象は記事だけなので、固定ページには `search_body_text` を持たせない。
+- OGP / Twitter Card / RSS / sitemap は公開表現であり、CMS の保存責務ではない。CMS が持つのは `seo_title`、`meta_description`、`excerpt` など入力値までとし、公開用 meta や XML/feed への整形は Front Presentation 側で行う。
 
 ### 採用しないこと
 
@@ -199,8 +202,8 @@ CMS の形式切替は保存済みの正本を即時変換する処理ではな�
 
 - 画像の本文挿入時に、その場でアップロードできる必要が出る。
 - Markdown から rich_text への明示変換が必要になる。
-- リッチ本文の検索品質を上げるため、plain text cache を別カラムへ持つ。
 - renderer の許可 node / mark を変更した場合、既存 `rendered_body_html` の再生成 command を用意する。
+- renderer の本文テキスト抽出仕様を変更した場合、既存 `search_body_text` の再生成 command を用意する。
 - 記事履歴差分で JSON の node 単位比較が必要になる。
 
 ## Application Port

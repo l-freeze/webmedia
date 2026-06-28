@@ -216,6 +216,8 @@ final class InitialDataSeeder extends AbstractSeed
                 'title' => $article['title'],
                 'slug' => $article['slug'],
                 'body' => $article['body'],
+                'body_format' => 'markdown',
+                'search_body_text' => $article['body'],
                 'excerpt' => $article['excerpt'],
                 'status' => 'published',
                 'current_version_no' => 1,
@@ -233,6 +235,7 @@ final class InitialDataSeeder extends AbstractSeed
                 'title' => $article['title'],
                 'slug' => $article['slug'],
                 'body' => $article['body'],
+                'body_format' => 'markdown',
                 'excerpt' => $article['excerpt'],
                 'status' => 'published',
                 'category_id' => $article['category_id'],
@@ -253,8 +256,8 @@ final class InitialDataSeeder extends AbstractSeed
         $this->table('article_tags')->insert($articleTagRows)->saveData();
 
         $this->table('pages')->insert([
-            ['id' => 1, 'title' => '運営者情報', 'slug' => 'about', 'body_markdown' => 'このサイトは小規模WEBメディアのデモです。PHP技術記事と日常生活の知恵を中心に掲載します。', 'status' => 'published', 'current_version_no' => 1, 'display_order' => 10, 'created_at' => $now, 'updated_at' => $now],
-            ['id' => 2, 'title' => 'プライバシーポリシー', 'slug' => 'privacy', 'body_markdown' => '個人情報は問い合わせ対応の目的で利用します。', 'status' => 'published', 'current_version_no' => 1, 'display_order' => 20, 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 1, 'title' => '運営者情報', 'slug' => 'about', 'body' => 'このサイトは小規模WEBメディアのデモです。PHP技術記事と日常生活の知恵を中心に掲載します。', 'body_format' => 'markdown', 'status' => 'published', 'current_version_no' => 1, 'display_order' => 10, 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'title' => 'プライバシーポリシー', 'slug' => 'privacy', 'body' => '個人情報は問い合わせ対応の目的で利用します。', 'body_format' => 'markdown', 'status' => 'published', 'current_version_no' => 1, 'display_order' => 20, 'created_at' => $now, 'updated_at' => $now],
         ])->saveData();
 
         $this->table('page_versions')->insert([
@@ -263,7 +266,8 @@ final class InitialDataSeeder extends AbstractSeed
                 'version_no' => 1,
                 'title' => '運営者情報',
                 'slug' => 'about',
-                'body_markdown' => 'このサイトは小規模WEBメディアのデモです。PHP技術記事と日常生活の知恵を中心に掲載します。',
+                'body' => 'このサイトは小規模WEBメディアのデモです。PHP技術記事と日常生活の知恵を中心に掲載します。',
+                'body_format' => 'markdown',
                 'status' => 'published',
                 'display_order' => 10,
                 'created_by' => '編集部',
@@ -274,7 +278,8 @@ final class InitialDataSeeder extends AbstractSeed
                 'version_no' => 1,
                 'title' => 'プライバシーポリシー',
                 'slug' => 'privacy',
-                'body_markdown' => '個人情報は問い合わせ対応の目的で利用します。',
+                'body' => '個人情報は問い合わせ対応の目的で利用します。',
+                'body_format' => 'markdown',
                 'status' => 'published',
                 'display_order' => 20,
                 'created_by' => '編集部',

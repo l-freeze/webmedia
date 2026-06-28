@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Article\Edit\Value;
+namespace App\Cms\Application\Media\ImagePicker\Value;
 
-final readonly class Media
+final readonly class Image
 {
     public function __construct(public int $id, public string $fileName, public string $path, public string $altText)
     {

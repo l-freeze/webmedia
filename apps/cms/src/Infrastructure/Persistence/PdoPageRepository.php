@@ -10,12 +10,13 @@ use App\Cms\Domain\Value\PageId;
 use App\Cms\Domain\Value\PageVersionNo;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
+use App\Shared\Markdown\Infrastructure\Markdown;
 use PDO;
 use Throwable;
 
 final readonly class PdoPageRepository implements IPageRepository
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private Markdown $markdown)
     {
     }
 
@@ -60,7 +61,8 @@ final readonly class PdoPageRepository implements IPageRepository
         $this->save(page: Page::fromInput(id: $pageId->value, data: [
             'title' => $version['title'],
             'slug' => $version['slug'],
-            'body_markdown' => $version['body_markdown'],
+            'body' => $version['body'],
+            'body_format' => $version['body_format'] ?? 'markdown',
             'status' => $version['status'],
             'display_order' => $version['display_order'],
             'seo_title' => $version['seo_title'] ?? '',
@@ -74,7 +76,9 @@ final readonly class PdoPageRepository implements IPageRepository
         $payload = [
             'title' => $page->title->value,
             'slug' => $page->slug->value,
-            'body_markdown' => $page->bodyMarkdown->value,
+            'body' => $page->body->value,
+            'body_format' => $page->bodyFormat->value,
+            'rendered_body_html' => $this->markdown->bodyToSafeHtml(body: $page->body->value, format: $page->bodyFormat->value),
             'status' => $page->status->value,
             'display_order' => $page->displayOrder->value,
             'seo_title' => $page->seoTitle->value,
@@ -84,13 +88,13 @@ final readonly class PdoPageRepository implements IPageRepository
 
         if ($page->id === null) {
             $payload['created_at'] = $now;
-            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO pages (title, slug, body_markdown, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO pages (title, slug, body, body_format, rendered_body_html, status, display_order, seo_title, meta_description, created_at, updated_at) VALUES (:title, :slug, :body, :body_format, :rendered_body_html, :status, :display_order, :seo_title, :meta_description, :created_at, :updated_at) RETURNING id');
             PdoHelper::execute(statement: $stmt, params: $payload);
             $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
         } else {
             $id = $page->id->value;
             $payload['id'] = $id;
-            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE pages SET title = :title, slug = :slug, body_markdown = :body_markdown, status = :status, display_order = :display_order, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE pages SET title = :title, slug = :slug, body = :body, body_format = :body_format, rendered_body_html = :rendered_body_html, status = :status, display_order = :display_order, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
             PdoHelper::execute(statement: $stmt, params: $payload);
         }
 
@@ -104,13 +108,14 @@ final readonly class PdoPageRepository implements IPageRepository
     /** @param array<string, mixed> $payload */
     private function snapshot(int $pageId, int $versionNo, array $payload): void
     {
-        $insert = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO page_versions (page_id, version_no, title, slug, body_markdown, status, display_order, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body_markdown, :status, :display_order, :seo_title, :meta_description, :created_by, :created_at)');
+        $insert = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO page_versions (page_id, version_no, title, slug, body, body_format, status, display_order, seo_title, meta_description, created_by, created_at) VALUES (:page_id, :version_no, :title, :slug, :body, :body_format, :status, :display_order, :seo_title, :meta_description, :created_by, :created_at)');
         PdoHelper::execute(statement: $insert, params: [
             'page_id' => $pageId,
             'version_no' => $versionNo,
             'title' => $payload['title'],
             'slug' => $payload['slug'],
-            'body_markdown' => $payload['body_markdown'],
+            'body' => $payload['body'],
+            'body_format' => $payload['body_format'],
             'status' => $payload['status'],
             'display_order' => $payload['display_order'],
             'seo_title' => $payload['seo_title'],

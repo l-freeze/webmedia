@@ -25,11 +25,11 @@
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache, 検索用 `search_body_text` 派生 text | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。検索と未入力時抜粋は保存時に生成する `search_body_text` を使う。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
-| 固定ページ管理 | 一部完了 | list/create/edit/store/update/restore routes, Page UseCase, 編集画面の履歴復元 UI | 複製は未実装 |
+| 固定ページ管理 | 一部完了 | list/create/edit/store/update/restore routes, Page UseCase, Markdown / HTML / Tiptap リッチエディター切替, 表示用 `rendered_body_html` 派生 cache, 編集画面の履歴復元 UI | 複製は未実装。固定ページ編集画面 GET と Front 固定ページ表示は HTTP 確認済み |
 | カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
@@ -51,7 +51,7 @@
 | 記事詳細 | 完了 | `/articles/{slug}`, Article Show UseCase, canonical | HTTP 表示確認済み。関連記事、人気記事、更新日 UI の充足度確認は必要時に行う |
 | カテゴリ一覧 / 詳細 | 完了 | `/categories`, `/categories/{slug}` | HTTP 表示確認済み |
 | タグ一覧 / 詳細 | 完了 | `/tags`, `/tags/{slug}` | HTTP 表示確認済み |
-| 検索結果 / 検索結果なし | 一部完了 | `/search`, Article Search UseCase | 現在設定では検索停止中として 404 を返すことを確認。検索 ON 時の結果なし表示は未確認 |
+| 検索結果 / 検索結果なし | 一部完了 | `/search`, Article Search UseCase, 記事 `search_body_text` 検索 | 現在設定では検索停止中として 404 を返すことを確認。検索 ON 時の結果なし表示は未確認 |
 | 固定ページ | 完了 | `/pages/{slug}`, Page Show UseCase | 法務ページ本文の本番用整備 |
 | 問い合わせ入力 / エラー / 完了 | 一部完了 | `/contact`, `/contact/success`, Inquiry Create UseCase, 文字数上限 | CSRF 付き POST と完了遷移は確認済み。rate limit、honeypot/CAPTCHA、プライバシー同意文言は公開前の保留判断。管理者通知は運用方針が固まってから判断 |
 | 404 | 完了 | NotFound controller / state template | route からの 404 表示確認済み |
@@ -68,7 +68,7 @@
 | DI / HTTP / Routing / Middleware | 完了 | Framework と tests | route match 重複などは必要時に改善 |
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
-| Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article `rendered_body_html` 派生 cache | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `rendered_body_html` を優先し、未生成行では source から fallback 変換する |
+| Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article/page `rendered_body_html` 派生 cache, article `search_body_text` 派生 text | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `rendered_body_html` を優先し、未生成行では source から fallback 変換する |
 | Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み | request id の運用、例外ログ連携、記事/設定/メディアの before / after 要約 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |

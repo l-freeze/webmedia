@@ -20,6 +20,17 @@ final readonly class TiptapJsonRenderer
         return $this->renderChildren(node: $decoded);
     }
 
+    public function toPlainText(string $json): string
+    {
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded) || ($decoded['type'] ?? '') !== 'doc') {
+            return '';
+        }
+        /** @var array<string, mixed> $decoded */
+
+        return $this->plainText(node: $decoded);
+    }
+
     /** @param array<string, mixed> $node */
     private function renderNode(array $node): string
     {
@@ -162,7 +173,10 @@ final readonly class TiptapJsonRenderer
         foreach ($content as $child) {
             if (is_array($child)) {
                 /** @var array<string, mixed> $child */
-                $text .= $this->plainText(node: $child);
+                $childText = $this->plainText(node: $child);
+                if ($childText !== '') {
+                    $text .= ($text === '' ? '' : ' ') . $childText;
+                }
             }
         }
 

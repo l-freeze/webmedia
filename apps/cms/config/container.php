@@ -159,7 +159,7 @@ $container->bind(abstract: Inquiry\Detail\Query\IInquiryQuery::class, concrete: 
 $container->bind(abstract: IInquiryRepository::class, concrete: PdoInquiryRepository::class);
 $container->set(id: Audit\List\Query\IAuditLogQuery::class, factory: static fn (): JsonFileAuditLogQuery => new JsonFileAuditLogQuery($root . '/storage/logs/audit.log'));
 $container->bind(abstract: Media\List\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
-$container->bind(abstract: Article\Edit\Query\IMediaQuery::class, concrete: PdoMediaQuery::class);
+$container->bind(abstract: Media\ImagePicker\Query\IImageQuery::class, concrete: PdoMediaQuery::class);
 $container->bind(abstract: Page\List\Query\IPageQuery::class, concrete: PdoPageQuery::class);
 $container->bind(abstract: Page\Edit\Query\IPageQuery::class, concrete: PdoPageEditQuery::class);
 $container->bind(abstract: Page\History\Query\IPageHistoryQuery::class, concrete: PdoPageHistoryQuery::class);

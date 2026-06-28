@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Entity;
 
 use App\Cms\Domain\Value\MetaDescription;
-use App\Cms\Domain\Value\PageBodyMarkdown;
+use App\Cms\Domain\Value\PageBody;
+use App\Cms\Domain\Value\PageBodyFormat;
 use App\Cms\Domain\Value\PageDisplayOrder;
 use App\Cms\Domain\Value\PageId;
 use App\Cms\Domain\Value\PageSlug;
@@ -19,7 +20,8 @@ final readonly class Page
         public ?PageId $id,
         public PageTitle $title,
         public PageSlug $slug,
-        public PageBodyMarkdown $bodyMarkdown,
+        public PageBody $body,
+        public PageBodyFormat $bodyFormat,
         public PageStatus $status,
         public PageDisplayOrder $displayOrder,
         public SeoTitle $seoTitle,
@@ -34,7 +36,8 @@ final readonly class Page
             id: $id === null ? null : new PageId(value: $id),
             title: new PageTitle(value: self::stringValue(data: $data, key: 'title')),
             slug: new PageSlug(value: self::stringValue(data: $data, key: 'slug')),
-            bodyMarkdown: new PageBodyMarkdown(value: self::stringValue(data: $data, key: 'body_markdown')),
+            body: new PageBody(value: self::stringValue(data: $data, key: 'body')),
+            bodyFormat: new PageBodyFormat(value: self::stringValue(data: $data, key: 'body_format', default: PageBodyFormat::MARKDOWN)),
             status: new PageStatus(value: self::stringValue(data: $data, key: 'status', default: 'draft')),
             displayOrder: new PageDisplayOrder(value: self::intValue(data: $data, key: 'display_order')),
             seoTitle: new SeoTitle(value: self::stringValue(data: $data, key: 'seo_title')),

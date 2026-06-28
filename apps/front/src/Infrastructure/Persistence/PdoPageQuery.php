@@ -31,8 +31,21 @@ final readonly class PdoPageQuery implements IPageQuery
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),
-            bodyHtml: $this->markdown->toSafeHtml(markdown: $pdoRow->string(key: 'body_markdown')),
+            bodyHtml: $this->bodyHtml(row: $pdoRow),
             updatedAt: $pdoRow->date(key: 'updated_at'),
+        );
+    }
+
+    private function bodyHtml(PdoRow $row): string
+    {
+        $bodyHtml = $row->string(key: 'rendered_body_html');
+        if ($bodyHtml !== '') {
+            return $bodyHtml;
+        }
+
+        return $this->markdown->bodyToSafeHtml(
+            body: $row->string(key: 'body'),
+            format: $row->string(key: 'body_format', default: 'markdown'),
         );
     }
 }

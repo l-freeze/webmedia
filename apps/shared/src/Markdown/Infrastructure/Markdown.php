@@ -52,4 +52,22 @@ final readonly class Markdown
 
         return $this->toSafeHtml(markdown: $body);
     }
+
+    public function bodyToPlainText(string $body, string $format): string
+    {
+        if ($format === 'rich_text') {
+            return $this->normalizePlainText(text: $this->tiptapJsonRenderer->toPlainText(json: $body));
+        }
+
+        $html = $format === 'html'
+            ? $this->htmlToSafeHtml(html: $body)
+            : $this->toSafeHtml(markdown: $body);
+
+        return $this->normalizePlainText(text: strip_tags($html));
+    }
+
+    private function normalizePlainText(string $text): string
+    {
+        return trim((string) preg_replace('/\s+/u', ' ', html_entity_decode($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));
+    }
 }

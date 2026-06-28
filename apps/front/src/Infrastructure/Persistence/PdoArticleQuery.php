@@ -60,7 +60,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
     /** @return array<int, Article\Search\Value\Article> */
     public function search(string $keyword): array
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.body ILIKE :body_q) ORDER BY a.published_at DESC');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.search_body_text ILIKE :body_q) ORDER BY a.published_at DESC');
         $likeKeyword = '%' . $keyword . '%';
         PdoHelper::execute(statement: $stmt, params: ['title_q' => $likeKeyword, 'body_q' => $likeKeyword]);
         $articles = [];
@@ -195,7 +195,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
             return $excerpt;
         }
 
-        return mb_substr(strip_tags($row->string(key: 'body')), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
+        return mb_substr($row->string(key: 'search_body_text'), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
     }
 
     private function bodyHtml(PdoRow $row): string
