@@ -52,10 +52,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
 
         return $this->showArticle(
             row: $row,
-            bodyHtml: $this->markdown->bodyToSafeHtml(
-                body: $pdoRow->string(key: 'body_markdown'),
-                format: $pdoRow->string(key: 'body_format', default: 'markdown'),
-            ),
+            bodyHtml: $this->bodyHtml(row: $pdoRow),
             tags: $this->tags(articleId: $pdoRow->int(key: 'id')),
         );
     }
@@ -199,5 +196,18 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
         }
 
         return mb_substr(strip_tags($row->string(key: 'body_markdown')), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
+    }
+
+    private function bodyHtml(PdoRow $row): string
+    {
+        $bodyHtml = $row->string(key: 'body_html');
+        if ($bodyHtml !== '') {
+            return $bodyHtml;
+        }
+
+        return $this->markdown->bodyToSafeHtml(
+            body: $row->string(key: 'body_markdown'),
+            format: $row->string(key: 'body_format', default: 'markdown'),
+        );
     }
 }

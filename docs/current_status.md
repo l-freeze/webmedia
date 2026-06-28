@@ -83,6 +83,7 @@
   - 画像挿入は URL 手入力だけではなく、CMS 登録済み画像を検索・選択して本文へ挿入できるようにした。
   - 区切り線とテーブル挿入/行追加/列追加/行削除/列削除/表削除の toolbar 操作を追加した。
   - `body_format=rich_text` を追加し、本文は Tiptap / ProseMirror JSON 文字列として既存 `body_markdown` に保存する。
+  - `body_html` を表示用 HTML の派生 cache として追加し、CMS 保存時に `body_markdown` + `body_format` から安全な HTML を生成して保存する。Front は `body_html` を優先し、未生成の既存行では従来どおり source から fallback 変換する。
   - CMS 編集画面では Markdown / HTML / rich_text の形式別ドラフトをブラウザ上で保持し、リッチエディターから Markdown / HTML へ切り替えた時に textarea を JSON で上書きしない。
   - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。表、区切り線、画像、リンクも許可範囲内でレンダリングする。
   - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。
