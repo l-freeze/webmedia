@@ -362,7 +362,7 @@ page_id       対象固定ページID
 version_no    固定ページごとの版番号
 title         保存時点のタイトル
 slug          保存時点のスラッグ
-body_markdown 保存時点の本文
+body 保存時点の本文
 status        保存時点の状態
 display_order 保存時点の表示順
 seo_title     保存時点のSEOタイトル
@@ -380,7 +380,7 @@ article_id     対象記事ID
 version_no     記事ごとの版番号
 title          保存時点のタイトル
 slug           保存時点のスラッグ
-body_markdown  保存時点の本文
+body  保存時点の本文
 excerpt        保存時点の抜粋
 status         保存時点の表示設定
 category_id    保存時点のカテゴリID

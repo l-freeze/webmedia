@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Entity;
 
-use App\Cms\Domain\Value\ArticleBodyMarkdown;
+use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
@@ -24,7 +24,7 @@ final readonly class Article
         public ?ArticleId $id,
         public ArticleTitle $title,
         public ArticleSlug $slug,
-        public ArticleBodyMarkdown $bodyMarkdown,
+        public ArticleBody $body,
         public ArticleBodyFormat $bodyFormat,
         public ArticleExcerpt $excerpt,
         public ArticleStatus $status,
@@ -45,7 +45,7 @@ final readonly class Article
             id: $id === null ? null : new ArticleId(value: $id),
             title: new ArticleTitle(value: self::stringValue(data: $data, key: 'title')),
             slug: new ArticleSlug(value: self::stringValue(data: $data, key: 'slug')),
-            bodyMarkdown: new ArticleBodyMarkdown(value: self::stringValue(data: $data, key: 'body_markdown')),
+            body: new ArticleBody(value: self::stringValue(data: $data, key: 'body')),
             bodyFormat: new ArticleBodyFormat(value: self::stringValue(data: $data, key: 'body_format', default: ArticleBodyFormat::MARKDOWN)),
             excerpt: new ArticleExcerpt(value: self::stringValue(data: $data, key: 'excerpt')),
             status: new ArticleStatus(value: self::stringValue(data: $data, key: 'status', default: 'draft')),

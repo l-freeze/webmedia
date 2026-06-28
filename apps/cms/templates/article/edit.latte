@@ -133,7 +133,7 @@
             </button>
           {/foreach}
         </div>
-        <textarea id="article-body" name="body_markdown" required data-rich-editor-source>{$article['body_markdown'] ?? ''}</textarea>
+        <textarea id="article-body" name="body" required data-rich-editor-source>{$article['body'] ?? ''}</textarea>
       </div>
     </div>
     <label>概要<textarea name="excerpt">{$article['excerpt'] ?? ''}</textarea></label>

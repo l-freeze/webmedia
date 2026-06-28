@@ -18,7 +18,7 @@ final readonly class PdoArticleVersionPreviewQuery implements IArticleVersionQue
 
     public function find(int $articleId, int $versionNo): ?ArticleVersion
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT article_id, version_no, title, slug, body_markdown, body_format, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, created_at FROM article_versions WHERE article_id = :article_id AND version_no = :version_no LIMIT 1');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT article_id, version_no, title, slug, body, body_format, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, created_at FROM article_versions WHERE article_id = :article_id AND version_no = :version_no LIMIT 1');
         PdoHelper::execute(statement: $stmt, params: ['article_id' => $articleId, 'version_no' => $versionNo]);
         $row = PdoHelper::fetch(statement: $stmt);
         if ($row === null) {
@@ -32,7 +32,7 @@ final readonly class PdoArticleVersionPreviewQuery implements IArticleVersionQue
             versionNo: $pdoRow->int(key: 'version_no'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),
-            bodyMarkdown: $pdoRow->string(key: 'body_markdown'),
+            body: $pdoRow->string(key: 'body'),
             bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
             excerpt: $pdoRow->string(key: 'excerpt'),
             status: $pdoRow->string(key: 'status'),

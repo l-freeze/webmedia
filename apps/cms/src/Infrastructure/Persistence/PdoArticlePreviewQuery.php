@@ -18,7 +18,7 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
 
     public function find(int $id): ?Article
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title, slug, body_markdown, body_format, status, eyecatch_path, published_at, published_ends_at FROM articles WHERE id = :id');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title, slug, body, body_format, status, eyecatch_path, published_at, published_ends_at FROM articles WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
         $row = PdoHelper::fetch(statement: $stmt);
         if ($row === null) {
@@ -31,7 +31,7 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             slug: $pdoRow->string(key: 'slug'),
-            bodyMarkdown: $pdoRow->string(key: 'body_markdown'),
+            body: $pdoRow->string(key: 'body'),
             bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
             status: $pdoRow->string(key: 'status'),
             statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),

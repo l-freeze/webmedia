@@ -33,7 +33,7 @@ final readonly class Interactor
             ->required(field: 'title', label: 'タイトル')
             ->required(field: 'slug', label: 'スラッグ')
             ->required(field: 'body_format', label: '入力種別')
-            ->required(field: 'body_markdown', label: '本文')
+            ->required(field: 'body', label: '本文')
             ->output();
         $validation = SlugValidator::validate(input: $values, validation: $validation);
 
@@ -69,14 +69,14 @@ final readonly class Interactor
             return ValidationOutput::valid();
         }
 
-        $decoded = json_decode($values->string(field: 'body_markdown'), true);
+        $decoded = json_decode($values->string(field: 'body'), true);
         if (!is_array($decoded) || ($decoded['type'] ?? '') !== 'doc') {
-            return ValidationOutput::invalid(new ValidationError(field: 'body_markdown', message: 'リッチエディター本文の形式が正しくありません。'));
+            return ValidationOutput::invalid(new ValidationError(field: 'body', message: 'リッチエディター本文の形式が正しくありません。'));
         }
         /** @var array<string, mixed> $decoded */
 
         if ($this->isEmptyRichTextDocument(node: $decoded)) {
-            return ValidationOutput::invalid(new ValidationError(field: 'body_markdown', message: '本文を入力してください。'));
+            return ValidationOutput::invalid(new ValidationError(field: 'body', message: '本文を入力してください。'));
         }
 
         return ValidationOutput::valid();

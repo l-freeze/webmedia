@@ -12,7 +12,7 @@
       {else}
         <div class="thumb article-eyecatch" role="img" aria-label="{$article['title']}"></div>
       {/if}
-      <div>{$article['body_html']|noescape}</div>
+      <div>{$article['rendered_body_html']|noescape}</div>
       <hr>
       <p>タグ:
         {foreach $article['tags'] as $tag}

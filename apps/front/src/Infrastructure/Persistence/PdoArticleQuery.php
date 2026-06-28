@@ -60,7 +60,7 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
     /** @return array<int, Article\Search\Value\Article> */
     public function search(string $keyword): array
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.body_markdown ILIKE :body_q) ORDER BY a.published_at DESC');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $this->baseSql() . ' WHERE ' . $this->publicCondition() . ' AND (a.title ILIKE :title_q OR a.body ILIKE :body_q) ORDER BY a.published_at DESC');
         $likeKeyword = '%' . $keyword . '%';
         PdoHelper::execute(statement: $stmt, params: ['title_q' => $likeKeyword, 'body_q' => $likeKeyword]);
         $articles = [];
@@ -195,18 +195,18 @@ final readonly class PdoArticleQuery implements Home\Show\Query\IArticleQuery, A
             return $excerpt;
         }
 
-        return mb_substr(strip_tags($row->string(key: 'body_markdown')), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
+        return mb_substr(strip_tags($row->string(key: 'body')), 0, self::GENERATED_EXCERPT_MAX_LENGTH);
     }
 
     private function bodyHtml(PdoRow $row): string
     {
-        $bodyHtml = $row->string(key: 'body_html');
+        $bodyHtml = $row->string(key: 'rendered_body_html');
         if ($bodyHtml !== '') {
             return $bodyHtml;
         }
 
         return $this->markdown->bodyToSafeHtml(
-            body: $row->string(key: 'body_markdown'),
+            body: $row->string(key: 'body'),
             format: $row->string(key: 'body_format', default: 'markdown'),
         );
     }

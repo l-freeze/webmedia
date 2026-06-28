@@ -39,7 +39,7 @@ final readonly class Article
             'published_at' => $this->publishedAt,
             'updated_at' => $this->updatedAt,
             'author_name' => $this->authorName,
-            'body_html' => $this->bodyHtml,
+            'rendered_body_html' => $this->bodyHtml,
             'tags' => $this->tags,
         ];
     }

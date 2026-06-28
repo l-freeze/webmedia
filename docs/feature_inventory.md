@@ -25,7 +25,7 @@
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `body_html` 派生 cache | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `body_html` に保存。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
@@ -68,7 +68,7 @@
 | DI / HTTP / Routing / Middleware | 完了 | Framework と tests | route match 重複などは必要時に改善 |
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
-| Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article `body_html` 派生 cache | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `body_html` を優先し、未生成行では source から fallback 変換する |
+| Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article `rendered_body_html` 派生 cache | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `rendered_body_html` を優先し、未生成行では source から fallback 変換する |
 | Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み | request id の運用、例外ログ連携、記事/設定/メディアの before / after 要約 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |

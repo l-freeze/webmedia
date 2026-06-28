@@ -7,6 +7,6 @@
   {if ($article['eyecatch_path'] ?? '') !== ''}
     <img class="my-5 max-h-[420px] rounded-lg border border-slate-200 object-contain" src="{$article['eyecatch_path']}" alt="{$article['title']}">
   {/if}
-  <div>{$article['body_html']|noescape}</div>
+  <div>{$article['rendered_body_html']|noescape}</div>
 </article>
 {/block}

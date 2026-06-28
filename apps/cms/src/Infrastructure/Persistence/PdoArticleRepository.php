@@ -55,9 +55,9 @@ final readonly class PdoArticleRepository implements IArticleRepository
         $payload = [
             'title' => $article->title->value,
             'slug' => $article->slug->value,
-            'body_markdown' => $article->bodyMarkdown->value,
+            'body' => $article->body->value,
             'body_format' => $article->bodyFormat->value,
-            'body_html' => $this->markdown->bodyToSafeHtml(body: $article->bodyMarkdown->value, format: $article->bodyFormat->value),
+            'rendered_body_html' => $this->markdown->bodyToSafeHtml(body: $article->body->value, format: $article->bodyFormat->value),
             'excerpt' => $article->excerpt->value,
             'status' => $article->status->value,
             'category_id' => $article->categoryId?->value,
@@ -73,13 +73,13 @@ final readonly class PdoArticleRepository implements IArticleRepository
             $payload['created_at'] = $now;
             $payload['author_name'] = '編集部';
             $payload['author_id'] = $article->authorId;
-            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO articles (title, slug, body_markdown, body_format, body_html, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, author_name, author_id, created_at, updated_at) VALUES (:title, :slug, :body_markdown, :body_format, :body_html, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :author_name, :author_id, :created_at, :updated_at) RETURNING id');
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO articles (title, slug, body, body_format, rendered_body_html, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, author_name, author_id, created_at, updated_at) VALUES (:title, :slug, :body, :body_format, :rendered_body_html, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :author_name, :author_id, :created_at, :updated_at) RETURNING id');
             PdoHelper::execute(statement: $stmt, params: $payload);
             $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
         } else {
             $id = $article->id->value;
             $payload['id'] = $article->id->value;
-            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE articles SET title = :title, slug = :slug, body_markdown = :body_markdown, body_format = :body_format, body_html = :body_html, excerpt = :excerpt, status = :status, category_id = :category_id, eyecatch_path = :eyecatch_path, published_at = :published_at, published_ends_at = :published_ends_at, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE articles SET title = :title, slug = :slug, body = :body, body_format = :body_format, rendered_body_html = :rendered_body_html, excerpt = :excerpt, status = :status, category_id = :category_id, eyecatch_path = :eyecatch_path, published_at = :published_at, published_ends_at = :published_ends_at, seo_title = :seo_title, meta_description = :meta_description, updated_at = :updated_at WHERE id = :id');
             PdoHelper::execute(statement: $stmt, params: $payload);
         }
 
@@ -101,7 +101,7 @@ final readonly class PdoArticleRepository implements IArticleRepository
         $this->save(article: Article::fromInput(id: $articleId->value, data: [
             'title' => $version['title'],
             'slug' => $version['slug'],
-            'body_markdown' => $version['body_markdown'],
+            'body' => $version['body'],
             'body_format' => $version['body_format'] ?? 'markdown',
             'excerpt' => $version['excerpt'] ?? '',
             'status' => $version['status'],
@@ -129,13 +129,13 @@ final readonly class PdoArticleRepository implements IArticleRepository
     /** @param array<string, mixed> $payload */
     private function snapshot(int $articleId, int $versionNo, array $payload): void
     {
-        $insert = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO article_versions (article_id, version_no, title, slug, body_markdown, body_format, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, note, created_by, created_at) VALUES (:article_id, :version_no, :title, :slug, :body_markdown, :body_format, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :note, :created_by, :created_at)');
+        $insert = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO article_versions (article_id, version_no, title, slug, body, body_format, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, note, created_by, created_at) VALUES (:article_id, :version_no, :title, :slug, :body, :body_format, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :note, :created_by, :created_at)');
         PdoHelper::execute(statement: $insert, params: [
             'article_id' => $articleId,
             'version_no' => $versionNo,
             'title' => $payload['title'],
             'slug' => $payload['slug'],
-            'body_markdown' => $payload['body_markdown'],
+            'body' => $payload['body'],
             'body_format' => $payload['body_format'],
             'excerpt' => $payload['excerpt'],
             'status' => $payload['status'],

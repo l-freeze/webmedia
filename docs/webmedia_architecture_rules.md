@@ -450,14 +450,14 @@ Application/
 new Input(
     id: $id,
     title: $request->input('title'),
-    bodyMarkdown: $request->input('body_markdown'),
+    body: $request->input('body'),
 );
 ```
 
 禁止:
 
 ```php
-new Input($id, $request->input('title'), $request->input('body_markdown'));
+new Input($id, $request->input('title'), $request->input('body'));
 ```
 
 ### 5.2 Interactor
@@ -699,7 +699,7 @@ Entity が内包する要素は、原則として `Domain/Value` の ValueObject
 例:
 
 ```php
-use App\Cms\Domain\Value\ArticleBodyMarkdown;
+use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleStatus;
@@ -711,7 +711,7 @@ final class Article
         private ?ArticleId $id,
         private ArticleTitle $title,
         private ArticleSlug $slug,
-        private ArticleBodyMarkdown $bodyMarkdown,
+        private ArticleBody $body,
         private ArticleStatus $status,
     ) {
     }
@@ -987,7 +987,7 @@ new Article(
     id: $id,
     title: $title,
     slug: $slug,
-    bodyMarkdown: $bodyMarkdown,
+    body: $body,
 );
 ```
 
@@ -995,7 +995,7 @@ new Article(
 
 ```php
 new Response($html, 422);
-new Article($id, $title, $slug, $bodyMarkdown);
+new Article($id, $title, $slug, $body);
 ```
 
 例外:
