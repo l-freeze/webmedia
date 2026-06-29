@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Media\Delete;
 
 use App\Cms\Application\Media\Delete\Input;
 use App\Cms\Application\Media\Delete\Interactor;
-use App\Cms\Presentation\Audit\AuditTrailWriter;
+use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -16,7 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $delete,
-        private AuditTrailWriter $audit,
+        private AuditReporter $audit,
     ) {
     }
 

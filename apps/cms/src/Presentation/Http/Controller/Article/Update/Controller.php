@@ -8,7 +8,7 @@ use App\Cms\Application\Article\Save\Input;
 use App\Cms\Application\Article\Save\Interactor;
 use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Cms\Presentation\Audit\AuditTrailWriter;
+use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -19,7 +19,7 @@ final readonly class Controller
         private Session $session,
         private CmsGuard $guard,
         private Interactor $save,
-        private AuditTrailWriter $audit,
+        private AuditReporter $audit,
     ) {
     }
 

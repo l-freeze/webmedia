@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Audit;
 
 use App\Framework\Http\Request;
 
-final readonly class AuditTrailWriter
+final readonly class AuditReporter
 {
     /** @param array<string, mixed> $metadata */
     public function describe(

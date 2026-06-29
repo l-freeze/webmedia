@@ -8,7 +8,7 @@ use App\Cms\Application\Article\Restore\Input;
 use App\Cms\Application\Article\Restore\Interactor;
 use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Cms\Presentation\Audit\AuditTrailWriter;
+use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
@@ -17,7 +17,7 @@ final readonly class Controller
     public function __construct(
         private CmsGuard $guard,
         private Interactor $restore,
-        private AuditTrailWriter $audit,
+        private AuditReporter $audit,
     ) {
     }
 

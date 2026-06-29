@@ -7,7 +7,7 @@ namespace App\Cms\Presentation\Http\Controller\Inquiry\Update;
 use App\Cms\Application\Inquiry\Update\Input;
 use App\Cms\Application\Inquiry\Update\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Cms\Presentation\Audit\AuditTrailWriter;
+use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -18,7 +18,7 @@ final readonly class Controller
         private CmsGuard $guard,
         private Interactor $update,
         private Session $session,
-        private AuditTrailWriter $audit,
+        private AuditReporter $audit,
     ) {
     }
 
