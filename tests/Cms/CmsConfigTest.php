@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Cms;
 
 use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
-use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +20,7 @@ final class CmsConfigTest extends TestCase
 
         $sessionIndex = array_search(RequireCmsSessionMiddleware::class, $middleware, true);
         $permissionIndex = array_search(RequireCmsPermissionMiddleware::class, $middleware, true);
-        $auditIndex = array_search(CmsAuditMiddleware::class, $middleware, true);
+        $auditIndex = array_search(AuditMiddleware::class, $middleware, true);
 
         self::assertIsInt($sessionIndex);
         self::assertIsInt($permissionIndex);

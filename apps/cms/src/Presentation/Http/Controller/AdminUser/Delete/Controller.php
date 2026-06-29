@@ -7,7 +7,7 @@ namespace App\Cms\Presentation\Http\Controller\AdminUser\Delete;
 use App\Cms\Application\AdminUser\Delete\Input;
 use App\Cms\Application\AdminUser\Delete\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Cms\Presentation\Audit\CmsAuditService;
+use App\Cms\Presentation\Audit\AuditTrailWriter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -18,7 +18,7 @@ final readonly class Controller
         private Session $session,
         private Interactor $delete,
         private CmsGuard $guard,
-        private CmsAuditService $audit,
+        private AuditTrailWriter $audit,
     ) {
     }
 

@@ -34,7 +34,7 @@ return [
     ...$sharedMiddleware,
     RequireCmsSessionMiddleware::class,
     RequireCmsPermissionMiddleware::class,
-    CmsAuditMiddleware::class,
+    AuditMiddleware::class,
 ];
 ```
 

@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Audit;
 
-final class CmsAuditTrail
+final class AuditTrail
 {
     public const ATTRIBUTE = 'cms.audit_trail';
 
-    private ?CmsAuditSummary $summary = null;
+    private ?AuditSummary $summary = null;
 
-    public function describe(CmsAuditSummary $summary): void
+    public function describe(AuditSummary $summary): void
     {
         $this->summary = $summary;
     }
 
-    public function summary(): ?CmsAuditSummary
+    public function summary(): ?AuditSummary
     {
         return $this->summary;
     }

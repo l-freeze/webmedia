@@ -7,9 +7,9 @@ namespace Tests\Cms\Http\Middleware;
 use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Cms\Presentation\Audit\CmsAuditSummary;
-use App\Cms\Presentation\Audit\CmsAuditTrail;
-use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Audit\AuditSummary;
+use App\Cms\Presentation\Audit\AuditTrail;
+use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -25,7 +25,7 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class CmsAuditMiddlewareTest extends TestCase
+final class AuditMiddlewareTest extends TestCase
 {
     public function testGetAdminRequestIsNotRecorded(): void
     {
@@ -234,9 +234,9 @@ final class CmsAuditMiddlewareTest extends TestCase
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/articles/10'),
             handler: new CallableRequestHandler(handler: static function (Request $request): Response {
-                $trail = $request->attribute(key: CmsAuditTrail::ATTRIBUTE);
-                self::assertInstanceOf(CmsAuditTrail::class, $trail);
-                $trail->describe(summary: new CmsAuditSummary(
+                $trail = $request->attribute(key: AuditTrail::ATTRIBUTE);
+                self::assertInstanceOf(AuditTrail::class, $trail);
+                $trail->describe(summary: new AuditSummary(
                     action: 'article.updated',
                     resourceType: 'article',
                     resourceId: '10',
@@ -289,9 +289,9 @@ final class CmsAuditMiddlewareTest extends TestCase
         return new CallableRequestHandler(handler: static fn (): Response => $response);
     }
 
-    private function middleware(EventBusInterface $events, ?CmsGuard $guard = null): CmsAuditMiddleware
+    private function middleware(EventBusInterface $events, ?CmsGuard $guard = null): AuditMiddleware
     {
-        return new CmsAuditMiddleware(
+        return new AuditMiddleware(
             events: $events,
             guard: $guard ?? $this->guard(),
         );

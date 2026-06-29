@@ -1,6 +1,6 @@
-# CmsAuditMiddleware
+# AuditMiddleware
 
-`CmsAuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`EventBusInterface` に dispatch します。
+`AuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`EventBusInterface` に dispatch します。
 
 ## 対象
 
@@ -31,15 +31,15 @@ GET は初期対象外です。問い合わせ詳細閲覧、エクスポート�
 ```text
 RequireCmsSessionMiddleware
   -> RequireCmsPermissionMiddleware
-  -> CmsAuditMiddleware
+  -> AuditMiddleware
   -> Controller
 ```
 
-`CmsAuditMiddleware` は認証・認可を通過した CMS 状態変更 request の HTTP envelope を記録します。認証・認可で拒否された request はこの middleware に到達しないため、`RequireCmsPermissionMiddleware` が SecurityLog として記録します。
+`AuditMiddleware` は認証・認可を通過した CMS 状態変更 request の HTTP envelope を記録します。認証・認可で拒否された request はこの middleware に到達しないため、`RequireCmsPermissionMiddleware` が SecurityLog として記録します。
 
 ## 例外方針
 
-`CmsAuditMiddleware` は EventBus / AuditLogger の例外を握りつぶしません。
+`AuditMiddleware` は EventBus / AuditLogger の例外を握りつぶしません。
 
 標準 shared container では `SynchronousEventBus` が `AuditEvent` を `RecordAuditEventHandler` に渡し、`JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
 

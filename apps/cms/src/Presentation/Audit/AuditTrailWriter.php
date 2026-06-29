@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Audit;
 
 use App\Framework\Http\Request;
 
-final readonly class CmsAuditService
+final readonly class AuditTrailWriter
 {
     /** @param array<string, mixed> $metadata */
     public function describe(
@@ -16,12 +16,12 @@ final readonly class CmsAuditService
         ?string $resourceId = null,
         array $metadata = [],
     ): void {
-        $trail = $request->attribute(key: CmsAuditTrail::ATTRIBUTE);
-        if (!$trail instanceof CmsAuditTrail) {
+        $trail = $request->attribute(key: AuditTrail::ATTRIBUTE);
+        if (!$trail instanceof AuditTrail) {
             return;
         }
 
-        $trail->describe(summary: new CmsAuditSummary(
+        $trail->describe(summary: new AuditSummary(
             action: $action,
             resourceType: $resourceType,
             resourceId: $resourceId,

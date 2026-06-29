@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Tag\Store;
 
 use App\Cms\Application\Tag\Save\Input;
 use App\Cms\Application\Tag\Save\Interactor;
-use App\Cms\Presentation\Audit\CmsAuditService;
+use App\Cms\Presentation\Audit\AuditTrailWriter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -16,7 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $save,
-        private CmsAuditService $audit,
+        private AuditTrailWriter $audit,
     ) {
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Audit;
 
-final readonly class CmsAuditSummary
+final readonly class AuditSummary
 {
     /**
      * @param array<string, mixed> $metadata

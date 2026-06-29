@@ -19,7 +19,7 @@ CMS permission middleware を有効にするには、次の3点を揃えます�
 ```text
 RequireCmsSessionMiddleware
   -> RequireCmsPermissionMiddleware
-  -> CmsAuditMiddleware
+  -> AuditMiddleware
   -> Controller
 ```
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
-use App\Cms\Presentation\Audit\CmsAuditSummary;
-use App\Cms\Presentation\Audit\CmsAuditTrail;
+use App\Cms\Presentation\Audit\AuditSummary;
+use App\Cms\Presentation\Audit\AuditTrail;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
@@ -15,7 +15,7 @@ use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Event\Application\EventBusInterface;
 use Throwable;
 
-final readonly class CmsAuditMiddleware implements MiddlewareInterface
+final readonly class AuditMiddleware implements MiddlewareInterface
 {
     /** @var array<int, string> */
     private const DENIED_PATHS = [
@@ -43,8 +43,8 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
             return $handler->handle(request: $request);
         }
 
-        $trail = new CmsAuditTrail();
-        $auditedRequest = $request->withAttribute(key: CmsAuditTrail::ATTRIBUTE, value: $trail);
+        $trail = new AuditTrail();
+        $auditedRequest = $request->withAttribute(key: AuditTrail::ATTRIBUTE, value: $trail);
 
         try {
             $response = $handler->handle(request: $auditedRequest);
@@ -94,7 +94,7 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
         Request $request,
         string $result,
         int $statusCode,
-        ?CmsAuditSummary $summary = null,
+        ?AuditSummary $summary = null,
     ): void
     {
         $metadata = [

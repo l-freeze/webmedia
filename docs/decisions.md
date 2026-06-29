@@ -104,7 +104,7 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 Audit、SecurityLog、HTTP access log は分ける。
 
-CMS の状態変更 HTTP request は `CmsAuditMiddleware` で記録する。Controller が何もしなければ HTTP envelope を記録し、後から説明できない更新操作だけ `CmsAuditService` で業務要約を request の audit trail へ注入する。最終的な `AuditEvent` dispatch は middleware が 1 回だけ行う。
+CMS の状態変更 HTTP request は `AuditMiddleware` で記録する。Controller が何もしなければ HTTP envelope を記録し、後から説明できない更新操作だけ `AuditTrailWriter` で業務要約を request の audit trail へ注入する。最終的な `AuditEvent` dispatch は middleware が 1 回だけ行う。
 
 BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に集約する。区別は `action`、`resource_type`、`metadata` で表現する。
 
@@ -116,7 +116,7 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - UseCase が AuditSummary を返すと、業務処理の返り値に監査ログ都合が混ざる。
 - Controller が AuditEvent を直接組み立てると、Controller 追加や Audit 仕様変更のたびに横断的な修正が必要になる。
 - middleware は横断処理の入口として妥当だが、DB schema や業務対象の差分計算を知るべきではない。
-- Controller は HTTP 操作の成功後に、必要な業務要約だけを `CmsAuditService` へ渡す。actor、IP、user-agent、request-id、最終ログ出力は middleware に残す。
+- Controller は HTTP 操作の成功後に、必要な業務要約だけを `AuditTrailWriter` へ渡す。actor、IP、user-agent、request-id、最終ログ出力は middleware に残す。
 - 記事本文や固定ページ本文の過去内容は履歴機能の責務であり、Audit は「誰が、いつ、どの対象に、どの種類の変更をしたか」を説明できる最小要約に留める。
 - HTTP envelope と業務イベントはどちらも監査証跡であり、保存先や閲覧 UI を分けるほどの運用要件は現時点ではない。
 - OWASP Logging Cheat Sheet は、ログの目的に合わせて十分な情報を残し、when / where / who / what、action、object、result などを記録する考え方を示している。一方で sensitive personal data や secrets は除外・mask・sanitize するべきとしている。

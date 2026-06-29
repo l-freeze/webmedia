@@ -46,7 +46,7 @@ final readonly class ExampleMiddleware implements MiddlewareInterface
 `apps/cms/config/middleware.php` に class-string を実行したい順に追加します。
 
 ```php
-use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
+use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 
@@ -54,7 +54,7 @@ return [
     ...$sharedMiddleware,
     RequireCmsSessionMiddleware::class,
     RequireCmsPermissionMiddleware::class,
-    CmsAuditMiddleware::class,
+    AuditMiddleware::class,
 ];
 ```
 
@@ -65,7 +65,7 @@ CMS の標準順序は次の通りです。
 ```text
 RequireCmsSessionMiddleware
   -> RequireCmsPermissionMiddleware
-  -> CmsAuditMiddleware
+  -> AuditMiddleware
   -> Controller
 ```
 
@@ -79,4 +79,4 @@ RequireCmsSessionMiddleware
 
 - [RequireCmsSessionMiddleware](./RequireCmsSessionMiddleware.README.md)
 - [RequireCmsPermissionMiddleware](./RequireCmsPermissionMiddleware.README.md)
-- [CmsAuditMiddleware](./CmsAuditMiddleware.README.md)
+- [AuditMiddleware](./AuditMiddleware.README.md)
