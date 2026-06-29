@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
+use App\Cms\Presentation\Http\Middleware\CsrfSecurityLogMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -16,14 +16,14 @@ use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
-final class CmsCsrfSecurityMiddlewareTest extends TestCase
+final class CsrfSecurityLogMiddlewareTest extends TestCase
 {
     public function testInvalidCsrfTokenRecordsSecurityLog(): void
     {
         $sessionData = ['_csrf' => 'valid-token'];
         $session = new Session(state: new SessionState(data: $sessionData), runtime: new NativeSessionRuntime());
         $events = new RecordingCsrfEventBus();
-        $middleware = new CmsCsrfSecurityMiddleware(
+        $middleware = new CsrfSecurityLogMiddleware(
             csrf: new Csrf(session: $session),
             events: $events,
         );
@@ -54,7 +54,7 @@ final class CmsCsrfSecurityMiddlewareTest extends TestCase
         $sessionData = ['_csrf' => 'valid-token'];
         $session = new Session(state: new SessionState(data: $sessionData), runtime: new NativeSessionRuntime());
         $events = new RecordingCsrfEventBus();
-        $middleware = new CmsCsrfSecurityMiddleware(
+        $middleware = new CsrfSecurityLogMiddleware(
             csrf: new Csrf(session: $session),
             events: $events,
         );

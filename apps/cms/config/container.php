@@ -54,7 +54,7 @@ use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordHasher;
 use App\Cms\Infrastructure\Logging\JsonFileAuditLogQuery;
-use App\Cms\Presentation\Http\Middleware\CmsCsrfSecurityMiddleware;
+use App\Cms\Presentation\Http\Middleware\CsrfSecurityLogMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;
@@ -99,7 +99,7 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
     maxAge: (int) $envString('CMS_CORS_MAX_AGE', '600'),
 ));
 
-$container->singleton(id: CsrfMiddleware::class, factory: function (Container $container) use ($csv, $envString): CmsCsrfSecurityMiddleware {
+$container->singleton(id: CsrfMiddleware::class, factory: function (Container $container) use ($csv, $envString): CsrfSecurityLogMiddleware {
     $csrf = $container->get(id: Csrf::class);
     if (!$csrf instanceof Csrf) {
         throw new \RuntimeException('CSRF service is not registered.');
@@ -111,7 +111,7 @@ $container->singleton(id: CsrfMiddleware::class, factory: function (Container $c
 
     $appEnv = strtolower($envString('APP_ENV', 'production'));
 
-    return new CmsCsrfSecurityMiddleware(
+    return new CsrfSecurityLogMiddleware(
         csrf: $csrf,
         events: $events,
         excludedPaths: $csv($envString('CSRF_EXCLUDED_PATHS')),

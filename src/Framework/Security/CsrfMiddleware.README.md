@@ -15,12 +15,12 @@ Framework 側の実装は CMS / Front / Shared のログや audit を知りま�
 
 アプリケーションが CSRF 失敗を security log に記録したい場合など、標準挙動へアプリ固有の副作用を足す必要がある場合は、アプリ側 container で `CsrfMiddleware::class` の binding を差し替えてよいです。
 
-現行 CMS は `apps/shared/config/middleware.php` では `CsrfMiddleware::class` を middleware list に載せたまま、`apps/cms/config/container.php` で同じ service id を `CmsCsrfSecurityMiddleware` に差し替えます。
+現行 CMS は `apps/shared/config/middleware.php` では `CsrfMiddleware::class` を middleware list に載せたまま、`apps/cms/config/container.php` で同じ service id を `CsrfSecurityLogMiddleware` に差し替えます。
 
 ```php
 $container->singleton(
     id: CsrfMiddleware::class,
-    factory: fn (Container $container): CmsCsrfSecurityMiddleware => new CmsCsrfSecurityMiddleware(...),
+    factory: fn (Container $container): CsrfSecurityLogMiddleware => new CsrfSecurityLogMiddleware(...),
 );
 ```
 

@@ -12,7 +12,7 @@ use App\Framework\Security\Csrf;
 use App\Shared\Event\Application\EventBusInterface;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-final readonly class CmsCsrfSecurityMiddleware implements MiddlewareInterface
+final readonly class CsrfSecurityLogMiddleware implements MiddlewareInterface
 {
     /** @param list<string> $excludedPaths */
     public function __construct(
