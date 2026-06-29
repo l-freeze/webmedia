@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Category\Update;
 
 use App\Cms\Application\Category\Update\Input;
 use App\Cms\Application\Category\Update\Interactor;
+use App\Cms\Presentation\Audit\CmsAuditService;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -15,6 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $update,
+        private CmsAuditService $audit,
     ) {
     }
 
@@ -28,6 +30,7 @@ final readonly class Controller
             return Response::redirect(location: '/admin/categories');
         }
 
+        $this->audit->categorySaved(request: $request, categoryId: (int) $vars['id'], created: false);
         $this->session->flash(key: 'success', value: 'カテゴリを更新しました');
         return Response::redirect(location: '/admin/categories');
     }

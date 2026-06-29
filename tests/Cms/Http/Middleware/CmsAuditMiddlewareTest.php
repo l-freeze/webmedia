@@ -7,6 +7,8 @@ namespace Tests\Cms\Http\Middleware;
 use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Presentation\Audit\CmsAuditSummary;
+use App\Cms\Presentation\Audit\CmsAuditTrail;
 use App\Cms\Presentation\Http\Middleware\CmsAuditMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Request;
@@ -28,7 +30,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testGetAdminRequestIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $response = $middleware->process(
             request: $this->request(method: 'GET', path: '/admin/articles'),
@@ -42,7 +44,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testNonAdminPrefixIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/administer/articles'),
@@ -57,7 +59,7 @@ final class CmsAuditMiddlewareTest extends TestCase
         $events = new RecordingEventBus();
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 42);
-        $middleware = new CmsAuditMiddleware(
+        $middleware = $this->middleware(
             events: $events,
             guard: $this->guard(session: $session, user: new CurrentCmsUser(
                 id: 42,
@@ -81,7 +83,7 @@ final class CmsAuditMiddlewareTest extends TestCase
         self::assertSame('cms_request', $event->resourceType);
         self::assertSame('success', $event->result);
         self::assertSame('42', $event->actorUserId);
-        self::assertNull($event->actorRole);
+        self::assertSame('editor', $event->actorRole);
         self::assertNull($event->resourceId);
         self::assertSame('127.0.0.1', $event->ipAddress);
         self::assertSame('PHPUnit Browser', $event->userAgent);
@@ -98,7 +100,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testUnknownAdminStateChangingRequestIsRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/unknown-operation'),
@@ -113,7 +115,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testLoginAndLogoutAreNotRecorded(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/login'),
@@ -130,7 +132,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testResponseWithClientOrServerErrorIsRecordedAsFailure(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $middleware->process(
             request: $this->request(method: 'PATCH', path: '/admin/articles/10'),
@@ -146,7 +148,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testHandlerExceptionIsRecordedAsFailureAndOriginalExceptionIsRethrown(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
         $exception = new RuntimeException('handler failed');
 
         try {
@@ -169,7 +171,7 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testAuditLoggerExceptionIsVisibleWhenRecordingHandlerFailure(): void
     {
-        $middleware = new CmsAuditMiddleware(events: new ThrowingEventBus(), guard: $this->guard());
+        $middleware = $this->middleware(events: new ThrowingEventBus());
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('audit failed');
@@ -184,11 +186,10 @@ final class CmsAuditMiddlewareTest extends TestCase
 
     public function testPlaceholderAuditLoggerThrowsForAuditedRequest(): void
     {
-        $middleware = new CmsAuditMiddleware(
+        $middleware = $this->middleware(
             events: new SynchronousEventBus(handlers: [
                 new RecordAuditEventHandler(logger: new PlaceholderAuditLogger()),
             ]),
-            guard: $this->guard(),
         );
 
         $this->expectException(LogicException::class);
@@ -203,7 +204,7 @@ final class CmsAuditMiddlewareTest extends TestCase
     public function testRequestBodySecretsAreNotStoredInMetadata(): void
     {
         $events = new RecordingEventBus();
-        $middleware = new CmsAuditMiddleware(events: $events, guard: $this->guard());
+        $middleware = $this->middleware(events: $events);
 
         $middleware->process(
             request: $this->request(
@@ -223,6 +224,45 @@ final class CmsAuditMiddlewareTest extends TestCase
         self::assertArrayNotHasKey('_csrf', $events->events[0]->metadata);
         self::assertArrayNotHasKey('password', $events->events[0]->metadata);
         self::assertArrayNotHasKey('title', $events->events[0]->metadata);
+    }
+
+    public function testInjectedBusinessSummaryIsRecordedOnSuccessfulRequest(): void
+    {
+        $events = new RecordingEventBus();
+        $middleware = $this->middleware(events: $events);
+
+        $middleware->process(
+            request: $this->request(method: 'POST', path: '/admin/articles/10'),
+            handler: new CallableRequestHandler(handler: static function (Request $request): Response {
+                $trail = $request->attribute(key: CmsAuditTrail::ATTRIBUTE);
+                self::assertInstanceOf(CmsAuditTrail::class, $trail);
+                $trail->describe(summary: new CmsAuditSummary(
+                    action: 'article.updated',
+                    resourceType: 'article',
+                    resourceId: '10',
+                    metadata: [
+                        'title' => 'New title',
+                        'slug' => 'new-slug',
+                        'status' => 'published',
+                    ],
+                ));
+
+                return Response::redirect(location: '/admin/articles/10');
+            }),
+        );
+
+        self::assertCount(1, $events->events);
+        $event = $events->events[0];
+        self::assertInstanceOf(AuditEvent::class, $event);
+        self::assertSame('article.updated', $event->action);
+        self::assertSame('article', $event->resourceType);
+        self::assertSame('10', $event->resourceId);
+        self::assertSame('POST', $event->metadata['method']);
+        self::assertSame('/admin/articles/10', $event->metadata['path']);
+        self::assertSame(302, $event->metadata['status_code']);
+        self::assertSame('New title', $event->metadata['title']);
+        self::assertSame('new-slug', $event->metadata['slug']);
+        self::assertSame('published', $event->metadata['status']);
     }
 
     /**
@@ -247,6 +287,14 @@ final class CmsAuditMiddlewareTest extends TestCase
     private function handler(Response $response): CallableRequestHandler
     {
         return new CallableRequestHandler(handler: static fn (): Response => $response);
+    }
+
+    private function middleware(EventBusInterface $events, ?CmsGuard $guard = null): CmsAuditMiddleware
+    {
+        return new CmsAuditMiddleware(
+            events: $events,
+            guard: $guard ?? $this->guard(),
+        );
     }
 
     private function session(): Session

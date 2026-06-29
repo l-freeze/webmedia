@@ -38,7 +38,8 @@
 - CMS 記事編集画面で `sr-only` radio input に共通 `w-full` が当たり横スクロールが出ていたため、CMS layout の Presentation 側で修正。
 - BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に業務イベントを集約する方針にした。
 - `/admin/audit-logs` を追加し、`storage/logs/audit.log` を CMS から確認できるようにした。
-- 記事作成・更新・削除・復元、メディア削除、設定更新の成功時に業務 AuditEvent を記録するようにした。
+- CMS 状態変更 Audit は `CmsAuditMiddleware` が最終出力する形に集約した。Controller / UseCase から `AuditEvent` は直接 dispatch しない。
+- 記事/固定ページ/分類/問い合わせ/管理者/設定/メディア削除は、成功時だけ Controller から `CmsAuditService` へ業務要約を注入し、middleware が HTTP envelope と合わせて 1 件の AuditEvent として記録するようにした。
 - `article.created` / `article.trashed` は HTTP 経由で記録と表示を確認済み。検証用記事は削除済み。
 - 問い合わせ管理:
   - 一覧を 100 件ページングにした。
@@ -47,7 +48,7 @@
   - 問い合わせ入力は名前 16 文字、件名 100 文字、内容 1000 文字を上限にした。
   - HTTP 経由で問い合わせ送信、CMS 一覧、詳細表示を確認済み。検証用問い合わせは削除済み。
 - 監査ログ粒度:
-  - 操作名だけでは不足するため、重要な更新では before / after の要約を残す方針にした。
+  - 操作名だけでは不足するため、重要な更新では後から説明できる情報群を残す方針にした。汎用 before / after blob ではなく、変更項目、主要値、本文 hash / 文字数などに絞る。
   - ただし本文全文、問い合わせ本文、password、token、cookie、session id、過度な個人情報は Audit に残さない。
 - 監査ログ管理:
   - `/admin/audit-logs` にページング UI、表示件数、日時昇順/降順ソート、日時/結果/操作/対象/ID/ユーザーの絞り込みを追加した。
@@ -68,7 +69,7 @@
   - `/admin/permissions` を追加し、パーミッション別の付与ロールを読み取り専用で確認できるようにした。
   - 既存の `users.role`、`RoleCode`、`PermissionCode` を使い、`admin_user.manage` / `role.view` / `permission.view` は admin のみに付与した。
   - 最後の admin ロール変更/削除、ログイン中ユーザー自身の削除を UseCase で防ぐようにした。
-  - 管理者の作成/更新/削除は `AuditEvent` に記録する。password は監査ログに残さない。
+  - 管理者の作成/更新/削除は Audit middleware の業務要約に記録する。password は監査ログに残さない。
   - 左メニューはゴミ箱までをコンテンツ運用系とし、その下に管理者、ロール、パーミッション、監査ログ、サイト設定を置く形にした。
   - PHPUnit、PHPStan、管理者/ロール/パーミッション各画面の HTTP GET、HTTP 経由の管理者作成/更新/削除を確認済み。検証用アカウントは削除済み。
   - 管理者アカウントの永続化 port は Application 配下ではなく `Domain/Repository/IAdminUserRepository` に置き、保存対象は `Domain/Entity/AdminUser` として扱う形へ整理した。

@@ -104,17 +104,20 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 Audit、SecurityLog、HTTP access log は分ける。
 
-CMS の状態変更 HTTP request は `CmsAuditMiddleware` で HTTP envelope として記録する。業務上の before / after や resource id が必要なものは、UseCase / Controller から業務イベントとして明示する。
+CMS の状態変更 HTTP request は `CmsAuditMiddleware` で記録する。Controller が何もしなければ HTTP envelope を記録し、後から説明できない更新操作だけ `CmsAuditService` で業務要約を request の audit trail へ注入する。最終的な `AuditEvent` dispatch は middleware が 1 回だけ行う。
 
 BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に集約する。区別は `action`、`resource_type`、`metadata` で表現する。
 
-監査ログは「操作名だけ」では不足する。後から説明・調査できるように、重要な更新系では対象 ID、結果、変更された項目、主要項目の before / after 要約を残す。ただし本文全文、問い合わせ本文、password、CSRF token、cookie、session id、過度な個人情報は残さない。
+監査ログは「操作名だけ」では不足する。必要なのは汎用的な before / after blob ではなく、後から説明・調査できる情報群である。重要な更新系では対象 ID、結果、変更された項目、主要項目の値変化、本文の hash / 文字数などを残す。ただし本文全文、問い合わせ本文、password、CSRF token、cookie、session id、過度な個人情報は残さない。
 
 ### 理由
 
-- HTTP request と業務操作は一対一とは限らない。
-- middleware は path と status code しか正確に知らない。
-- 記事保存、復元、メディア削除、設定更新などは、業務イベントとして明示した方が後から説明しやすい。
+- HTTP request と業務操作は一対一とは限らないため、HTTP envelope だけでは説明不足になる操作がある。
+- UseCase が AuditSummary を返すと、業務処理の返り値に監査ログ都合が混ざる。
+- Controller が AuditEvent を直接組み立てると、Controller 追加や Audit 仕様変更のたびに横断的な修正が必要になる。
+- middleware は横断処理の入口として妥当だが、DB schema や業務対象の差分計算を知るべきではない。
+- Controller は HTTP 操作の成功後に、必要な業務要約だけを `CmsAuditService` へ渡す。actor、IP、user-agent、request-id、最終ログ出力は middleware に残す。
+- 記事本文や固定ページ本文の過去内容は履歴機能の責務であり、Audit は「誰が、いつ、どの対象に、どの種類の変更をしたか」を説明できる最小要約に留める。
 - HTTP envelope と業務イベントはどちらも監査証跡であり、保存先や閲覧 UI を分けるほどの運用要件は現時点ではない。
 - OWASP Logging Cheat Sheet は、ログの目的に合わせて十分な情報を残し、when / where / who / what、action、object、result などを記録する考え方を示している。一方で sensitive personal data や secrets は除外・mask・sanitize するべきとしている。
 - NIST SP 800-92 は、ログ管理の policy / process / infrastructure を整えることを重視している。つまり粒度は実装都合ではなく、後から何を検証したいかで決める。
@@ -124,16 +127,23 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - 全 GET request を Audit に保存しない。
 - CMS login 成功 / 失敗を Audit として保存しない。SecurityLog として扱う。
 - request body 全体、password、CSRF token、cookie、session id を保存しない。
-- middleware が path や body から resource id、before / after を推測しない。
+- middleware で認可や業務成立条件を判定しない。
+- middleware からDBを読んで before / after 相当を作らない。
+- 全テーブル汎用の差分記録エンジンを作らない。対象 route と記録項目は CMS の監査目的に合わせて明示する。
+- 汎用的な before / after blob を Audit UI の中心概念にしない。
 - `NullAuditLogger` を標準にしない。未設定を黙って捨てると検知できない。
 - `BusinessAuditLogger` のような別 logger を作らない。必要になるまでは `AuditEvent` に集約する。
 - 変更内容を知るために request body 全体を保存しない。対象 UseCase ごとに必要な項目だけを要約する。
 
-### 次に追加する粒度
+### 記録する粒度
 
-- 記事更新: `title`、`slug`、`status`、`category_id`、公開日時、SEO 項目などの before / after。本文は全文ではなく hash、文字数、変更有無に留める。
+- 記事更新: `title`、`slug`、`status`、`category_id`、公開日時、SEO 項目などの変更項目。本文は全文ではなく hash、文字数、変更有無に留める。
 - 記事作成 / 削除 / 復元: 対象 ID、title、slug、status、復元元 version。
-- 設定更新: 変更された setting key と before / after。秘密値が出る設定が増えたら mask 対象にする。
+- 固定ページ作成 / 更新 / 復元: 対象 ID、title、slug、status、display_order、SEO 項目、本文 hash / 文字数、復元元 version。
+- 設定更新: 変更された setting key と値変化。秘密値が出る設定が増えたら mask 対象にする。
+- 管理者作成 / 更新 / 削除: 対象 ID、email、name、role。password / password_hash は残さない。
+- 問い合わせ更新: status、管理メモの有無・文字数・hash。問い合わせ本文は残さない。
+- カテゴリ / タグ更新: name、slug、SEO 項目など運用上説明に必要な値。
 - メディア削除: 対象 ID、file_name、path、mime_type。
 - 問い合わせ閲覧や export を追加する場合: 個人情報アクセスとして Audit 対象にする。問い合わせ本文は Audit に複製しない。
 

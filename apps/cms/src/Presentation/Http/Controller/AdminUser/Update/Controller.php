@@ -7,11 +7,10 @@ namespace App\Cms\Presentation\Http\Controller\AdminUser\Update;
 use App\Cms\Application\AdminUser\Update\Input;
 use App\Cms\Application\AdminUser\Update\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Presentation\Audit\CmsAuditService;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
-use App\Shared\Audit\Domain\AuditEvent;
-use App\Shared\Event\Application\EventBusInterface;
 
 final readonly class Controller
 {
@@ -19,7 +18,7 @@ final readonly class Controller
         private Session $session,
         private Interactor $update,
         private CmsGuard $guard,
-        private EventBusInterface $events,
+        private CmsAuditService $audit,
     ) {
     }
 
@@ -39,39 +38,8 @@ final readonly class Controller
             return Response::redirect(location: '/admin/users');
         }
 
-        $this->events->dispatch(event: new AuditEvent(
-            action: 'admin_user.updated',
-            resourceType: 'admin_user',
-            result: 'success',
-            actorUserId: (string) $currentUser->id,
-            actorRole: $currentUser->role,
-            resourceId: (string) $userId,
-            ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR'),
-            userAgent: $this->serverString(request: $request, key: 'HTTP_USER_AGENT'),
-            requestId: $this->serverString(request: $request, key: 'HTTP_X_REQUEST_ID'),
-            after: [
-                'email' => $this->bodyString(request: $request, key: 'email'),
-                'name' => $this->bodyString(request: $request, key: 'name'),
-                'role' => $this->bodyString(request: $request, key: 'role'),
-                'password_changed' => $this->bodyString(request: $request, key: 'password') !== '',
-            ],
-        ));
-
+        $this->audit->adminUserUpdated(request: $request, userId: $userId);
         $this->session->flash(key: 'success', value: '管理者アカウントを更新しました');
         return Response::redirect(location: '/admin/users');
-    }
-
-    private function bodyString(Request $request, string $key): string
-    {
-        $value = $request->body[$key] ?? '';
-
-        return is_scalar($value) ? (string) $value : '';
-    }
-
-    private function serverString(Request $request, string $key): ?string
-    {
-        $value = $request->server[$key] ?? null;
-
-        return is_scalar($value) ? (string) $value : null;
     }
 }

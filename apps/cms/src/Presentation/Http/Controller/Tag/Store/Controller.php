@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Tag\Store;
 
 use App\Cms\Application\Tag\Save\Input;
 use App\Cms\Application\Tag\Save\Interactor;
+use App\Cms\Presentation\Audit\CmsAuditService;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -15,6 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $save,
+        private CmsAuditService $audit,
     ) {
     }
 
@@ -29,6 +31,7 @@ final readonly class Controller
             return Response::redirect(location: '/admin/tags');
         }
 
+        $this->audit->tagSaved(request: $request, tagId: null, created: true);
         $this->session->flash(key: 'success', value: '保存しました');
         return Response::redirect(location: '/admin/tags');
     }

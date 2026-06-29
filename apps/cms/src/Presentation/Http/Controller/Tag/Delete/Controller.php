@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Tag\Delete;
 
 use App\Cms\Application\Tag\Delete\Input;
 use App\Cms\Application\Tag\Delete\Interactor;
+use App\Cms\Presentation\Audit\CmsAuditService;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -15,6 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $delete,
+        private CmsAuditService $audit,
     ) {
     }
 
@@ -28,6 +30,7 @@ final readonly class Controller
             return Response::redirect(location: '/admin/tags');
         }
 
+        $this->audit->tagDeleted(request: $request, tagId: (int) $vars['id']);
         $this->session->flash(key: 'success', value: 'タグを削除しました');
 
         return Response::redirect(location: '/admin/tags');

@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Page\Update;
 
 use App\Cms\Application\Page\Save\Input;
 use App\Cms\Application\Page\Save\Interactor;
+use App\Cms\Presentation\Audit\CmsAuditService;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -15,6 +16,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $save,
+        private CmsAuditService $audit,
     ) {
     }
 
@@ -31,6 +33,7 @@ final readonly class Controller
         }
 
         $this->session->flash(key: 'success', value: '保存しました');
+        $this->audit->pageSaved(request: $request, pageId: $output->pageId->value, created: false);
         return Response::redirect(location: '/admin/pages/' . $output->pageId->value);
     }
 

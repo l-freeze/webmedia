@@ -25,7 +25,7 @@
 | ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog | 試行回数制限、IP 制限、2FA は公開前課題 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
-| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, 業務 AuditEvent, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache, 検索用 `search_body_text` 派生 text | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。検索と未入力時抜粋は保存時に生成する `search_body_text` を使う。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
+| 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, Audit middleware の業務要約, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache, 検索用 `search_body_text` 派生 text | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。検索と未入力時抜粋は保存時に生成する `search_body_text` を使う。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
 | 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
@@ -36,11 +36,11 @@
 | 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail/Update UseCase, 100件ページング, 状態更新, 管理メモ, `Domain/Repository/IInquiryRepository` | 削除、通知運用は運用方針が固まってから判断 |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |
-| 管理者管理 | 完了 | `/admin/users`, AdminUser List/Create/Update/Delete UseCase, `admin_user.manage` permission, `Domain/Entity/AdminUser`, `Domain/Repository/IAdminUserRepository`, 業務 AuditEvent | HTTP 経由で作成/更新/削除確認済み。検証用アカウントは削除済み |
+| 管理者管理 | 完了 | `/admin/users`, AdminUser List/Create/Update/Delete UseCase, `admin_user.manage` permission, `Domain/Entity/AdminUser`, `Domain/Repository/IAdminUserRepository`, Audit middleware の業務要約 | HTTP 経由で作成/更新/削除確認済み。検証用アカウントは削除済み |
 | ロール管理 | 完了 | `/admin/roles`, Role List UseCase, `role.view` permission, コード定義ロールの権限表示 | 現時点では読み取り専用。ロールをDB管理にするかは運用要件が出た時点で判断 |
 | パーミッション管理 | 完了 | `/admin/permissions`, Permission List UseCase, `permission.view` permission, パーミッション別付与ロール表示 | 現時点では読み取り専用。権限付与をDB管理にするかは運用要件が出た時点で判断 |
 | 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy`, 管理系 permissions | template helper、Article 以外の UseCase-level authorization 拡張 |
-| Audit / SecurityLog | 一部完了 | HTTP 状態変更 Audit、記事/メディア/設定の業務 AuditEvent、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` のページング/日時ソート/絞り込み | 記事/設定/メディアの before / after 要約 |
+| Audit / SecurityLog | 一部完了 | CMS 状態変更 Audit middleware、記事/固定ページ/分類/問い合わせ/管理者/設定/メディア削除の業務要約、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` のページング/日時ソート/絞り込み | request id の運用、例外ログ連携、問い合わせ閲覧/export を追加する場合の個人情報アクセス Audit |
 | PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 
 ## Front
@@ -69,7 +69,7 @@
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
 | Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article/page `rendered_body_html` 派生 cache, article `search_body_text` 派生 text | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `rendered_body_html` を優先し、未生成行では source から fallback 変換する |
-| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み | request id の運用、例外ログ連携、記事/設定/メディアの before / after 要約 |
+| Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み、CMS Audit middleware の業務要約 | request id の運用、例外ログ連携 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
 | Scaffold | 完了 | scaffold tests | fullpack template は将来候補 |

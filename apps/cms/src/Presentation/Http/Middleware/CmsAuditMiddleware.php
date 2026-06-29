@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
+use App\Cms\Presentation\Audit\CmsAuditSummary;
+use App\Cms\Presentation\Audit\CmsAuditTrail;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
@@ -41,18 +43,30 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
             return $handler->handle(request: $request);
         }
 
+        $trail = new CmsAuditTrail();
+        $auditedRequest = $request->withAttribute(key: CmsAuditTrail::ATTRIBUTE, value: $trail);
+
         try {
-            $response = $handler->handle(request: $request);
+            $response = $handler->handle(request: $auditedRequest);
         } catch (Throwable $exception) {
-            $this->record(request: $request, result: 'failure', statusCode: Response::HTTP_INTERNAL_SERVER_ERROR);
+            $this->record(
+                request: $auditedRequest,
+                result: 'failure',
+                statusCode: Response::HTTP_INTERNAL_SERVER_ERROR,
+            );
 
             throw $exception;
         }
 
+        $summary = $response->status >= Response::HTTP_BAD_REQUEST
+            ? null
+            : $trail->summary();
+
         $this->record(
-            request: $request,
+            request: $auditedRequest,
             result: $response->status >= Response::HTTP_BAD_REQUEST ? 'failure' : 'success',
             statusCode: $response->status,
+            summary: $summary,
         );
 
         return $response;
@@ -76,21 +90,37 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
         return $path === '/admin' || str_starts_with($path, '/admin/');
     }
 
-    private function record(Request $request, string $result, int $statusCode): void
+    private function record(
+        Request $request,
+        string $result,
+        int $statusCode,
+        ?CmsAuditSummary $summary = null,
+    ): void
     {
+        $metadata = [
+            'method' => $request->method,
+            'path' => $request->path,
+            'status_code' => $statusCode,
+        ];
+        if ($summary !== null) {
+            $metadata += $summary->metadata;
+        }
+
+        $action = $summary !== null ? $summary->action : 'cms.http_state_changed';
+        $resourceType = $summary !== null ? $summary->resourceType : 'cms_request';
+        $resourceId = $summary !== null ? $summary->resourceId : null;
+
         $this->events->dispatch(event: new AuditEvent(
-            action: 'cms.http_state_changed',
-            resourceType: 'cms_request',
+            action: $action,
+            resourceType: $resourceType,
             result: $result,
             actorUserId: $this->actorUserId(),
+            actorRole: $this->actorRole(),
+            resourceId: $resourceId,
             ipAddress: $request->server['REMOTE_ADDR'] ?? null,
             userAgent: $request->server['HTTP_USER_AGENT'] ?? null,
             requestId: $request->server['HTTP_X_REQUEST_ID'] ?? null,
-            metadata: [
-                'method' => $request->method,
-                'path' => $request->path,
-                'status_code' => $statusCode,
-            ],
+            metadata: $metadata,
         ));
     }
 
@@ -99,5 +129,12 @@ final readonly class CmsAuditMiddleware implements MiddlewareInterface
         $user = $this->guard->currentUser();
 
         return $user === null ? null : (string) $user->id;
+    }
+
+    private function actorRole(): ?string
+    {
+        $user = $this->guard->currentUser();
+
+        return $user === null ? null : $user->role;
     }
 }
