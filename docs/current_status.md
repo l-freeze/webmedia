@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-06-28
+- 2026-06-30
 
 ## 現在地
 
@@ -94,6 +94,14 @@
   - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。表、区切り線、画像、リンクも許可範囲内でレンダリングする。
   - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。
   - `resources/cms/rich-editor.js` は Tiptap 初期化と各 UI controller の結線に絞り、本文変換、DOM helper、画像ピッカー、選択範囲装飾メニュー、slash menu、toolbar、本文形式切替を `resources/cms/rich-editor/` 配下の ES modules に分けた。Vite で従来通り `public/assets/js/cms-rich-editor.js` 1本へ bundle する。
+- CMS メディア管理:
+  - `media_files` に `width` / `height` / `thumbnail_path` / `optimized_path` を追加した。
+  - 新規アップロード時に画像の `width` / `height` を保存し、既存画像は migration で backfill するようにした。動画寸法は現時点では取得しない。
+  - サムネイルと最適化画像は保存先だけ先に用意し、生成処理は次ステップで設計する。
+  - CMS メディア一覧に寸法、alt、caption、サムネイル生成状況、最適化画像生成状況、使用先サマリを表示するようにした。
+  - 使用先は現時点では正規化テーブルにせず、記事アイキャッチ、記事本文、固定ページ本文、サイト設定から CMS 一覧用に導出する。
+  - リッチエディターの画像ピッカーへ画像寸法を渡し、候補内に表示するようにした。
+  - HTTP 経由で 1x1 PNG をアップロードし、`1 x 1 px` 表示を確認後、検証用メディアを削除済み。
 
 ## 次回再開地点
 

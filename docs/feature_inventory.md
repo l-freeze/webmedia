@@ -32,7 +32,7 @@
 | 固定ページ管理 | 一部完了 | list/create/edit/store/update/restore routes, Page UseCase, Markdown / HTML / Tiptap リッチエディター切替, 表示用 `rendered_body_html` 派生 cache, 編集画面の履歴復元 UI | 複製は未実装。固定ページ編集画面 GET と Front 固定ページ表示は HTTP 確認済み |
 | カテゴリ管理 | 完了 | list/store/update/delete routes, Category UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
 | タグ管理 | 完了 | list/store/update/delete routes, Tag UseCase | HTTP 経由で作成/更新/削除確認済み。SEO 詳細編集は未実装 |
-| メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase | 使用先表示、画像 alt 編集、ストレージ移行方針は未実装 |
+| メディア管理 | 一部完了 | list/upload/delete routes, Media UseCase, upload 時の width / height 保存, 既存画像寸法 backfill, thumbnail_path / optimized_path の保存先, CMS 一覧の寸法・派生生成状況・使用先表示 | サムネイル生成、最適化画像生成、alt 編集、ストレージ移行方針は未実装 |
 | 問い合わせ管理 | 一部完了 | `/admin/inquiries`, `/admin/inquiries/{id}`, Inquiry List/Detail/Update UseCase, 100件ページング, 状態更新, 管理メモ, `Domain/Repository/IInquiryRepository` | 削除、通知運用は運用方針が固まってから判断 |
 | サイト設定 | 完了 | `/admin/settings`, Setting Edit/Save UseCase | OGP / RSS / sitemap 関連設定は未実装 |
 | ゴミ箱 | 一部完了 | `/admin/trash`, Trash List UseCase, article restore | 固定ページ等を含む復元/完全削除の扱い確認 |

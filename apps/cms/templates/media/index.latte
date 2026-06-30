@@ -50,7 +50,30 @@
           <div class="grid gap-2 p-4">
             <strong class="break-all text-sm">{$item['file_name']}</strong>
             <code class="break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">{$item['path']}</code>
-            <span class="text-xs text-slate-500">{$item['mime_type']} / {$item['file_size']} bytes</span>
+            <div class="grid gap-1 text-xs text-slate-500">
+              <span>{$item['mime_type']} / {$item['file_size']} bytes</span>
+              {if $item['width'] !== null && $item['height'] !== null}
+                <span>{$item['width']} x {$item['height']} px</span>
+              {else}
+                <span>寸法: 未取得</span>
+              {/if}
+              <span>alt: {$item['alt_text'] !== '' ? $item['alt_text'] : '未設定'}</span>
+              {if $item['caption'] !== ''}
+                <span>caption: {$item['caption']}</span>
+              {/if}
+              <span>サムネイル: {$item['thumbnail_path'] !== null ? $item['thumbnail_path'] : '未生成'}</span>
+              <span>最適化画像: {$item['optimized_path'] !== null ? $item['optimized_path'] : '未生成'}</span>
+            </div>
+            <div class="grid gap-1 rounded bg-slate-50 px-2 py-2 text-xs text-slate-600">
+              <span class="font-bold text-slate-700">使用先 {$item['usage_count']} 件</span>
+              {if $item['usage_count'] === 0}
+                <span>未使用</span>
+              {else}
+                {foreach $item['usage_labels'] as $usage}
+                  <span class="break-words">{$usage}</span>
+                {/foreach}
+              {/if}
+            </div>
             <form method="post" action="/admin/media/{$item['id']}/delete" onsubmit="return confirm('このメディアを削除しますか？記事のアイキャッチに使われている場合は解除されます。')">
               <input type="hidden" name="_csrf" value="{$csrf}">
               <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" type="submit">削除</button>

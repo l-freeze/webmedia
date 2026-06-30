@@ -66,6 +66,8 @@ final readonly class PdoMediaRepository implements IMediaRepository
             return new MediaUploadResult(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
         }
 
+        [$width, $height] = $this->imageDimensions(tmpName: $tmpName, mimeType: $mimeType);
+
         $publicDir = $this->publicUploadDir();
         if (!is_dir($publicDir)) {
             mkdir($publicDir, self::UPLOAD_DIRECTORY_PERMISSIONS, true);
@@ -80,12 +82,16 @@ final readonly class PdoMediaRepository implements IMediaRepository
         }
 
         $path = '/uploads/media/' . $storedFileName;
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :alt_text, :caption, :created_at)');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at)');
         PdoHelper::execute(statement: $stmt, params: [
             'file_name' => $this->safeOriginalName(fileName: $input->string(key: 'name', default: $storedFileName)),
             'path' => $path,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
+            'width' => $width,
+            'height' => $height,
+            'thumbnail_path' => null,
+            'optimized_path' => null,
             'alt_text' => $altText === '' ? null : $altText,
             'caption' => $caption === '' ? null : $caption,
             'created_at' => date('Y-m-d H:i:s'),
@@ -157,6 +163,24 @@ final readonly class PdoMediaRepository implements IMediaRepository
     {
         return str_starts_with($mimeType, 'video/')
             || $mimeType === 'application/x-troff-msvideo';
+    }
+
+    /** @return array{0: ?int, 1: ?int} */
+    private function imageDimensions(string $tmpName, string $mimeType): array
+    {
+        if (!str_starts_with($mimeType, 'image/')) {
+            return [null, null];
+        }
+
+        $size = @getimagesize($tmpName);
+        if (!is_array($size)) {
+            return [null, null];
+        }
+
+        $width = $size[0] > 0 ? $size[0] : null;
+        $height = $size[1] > 0 ? $size[1] : null;
+
+        return [$width, $height];
     }
 
     private function publicUploadDir(): string

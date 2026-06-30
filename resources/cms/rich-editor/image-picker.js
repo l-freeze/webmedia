@@ -6,6 +6,8 @@ export const createImagePicker = ({ shell, imageLibrary, onSelect }) => {
       src: option.dataset.src || '',
       name: option.dataset.name || '',
       alt: option.dataset.alt || '',
+      width: option.dataset.width || '',
+      height: option.dataset.height || '',
     })).filter((item) => item.src !== '')
     : []
   const panel = document.createElement('div')
@@ -79,9 +81,11 @@ export const createImagePicker = ({ shell, imageLibrary, onSelect }) => {
       const option = document.createElement('button')
       option.type = 'button'
       option.className = 'overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300'
+      const dimensions = item.width !== '' && item.height !== '' ? `${item.width} x ${item.height}px` : '寸法未取得'
       option.innerHTML = `
         <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt || item.name)}" loading="lazy">
         <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">${escapeHtml(item.name)}</span>
+        <span class="block truncate px-2 pb-2 text-[11px] text-slate-500">${escapeHtml(dimensions)}</span>
       `
       option.addEventListener('click', () => insert(item.src, item.alt))
       grid.append(option)

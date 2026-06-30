@@ -12,13 +12,19 @@ final readonly class Media
         public string $path,
         public string $mimeType,
         public int $fileSize,
+        public ?int $width,
+        public ?int $height,
+        public ?string $thumbnailPath,
+        public ?string $optimizedPath,
         public string $altText,
         public string $caption,
         public string $createdAt,
+        /** @var array<int, string> */
+        public array $usageLabels = [],
     ) {
     }
 
-    /** @return array<string, string|int|bool> */
+    /** @return array<string, string|int|bool|null|array<int, string>> */
     public function toArray(): array
     {
         return [
@@ -27,9 +33,15 @@ final readonly class Media
             'path' => $this->path,
             'mime_type' => $this->mimeType,
             'file_size' => $this->fileSize,
+            'width' => $this->width,
+            'height' => $this->height,
+            'thumbnail_path' => $this->thumbnailPath,
+            'optimized_path' => $this->optimizedPath,
             'alt_text' => $this->altText,
             'caption' => $this->caption,
             'created_at' => $this->createdAt,
+            'usage_labels' => $this->usageLabels,
+            'usage_count' => count($this->usageLabels),
             'is_image' => str_starts_with($this->mimeType, 'image/'),
             'is_video' => $this->isVideoMime(mimeType: $this->mimeType),
         ];

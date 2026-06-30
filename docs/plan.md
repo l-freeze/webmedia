@@ -12,7 +12,7 @@
 ## 現在の優先順
 
 1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
-2. 画像関連の派生情報を設計する。サムネイル、width / height、alt、変換済み path、使用先の扱いを決めてから実装する。
+2. 画像変換処理を設計する。既に保存している width / height / thumbnail_path / optimized_path を使い、サムネイル生成と最適化画像生成の仕様を決めてから実装する。
 3. CMS / Front の PC/SP 表示を、日本語フォントがある環境または Playwright 環境で再確認する。
 
 ## 後で忘れず判断すること

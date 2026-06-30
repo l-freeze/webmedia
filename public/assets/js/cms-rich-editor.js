@@ -17440,7 +17440,9 @@ var xb = () => ({
 	let r = t instanceof HTMLElement ? Array.from(t.querySelectorAll("[data-rich-image-option]")).map((e) => ({
 		src: e.dataset.src || "",
 		name: e.dataset.name || "",
-		alt: e.dataset.alt || ""
+		alt: e.dataset.alt || "",
+		width: e.dataset.width || "",
+		height: e.dataset.height || ""
 	})).filter((e) => e.src !== "") : [], i = document.createElement("div");
 	i.className = "absolute left-3 right-3 top-16 z-20 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-xl", i.innerHTML = "\n    <div class=\"grid gap-3\">\n      <div class=\"flex flex-wrap items-end justify-between gap-3\">\n        <label class=\"min-w-56 flex-1 text-sm font-bold text-slate-700\">登録済み画像\n          <input class=\"mt-1\" type=\"search\" autocomplete=\"off\" placeholder=\"画像名・代替テキストで検索\" data-rich-image-search>\n        </label>\n        <button class=\"min-h-9 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-100\" type=\"button\" data-rich-image-close>閉じる</button>\n      </div>\n      <div class=\"max-h-72 overflow-y-auto pr-1 [scrollbar-gutter:stable]\" data-rich-image-list></div>\n      <form class=\"grid gap-2 border-t border-slate-200 pt-3\" data-rich-image-manual>\n        <label class=\"text-sm font-bold text-slate-700\">画像URLまたは /uploads/... のパス\n          <input class=\"mt-1\" name=\"src\" autocomplete=\"off\" placeholder=\"/uploads/media/example.webp\">\n        </label>\n        <label class=\"text-sm font-bold text-slate-700\">代替テキスト\n          <input class=\"mt-1\" name=\"alt\" autocomplete=\"off\">\n        </label>\n        <div class=\"flex justify-end\">\n          <button class=\"min-h-9 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700\" type=\"submit\">挿入</button>\n        </div>\n      </form>\n    </div>\n  ", e.append(i);
 	let a = i.querySelector("[data-rich-image-search]"), o = i.querySelector("[data-rich-image-list]"), s = i.querySelector("[data-rich-image-manual]"), c = s?.querySelector("input[name=\"src\"]"), l = s?.querySelector("input[name=\"alt\"]"), u = () => {
@@ -17463,9 +17465,12 @@ var xb = () => ({
 		n.className = "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
 		for (let e of t) {
 			let t = document.createElement("button");
-			t.type = "button", t.className = "overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300", t.innerHTML = `
+			t.type = "button", t.className = "overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300";
+			let r = e.width !== "" && e.height !== "" ? `${e.width} x ${e.height}px` : "寸法未取得";
+			t.innerHTML = `
         <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="${Db(e.src)}" alt="${Db(e.alt || e.name)}" loading="lazy">
         <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">${Db(e.name)}</span>
+        <span class="block truncate px-2 pb-2 text-[11px] text-slate-500">${Db(r)}</span>
       `, t.addEventListener("click", () => d(e.src, e.alt)), n.append(t);
 		}
 		o.append(n);
