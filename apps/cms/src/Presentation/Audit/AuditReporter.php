@@ -132,7 +132,7 @@ final readonly class AuditReporter
     {
         $keys = array_values(array_filter(array_keys($request->body), static fn (string $key): bool => $key !== '_csrf'));
         sort($keys);
-        $this->describe(request: $request, action: 'settings.updated', resourceType: 'site_settings', metadata: ['keys' => $keys]);
+        $this->describe(request: $request, action: 'settings.updated', resourceType: 'settings', metadata: ['keys' => $keys]);
     }
 
     public function categorySaved(Request $request, ?int $categoryId, bool $created): void
