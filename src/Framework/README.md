@@ -13,6 +13,7 @@ It is designed for projects that want explicit application code, readable bounda
 - Template renderer interface
 - Application bootstrap
 - Runtime selection for classic PHP and FrankenPHP worker
+- Safe synchronous external process execution
 - Small support classes needed by the runtime
 
 The Framework gives an application a way to start, route, compose, and return responses. It does not decide what the application is.
@@ -28,6 +29,8 @@ The Framework keeps rules that are part of the baseline shape of a PHP web appli
 `PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
 
 `Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy.
+
+`ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case.
 
 ## Fixed Application Shape
 
@@ -68,6 +71,7 @@ Examples that belong outside the Framework:
 - input normalization, such as trimming request values
 - validation library selection
 - validation messages for a specific application
+- external command allowlists and process business policy
 - CMS, blog, media, admin, or API domain rules
 
 Those choices belong in Kernel, Shared, or each App.

@@ -68,6 +68,7 @@
 | DI / HTTP / Routing / Middleware | 完了 | Framework と tests | route match 重複などは必要時に改善 |
 | CSRF / Session | 完了 | Framework Security、CMS 差し替え middleware | worker mode での連続 request 検証 |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
+| Process execution | 完了 | Framework `ProcessRunner` / `ProcessResult`, shell-free array command, startupError, timeout, bounded stdout/stderr | async/background/process group kill は未対応。必要時に専用設計 |
 | Markdown / HTML sanitize | 完了 | Shared Markdown, Tiptap JSON renderer, article/page `rendered_body_html` 派生 cache, article `search_body_text` 派生 text | UseCase 内で必要になったら contract 検討。rich_text は許可 node / mark のみ HTML 化し、表/区切り線/画像/リンク/下線も許可範囲内でレンダリングする。Front は `rendered_body_html` を優先し、未生成行では source から fallback 変換する |
 | Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み、CMS Audit middleware の業務要約 | request id の運用、例外ログ連携 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
