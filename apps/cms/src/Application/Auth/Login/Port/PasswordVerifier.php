@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\Login;
+namespace App\Cms\Application\Auth\Login\Port;
 
 interface PasswordVerifier
 {

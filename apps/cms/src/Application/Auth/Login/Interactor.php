@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Auth\Login;
 
+use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
 use App\Cms\Domain\Repository\IUserRepository;
 
 final readonly class Interactor

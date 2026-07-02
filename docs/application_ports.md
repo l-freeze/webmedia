@@ -332,7 +332,7 @@ Query / Repository 以外の Port は、まず必要としている UseCase ま�
 例:
 
 ```text
-apps/cms/src/Application/Auth/Login/PasswordVerifier.php
+apps/cms/src/Application/Auth/Login/Port/PasswordVerifier.php
 apps/cms/src/Infrastructure/Auth/Password/NativePasswordVerifier.php
 ```
 

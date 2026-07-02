@@ -6,7 +6,7 @@ namespace Tests\Cms\Auth;
 
 use App\Cms\Application\Auth\Login\Input;
 use App\Cms\Application\Auth\Login\Interactor;
-use App\Cms\Application\Auth\Login\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\IUserRepository;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;

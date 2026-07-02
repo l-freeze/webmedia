@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Auth\Password;
 
-use App\Cms\Application\Auth\Login\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
 
 final readonly class NativePasswordVerifier implements PasswordVerifier
 {

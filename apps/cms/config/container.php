@@ -136,7 +136,7 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 });
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
-$container->bind(abstract: Auth\Login\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
+$container->bind(abstract: Auth\Login\Port\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
 $container->bind(abstract: Auth\Password\PasswordHasher::class, concrete: NativePasswordHasher::class);
 $container->bind(abstract: Auth\Authorization\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
