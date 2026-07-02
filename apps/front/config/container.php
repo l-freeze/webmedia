@@ -9,6 +9,7 @@ use App\Front\Application\Category;
 use App\Front\Application\Home;
 use App\Front\Application\Layout;
 use App\Front\Application\Page;
+use App\Front\Application\Sitemap;
 use App\Front\Application\Tag;
 use App\Front\Domain\Repository\IInquiryRepository;
 use App\Front\Infrastructure\Persistence\PdoArticleQuery;
@@ -18,7 +19,9 @@ use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\Front\Infrastructure\Persistence\PdoTagQuery;
+use App\Front\Infrastructure\Persistence\Sitemap\PdoSitemapEntryQuery;
 use App\Front\Presentation\Seo\CanonicalUrl;
+use App\Front\Presentation\Sitemap\SitemapXml;
 use App\Front\Presentation\View\LayoutGlobalProvider;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
 use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
@@ -71,6 +74,14 @@ $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMidd
 $container->singleton(id: CanonicalUrl::class, factory: static fn (): CanonicalUrl => new CanonicalUrl(
     baseUrl: $envString('FRONT_SITE_URL'),
 ));
+$container->singleton(id: SitemapXml::class, factory: function (Container $container): SitemapXml {
+    $canonicalUrl = $container->get(id: CanonicalUrl::class);
+    if (!$canonicalUrl instanceof CanonicalUrl) {
+        throw new \RuntimeException('Canonical URL service is not registered.');
+    }
+
+    return new SitemapXml(canonicalUrl: $canonicalUrl);
+});
 $container->singleton(id: LayoutGlobalProvider::class, factory: function (Container $container) use ($envString): LayoutGlobalProvider {
     $pageLinkQuery = $container->get(id: Layout\Query\IPageLinkQuery::class);
     if (!$pageLinkQuery instanceof Layout\Query\IPageLinkQuery) {
@@ -127,6 +138,7 @@ $container->bind(abstract: Tag\List\Query\ITagQuery::class, concrete: PdoTagQuer
 $container->bind(abstract: Tag\Show\Query\ITagQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Tag\Show\Query\IArticleQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Page\Show\Query\IPageQuery::class, concrete: PdoPageQuery::class);
+$container->bind(abstract: Sitemap\Query\ISitemapEntryQuery::class, concrete: PdoSitemapEntryQuery::class);
 $container->bind(abstract: Layout\Query\IPageLinkQuery::class, concrete: PdoPageLinkQuery::class);
 $container->bind(abstract: Layout\Query\ISiteSettingQuery::class, concrete: PdoSiteSettingQuery::class);
 $container->bind(abstract: IInquiryRepository::class, concrete: PdoInquiryRepository::class);

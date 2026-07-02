@@ -10,7 +10,9 @@ use App\Front\Presentation\Http\Controller\Contact\Store\Controller as ContactSt
 use App\Front\Presentation\Http\Controller\Contact\Success\Controller as ContactSuccessController;
 use App\Front\Presentation\Http\Controller\Home\Show\Controller as HomeShowController;
 use App\Front\Presentation\Http\Controller\Page\Show\Controller as PageShowController;
+use App\Front\Presentation\Http\Controller\Robots\Controller as RobotsController;
 use App\Front\Presentation\Http\Controller\Search\Index\Controller as SearchIndexController;
+use App\Front\Presentation\Http\Controller\Sitemap\Controller as SitemapController;
 use App\Front\Presentation\Http\Controller\State\Loading\Controller as StateLoadingController;
 use App\Front\Presentation\Http\Controller\State\Menu\Controller as StateMenuController;
 use App\Front\Presentation\Http\Controller\State\NoArticles\Controller as StateNoArticlesController;
@@ -19,6 +21,8 @@ use App\Front\Presentation\Http\Controller\Tag\Show\Controller as TagShowControl
 
 return [
     ['GET', '/', HomeShowController::class],
+    ['GET', '/robots.txt', RobotsController::class],
+    ['GET', '/sitemap.xml', SitemapController::class],
     ['GET', '/articles/{slug}', ArticleShowController::class],
     ['GET', '/categories', CategoryListController::class],
     ['GET', '/categories/{slug}', CategoryShowController::class],

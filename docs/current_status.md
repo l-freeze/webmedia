@@ -35,6 +35,11 @@
   - `/search` は現在の設定では検索停止中として 404 を返すことを確認。
   - 問い合わせ送信は CSRF 付き POST で `/contact/success` へ遷移することを確認。
   - front template に inline script / inline handler が無いことを確認し、front app の CSP `script-src` から `unsafe-inline` を外した。
+  - `/robots.txt` と `/sitemap.xml` の簡易版を追加した。
+    - `robots.txt` は `/admin` を Disallow し、sitemap URL を出す。
+    - `sitemap.xml` はトップ、公開中記事、公開中固定ページ、公開記事を持つカテゴリ/タグを出す。
+    - `FRONT_SITE_URL` 未設定時は request host を fallback にする。
+    - PHPUnit、PHPStan、HTTP GET で確認済み。
 - CMS:
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
   - 記事作成、編集、プレビュー、履歴、版プレビュー、復元、削除を HTTP 経由で確認。

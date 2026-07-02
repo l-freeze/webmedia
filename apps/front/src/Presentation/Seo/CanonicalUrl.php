@@ -32,7 +32,20 @@ final readonly class CanonicalUrl
 
     public function fromPath(string $path): ?string
     {
-        $baseUrl = rtrim(trim($this->baseUrl), '/');
+        return $this->fromPathUsingBaseUrl(path: $path, baseUrl: $this->baseUrl);
+    }
+
+    public function fromPathWithFallbackBase(string $path, string $fallbackBaseUrl): ?string
+    {
+        return $this->fromPathUsingBaseUrl(
+            path: $path,
+            baseUrl: trim($this->baseUrl) !== '' ? $this->baseUrl : $fallbackBaseUrl,
+        );
+    }
+
+    private function fromPathUsingBaseUrl(string $path, string $baseUrl): ?string
+    {
+        $baseUrl = rtrim(trim($baseUrl), '/');
         if ($baseUrl === '') {
             return null;
         }

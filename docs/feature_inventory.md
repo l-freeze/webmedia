@@ -58,7 +58,7 @@
 | ローディング / 記事なし状態 | 完了 | `/loading`, `/no-articles` state routes | 本番 route として残すか、デザイン確認専用にするか判断 |
 | スマホメニュー | 完了 | `/menu` state route / template | 実画面導線との統合確認 |
 | 共通レイアウト | 完了 | `LayoutGlobalProvider`, page links, settings, categories | cache invalidation は複雑化時に検討 |
-| SEO / 配信 | 一部完了 | canonical は一部対応済み | OGP / Twitter Card、robots.txt、sitemap.xml、RSS / Atom |
+| SEO / 配信 | 一部完了 | canonical は一部対応済み。`/robots.txt` は `/admin` を Disallow し sitemap URL を出す。`/sitemap.xml` はトップ、公開中記事、公開中固定ページ、公開記事を持つカテゴリ/タグを出す | OGP / Twitter Card、RSS / Atom。sitemap の拡張が必要になった場合は画像 sitemap、優先度、更新頻度、分割 sitemap を検討 |
 | 公開前運用 | 未実装 | - | デプロイ、バックアップ、復元、障害時手順 |
 
 ## Shared / Framework

@@ -11,7 +11,7 @@
 
 ## 現在の優先順
 
-1. 公開前必須に近い `robots.txt`、`sitemap.xml`、OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
+1. OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
 2. CMS / Front の PC/SP 表示を、日本語フォントがある環境または Playwright 環境で再確認する。
 
 ## 後で忘れず判断すること
