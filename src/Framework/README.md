@@ -30,7 +30,7 @@ The Framework keeps rules that are part of the baseline shape of a PHP web appli
 
 `Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy.
 
-`ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case.
+`ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case. See `src/Framework/Process/README.md` for usage.
 
 ## Fixed Application Shape
 
@@ -128,8 +128,9 @@ For a first read, start here:
 2. `src/Framework/Bootstrap/README.md`
 3. `src/Framework/Container/README.md`
 4. `src/Framework/Http/Middleware/README.md`
-5. `bin/README.md`
-6. `apps/kernel/README.md`
-7. `apps/shared/README.md`
+5. `src/Framework/Process/README.md`
+6. `bin/README.md`
+7. `apps/kernel/README.md`
+8. `apps/shared/README.md`
 
 The top-level `README.md` describes the `webmedia` project itself. This README describes the Framework.
