@@ -85,9 +85,9 @@
                 {/foreach}
               {/if}
             </div>
-            <form method="post" action="/admin/media/{$item['id']}/delete" onsubmit="return confirm('このメディアを削除しますか？記事のアイキャッチに使われている場合は解除されます。')">
+            <form method="post" action="/admin/media/{$item['id']}/delete">
               <input type="hidden" name="_csrf" value="{$csrf}">
-              <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" type="submit">削除</button>
+              <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" type="submit" data-confirm="このメディアを削除しますか？記事のアイキャッチに使われている場合は解除されます。">削除</button>
             </form>
           </div>
         </article>

@@ -21,6 +21,7 @@ use App\Front\Infrastructure\Persistence\PdoTagQuery;
 use App\Front\Presentation\Seo\CanonicalUrl;
 use App\Front\Presentation\View\LayoutGlobalProvider;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
+use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 use Psr\SimpleCache\CacheInterface;
 
@@ -38,6 +39,14 @@ if (!is_callable($sharedContainer)) {
     throw new \RuntimeException('Shared container configuration is invalid.');
 }
 $sharedContainer($container, $root);
+
+$container->singleton(id: SecurityHeadersMiddleware::class, factory: static fn (): SecurityHeadersMiddleware => new SecurityHeadersMiddleware(headers: [
+    'X-Content-Type-Options' => 'nosniff',
+    'X-Frame-Options' => 'DENY',
+    'Referrer-Policy' => 'strict-origin-when-cross-origin',
+    'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+    'Content-Security-Policy' => "default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+]));
 
 $envString = static function (string $key, string $default = ''): string {
     $value = $_ENV[$key] ?? $default;

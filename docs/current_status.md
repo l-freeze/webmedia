@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-02
+- 2026-07-03
 
 ## 現在地
 
@@ -34,11 +34,13 @@
   - `/`, 記事詳細、カテゴリ一覧/詳細、タグ一覧/詳細、固定ページ、問い合わせ、状態表示、404 を HTTP 確認。
   - `/search` は現在の設定では検索停止中として 404 を返すことを確認。
   - 問い合わせ送信は CSRF 付き POST で `/contact/success` へ遷移することを確認。
+  - front template に inline script / inline handler が無いことを確認し、front app の CSP `script-src` から `unsafe-inline` を外した。
 - CMS:
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
   - 記事作成、編集、プレビュー、履歴、版プレビュー、復元、削除を HTTP 経由で確認。
   - カテゴリ / タグの作成、更新、削除を HTTP 経由で確認。
   - 検証用データは削除済み。
+  - メディア削除フォームの inline `onsubmit` をやめ、既存の `data-confirm` 共通処理へ寄せた。
 - CMS 記事編集画面で `sr-only` radio input に共通 `w-full` が当たり横スクロールが出ていたため、CMS layout の Presentation 側で修正。
 - BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に業務イベントを集約する方針にした。
 - `/admin/audit-logs` を追加し、`storage/logs/audit.log` を CMS から確認できるようにした。
