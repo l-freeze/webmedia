@@ -128,9 +128,11 @@
         </div>
         <div class="hidden" data-rich-image-library>
           {foreach $media as $item}
-            <button type="button" data-rich-image-option data-src="{$item['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}" data-width="{$item['width']}" data-height="{$item['height']}">
-              <img src="{$item['path']}" alt="{$item['alt_text'] !== '' ? $item['alt_text'] : $item['file_name']}" loading="lazy">
-            </button>
+            {foreach $item['variants'] as $variant}
+              <button type="button" data-rich-image-option data-src="{$variant['path']}" data-name="{$item['file_name']}" data-alt="{$item['alt_text']}" data-width="{$item['width']}" data-height="{$item['height']}" data-variant="{$variant['label']}">
+                <img src="{$variant['path']}" alt="{$item['alt_text'] !== '' ? $item['alt_text'] : $item['file_name']}" loading="lazy">
+              </button>
+            {/foreach}
           {/foreach}
         </div>
         <textarea id="article-body" name="body" required data-rich-editor-source>{$article['body'] ?? ''}</textarea>

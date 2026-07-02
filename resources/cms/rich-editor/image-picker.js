@@ -8,6 +8,7 @@ export const createImagePicker = ({ shell, imageLibrary, onSelect }) => {
       alt: option.dataset.alt || '',
       width: option.dataset.width || '',
       height: option.dataset.height || '',
+      variant: option.dataset.variant || '元画像',
     })).filter((item) => item.src !== '')
     : []
   const panel = document.createElement('div')
@@ -62,7 +63,7 @@ export const createImagePicker = ({ shell, imageLibrary, onSelect }) => {
     }
     const keyword = search instanceof HTMLInputElement ? search.value.trim().toLowerCase() : ''
     const matched = imageItems.filter((item) => {
-      const haystack = `${item.name} ${item.alt}`.toLowerCase()
+      const haystack = `${item.name} ${item.alt} ${item.variant}`.toLowerCase()
       return keyword === '' || haystack.includes(keyword)
     })
 
@@ -85,6 +86,7 @@ export const createImagePicker = ({ shell, imageLibrary, onSelect }) => {
       option.innerHTML = `
         <img class="aspect-[4/3] w-full bg-slate-100 object-cover" src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt || item.name)}" loading="lazy">
         <span class="block truncate px-2 py-1.5 text-xs font-bold text-slate-700">${escapeHtml(item.name)}</span>
+        <span class="block truncate px-2 text-[11px] font-bold text-blue-700">${escapeHtml(item.variant)}</span>
         <span class="block truncate px-2 pb-2 text-[11px] text-slate-500">${escapeHtml(dimensions)}</span>
       `
       option.addEventListener('click', () => insert(item.src, item.alt))

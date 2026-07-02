@@ -2,6 +2,10 @@ FROM dunglas/frankenphp:php8.5
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libvips-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 # RoadRunner worker runtime requires this extension when it is enabled later:
 # RUN install-php-extensions sockets
 RUN install-php-extensions \

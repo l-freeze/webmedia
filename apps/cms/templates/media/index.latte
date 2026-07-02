@@ -35,12 +35,12 @@
             <button
               class="block aspect-[4/3] w-full bg-slate-100 p-0"
               type="button"
-              data-media-preview-src="{$item['path']}"
+              data-media-preview-src="{$item['optimized_path'] ?? $item['path']}"
               data-media-preview-title="{$item['file_name']}"
               data-media-preview-alt="{$item['alt_text'] ?: $item['file_name']}"
               aria-label="{$item['file_name']}を大きく表示"
             >
-              <img class="h-full w-full object-cover" src="{$item['path']}" alt="{$item['alt_text'] ?: $item['file_name']}" loading="lazy">
+              <img class="h-full w-full object-cover" src="{$item['thumbnail_path'] ?? $item['optimized_path'] ?? $item['path']}" alt="{$item['alt_text'] ?: $item['file_name']}" loading="lazy">
             </button>
           {elseif $item['is_video']}
             <video class="aspect-[4/3] w-full bg-slate-100 object-contain" src="{$item['path']}" controls preload="metadata"></video>
@@ -64,6 +64,17 @@
               <span>サムネイル: {$item['thumbnail_path'] !== null ? $item['thumbnail_path'] : '未生成'}</span>
               <span>最適化画像: {$item['optimized_path'] !== null ? $item['optimized_path'] : '未生成'}</span>
             </div>
+            {if $item['is_image']}
+              <div class="flex flex-wrap gap-2 text-xs">
+                <a class="rounded bg-slate-100 px-2 py-1 font-bold text-slate-700 hover:bg-slate-200" href="{$item['path']}" target="_blank" rel="noreferrer">元画像</a>
+                {if $item['optimized_path'] !== null}
+                  <a class="rounded bg-blue-50 px-2 py-1 font-bold text-blue-700 hover:bg-blue-100" href="{$item['optimized_path']}" target="_blank" rel="noreferrer">最適化</a>
+                {/if}
+                {if $item['thumbnail_path'] !== null}
+                  <a class="rounded bg-emerald-50 px-2 py-1 font-bold text-emerald-700 hover:bg-emerald-100" href="{$item['thumbnail_path']}" target="_blank" rel="noreferrer">サムネイル</a>
+                {/if}
+              </div>
+            {/if}
             <div class="grid gap-1 rounded bg-slate-50 px-2 py-2 text-xs text-slate-600">
               <span class="font-bold text-slate-700">使用先 {$item['usage_count']} 件</span>
               {if $item['usage_count'] === 0}

@@ -48,7 +48,7 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery, Imag
     public function images(): array
     {
         $media = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT id, file_name, path, alt_text, width, height FROM media_files WHERE mime_type LIKE 'image/%' ORDER BY created_at DESC")) as $row) {
+        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT id, file_name, path, alt_text, width, height, thumbnail_path, optimized_path FROM media_files WHERE mime_type LIKE 'image/%' ORDER BY created_at DESC")) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
             $media[] = new ImagePicker\Value\Image(
@@ -58,6 +58,8 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery, Imag
                 altText: $pdoRow->string(key: 'alt_text'),
                 width: $pdoRow->nullableInt(key: 'width'),
                 height: $pdoRow->nullableInt(key: 'height'),
+                thumbnailPath: $pdoRow->nullableString(key: 'thumbnail_path'),
+                optimizedPath: $pdoRow->nullableString(key: 'optimized_path'),
             );
         }
 

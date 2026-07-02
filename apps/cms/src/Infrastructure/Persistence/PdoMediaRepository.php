@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Value\MediaDeleteResult;
 use App\Cms\Domain\Value\MediaUploadResult;
+use App\Cms\Infrastructure\Media\VipsImageVariantGenerator;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -39,7 +40,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
         'application/x-troff-msvideo' => 'avi',
     ];
 
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private VipsImageVariantGenerator $imageVariants)
     {
     }
 
@@ -82,6 +83,14 @@ final readonly class PdoMediaRepository implements IMediaRepository
         }
 
         $path = '/uploads/media/' . $storedFileName;
+        $variants = $this->imageVariants->generate(
+            absolutePath: $destination,
+            publicPath: $path,
+            mimeType: $mimeType,
+            width: $width,
+            height: $height,
+        );
+
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at)');
         PdoHelper::execute(statement: $stmt, params: [
             'file_name' => $this->safeOriginalName(fileName: $input->string(key: 'name', default: $storedFileName)),
@@ -90,8 +99,8 @@ final readonly class PdoMediaRepository implements IMediaRepository
             'file_size' => $fileSize,
             'width' => $width,
             'height' => $height,
-            'thumbnail_path' => null,
-            'optimized_path' => null,
+            'thumbnail_path' => $variants->thumbnailPath,
+            'optimized_path' => $variants->optimizedPath,
             'alt_text' => $altText === '' ? null : $altText,
             'caption' => $caption === '' ? null : $caption,
             'created_at' => date('Y-m-d H:i:s'),
@@ -102,12 +111,14 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
     public function delete(int $id): MediaDeleteResult
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT path FROM media_files WHERE id = :id LIMIT 1');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT path, thumbnail_path, optimized_path FROM media_files WHERE id = :id LIMIT 1');
         PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
-        $path = PdoHelper::fetchColumn(statement: $stmt);
-        if (!is_string($path) || $path === '') {
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
             return new MediaDeleteResult(deleted: false, error: '削除対象のメディアが見つかりません。');
         }
+        $media = PdoRow::from(values: $row);
+        $path = $media->string(key: 'path');
 
         $this->pdo->beginTransaction();
         try {
@@ -120,9 +131,14 @@ final readonly class PdoMediaRepository implements IMediaRepository
             throw $exception;
         }
 
-        $filePath = $this->publicPath(path: $path);
-        if ($filePath !== null && is_file($filePath)) {
-            unlink($filePath);
+        foreach ([$path, $media->nullableString(key: 'thumbnail_path'), $media->nullableString(key: 'optimized_path')] as $publicPath) {
+            if ($publicPath === null) {
+                continue;
+            }
+            $filePath = $this->publicPath(path: $publicPath);
+            if ($filePath !== null && is_file($filePath)) {
+                unlink($filePath);
+            }
         }
 
         return new MediaDeleteResult(deleted: true);
