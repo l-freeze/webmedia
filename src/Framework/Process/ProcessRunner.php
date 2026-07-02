@@ -32,6 +32,23 @@ final readonly class ProcessRunner
      * not guarantee that an external process group or descendant processes were
      * fully terminated.
      *
+     *
+     * 外部プロセスを同期的に実行します。
+     *
+     * command は shell command string ではなく、引数の list として渡します。
+     * proc_open() には array command として渡すため、shell を起動せずに
+     * PHP が直接プロセスを開きます。呼び出し側は executable を固定するか、
+     * 明示的な allowlist から選んでください。
+     *
+     * proc_open() 起動時の warning は @ で抑制せず、
+     * ProcessResult::startupError として捕捉します。外部プロセスの失敗は
+     * 通常の結果として返し、runner 引数の validation failure だけ
+     * InvalidArgumentException を投げます。
+     *
+     * timeout 時の cleanup は terminate / kill / close の best effort です。
+     * timeout した場合でも、外部 process group や子孫プロセスが完全に
+     * 終了したことは保証しません。
+     *
      * @param array<int, mixed> $command
      * @param array<string, string>|null $env
      */
