@@ -8,13 +8,11 @@ use InvalidArgumentException;
 
 final readonly class ProcessRunner
 {
-    private const DEFAULT_MAX_STDOUT_BYTES = 1048576;
-    private const DEFAULT_MAX_STDERR_BYTES = 1048576;
+    private const DEFAULT_MAX_STDOUT_BYTES = 1024 * 1024;
+    private const DEFAULT_MAX_STDERR_BYTES = 1024 * 1024;
     private const DEFAULT_TERMINATE_GRACE_SECONDS = 2;
     private const POLL_INTERVAL_MICROSECONDS = 100000;
     private const KILL_GRACE_SECONDS = 1;
-    private const SIGTERM_FALLBACK = 15;
-    private const SIGKILL_FALLBACK = 9;
 
     /**
      * Runs an external process synchronously.
@@ -120,8 +118,8 @@ final readonly class ProcessRunner
         $timedOut = false;
 
         do {
-            $stdout = $this->appendOutput(output: $stdout, pipe: $pipes[1] ?? null, maxBytes: $maxStdoutBytes);
-            $stderr = $this->appendOutput(output: $stderr, pipe: $pipes[2] ?? null, maxBytes: $maxStderrBytes);
+            $stdout = $this->readBoundedOutput(output: $stdout, pipe: $pipes[1] ?? null, maxBytes: $maxStdoutBytes);
+            $stderr = $this->readBoundedOutput(output: $stderr, pipe: $pipes[2] ?? null, maxBytes: $maxStderrBytes);
             $status = proc_get_status($process);
             if ($status['running'] !== true) {
                 break;
@@ -136,8 +134,8 @@ final readonly class ProcessRunner
             usleep(self::POLL_INTERVAL_MICROSECONDS);
         } while (true);
 
-        $stdout = $this->appendOutput(output: $stdout, pipe: $pipes[1] ?? null, maxBytes: $maxStdoutBytes);
-        $stderr = $this->appendOutput(output: $stderr, pipe: $pipes[2] ?? null, maxBytes: $maxStderrBytes);
+        $stdout = $this->readBoundedOutput(output: $stdout, pipe: $pipes[1] ?? null, maxBytes: $maxStdoutBytes);
+        $stderr = $this->readBoundedOutput(output: $stderr, pipe: $pipes[2] ?? null, maxBytes: $maxStderrBytes);
         $this->closePipes(pipes: $pipes);
 
         $exitCode = proc_close($process);
@@ -189,7 +187,7 @@ final readonly class ProcessRunner
     /**
      * @param resource|null $pipe
      */
-    private function appendOutput(string $output, mixed $pipe, int $maxBytes): string
+    private function readBoundedOutput(string $output, mixed $pipe, int $maxBytes): string
     {
         if (!is_resource($pipe) || $maxBytes === 0) {
             if (is_resource($pipe)) {
@@ -228,12 +226,12 @@ final readonly class ProcessRunner
      */
     private function terminate(mixed $process, int $graceSeconds): void
     {
-        proc_terminate($process, $this->signal(name: 'SIGTERM', fallback: self::SIGTERM_FALLBACK));
+        proc_terminate($process, $this->signalNumber(name: 'SIGTERM', fallback: 15));
         if ($this->waitUntilStopped(process: $process, maxSeconds: $graceSeconds)) {
             return;
         }
 
-        proc_terminate($process, $this->signal(name: 'SIGKILL', fallback: self::SIGKILL_FALLBACK));
+        proc_terminate($process, $this->signalNumber(name: 'SIGKILL', fallback: 9));
         $this->waitUntilStopped(process: $process, maxSeconds: self::KILL_GRACE_SECONDS);
     }
 
@@ -255,7 +253,7 @@ final readonly class ProcessRunner
         return false;
     }
 
-    private function signal(string $name, int $fallback): int
+    private function signalNumber(string $name, int $fallback): int
     {
         $value = defined($name) ? constant($name) : $fallback;
 
