@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Media;
 
+use App\Framework\Process\ProcessRunner;
+
 final readonly class VipsImageVariantGenerator
 {
     private const THUMBNAIL_SIZE = '480x480';
@@ -20,7 +22,7 @@ final readonly class VipsImageVariantGenerator
         'image/webp' => true,
     ];
 
-    public function __construct(private string $binary = 'vipsthumbnail')
+    public function __construct(private ProcessRunner $processRunner, private string $binary = 'vipsthumbnail')
     {
     }
 
@@ -71,7 +73,7 @@ final readonly class VipsImageVariantGenerator
             $temporaryDestination . '[Q=' . $quality . ',strip]',
         ]);
 
-        if ($result !== 0 || !is_file($temporaryDestination)) {
+        if (!$result || !is_file($temporaryDestination)) {
             $this->removeIfExists(path: $temporaryDestination);
             return false;
         }
@@ -84,63 +86,16 @@ final readonly class VipsImageVariantGenerator
     }
 
     /** @param list<string> $command */
-    private function run(array $command): int
+    private function run(array $command): bool
     {
-        $pipes = [];
-        $process = @proc_open(
+        $result = $this->processRunner->run(
             command: $command,
-            descriptor_spec: [
-                0 => ['pipe', 'r'],
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            pipes: $pipes,
+            timeoutSeconds: self::COMMAND_TIMEOUT_SECONDS,
+            maxStdoutBytes: 0,
+            maxStderrBytes: 0,
         );
 
-        if (!is_resource($process)) {
-            return 1;
-        }
-
-        foreach ($pipes as $pipe) {
-            stream_set_blocking($pipe, false);
-        }
-        fclose($pipes[0]);
-
-        $startedAt = time();
-        do {
-            if ((time() - $startedAt) > self::COMMAND_TIMEOUT_SECONDS) {
-                proc_terminate($process);
-                $this->closePipes(pipes: $pipes);
-                proc_close($process);
-                return 124;
-            }
-
-            if (isset($pipes[1])) {
-                stream_get_contents($pipes[1]);
-            }
-            if (isset($pipes[2])) {
-                stream_get_contents($pipes[2]);
-            }
-
-            usleep(100000);
-            $status = proc_get_status($process);
-        } while ($status['running'] === true);
-
-        $this->closePipes(pipes: $pipes);
-        $exitCode = $status['exitcode'];
-        proc_close($process);
-
-        return $exitCode;
-    }
-
-    /** @param array<int, resource> $pipes */
-    private function closePipes(array $pipes): void
-    {
-        foreach ($pipes as $pipe) {
-            if (is_resource($pipe)) {
-                fclose($pipe);
-            }
-        }
+        return $result->successful();
     }
 
     private function variantPublicPath(string $publicPath, string $suffix): string

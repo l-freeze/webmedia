@@ -4,7 +4,7 @@
 
 この文書は、PHP から外部プロセスを実行するための薄い Framework 機能 `ProcessRunner` を追加する理由、責務、classic runtime / worker runtime での注意点、実装手順を整理する。
 
-対象の最初の利用箇所は CMS の画像派生生成である。現在は `apps/cms/src/Infrastructure/Media/VipsImageVariantGenerator.php` が `proc_open()` を直接扱っている。この実装を Framework の安全な実行プリミティブへ移す。
+対象の最初の利用箇所は CMS の画像派生生成である。`apps/cms/src/Infrastructure/Media/VipsImageVariantGenerator.php` は `vipsthumbnail` の command 組み立てと画像派生生成の判断だけを持ち、外部プロセス実行そのものは Framework の `ProcessRunner` に委譲する。
 
 この機能の主な利用者像は、Linux / bash / サーバー運用の感覚はあるが、PHP request lifecycle の中で外部プロセスを安全に扱う経験は薄い開発者である。コマンド自体の意味、PATH、権限、stderr は理解できても、PHP から呼ぶ時には shell escaping、pipe drain、timeout、resource close、worker mode での state 残存といった別の罠がある。`ProcessRunner` はその罠を Framework 側に閉じ、呼び出し側には「配列 command を渡し、結果を見る」だけを要求するための部品である。
 

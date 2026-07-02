@@ -102,7 +102,7 @@
   - `media_files` に `width` / `height` / `thumbnail_path` / `optimized_path` を追加した。
   - 新規アップロード時に画像の `width` / `height` を保存し、既存画像は migration で backfill するようにした。動画寸法は現時点では取得しない。
   - libvips CLI の `vipsthumbnail` を app コンテナに入れ、JPEG / PNG / WebP アップロード時に同期でサムネイル WebP と最適化 WebP を生成するようにした。
-  - 生成処理は `apps/cms/src/Infrastructure/Media` に閉じ、PHP からは shell を経由しない配列コマンドで外部プロセスを呼ぶ。生成失敗時も元画像アップロードは成立する。
+  - 生成処理は `apps/cms/src/Infrastructure/Media` に閉じ、PHP からは Framework の `ProcessRunner` 経由で shell を経由しない配列コマンドとして外部プロセスを呼ぶ。生成失敗時も元画像アップロードは成立する。
   - GIF はアニメーション喪失を避けるため派生生成対象外にした。
   - CMS メディア一覧に寸法、alt、caption、サムネイル生成状況、最適化画像生成状況、使用先サマリを表示するようにした。
   - CMS メディア一覧の画像プレビューは、生成済みであればサムネイルをカード表示、最適化画像を拡大プレビューに使うようにした。

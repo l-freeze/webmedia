@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Cms\Media;
 
 use App\Cms\Infrastructure\Media\VipsImageVariantGenerator;
+use App\Framework\Process\ProcessRunner;
 use PHPUnit\Framework\TestCase;
 
 final class VipsImageVariantGeneratorTest extends TestCase
@@ -31,7 +32,7 @@ SH);
         $source = $directory . '/sample.jpg';
         file_put_contents($source, 'jpg');
 
-        $generator = new VipsImageVariantGenerator(binary: $binary);
+        $generator = new VipsImageVariantGenerator(processRunner: new ProcessRunner(), binary: $binary);
         $paths = $generator->generate(
             absolutePath: $source,
             publicPath: '/uploads/media/sample.jpg',
@@ -48,7 +49,7 @@ SH);
 
     public function testGenerateSkipsUnsupportedImageTypes(): void
     {
-        $generator = new VipsImageVariantGenerator(binary: '/missing-vipsthumbnail');
+        $generator = new VipsImageVariantGenerator(processRunner: new ProcessRunner(), binary: '/missing-vipsthumbnail');
         $paths = $generator->generate(
             absolutePath: __FILE__,
             publicPath: '/uploads/media/sample.gif',
@@ -61,9 +62,31 @@ SH);
         self::assertNull($paths->optimizedPath);
     }
 
+    public function testGenerateReturnsEmptyPathsWhenCommandCannotStart(): void
+    {
+        $directory = sys_get_temp_dir() . '/webmedia-vips-missing-test-' . bin2hex(random_bytes(4));
+        mkdir($directory, 0775, true);
+        $source = $directory . '/sample.jpg';
+        file_put_contents($source, 'jpg');
+
+        $generator = new VipsImageVariantGenerator(processRunner: new ProcessRunner(), binary: $directory . '/missing-vipsthumbnail');
+        $paths = $generator->generate(
+            absolutePath: $source,
+            publicPath: '/uploads/media/sample.jpg',
+            mimeType: 'image/jpeg',
+            width: 1200,
+            height: 800,
+        );
+
+        self::assertNull($paths->thumbnailPath);
+        self::assertNull($paths->optimizedPath);
+        self::assertFileDoesNotExist($directory . '/sample-thumb.webp');
+        self::assertFileDoesNotExist($directory . '/sample-optimized.webp');
+    }
+
     public function testGenerateSkipsOverLargeImages(): void
     {
-        $generator = new VipsImageVariantGenerator(binary: '/missing-vipsthumbnail');
+        $generator = new VipsImageVariantGenerator(processRunner: new ProcessRunner(), binary: '/missing-vipsthumbnail');
         $paths = $generator->generate(
             absolutePath: __FILE__,
             publicPath: '/uploads/media/sample.jpg',
