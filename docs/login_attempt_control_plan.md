@@ -29,14 +29,21 @@ apps/cms/src/Application/Auth/Login/
   Input.php
   Interactor.php
   Output.php
+  Query/
+    ILoginAttemptQuery.php
   Port/
     PasswordVerifier.php
-  Repository/
-    ILoginAttemptRepository.php
   Value/
+    LoginAttemptFailureCounts.php
     LoginAttemptResult.php
 
+apps/cms/src/Domain/Entity/
+  LoginAttempt.php
+apps/cms/src/Domain/Repository/
+  ILoginAttemptRepository.php
+
 apps/cms/src/Infrastructure/Persistence/
+  PdoLoginAttemptQuery.php
   PdoLoginAttemptRepository.php
 ```
 
@@ -63,11 +70,21 @@ Login/Interactor.php
 Login/Port/PasswordVerifier.php
   入力パスワードが保存済み hash と一致するか検証する port。
 
+Login/Query/ILoginAttemptQuery.php
+  最近の失敗回数を読む Application Query。
+  LoginAttemptFailureCounts を返す。
+
+Login/Value/LoginAttemptFailureCounts.php
+  email + IP、IP 全体の失敗回数を持つ読み取り用 DTO。
+
 Login/Value/LoginAttemptResult.php
   記録する結果の enum。
 
-Login/Repository/ILoginAttemptRepository.php
-  最近の失敗回数の取得と、試行結果の保存を行う Application port。
+Domain/Entity/LoginAttempt.php
+  保存するログイン試行を表す Domain Entity。
+
+Domain/Repository/ILoginAttemptRepository.php
+  LoginAttempt Entity を保存する Domain Repository。
 ```
 
 ## 呼び出し
@@ -79,7 +96,7 @@ Controller は `Login\Interactor` だけを呼ぶ。
 ```text
 LoginController
   -> Login\Interactor
-       -> ILoginAttemptRepository
+       -> ILoginAttemptQuery
        -> IUserRepository
        -> PasswordVerifier
        -> ILoginAttemptRepository
@@ -159,6 +176,7 @@ final readonly class Interactor
     public function __construct(
         private IUserRepository $users,
         private PasswordVerifier $passwordVerifier,
+        private ILoginAttemptQuery $loginAttemptQuery,
         private ILoginAttemptRepository $loginAttempts,
     ) {
     }
@@ -167,26 +185,18 @@ final readonly class Interactor
     {
         $now = new DateTimeImmutable();
         $since = $this->loginAttemptWindowStart(now: $now);
-        $emailIpFailures = $this->loginAttempts->countFailuresByEmailAndIp(
+        $failureCounts = $this->loginAttemptQuery->failureCounts(
             email: $input->email,
             ipAddress: $input->ipAddress,
             since: $since,
         );
-        $ipFailures = $this->loginAttempts->countFailuresByIp(
-            ipAddress: $input->ipAddress,
-            since: $since,
-        );
 
-        if ($this->tooManyLoginAttempts(
-            emailIpFailures: $emailIpFailures,
-            ipFailures: $ipFailures,
-        )) {
-            $this->loginAttempts->record(
+        if ($this->tooManyLoginAttempts(failureCounts: $failureCounts)) {
+            $this->loginAttempts->save(LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
-                result: LoginAttemptResult::Blocked,
                 attemptedAt: $now,
-            );
+            ));
 
             return Output::blocked();
         }
@@ -197,22 +207,20 @@ final readonly class Interactor
             plainPassword: $input->password,
             passwordHash: $user->passwordHash,
         )) {
-            $this->loginAttempts->record(
+            $this->loginAttempts->save(LoginAttempt::failure(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
-                result: LoginAttemptResult::Failure,
                 attemptedAt: $now,
-            );
+            ));
 
             return Output::failed();
         }
 
-        $this->loginAttempts->record(
+        $this->loginAttempts->save(LoginAttempt::success(
             email: $input->email,
             ipAddress: $input->ipAddress,
-            result: LoginAttemptResult::Success,
             attemptedAt: $now,
-        );
+        ));
 
         return Output::authenticated(userId: $user->id, role: $user->role);
     }
@@ -222,10 +230,10 @@ final readonly class Interactor
         return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
     }
 
-    private function tooManyLoginAttempts(int $emailIpFailures, int $ipFailures): bool
+    private function tooManyLoginAttempts(LoginAttemptFailureCounts $failureCounts): bool
     {
-        return $emailIpFailures >= self::MAX_FAILURES_PER_EMAIL_AND_IP
-            || $ipFailures >= self::MAX_FAILURES_PER_IP;
+        return $failureCounts->emailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
+            || $failureCounts->ip >= self::MAX_FAILURES_PER_IP;
     }
 }
 ```
@@ -262,25 +270,27 @@ UseCase ディレクトリ直下に `Input.php`、`Interactor.php`、`Output.php
 
 `canAttempt()` のような method を port にすると、「10分間に何回まで許すか」「email + IP と IP 全体の二段で見るか」「何を failure と数えるか」という Application 固有の方針が Infrastructure 実装へ逃げやすい。
 
-抽象化する境界は、永続化だけにする。
+抽象化する境界は、読み取り Query と書き込み Repository に分ける。
+
+```php
+interface ILoginAttemptQuery
+{
+    public function failureCounts(
+        string $email,
+        string $ipAddress,
+        DateTimeImmutable $since,
+    ): LoginAttemptFailureCounts;
+}
+```
 
 ```php
 interface ILoginAttemptRepository
 {
-    public function countFailuresByEmailAndIp(string $email, string $ipAddress, DateTimeImmutable $since): int;
-
-    public function countFailuresByIp(string $ipAddress, DateTimeImmutable $since): int;
-
-    public function record(
-        string $email,
-        string $ipAddress,
-        LoginAttemptResult $result,
-        DateTimeImmutable $attemptedAt,
-    ): void;
+    public function save(LoginAttempt $attempt): void;
 }
 ```
 
-閾値判断は `Login\Interactor` の private method に置く。
+閾値判断は `Login\Interactor` の private method に置く。`ILoginAttemptQuery` は失敗数を返すだけで、blocked 判定を行わない。
 
 ## email の扱い
 
@@ -297,6 +307,29 @@ $normalizedEmail = strtolower(trim($email));
 ```
 
 HMAC key は既存の環境値を使うか、必要なら専用 env を追加する。
+
+hash 化は `PdoLoginAttemptQuery` と `PdoLoginAttemptRepository` の実装内で行う。`Login\Interactor` は hash アルゴリズムを知らない。
+
+`LoginAttempt` entity は raw email を一時的に持つが、DB には raw email を保存しない。
+
+```php
+final readonly class LoginAttempt
+{
+    private function __construct(
+        public string $email,
+        public string $ipAddress,
+        public LoginAttemptResult $result,
+        public DateTimeImmutable $attemptedAt,
+    ) {
+    }
+
+    public static function success(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self;
+
+    public static function failure(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self;
+
+    public static function blocked(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self;
+}
+```
 
 ## DB
 
@@ -354,7 +387,12 @@ blocked:
 
 ```php
 $container->bind(
-    abstract: Auth\Login\Repository\ILoginAttemptRepository::class,
+    abstract: Auth\Login\Query\ILoginAttemptQuery::class,
+    concrete: PdoLoginAttemptQuery::class,
+);
+
+$container->bind(
+    abstract: ILoginAttemptRepository::class,
     concrete: PdoLoginAttemptRepository::class,
 );
 ```
@@ -373,6 +411,10 @@ LoginInteractorTest
   blocked 時に password verify を実行しない
 
 PdoLoginAttemptRepositoryTest
+  success / failure / blocked を保存できる
+  raw email は保存しない
+
+PdoLoginAttemptQueryTest
   window 内の failure だけ数える
   success / blocked は失敗数に含めない
   window 外の failure は数えない
@@ -383,11 +425,12 @@ Controller test では、`blocked` のときも画面文言が通常失敗と同
 ## 実装順
 
 1. migration で `login_attempts` を追加する。
-2. `Login/Repository/ILoginAttemptRepository.php`、`Login/Value/LoginAttemptResult.php` を追加する。
-3. `PdoLoginAttemptRepository` を追加する。
-4. `Login\Input` に `ipAddress` を追加する。
-5. `Login\Output` に `blocked` を追加する。
-6. `Login\Interactor` に `ILoginAttemptRepository` を差し込み、試行制御を private method に閉じ込める。
-7. `LoginController` のエラー文言と SecurityLog result を調整する。
-8. container binding を追加する。
-9. PHPUnit / PHPStan / HTTP 経由のログイン失敗確認を行う。
+2. `Domain/Entity/LoginAttempt.php`、`Domain/Repository/ILoginAttemptRepository.php` を追加する。
+3. `Login/Query/ILoginAttemptQuery.php`、`Login/Value/LoginAttemptFailureCounts.php`、`Login/Value/LoginAttemptResult.php` を追加する。
+4. `PdoLoginAttemptRepository` と `PdoLoginAttemptQuery` を追加する。
+5. `Login\Input` に `ipAddress` を追加する。
+6. `Login\Output` に `blocked` を追加する。
+7. `Login\Interactor` に `ILoginAttemptQuery` と `ILoginAttemptRepository` を差し込み、試行制御を private method に閉じ込める。
+8. `LoginController` のエラー文言と SecurityLog result を調整する。
+9. container binding を追加する。
+10. PHPUnit / PHPStan / HTTP 経由のログイン失敗確認を行う。
