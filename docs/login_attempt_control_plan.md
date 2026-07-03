@@ -29,8 +29,6 @@ apps/cms/src/Application/Auth/Login/
   Input.php
   Interactor.php
   Output.php
-  Policy/
-    LoginAttemptPolicy.php
   Port/
     PasswordVerifier.php
   Repository/
@@ -46,7 +44,9 @@ apps/cms/src/Infrastructure/Persistence/
 
 ログイン試行制御は `Login` UseCase の一部として `Interactor` が進行する。
 
-`LoginAttempts` のような協力オブジェクトを UseCase 直下に置かない。`Input.php`、`Interactor.php`、`Output.php` の見通しを崩さないため、補助部品は役割別ディレクトリに置く。
+`LoginAttempts` のような協力オブジェクトを UseCase 直下に置かない。
+
+`LoginAttemptPolicy` も初期実装では作らない。閾値判断は `Login\Interactor` の private method に閉じ込める。
 
 `PasswordVerifier` は PHP の password API への Application port なので `Login/Port/` に置く。
 
@@ -57,10 +57,8 @@ apps/cms/src/Infrastructure/Persistence/
 ```text
 Login/Interactor.php
   ログイン UseCase 全体を進行する。
-
-Login/Policy/LoginAttemptPolicy.php
-  閾値、window、どの失敗数なら blocked とみなすかを判定する。
-  DB 読み書きや email hash 生成は扱わない。
+  ログイン試行制御の流れと閾値判断もここで扱う。
+  補助 private method へ分け、public な補助 class は増やさない。
 
 Login/Port/PasswordVerifier.php
   入力パスワードが保存済み hash と一致するか検証する port。
@@ -82,7 +80,6 @@ Controller は `Login\Interactor` だけを呼ぶ。
 LoginController
   -> Login\Interactor
        -> ILoginAttemptRepository
-       -> LoginAttemptPolicy
        -> IUserRepository
        -> PasswordVerifier
        -> ILoginAttemptRepository
@@ -155,18 +152,21 @@ final readonly class Output
 ```php
 final readonly class Interactor
 {
+    private const ATTEMPT_WINDOW_SECONDS = 600;
+    private const MAX_FAILURES_PER_EMAIL_AND_IP = 5;
+    private const MAX_FAILURES_PER_IP = 20;
+
     public function __construct(
         private IUserRepository $users,
         private PasswordVerifier $passwordVerifier,
         private ILoginAttemptRepository $loginAttempts,
-        private LoginAttemptPolicy $loginAttemptPolicy,
     ) {
     }
 
     public function execute(Input $input): Output
     {
         $now = new DateTimeImmutable();
-        $since = $this->loginAttemptPolicy->since(now: $now);
+        $since = $this->loginAttemptWindowStart(now: $now);
         $emailIpFailures = $this->loginAttempts->countFailuresByEmailAndIp(
             email: $input->email,
             ipAddress: $input->ipAddress,
@@ -177,7 +177,7 @@ final readonly class Interactor
             since: $since,
         );
 
-        if (!$this->loginAttemptPolicy->allows(
+        if ($this->tooManyLoginAttempts(
             emailIpFailures: $emailIpFailures,
             ipFailures: $ipFailures,
         )) {
@@ -216,17 +216,28 @@ final readonly class Interactor
 
         return Output::authenticated(userId: $user->id, role: $user->role);
     }
+
+    private function loginAttemptWindowStart(DateTimeImmutable $now): DateTimeImmutable
+    {
+        return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
+    }
+
+    private function tooManyLoginAttempts(int $emailIpFailures, int $ipFailures): bool
+    {
+        return $emailIpFailures >= self::MAX_FAILURES_PER_EMAIL_AND_IP
+            || $ipFailures >= self::MAX_FAILURES_PER_IP;
+    }
 }
 ```
 
 ## 判定条件
 
-初期値は env で調整できるようにする。
+初期値は `Login\Interactor` の private const とする。
 
 ```text
-CMS_LOGIN_ATTEMPT_WINDOW_SECONDS=600
-CMS_LOGIN_ATTEMPT_EMAIL_IP_MAX_FAILURES=5
-CMS_LOGIN_ATTEMPT_IP_MAX_FAILURES=20
+ATTEMPT_WINDOW_SECONDS=600
+MAX_FAILURES_PER_EMAIL_AND_IP=5
+MAX_FAILURES_PER_IP=20
 ```
 
 判定は `failure` だけを数える。
@@ -269,30 +280,7 @@ interface ILoginAttemptRepository
 }
 ```
 
-閾値判断は `LoginAttemptPolicy` に置く。
-
-```php
-final readonly class LoginAttemptPolicy
-{
-    public function __construct(
-        private int $windowSeconds,
-        private int $maxFailuresPerEmailAndIp,
-        private int $maxFailuresPerIp,
-    ) {
-    }
-
-    public function since(DateTimeImmutable $now): DateTimeImmutable
-    {
-        return $now->modify('-' . $this->windowSeconds . ' seconds');
-    }
-
-    public function allows(int $emailIpFailures, int $ipFailures): bool
-    {
-        return $emailIpFailures < $this->maxFailuresPerEmailAndIp
-            && $ipFailures < $this->maxFailuresPerIp;
-    }
-}
-```
+閾値判断は `Login\Interactor` の private method に置く。
 
 ## email の扱い
 
@@ -371,8 +359,6 @@ $container->bind(
 );
 ```
 
-`LoginAttemptPolicy` は具象依存でよい。設定値を constructor に渡す必要があるため、container では factory 登録する。
-
 ## テスト
 
 最低限、以下を追加する。
@@ -397,11 +383,11 @@ Controller test では、`blocked` のときも画面文言が通常失敗と同
 ## 実装順
 
 1. migration で `login_attempts` を追加する。
-2. `Login/Policy/LoginAttemptPolicy.php`、`Login/Repository/ILoginAttemptRepository.php`、`Login/Value/LoginAttemptResult.php` を追加する。
+2. `Login/Repository/ILoginAttemptRepository.php`、`Login/Value/LoginAttemptResult.php` を追加する。
 3. `PdoLoginAttemptRepository` を追加する。
 4. `Login\Input` に `ipAddress` を追加する。
 5. `Login\Output` に `blocked` を追加する。
-6. `Login\Interactor` に `ILoginAttemptRepository` と `LoginAttemptPolicy` を差し込む。
+6. `Login\Interactor` に `ILoginAttemptRepository` を差し込み、試行制御を private method に閉じ込める。
 7. `LoginController` のエラー文言と SecurityLog result を調整する。
 8. container binding を追加する。
 9. PHPUnit / PHPStan / HTTP 経由のログイン失敗確認を行う。

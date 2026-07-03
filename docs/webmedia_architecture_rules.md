@@ -468,12 +468,44 @@ new Input($id, $request->input('title'), $request->input('body'));
 
 - `Input` を受け取る
 - `Output` を返す
+- constructor は DI する依存だけを受け取る
+- constructor で scalar 設定値、env 値、業務ルールの閾値を受け取らない
 - 読み取りでは Application Query interface を呼ぶ
 - Entity 永続化では Domain Repository interface を呼ぶ
 - Domain object を組み立て、業務ルールを実行する
 - Infrastructure class に依存しない
 - Template を描画しない
 - HTTP Response を作らない
+
+UseCase 固有の小さな閾値や制御値は、まず `Interactor` の private const として置く。環境ごとの差し替えが本当に必要になった場合は、constructor に scalar を増やすのではなく、その UseCase に意味のある設定 Value Object または Policy object を検討する。
+
+禁止:
+
+```php
+final readonly class Interactor
+{
+    public function __construct(
+        private ILoginAttemptRepository $loginAttempts,
+        private int $windowSeconds,
+        private int $maxFailures,
+    ) {
+    }
+}
+```
+
+許可:
+
+```php
+final readonly class Interactor
+{
+    private const ATTEMPT_WINDOW_SECONDS = 600;
+    private const MAX_FAILURES = 5;
+
+    public function __construct(private ILoginAttemptRepository $loginAttempts)
+    {
+    }
+}
+```
 
 ### 5.3 Output
 
