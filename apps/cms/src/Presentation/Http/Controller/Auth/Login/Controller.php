@@ -31,11 +31,15 @@ final readonly class Controller
         $output = $this->login->execute(input: new Input(
             email: $request->input(key: 'email'),
             password: $request->input(key: 'password'),
+            ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR') ?? '',
         ));
         if (!$output->authenticated) {
-            $this->events->dispatch(event: $this->securityEvent(request: $request, result: 'failure'));
+            $this->events->dispatch(event: $this->securityEvent(
+                request: $request,
+                result: $output->blocked ? 'blocked' : 'failure',
+            ));
 
-            return $this->form(error: 'メールアドレスまたはパスワードが違います。');
+            return $this->form(error: 'ログインに失敗しました。時間をおいて再度お試しください。');
         }
 
         $this->session->regenerate();

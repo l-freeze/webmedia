@@ -35,12 +35,13 @@ apps/cms/src/Application/Auth/Login/
     PasswordVerifier.php
   Value/
     LoginAttemptFailureCounts.php
-    LoginAttemptResult.php
 
 apps/cms/src/Domain/Entity/
   LoginAttempt.php
 apps/cms/src/Domain/Repository/
   ILoginAttemptRepository.php
+apps/cms/src/Domain/Value/
+  LoginAttemptResult.php
 
 apps/cms/src/Infrastructure/Persistence/
   PdoLoginAttemptQuery.php
@@ -77,14 +78,14 @@ Login/Query/ILoginAttemptQuery.php
 Login/Value/LoginAttemptFailureCounts.php
   email + IP、IP 全体の失敗回数を持つ読み取り用 DTO。
 
-Login/Value/LoginAttemptResult.php
-  記録する結果の enum。
-
 Domain/Entity/LoginAttempt.php
   保存するログイン試行を表す Domain Entity。
 
 Domain/Repository/ILoginAttemptRepository.php
   LoginAttempt Entity を保存する Domain Repository。
+
+Domain/Value/LoginAttemptResult.php
+  LoginAttempt Entity の記録結果を表す enum。
 ```
 
 ## 呼び出し
@@ -308,6 +309,10 @@ $normalizedEmail = strtolower(trim($email));
 
 HMAC key は既存の環境値を使うか、必要なら専用 env を追加する。
 
+```text
+CMS_LOGIN_ATTEMPT_HASH_KEY=change-me-login-attempt-hash-key
+```
+
 hash 化は `PdoLoginAttemptQuery` と `PdoLoginAttemptRepository` の実装内で行う。`Login\Interactor` は hash アルゴリズムを知らない。
 
 `LoginAttempt` entity は raw email を一時的に持つが、DB には raw email を保存しない。
@@ -392,7 +397,7 @@ $container->bind(
 );
 
 $container->bind(
-    abstract: ILoginAttemptRepository::class,
+    abstract: \App\Cms\Domain\Repository\ILoginAttemptRepository::class,
     concrete: PdoLoginAttemptRepository::class,
 );
 ```
@@ -426,7 +431,7 @@ Controller test では、`blocked` のときも画面文言が通常失敗と同
 
 1. migration で `login_attempts` を追加する。
 2. `Domain/Entity/LoginAttempt.php`、`Domain/Repository/ILoginAttemptRepository.php` を追加する。
-3. `Login/Query/ILoginAttemptQuery.php`、`Login/Value/LoginAttemptFailureCounts.php`、`Login/Value/LoginAttemptResult.php` を追加する。
+3. `Domain/Value/LoginAttemptResult.php`、`Login/Query/ILoginAttemptQuery.php`、`Login/Value/LoginAttemptFailureCounts.php` を追加する。
 4. `PdoLoginAttemptRepository` と `PdoLoginAttemptQuery` を追加する。
 5. `Login\Input` に `ipAddress` を追加する。
 6. `Login\Output` に `blocked` を追加する。

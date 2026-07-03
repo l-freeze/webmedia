@@ -10,6 +10,7 @@ final readonly class Output
         public bool $authenticated,
         public ?int $userId = null,
         public ?string $role = null,
+        public bool $blocked = false,
     ) {
     }
 
@@ -21,5 +22,10 @@ final readonly class Output
     public static function failed(): self
     {
         return new self(authenticated: false);
+    }
+
+    public static function blocked(): self
+    {
+        return new self(authenticated: false, blocked: true);
     }
 }

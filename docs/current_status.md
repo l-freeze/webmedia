@@ -42,6 +42,11 @@
     - PHPUnit、PHPStan、HTTP GET で確認済み。
 - CMS:
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
+  - 管理ログインの試行回数制限を追加した。
+    - `login_attempts` に success / failure / blocked を記録する。
+    - 10分間で email + IP の failure が5回、または IP 全体の failure が20回に達した場合、password verify 前に blocked とする。
+    - 通常失敗と blocked の画面文言は同じ `ログインに失敗しました。時間をおいて再度お試しください。` にした。
+    - HTTP 経由で CSRF 付き POST を6回実行し、failure 5件、blocked 1件、SecurityLog `cms.login blocked` を確認済み。検証用 `login_attempts` 行は削除済み。
   - 記事作成、編集、プレビュー、履歴、版プレビュー、復元、削除を HTTP 経由で確認。
   - カテゴリ / タグの作成、更新、削除を HTTP 経由で確認。
   - 検証用データは削除済み。

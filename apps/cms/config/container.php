@@ -19,6 +19,7 @@ use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Repository\ICategoryRepository;
 use App\Cms\Domain\Repository\IInquiryRepository;
+use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Repository\ISettingRepository;
@@ -37,6 +38,9 @@ use App\Cms\Infrastructure\Persistence\PdoCurrentCmsUserQuery;
 use App\Cms\Infrastructure\Persistence\PdoDashboardQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryQuery;
 use App\Cms\Infrastructure\Persistence\PdoInquiryRepository;
+use App\Cms\Infrastructure\Persistence\LoginAttemptEmailHash;
+use App\Cms\Infrastructure\Persistence\PdoLoginAttemptQuery;
+use App\Cms\Infrastructure\Persistence\PdoLoginAttemptRepository;
 use App\Cms\Infrastructure\Persistence\PdoMediaQuery;
 use App\Cms\Infrastructure\Persistence\PdoMediaRepository;
 use App\Cms\Infrastructure\Persistence\PdoPageEditQuery;
@@ -137,6 +141,11 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
 $container->bind(abstract: Auth\Login\Port\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
+$container->singleton(id: LoginAttemptEmailHash::class, factory: static fn (): LoginAttemptEmailHash => new LoginAttemptEmailHash(
+    key: $envString('CMS_LOGIN_ATTEMPT_HASH_KEY', $envString('APP_URL', 'webmedia')),
+));
+$container->bind(abstract: Auth\Login\Query\ILoginAttemptQuery::class, concrete: PdoLoginAttemptQuery::class);
+$container->bind(abstract: ILoginAttemptRepository::class, concrete: PdoLoginAttemptRepository::class);
 $container->bind(abstract: Auth\Password\PasswordHasher::class, concrete: NativePasswordHasher::class);
 $container->bind(abstract: Auth\Authorization\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
