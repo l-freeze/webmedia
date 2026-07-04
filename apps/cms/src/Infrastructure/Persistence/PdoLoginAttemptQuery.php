@@ -20,17 +20,9 @@ final readonly class PdoLoginAttemptQuery implements ILoginAttemptQuery
 
     public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
     {
-        return new LoginAttemptFailureCounts(
-            byEmailAndIp: $this->countFailuresByEmailAndIp(email: $email, ipAddress: $ipAddress, since: $since),
-            byIp: $this->countFailuresByIp(ipAddress: $ipAddress, since: $since),
-        );
-    }
-
-    private function countFailuresByEmailAndIp(string $email, string $ipAddress, DateTimeImmutable $since): int
-    {
         $stmt = PdoHelper::prepare(
             pdo: $this->pdo,
-            sql: 'SELECT COUNT(*) FROM login_attempts WHERE email_hash = :email_hash AND ip_address = :ip_address AND result = :result AND attempted_at >= :since',
+            sql: 'SELECT COUNT(*) AS by_ip, SUM(CASE WHEN email_hash = :email_hash THEN 1 ELSE 0 END) AS by_email_and_ip FROM login_attempts WHERE ip_address = :ip_address AND result = :result AND attempted_at >= :since',
         );
         PdoHelper::execute(statement: $stmt, params: [
             'email_hash' => $this->emailHash->hash(email: $email),
@@ -38,22 +30,12 @@ final readonly class PdoLoginAttemptQuery implements ILoginAttemptQuery
             'result' => LoginAttemptResult::Failure->value,
             'since' => $since->format('Y-m-d H:i:s'),
         ]);
+        $row = PdoHelper::fetch(statement: $stmt);
+        $counts = PdoRow::from(values: $row ?? []);
 
-        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count');
-    }
-
-    private function countFailuresByIp(string $ipAddress, DateTimeImmutable $since): int
-    {
-        $stmt = PdoHelper::prepare(
-            pdo: $this->pdo,
-            sql: 'SELECT COUNT(*) FROM login_attempts WHERE ip_address = :ip_address AND result = :result AND attempted_at >= :since',
+        return new LoginAttemptFailureCounts(
+            byEmailAndIp: $counts->int(key: 'by_email_and_ip'),
+            byIp: $counts->int(key: 'by_ip'),
         );
-        PdoHelper::execute(statement: $stmt, params: [
-            'ip_address' => $ipAddress,
-            'result' => LoginAttemptResult::Failure->value,
-            'since' => $since->format('Y-m-d H:i:s'),
-        ]);
-
-        return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count');
     }
 }
