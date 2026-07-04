@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Permission;
 
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Application\Permission\List\Input;
 use App\Cms\Application\Permission\List\Interactor;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
@@ -23,7 +23,7 @@ final class PermissionListInteractorTest extends TestCase
         }
 
         self::assertSame(PermissionCode::all(), array_keys($permissions));
-        self::assertSame([RoleCode::ADMIN], $permissions[PermissionCode::ADMIN_USER_MANAGE]);
-        self::assertContains(RoleCode::EDITOR, $permissions[PermissionCode::ARTICLE_UPDATE]);
+        self::assertSame([CmsRole::ADMIN], $permissions[PermissionCode::ADMIN_USER_MANAGE]);
+        self::assertContains(CmsRole::EDITOR, $permissions[PermissionCode::ARTICLE_UPDATE]);
     }
 }

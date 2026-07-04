@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Authorization;
 
-use App\Cms\Application\Auth\Policy\ArticlePolicy;
-use App\Cms\Application\Auth\Policy\Value\ArticlePolicyArticle;
-use App\Cms\Application\Auth\Policy\AuthorizationService;
-use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
-use App\Cms\Application\Auth\Policy\RoleHierarchy;
-use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
+use App\Cms\Domain\Entity\Article;
+use App\Cms\Domain\Exception\ResourceOperationDeniedException;
+use App\Cms\Domain\Policy\ArticlePolicy;
+use App\Cms\Domain\Value\CmsActor;
+use App\Cms\Domain\Value\CmsRole;
 use PHPUnit\Framework\TestCase;
 
 final class ArticlePolicyTest extends TestCase
@@ -18,60 +16,66 @@ final class ArticlePolicyTest extends TestCase
     public function testWriterCanUpdateOwnArticleOnly(): void
     {
         $policy = $this->policy();
-        $writer = $this->user(id: 10, role: RoleCode::WRITER);
+        $writer = $this->actor(id: 10, role: CmsRole::WRITER);
 
-        self::assertTrue($policy->canUpdate(
-            user: $writer,
-            article: new ArticlePolicyArticle(id: 1, status: 'draft', authorId: 10),
-        ));
-        self::assertFalse($policy->canUpdate(
-            user: $writer,
-            article: new ArticlePolicyArticle(id: 2, status: 'draft', authorId: 11),
-        ));
-        self::assertFalse($policy->canUpdate(
-            user: $writer,
-            article: new ArticlePolicyArticle(id: 3, status: 'draft', authorId: null),
-        ));
+        self::assertSame($writer, $policy->authorizeUpdate(
+            actor: $writer,
+            article: $this->article(authorId: 10),
+        )->actor);
+
+        $this->expectException(ResourceOperationDeniedException::class);
+        $policy->authorizeUpdate(actor: $writer, article: $this->article(authorId: 11));
     }
 
     public function testEditorAndAdminCanUpdateOtherUsersArticle(): void
     {
         $policy = $this->policy();
-        $article = new ArticlePolicyArticle(id: 1, status: 'draft', authorId: 10);
+        $article = $this->article(authorId: 10);
 
-        self::assertTrue($policy->canUpdate(user: $this->user(id: 20, role: RoleCode::EDITOR), article: $article));
-        self::assertTrue($policy->canUpdate(user: $this->user(id: 30, role: RoleCode::ADMIN), article: $article));
+        self::assertSame(20, $policy->authorizeUpdate(actor: $this->actor(id: 20, role: CmsRole::EDITOR), article: $article)->actor->id);
+        self::assertSame(30, $policy->authorizeUpdate(actor: $this->actor(id: 30, role: CmsRole::ADMIN), article: $article)->actor->id);
     }
 
     public function testViewerCannotUpdateArticle(): void
     {
-        self::assertFalse($this->policy()->canUpdate(
-            user: $this->user(id: 10, role: RoleCode::VIEWER),
-            article: new ArticlePolicyArticle(id: 1, status: 'draft', authorId: 10),
-        ));
+        $this->expectException(ResourceOperationDeniedException::class);
+        $this->policy()->authorizeUpdate(
+            actor: $this->actor(id: 10, role: CmsRole::VIEWER),
+            article: $this->article(authorId: 10),
+        );
     }
 
-    public function testPublishDeleteAndRestoreFollowPermissions(): void
+    public function testPublishDeleteAndRestoreRequireEditorOrHigher(): void
     {
         $policy = $this->policy();
 
-        self::assertFalse($policy->canPublish(user: $this->user(role: RoleCode::WRITER)));
-        self::assertTrue($policy->canPublish(user: $this->user(role: RoleCode::EDITOR)));
-        self::assertFalse($policy->canDelete(user: $this->user(role: RoleCode::WRITER)));
-        self::assertTrue($policy->canDelete(user: $this->user(role: RoleCode::EDITOR)));
-        self::assertTrue($policy->canRestore(user: $this->user(role: RoleCode::EDITOR)));
+        self::assertSame(CmsRole::EDITOR, $policy->authorizePublish($this->actor(role: CmsRole::EDITOR))->actor->role);
+        self::assertSame(CmsRole::EDITOR, $policy->authorizeDelete($this->actor(role: CmsRole::EDITOR))->actor->role);
+        self::assertSame(CmsRole::EDITOR, $policy->authorizeRestore($this->actor(role: CmsRole::EDITOR))->actor->role);
+
+        $this->expectException(ResourceOperationDeniedException::class);
+        $policy->authorizePublish($this->actor(role: CmsRole::WRITER));
     }
 
     private function policy(): ArticlePolicy
     {
-        return new ArticlePolicy(
-            authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
-            roles: new RoleHierarchy(),
-        );
+        return new ArticlePolicy();
     }
 
-    private function user(int $id = 1, string $role = RoleCode::ADMIN): CurrentCmsUser
+    private function actor(int $id = 1, string $role = CmsRole::ADMIN): CmsActor
     {
-        return new CurrentCmsUser(id: $id, email: 'user@example.test', name: 'CMS User', role: $role);
+        return new CmsActor(id: $id, role: $role);
+    }
+
+    private function article(?int $authorId): Article
+    {
+        return Article::fromInput(id: 1, data: [
+            'title' => 'Title',
+            'slug' => 'slug',
+            'body' => 'Body',
+            'body_format' => 'markdown',
+            'status' => 'draft',
+            'author_id' => $authorId,
+        ]);
     }
 }

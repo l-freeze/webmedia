@@ -8,9 +8,9 @@ CMS permission middleware を有効にするには、次の3点を揃えます�
 
 1. `apps/cms/config/middleware.php` に `RequireCmsPermissionMiddleware::class` を登録する。
 2. `apps/cms/config/routes.php` の保護したい route に `requires_permission` metadata を設定する。
-3. `apps/cms/config/container.php` で Guard / Query / AuthorizationService の依存が解決できるようにする。
+3. `apps/cms/config/container.php` で Guard / Query / `Auth/AuthorizeRoute` の依存が解決できるようにする。
 
-`AuthorizationService` は `Auth/Policy/Query/IRolePermissionQuery` に依存します。現状は `Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
+`Auth/AuthorizeRoute/Interactor` は `Auth/AuthorizeRoute/Query/IRolePermissionQuery` に依存します。現状は `Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
 
 ## 登録順
 
@@ -41,7 +41,7 @@ CMS の route entry は次の形式を基本にします。
 metadata は任意です。認可が必要な route には `requires_permission` を付けます。
 
 ```php
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
 use App\Cms\Presentation\Http\Controller\Article\Update\Controller as ArticleUpdateController;
 
 return [

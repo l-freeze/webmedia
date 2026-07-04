@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Auth\Authorization;
 
-use App\Cms\Application\Auth\Policy\Query\IRolePermissionQuery;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\AuthorizeRoute\Query\IRolePermissionQuery as IAuthorizeRouteRolePermissionQuery;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Application\Permission\List\Query\IRolePermissionQuery as IPermissionListRolePermissionQuery;
+use App\Cms\Application\Role\List\Query\IRolePermissionQuery as IRoleListRolePermissionQuery;
+use App\Cms\Domain\Value\CmsRole;
 
-final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
+final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermissionQuery, IPermissionListRolePermissionQuery, IRoleListRolePermissionQuery
 {
     /** @var array<string, list<string>> */
     private const PERMISSIONS = [
-        RoleCode::ADMIN => [
+        CmsRole::ADMIN => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -39,7 +41,7 @@ final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
             PermissionCode::ROLE_VIEW,
             PermissionCode::PERMISSION_VIEW,
         ],
-        RoleCode::EDITOR => [
+        CmsRole::EDITOR => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -60,7 +62,7 @@ final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
             PermissionCode::INQUIRY_UPDATE,
             PermissionCode::TRASH_VIEW,
         ],
-        RoleCode::WRITER => [
+        CmsRole::WRITER => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -70,7 +72,7 @@ final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
             PermissionCode::MEDIA_LIST,
             PermissionCode::MEDIA_UPLOAD,
         ],
-        RoleCode::VIEWER => [
+        CmsRole::VIEWER => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_PREVIEW,

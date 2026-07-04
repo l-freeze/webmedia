@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Role\List;
 
-use App\Cms\Application\Auth\Policy\Query\IRolePermissionQuery;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Role\List\Query\IRolePermissionQuery;
 use App\Cms\Application\Role\List\Value\Role;
+use App\Cms\Domain\Value\CmsRole;
 
 final readonly class Interactor
 {
@@ -17,7 +17,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $roles = [];
-        foreach (RoleCode::all() as $role) {
+        foreach (CmsRole::all() as $role) {
             $roles[] = new Role(
                 code: $role,
                 permissions: $this->rolePermissions->permissionsForRole($role),

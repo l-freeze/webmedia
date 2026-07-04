@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Delete;
 
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\CmsRole;
 
 final readonly class Interactor
 {
@@ -24,7 +24,7 @@ final readonly class Interactor
             return new Output(deleted: false, error: '管理者アカウントが見つかりません。');
         }
 
-        if ($role === RoleCode::ADMIN && $this->users->adminCount() <= 1) {
+        if ($role === CmsRole::ADMIN && $this->users->adminCount() <= 1) {
             return new Output(deleted: false, error: '最後のadminロールは削除できません。');
         }
 

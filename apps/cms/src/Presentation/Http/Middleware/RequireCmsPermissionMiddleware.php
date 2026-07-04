@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
-use App\Cms\Application\Auth\Policy\AuthorizationService;
+use App\Cms\Application\Auth\AuthorizeRoute\Input;
+use App\Cms\Application\Auth\AuthorizeRoute\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;
@@ -18,7 +19,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
 {
     public function __construct(
         private CmsGuard $guard,
-        private AuthorizationService $authorization,
+        private Interactor $authorizeRoute,
         private EventBusInterface $events,
     ) {
     }
@@ -42,7 +43,11 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
             return Response::redirect('/admin/login');
         }
 
-        if (!$this->authorization->can(user: $user, permission: $permission)) {
+        $authorization = $this->authorizeRoute->execute(new Input(
+            actorRole: $user->role,
+            requiredPermission: $permission,
+        ));
+        if (!$authorization->allowed) {
             $this->events->dispatch(event: $this->securityEvent(
                 request: $request,
                 eventType: 'cms.authorization.denied',

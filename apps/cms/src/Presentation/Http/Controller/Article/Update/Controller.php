@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\Update;
 
 use App\Cms\Application\Article\Save\Input;
 use App\Cms\Application\Article\Save\Interactor;
-use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
+use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
@@ -34,7 +34,7 @@ final readonly class Controller
         $id = (int) $vars['id'];
         try {
             $output = $this->save->execute(new Input(id: $id, data: $request->body, currentUser: $currentUser));
-        } catch (AuthorizationException) {
+        } catch (ResourceOperationDeniedException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 

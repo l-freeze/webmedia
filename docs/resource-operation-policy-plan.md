@@ -134,7 +134,6 @@ apps/cms/src/Application/
         IRolePermissionQuery.php
       Value/
         PermissionCode.php
-        RoleCode.php
 
   Article/
     Save/
@@ -158,7 +157,9 @@ apps/cms/src/Domain/
   Policy/
     ArticlePolicy.php
   Value/
+    ArticleCreatePermission.php
     ArticleUpdatePermission.php
+    ArticlePublishPermission.php
     ArticleDeletePermission.php
     ArticleRestorePermission.php
     CmsActor.php
@@ -183,7 +184,7 @@ Output:
   allowed / denied
 ```
 
-`PermissionCode` と `RoleCode` はここに置く。
+`PermissionCode` はここに置く。role は管理者アカウント属性でも resource policy の判断材料でもあるため、Domain の `CmsRole` として扱う。
 
 `Auth/AuthorizeRoute` は Article を知らない。
 
@@ -197,7 +198,7 @@ Article の取得、状態変更、保存は Domain Repository と Article Entit
 Article/Save/Interactor
   -> IArticleRepository で Article を取得する
   -> ArticlePolicy で許可済み操作 value を発行する
-  -> Article Entity に許可済み操作 value を渡して更新する
+  -> Article Entity に許可済み操作 value を渡して作成または更新する
   -> IArticleRepository で保存する
 
 Article/Delete/Interactor
@@ -241,7 +242,9 @@ Article の状態を使う
 Policy が判定済みの proof / capability として発行する。
 
 ```text
+ArticleCreatePermission
 ArticleUpdatePermission
+ArticlePublishPermission
 ArticleDeletePermission
 ArticleRestorePermission
 ```
@@ -269,9 +272,10 @@ RequireCmsPermissionMiddleware
   -> route metadata の article.update を確認
 
 Article Update Controller
-  -> current user を CmsActor として Input へ詰める
+  -> current user を Input へ詰める
 
 Article/Save/Interactor
+  -> current user から CmsActor を作る
   -> IArticleRepository で Article を取得する
   -> ArticlePolicy::authorizeUpdate() を呼ぶ
   -> ArticleUpdatePermission を受け取る
@@ -286,6 +290,7 @@ RequireCmsPermissionMiddleware
   -> route metadata の article.delete を確認
 
 Article/Delete/Interactor
+  -> current user から CmsActor を作る
   -> IArticleRepository で Article を取得する
   -> ArticlePolicy::authorizeDelete() を呼ぶ
   -> ArticleDeletePermission を受け取る
@@ -300,6 +305,7 @@ RequireCmsPermissionMiddleware
   -> route metadata の article.restore を確認
 
 Article/Restore/Interactor
+  -> current user から CmsActor を作る
   -> IArticleRepository で復元に必要な Article aggregate/entity を復元する
   -> ArticlePolicy::authorizeRestore() を呼ぶ
   -> ArticleRestorePermission を受け取る
@@ -310,12 +316,12 @@ Article/Restore/Interactor
 ## 移行手順
 
 1. `Domain/Value/CmsActor.php` と `Domain/Value/CmsRole.php` を追加する。
-2. `Auth/GetCurrentUser` の Output を `CurrentCmsUser` から `CmsActor` へ寄せる。
+2. `Article/Save`、`Article/Delete`、`Article/Restore` の UseCase 内で `CurrentCmsUser` から `CmsActor` を作る。
 3. `Auth/AuthorizeRoute` UseCase を追加する。
 4. `RequireCmsPermissionMiddleware` を `AuthorizationService` 直接利用から `Auth/AuthorizeRoute/Interactor` 利用へ変更する。
 5. `IArticleRepository` を、C 側で Article aggregate/entity を取得して保存できる形へ拡張する。
 6. `Domain/Policy/ArticlePolicy.php` を追加する。
-7. `ArticleUpdatePermission`、`ArticleDeletePermission`、`ArticleRestorePermission` を追加する。
+7. `ArticleCreatePermission`、`ArticleUpdatePermission`、`ArticlePublishPermission`、`ArticleDeletePermission`、`ArticleRestorePermission` を追加する。
 8. `Article` Entity の更新 / 削除 / 復元操作が許可済み操作 value を受け取る形へ変更する。
 9. `Article/Save`、`Article/Delete`、`Article/Restore` から `Auth/Policy` 依存を削除する。
 10. `Auth/Policy/ArticlePolicy`、`IArticlePolicyQuery`、`ArticlePolicyArticle`、`PdoArticlePolicyQuery` を削除する。
@@ -336,8 +342,6 @@ resource-level permission は Domain/Policy/ArticlePolicy が判定する
 Article Entity の状態変更は許可済み操作 value を要求する
 ```
 
-## 保留判断
+## 判断済み
 
-`CmsActor` と `CmsRole` を Domain Value とするか、CMS Application 共通 value とするかは実装前に最終確認する。
-
-現時点の推奨は Domain Value。理由は Article Entity / Domain Policy が参照するため、Domain から Application へ依存させないためである。
+`CmsActor` と `CmsRole` は Domain Value とする。理由は Article Entity / Domain Policy が参照するため、Domain から Application へ依存させないためである。

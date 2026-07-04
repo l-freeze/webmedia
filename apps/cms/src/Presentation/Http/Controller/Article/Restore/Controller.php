@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\Restore;
 
 use App\Cms\Application\Article\Restore\Input;
 use App\Cms\Application\Article\Restore\Interactor;
-use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
+use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
@@ -31,7 +31,7 @@ final readonly class Controller
 
         try {
             $this->restore->execute(new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
-        } catch (AuthorizationException) {
+        } catch (ResourceOperationDeniedException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 

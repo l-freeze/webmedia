@@ -6,11 +6,16 @@ namespace App\Cms\Domain\Entity;
 
 use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleBodyFormat;
+use App\Cms\Domain\Value\ArticleCreatePermission;
+use App\Cms\Domain\Value\ArticleDeletePermission;
 use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticlePublishPermission;
+use App\Cms\Domain\Value\ArticleRestorePermission;
 use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
+use App\Cms\Domain\Value\ArticleUpdatePermission;
 use App\Cms\Domain\Value\CategoryId;
 use App\Cms\Domain\Value\EyecatchPath;
 use App\Cms\Domain\Value\MetaDescription;
@@ -39,6 +44,15 @@ final readonly class Article
     }
 
     /** @param array<string, mixed> $data */
+    public static function create(ArticleCreatePermission $permission, array $data, ?ArticlePublishPermission $publishPermission): self
+    {
+        $article = self::fromInput(id: null, data: $data);
+        self::assertPublishPermission(article: $article, permission: $publishPermission);
+
+        return $article;
+    }
+
+    /** @param array<string, mixed> $data */
     public static function fromInput(?int $id, array $data): self
     {
         return new self(
@@ -57,6 +71,77 @@ final readonly class Article
             metaDescription: new MetaDescription(value: self::stringValue(data: $data, key: 'meta_description')),
             authorId: self::nullablePositiveInt(data: $data, key: 'author_id'),
         );
+    }
+
+    /** @param array<string, mixed> $data */
+    public function update(ArticleUpdatePermission $permission, array $data, ?ArticlePublishPermission $publishPermission): self
+    {
+        $article = self::fromInput(id: $this->id?->value, data: $data);
+        self::assertPublishPermission(article: $article, permission: $publishPermission);
+
+        return new self(
+            id: $this->id,
+            title: $article->title,
+            slug: $article->slug,
+            body: $article->body,
+            bodyFormat: $article->bodyFormat,
+            excerpt: $article->excerpt,
+            status: $article->status,
+            categoryId: $article->categoryId,
+            eyecatchPath: $article->eyecatchPath,
+            publishedAt: $article->publishedAt,
+            publishedEndsAt: $article->publishedEndsAt,
+            seoTitle: $article->seoTitle,
+            metaDescription: $article->metaDescription,
+            authorId: $this->authorId,
+        );
+    }
+
+    public function trash(ArticleDeletePermission $permission): self
+    {
+        return new self(
+            id: $this->id,
+            title: $this->title,
+            slug: $this->slug,
+            body: $this->body,
+            bodyFormat: $this->bodyFormat,
+            excerpt: $this->excerpt,
+            status: new ArticleStatus(value: 'trashed'),
+            categoryId: $this->categoryId,
+            eyecatchPath: $this->eyecatchPath,
+            publishedAt: $this->publishedAt,
+            publishedEndsAt: $this->publishedEndsAt,
+            seoTitle: $this->seoTitle,
+            metaDescription: $this->metaDescription,
+            authorId: $this->authorId,
+        );
+    }
+
+    public function restore(ArticleRestorePermission $permission, Article $version): self
+    {
+        return new self(
+            id: $this->id,
+            title: $version->title,
+            slug: $version->slug,
+            body: $version->body,
+            bodyFormat: $version->bodyFormat,
+            excerpt: $version->excerpt,
+            status: $version->status,
+            categoryId: $version->categoryId,
+            eyecatchPath: $version->eyecatchPath,
+            publishedAt: $version->publishedAt,
+            publishedEndsAt: $version->publishedEndsAt,
+            seoTitle: $version->seoTitle,
+            metaDescription: $version->metaDescription,
+            authorId: $this->authorId,
+        );
+    }
+
+    private static function assertPublishPermission(Article $article, ?ArticlePublishPermission $permission): void
+    {
+        if ($article->status->value === 'published' && $permission === null) {
+            throw new \LogicException('Publishing an article requires ArticlePublishPermission.');
+        }
     }
 
     /** @param array<string, mixed> $data */

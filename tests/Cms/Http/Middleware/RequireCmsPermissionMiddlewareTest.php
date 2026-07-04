@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Application\Auth\Policy\AuthorizationService;
+use App\Cms\Application\Auth\AuthorizeRoute\Interactor as AuthorizeRouteInteractor;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
 use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
@@ -27,7 +27,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 {
     public function testAllowsRequestWithoutPermissionMetadata(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: RoleCode::VIEWER));
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::VIEWER));
 
         $response = $middleware->process(
             request: new Request(method: 'GET', path: '/admin/articles', query: [], body: [], server: []),
@@ -59,7 +59,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
     public function testReturnsForbiddenWhenUserDoesNotHaveRequiredPermission(): void
     {
         $events = new RecordingPermissionEventBus();
-        $middleware = $this->middleware(user: $this->user(role: RoleCode::WRITER), events: $events);
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::WRITER), events: $events);
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
@@ -73,13 +73,13 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         self::assertSame('cms.authorization.denied', $events->events[0]->eventType);
         self::assertSame('failure', $events->events[0]->result);
         self::assertSame('1', $events->events[0]->actorUserId);
-        self::assertSame(RoleCode::WRITER, $events->events[0]->actorRole);
+        self::assertSame(CmsRole::WRITER, $events->events[0]->actorRole);
         self::assertSame(PermissionCode::SETTING_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testAllowsUserWithRequiredPermission(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: RoleCode::ADMIN));
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::ADMIN));
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
@@ -99,7 +99,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
             guard: new CmsGuard(session: $session, currentUsers: new \App\Cms\Application\Auth\GetCurrentUser\Interactor(
                 users: new FixedPermissionCmsUserQuery(user: $user),
             )),
-            authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
+            authorizeRoute: new AuthorizeRouteInteractor(rolePermissions: new CodeDefinedRolePermissionQuery()),
             events: $events ?? new RecordingPermissionEventBus(),
         );
     }

@@ -39,7 +39,7 @@
 | 管理者管理 | 完了 | `/admin/users`, AdminUser List/Create/Update/Delete UseCase, `admin_user.manage` permission, `Domain/Entity/AdminUser`, `Domain/Repository/IAdminUserRepository`, Audit middleware の業務要約 | HTTP 経由で作成/更新/削除確認済み。検証用アカウントは削除済み |
 | ロール管理 | 完了 | `/admin/roles`, Role List UseCase, `role.view` permission, コード定義ロールの権限表示 | 現時点では読み取り専用。ロールをDB管理にするかは運用要件が出た時点で判断 |
 | パーミッション管理 | 完了 | `/admin/permissions`, Permission List UseCase, `permission.view` permission, パーミッション別付与ロール表示 | 現時点では読み取り専用。権限付与をDB管理にするかは運用要件が出た時点で判断 |
-| 認証・認可 | 一部完了 | `CurrentCmsUser`, `AuthorizationService`, route-level permission, `ArticlePolicy`, 管理系 permissions | template helper、Article 以外の UseCase-level authorization 拡張 |
+| 認証・認可 | 一部完了 | `CurrentCmsUser`, `Auth/AuthorizeRoute`, route-level permission, `Domain/Policy/ArticlePolicy`, 管理系 permissions | template helper、Article 以外の resource-level authorization 拡張 |
 | Audit / SecurityLog | 一部完了 | CMS 状態変更 Audit middleware、記事/固定ページ/分類/問い合わせ/管理者/設定/メディア削除の業務要約、認可/CSRF/login/logout SecurityLog、`/admin/audit-logs` のページング/日時ソート/絞り込み | request id の運用、例外ログ連携、問い合わせ閲覧/export を追加する場合の個人情報アクセス Audit |
 | PC/SP 表示 | 一部完了 | CMS template / CSS は存在 | ヘッドレス Chrome で主要画面を確認し、記事編集の横スクロールを修正済み。日本語フォントありの環境で再確認 |
 

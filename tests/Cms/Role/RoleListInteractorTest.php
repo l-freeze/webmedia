@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Role;
 
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Application\Role\List\Input;
 use App\Cms\Application\Role\List\Interactor;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
@@ -22,8 +22,8 @@ final class RoleListInteractorTest extends TestCase
             $roles[$role->code] = $role->permissions;
         }
 
-        self::assertSame(RoleCode::all(), array_keys($roles));
-        self::assertContains(PermissionCode::ADMIN_USER_MANAGE, $roles[RoleCode::ADMIN]);
-        self::assertNotContains(PermissionCode::ADMIN_USER_MANAGE, $roles[RoleCode::EDITOR]);
+        self::assertSame(CmsRole::all(), array_keys($roles));
+        self::assertContains(PermissionCode::ADMIN_USER_MANAGE, $roles[CmsRole::ADMIN]);
+        self::assertNotContains(PermissionCode::ADMIN_USER_MANAGE, $roles[CmsRole::EDITOR]);
     }
 }

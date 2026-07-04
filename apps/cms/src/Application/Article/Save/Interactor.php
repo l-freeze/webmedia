@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Save;
 
-use App\Cms\Application\Auth\Policy\ArticlePolicy;
-use App\Cms\Application\Auth\Policy\Query\IArticlePolicyQuery;
-use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
+use App\Cms\Domain\Exception\ResourceOperationDeniedException;
+use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleBodyFormat;
+use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticlePublishPermission;
+use App\Cms\Domain\Value\CmsActor;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationInput;
@@ -21,7 +22,6 @@ final readonly class Interactor
 {
     public function __construct(
         private IArticleRepository $articles,
-        private IArticlePolicyQuery $articlePolicyQuery,
         private ArticlePolicy $articlePolicy,
     ) {
     }
@@ -52,15 +52,12 @@ final readonly class Interactor
             ));
         }
 
-        $status = $values->string(field: 'status');
-        $this->authorize(input: $input, status: $status === '' ? 'draft' : $status);
-
         $articleData = $input->data;
         if ($input->id === null) {
             $articleData['author_id'] = $input->currentUser->id;
         }
 
-        return Output::saved($this->articles->save(Article::fromInput(id: $input->id, data: $articleData)));
+        return Output::saved($this->articles->save($this->articleFromInput(input: $input, data: $articleData)));
     }
 
     private function validateRichTextBody(ValidationInput $values): ValidationOutput
@@ -112,21 +109,40 @@ final readonly class Interactor
         return true;
     }
 
-    private function authorize(Input $input, string $status): void
+    /** @param array<string, mixed> $data */
+    private function articleFromInput(Input $input, array $data): Article
     {
+        $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
+        $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, data: $data);
+
         if ($input->id === null) {
-            if (!$this->articlePolicy->canCreate($input->currentUser)) {
-                throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_CREATE);
-            }
-        } else {
-            $article = $this->articlePolicyQuery->findById($input->id);
-            if ($article === null || !$this->articlePolicy->canUpdate(user: $input->currentUser, article: $article)) {
-                throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_UPDATE);
-            }
+            return Article::create(
+                permission: $this->articlePolicy->authorizeCreate($actor),
+                data: $data,
+                publishPermission: $publishPermission,
+            );
         }
 
-        if ($status === 'published' && !$this->articlePolicy->canPublish($input->currentUser)) {
-            throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_PUBLISH);
+        $article = $this->articles->findById(new ArticleId($input->id));
+        if ($article === null) {
+            throw new ResourceOperationDeniedException(actorId: $input->currentUser->id, operation: 'article.update');
         }
+
+        return $article->update(
+            permission: $this->articlePolicy->authorizeUpdate(actor: $actor, article: $article),
+            data: $data,
+            publishPermission: $publishPermission,
+        );
+    }
+
+    /** @param array<string, mixed> $data */
+    private function publishPermissionIfNeeded(CmsActor $actor, array $data): ?ArticlePublishPermission
+    {
+        $status = $data['status'] ?? 'draft';
+        if (!is_scalar($status) || (string) $status !== 'published') {
+            return null;
+        }
+
+        return $this->articlePolicy->authorizePublish($actor);
     }
 }

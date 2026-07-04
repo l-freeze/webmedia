@@ -42,6 +42,13 @@
     - `FRONT_SITE_URL` 未設定時は request host を fallback にする。
     - PHPUnit、PHPStan、HTTP GET で確認済み。
 - CMS:
+  - route-level permission と resource-level permission を分離した。
+    - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。
+    - resource-level permission は `Domain/Policy/ArticlePolicy` が `CmsActor` と `Article` を見て判定し、`ArticleCreatePermission` / `ArticleUpdatePermission` / `ArticlePublishPermission` / `ArticleDeletePermission` / `ArticleRestorePermission` を発行する。
+    - `Article/Save`、`Article/Delete`、`Article/Restore` は Application Query port を持たず、C 側の読み込みと保存を `Domain/Repository/IArticleRepository` に寄せた。
+    - Article Entity の作成 / 更新 / 削除 / 復元は許可済み操作 value を受け取る形にした。
+    - `Application/Auth/Policy` と `PdoArticlePolicyQuery` を削除し、Application `<Feature>/<Action>` ルールの例外をなくした。
+    - PHPUnit、PHPStan、HTTP 経由のログイン、記事作成、記事更新、記事削除、記事復元を確認済み。検証用記事と版履歴は削除済み。
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
   - 管理ログインの試行回数制限を追加した。
     - `cms_login_attempts` に success / failure / blocked を記録する。
@@ -90,7 +97,7 @@
   - `/admin/users` を追加し、管理者の一覧、作成、更新、削除ができるようにした。
   - `/admin/roles` を追加し、ロール別パーミッションを読み取り専用で確認できるようにした。
   - `/admin/permissions` を追加し、パーミッション別の付与ロールを読み取り専用で確認できるようにした。
-  - 既存の `users.role`、`RoleCode`、`PermissionCode` を使い、`admin_user.manage` / `role.view` / `permission.view` は admin のみに付与した。
+  - 既存の `users.role`、`CmsRole`、`PermissionCode` を使い、`admin_user.manage` / `role.view` / `permission.view` は admin のみに付与した。
   - 最後の admin ロール変更/削除、ログイン中ユーザー自身の削除を UseCase で防ぐようにした。
   - 管理者の作成/更新/削除は Audit middleware の業務要約に記録する。password は監査ログに残さない。
   - 左メニューはゴミ箱までをコンテンツ運用系とし、その下に管理者、ロール、パーミッション、監査ログ、サイト設定を置く形にした。

@@ -14,7 +14,7 @@
 
 middleware は HTTP pipeline の入口制御だけを担当し、Session の値の正規化、ユーザー取得、現在ユーザー表現の組み立ては Guard 側に寄せます。
 
-Guard は認証境界であり、Permission や Policy の判定は行いません。権限差の強制は、後続の permission middleware、`AuthorizationService`、UseCase / Policy 側で扱います。
+Guard は認証境界であり、Permission や Policy の判定は行いません。権限差の強制は、後続の permission middleware、`Auth/AuthorizeRoute`、UseCase / Domain Policy 側で扱います。
 
 `CurrentCmsUser` の解決には `ICurrentCmsUserQuery` が必要です。CMS container では次の binding を維持します。
 

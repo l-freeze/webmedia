@@ -12,6 +12,8 @@ use App\Cms\Application\Dashboard;
 use App\Cms\Application\Inquiry;
 use App\Cms\Application\Media;
 use App\Cms\Application\Page;
+use App\Cms\Application\Permission;
+use App\Cms\Application\Role;
 use App\Cms\Application\Setting;
 use App\Cms\Application\Tag;
 use App\Cms\Application\Trash;
@@ -32,7 +34,6 @@ use App\Cms\Infrastructure\Persistence\PdoArticleEditImageQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleEditQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleHistoryQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticlePreviewQuery;
-use App\Cms\Infrastructure\Persistence\PdoArticlePolicyQuery;
 use App\Cms\Infrastructure\Persistence\PdoArticleRepository;
 use App\Cms\Infrastructure\Persistence\PdoArticleVersionPreviewQuery;
 use App\Cms\Infrastructure\Persistence\PdoAdminUserRepository;
@@ -153,7 +154,7 @@ $container->bind(abstract: ILoginAttemptRepository::class, concrete: PdoLoginAtt
 $container->bind(abstract: ICmsLoginAttemptResetRepository::class, concrete: PdoCmsLoginAttemptResetRepository::class);
 $container->bind(abstract: AdminUser\Create\Port\PasswordHasher::class, concrete: NativePasswordHasher::class);
 $container->bind(abstract: AdminUser\Update\Port\PasswordHasher::class, concrete: NativePasswordHasher::class);
-$container->bind(abstract: Auth\Policy\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
+$container->bind(abstract: Auth\AuthorizeRoute\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\GetCurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);
 $container->bind(abstract: IMediaRepository::class, concrete: PdoMediaRepository::class);
@@ -161,7 +162,6 @@ $container->bind(abstract: IPageRepository::class, concrete: PdoPageRepository::
 $container->bind(abstract: ICategoryRepository::class, concrete: PdoCategoryRepository::class);
 $container->bind(abstract: ITagRepository::class, concrete: PdoTagRepository::class);
 $container->bind(abstract: ISettingRepository::class, concrete: PdoSettingRepository::class);
-$container->bind(abstract: Auth\Policy\Query\IArticlePolicyQuery::class, concrete: PdoArticlePolicyQuery::class);
 $container->bind(abstract: Article\List\Query\IArticleQuery::class, concrete: PdoArticleQuery::class);
 $container->bind(abstract: Article\Edit\Query\IArticleQuery::class, concrete: PdoArticleEditQuery::class);
 $container->bind(abstract: Article\Edit\Query\ICategoryQuery::class, concrete: PdoArticleEditCategoryQuery::class);
@@ -185,5 +185,7 @@ $container->bind(abstract: Tag\List\Query\ITagQuery::class, concrete: PdoTagQuer
 $container->bind(abstract: Trash\List\Query\ITrashQuery::class, concrete: PdoTrashQuery::class);
 $container->bind(abstract: IAdminUserRepository::class, concrete: PdoAdminUserRepository::class);
 $container->bind(abstract: AdminUser\List\Query\IAdminUserQuery::class, concrete: PdoAdminUserRepository::class);
+$container->bind(abstract: Role\List\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
+$container->bind(abstract: Permission\List\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 
 return $container;

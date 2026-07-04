@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Permission\List;
 
-use App\Cms\Application\Auth\Policy\Query\IRolePermissionQuery;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Application\Permission\List\Query\IRolePermissionQuery;
 use App\Cms\Application\Permission\List\Value\Permission;
+use App\Cms\Domain\Value\CmsRole;
 
 final readonly class Interactor
 {
@@ -20,7 +20,7 @@ final readonly class Interactor
         $permissions = [];
         foreach (PermissionCode::all() as $permission) {
             $roles = [];
-            foreach (RoleCode::all() as $role) {
+            foreach (CmsRole::all() as $role) {
                 if ($this->rolePermissions->hasPermission(role: $role, permission: $permission)) {
                     $roles[] = $role;
                 }

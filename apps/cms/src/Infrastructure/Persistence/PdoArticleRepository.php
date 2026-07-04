@@ -20,6 +20,38 @@ final readonly class PdoArticleRepository implements IArticleRepository
     {
     }
 
+    public function findById(ArticleId $articleId): ?Article
+    {
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT * FROM articles WHERE id = :id');
+        PdoHelper::execute(statement: $stmt, params: ['id' => $articleId->value]);
+
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
+            return null;
+        }
+
+        return $this->articleFromRow(id: $articleId->value, row: $row);
+    }
+
+    public function findVersion(ArticleId $articleId, ArticleVersionNo $versionNo): ?Article
+    {
+        $stmt = PdoHelper::prepare(
+            pdo: $this->pdo,
+            sql: 'SELECT * FROM article_versions WHERE article_id = :id AND version_no = :version_no',
+        );
+        PdoHelper::execute(statement: $stmt, params: [
+            'id' => $articleId->value,
+            'version_no' => $versionNo->value,
+        ]);
+
+        $row = PdoHelper::fetch(statement: $stmt);
+        if ($row === null) {
+            return null;
+        }
+
+        return $this->articleFromRow(id: $articleId->value, row: $row);
+    }
+
     public function save(Article $article): ArticleId
     {
         $this->pdo->beginTransaction();
@@ -91,42 +123,6 @@ final readonly class PdoArticleRepository implements IArticleRepository
         return new ArticleId(value: $id);
     }
 
-    public function restore(ArticleId $articleId, ArticleVersionNo $versionNo): void
-    {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT * FROM article_versions WHERE article_id = :id AND version_no = :version_no');
-        PdoHelper::execute(statement: $stmt, params: ['id' => $articleId->value, 'version_no' => $versionNo->value]);
-        $version = PdoHelper::fetch(statement: $stmt);
-        if ($version === null) {
-            return;
-        }
-        $this->save(article: Article::fromInput(id: $articleId->value, data: [
-            'title' => $version['title'],
-            'slug' => $version['slug'],
-            'body' => $version['body'],
-            'body_format' => $version['body_format'] ?? 'markdown',
-            'excerpt' => $version['excerpt'] ?? '',
-            'status' => $version['status'],
-            'category_id' => $version['category_id'] ?? '',
-            'eyecatch_path' => $version['eyecatch_path'] ?? '',
-            'published_at' => $version['published_at'] ?? '',
-            'published_ends_at' => $version['published_ends_at'] ?? '',
-            'seo_title' => $version['seo_title'] ?? '',
-            'meta_description' => $version['meta_description'] ?? '',
-        ]));
-    }
-
-    public function trash(ArticleId $articleId): bool
-    {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE articles SET status = :status, updated_at = :updated_at WHERE id = :id AND status <> :status');
-        PdoHelper::execute(statement: $stmt, params: [
-            'id' => $articleId->value,
-            'status' => 'trashed',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return $stmt->rowCount() > 0;
-    }
-
     /** @param array<string, mixed> $payload */
     private function snapshot(int $articleId, int $versionNo, array $payload): void
     {
@@ -195,4 +191,23 @@ final readonly class PdoArticleRepository implements IArticleRepository
         };
     }
 
+    /** @param array<string, mixed> $row */
+    private function articleFromRow(int $id, array $row): Article
+    {
+        return Article::fromInput(id: $id, data: [
+            'title' => $row['title'] ?? '',
+            'slug' => $row['slug'] ?? '',
+            'body' => $row['body'] ?? '',
+            'body_format' => $row['body_format'] ?? 'markdown',
+            'excerpt' => $row['excerpt'] ?? '',
+            'status' => $row['status'] ?? 'draft',
+            'category_id' => $row['category_id'] ?? '',
+            'eyecatch_path' => $row['eyecatch_path'] ?? '',
+            'published_at' => $row['published_at'] ?? '',
+            'published_ends_at' => $row['published_ends_at'] ?? '',
+            'seo_title' => $row['seo_title'] ?? '',
+            'meta_description' => $row['meta_description'] ?? '',
+            'author_id' => $row['author_id'] ?? '',
+        ]);
+    }
 }

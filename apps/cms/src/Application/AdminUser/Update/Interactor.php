@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Update;
 
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
 use App\Cms\Application\AdminUser\Update\Port\PasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\CmsRole;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
 
@@ -44,11 +44,11 @@ final readonly class Interactor
         }
 
         $role = $values->string(field: 'role');
-        if (!in_array($role, RoleCode::all(), true)) {
+        if (!in_array($role, CmsRole::all(), true)) {
             return new Output(updated: false, error: 'ロールを正しく選択してください。');
         }
 
-        if ($currentRole === RoleCode::ADMIN && $role !== RoleCode::ADMIN && $this->users->adminCount() <= 1) {
+        if ($currentRole === CmsRole::ADMIN && $role !== CmsRole::ADMIN && $this->users->adminCount() <= 1) {
             return new Output(updated: false, error: '最後のadminロールは変更できません。');
         }
 

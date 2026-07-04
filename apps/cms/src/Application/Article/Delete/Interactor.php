@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Delete;
 
-use App\Cms\Application\Auth\Policy\ArticlePolicy;
-use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\CmsActor;
 
 final readonly class Interactor
 {
@@ -20,14 +19,13 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        if (!$this->articlePolicy->canDelete($input->currentUser)) {
-            throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_DELETE);
-        }
-
-        $deleted = $this->articles->trash(new ArticleId($input->id));
-        if (!$deleted) {
+        $article = $this->articles->findById(new ArticleId($input->id));
+        if ($article === null || $article->status->value === 'trashed') {
             return new Output(deleted: false, error: '記事が見つからないか、すでに削除されています。');
         }
+
+        $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
+        $this->articles->save($article->trash($this->articlePolicy->authorizeDelete($actor)));
 
         return new Output(deleted: true);
     }

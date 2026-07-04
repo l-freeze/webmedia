@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\AdminUser\List;
 
 use App\Cms\Application\AdminUser\List\Input;
 use App\Cms\Application\AdminUser\List\Interactor;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Domain\Value\CmsRole;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
@@ -37,7 +37,7 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'admin-user/index.latte', params: [
             'title' => '管理者',
             'users' => $users,
-            'roles' => RoleCode::all(),
+            'roles' => CmsRole::all(),
             'formValues' => is_array($formValues) ? $formValues : [],
             'error' => $this->session->pullFlash(key: 'admin_user.form_error'),
             'flash' => $this->session->pullFlash(key: 'success'),

@@ -10,11 +10,11 @@ use App\Cms\Domain\Value\ArticleVersionNo;
 
 interface IArticleRepository
 {
+    public function findById(ArticleId $articleId): ?Article;
+
+    public function findVersion(ArticleId $articleId, ArticleVersionNo $versionNo): ?Article;
+
     public function save(Article $article): ArticleId;
 
     public function slugExists(string $slug, ?int $exceptId): bool;
-
-    public function restore(ArticleId $articleId, ArticleVersionNo $versionNo): void;
-
-    public function trash(ArticleId $articleId): bool;
 }

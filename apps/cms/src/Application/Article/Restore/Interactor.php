@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Restore;
 
-use App\Cms\Application\Auth\Policy\ArticlePolicy;
-use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticleVersionNo;
+use App\Cms\Domain\Value\CmsActor;
 
 final readonly class Interactor
 {
@@ -21,11 +20,20 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        if (!$this->articlePolicy->canRestore($input->currentUser)) {
-            throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_RESTORE);
+        $articleId = new ArticleId($input->articleId);
+        $versionNo = new ArticleVersionNo($input->versionNo);
+        $article = $this->articles->findById($articleId);
+        $version = $this->articles->findVersion(articleId: $articleId, versionNo: $versionNo);
+        if ($article === null || $version === null) {
+            return new Output(restored: false);
         }
 
-        $this->articles->restore(articleId: new ArticleId($input->articleId), versionNo: new ArticleVersionNo($input->versionNo));
+        $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
+        $this->articles->save($article->restore(
+            permission: $this->articlePolicy->authorizeRestore($actor),
+            version: $version,
+        ));
+
         return new Output(restored: true);
     }
 }

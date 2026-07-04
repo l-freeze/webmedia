@@ -10,7 +10,7 @@ use App\Cms\Application\AdminUser\Delete\Input as DeleteInput;
 use App\Cms\Application\AdminUser\Delete\Interactor as DeleteInteractor;
 use App\Cms\Application\AdminUser\Update\Input as UpdateInput;
 use App\Cms\Application\AdminUser\Update\Interactor as UpdateInteractor;
-use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Application\AdminUser\Create\Port\PasswordHasher as CreatePasswordHasher;
 use App\Cms\Application\AdminUser\Update\Port\PasswordHasher as UpdatePasswordHasher;
@@ -28,7 +28,7 @@ final class AdminUserInteractorTest extends TestCase
         $output = $interactor->execute(input: new CreateInput(data: [
             'email' => 'editor@example.test',
             'name' => 'Editor',
-            'role' => RoleCode::EDITOR,
+            'role' => CmsRole::EDITOR,
             'password' => 'password123',
         ]));
 
@@ -45,7 +45,7 @@ final class AdminUserInteractorTest extends TestCase
         $output = $interactor->execute(input: new CreateInput(data: [
             'email' => 'admin@example.test',
             'name' => 'Admin',
-            'role' => RoleCode::ADMIN,
+            'role' => CmsRole::ADMIN,
             'password' => 'password123',
         ]));
 
@@ -63,7 +63,7 @@ final class AdminUserInteractorTest extends TestCase
             data: [
                 'email' => 'admin@example.test',
                 'name' => 'Admin',
-                'role' => RoleCode::EDITOR,
+                'role' => CmsRole::EDITOR,
                 'password' => '',
             ],
             currentUser: $this->currentUser(),
@@ -86,7 +86,7 @@ final class AdminUserInteractorTest extends TestCase
 
     private function currentUser(): CurrentCmsUser
     {
-        return new CurrentCmsUser(id: 1, email: 'admin@example.test', name: 'Admin', role: RoleCode::ADMIN);
+        return new CurrentCmsUser(id: 1, email: 'admin@example.test', name: 'Admin', role: CmsRole::ADMIN);
     }
 }
 
@@ -105,7 +105,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         1 => [
             'email' => 'admin@example.test',
             'name' => 'Admin',
-            'role' => RoleCode::ADMIN,
+            'role' => CmsRole::ADMIN,
             'password_hash' => 'hash',
         ],
     ];
@@ -171,7 +171,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
     {
         return count(array_filter(
             $this->records,
-            static fn (array $record): bool => $record['role'] === RoleCode::ADMIN,
+            static fn (array $record): bool => $record['role'] === CmsRole::ADMIN,
         ));
     }
 }

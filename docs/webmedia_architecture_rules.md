@@ -428,9 +428,11 @@ Application/Layout/Load/
 Application/Sitemap/Build/
 ```
 
-例外として、Application level の認可判定だけは `Application/Auth/Policy/` に置いてよい。`Policy` は `Article/Policy`、`Page/Policy` のように各 Feature 配下へ分散させず、認可境界である `Auth/Policy` に集約する。
+route-level permission は `Application/Auth/AuthorizeRoute/` という UseCase として扱う。`Policy` は `Application` 配下の中間分類ディレクトリとして作らない。
 
-`Service` ディレクトリは例外中の例外である。UseCase private method、UseCase 配下の `Port` / `Query` / `Value`、Domain、Domain Repository、`Auth/Policy` のいずれにも置けない場合だけ検討する。作成前に設計判断を明確にする。
+resource-level permission は Domain rule として `Domain/Policy/` に置く。たとえば Article の対象 resource に対する更新・削除・復元可否は `Application/Article/Policy` ではなく `Domain/Policy/ArticlePolicy` が扱う。
+
+`Service` ディレクトリは例外中の例外である。UseCase private method、UseCase 配下の `Port` / `Query` / `Value`、Domain、Domain Repository のいずれにも置けない場合だけ検討する。作成前に設計判断を明確にする。
 
 `Application` 直下に `ShowTag`、`ListTag`、`CreateTag` のような名前を乱立させてはならない。対象概念でグルーピングする。
 
@@ -1434,7 +1436,7 @@ Middleware は HTTP pipeline の入口制御と横断処理を担当する。コ
 それをしたくなった場合:
 
 - まず UseCase `Input` に必要な id と `CurrentCmsUser` を渡す。
-- UseCase 内で `AuthorizationService` や対象リソースの `Policy` を呼ぶ。
+- UseCase 内で対象リソースの Domain Policy を呼ぶ。
 - 対象リソースの所有者、状態、公開可否、復元可否などは Policy または Domain / Application の業務ルールとして判定する。
 - middleware には、必要なら `requires_permission` のような route metadata による粗い入口制御だけを残す。
 
@@ -1543,7 +1545,7 @@ PDO test では test database を使ってよい。
 [ ] Interface は依存制御のためだけに導入している
 [ ] Query interface は Application/<Feature>/<Action>/Query 配下にある
 [ ] Application/<Feature>/ 直下の通常ディレクトリは Action であり、Input / Interactor / Output を持つ
-[ ] Application/Auth/Policy 以外の Policy ディレクトリを作っていない
+[ ] Application 配下に Policy ディレクトリを作っていない
 [ ] Service ディレクトリを作る場合は、他に置けない理由を明確にしている
 [ ] Query interface は I prefix を使っている
 [ ] Query は PHP array ではなく Application Value DTO を返している

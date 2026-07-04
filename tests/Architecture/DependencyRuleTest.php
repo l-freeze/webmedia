@@ -64,14 +64,43 @@ final class DependencyRuleTest extends TestCase
         foreach ([self::root() . '/apps/front/src/Application', self::root() . '/apps/cms/src/Application'] as $applicationRoot) {
             foreach ($this->secondLevelDirectories(root: $applicationRoot) as $directory) {
                 $relativePath = $this->relativePath(path: $directory);
-                if ($relativePath === 'apps/cms/src/Application/Auth/Policy') {
-                    continue;
-                }
-
                 foreach (['Input.php', 'Interactor.php', 'Output.php'] as $requiredFile) {
                     if (!is_file($directory . '/' . $requiredFile)) {
                         $violations[] = $relativePath . ' does not have ' . $requiredFile;
                     }
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testArticlePermissionValuesAreIssuedOnlyByArticlePolicy(): void
+    {
+        $violations = [];
+        $allowedFile = self::root() . '/apps/cms/src/Domain/Policy/ArticlePolicy.php';
+        $permissionClasses = [
+            'ArticleCreatePermission',
+            'ArticleUpdatePermission',
+            'ArticlePublishPermission',
+            'ArticleDeletePermission',
+            'ArticleRestorePermission',
+        ];
+
+        foreach ($this->phpFiles(root: self::root() . '/apps/cms/src') as $file) {
+            if ($file->getPathname() === $allowedFile) {
+                continue;
+            }
+
+            $contents = file_get_contents($file->getPathname());
+            self::assertIsString($contents);
+            foreach ($permissionClasses as $permissionClass) {
+                if (str_contains($contents, 'new ' . $permissionClass)) {
+                    $violations[] = sprintf(
+                        '%s creates %s outside Domain/Policy/ArticlePolicy',
+                        $this->relativePath(path: $file->getPathname()),
+                        $permissionClass,
+                    );
                 }
             }
         }

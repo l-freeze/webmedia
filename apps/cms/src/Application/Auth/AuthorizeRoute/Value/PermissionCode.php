@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\Policy\Value;
+namespace App\Cms\Application\Auth\AuthorizeRoute\Value;
 
 final class PermissionCode
 {
@@ -32,9 +32,7 @@ final class PermissionCode
     public const ROLE_VIEW = 'role.view';
     public const PERMISSION_VIEW = 'permission.view';
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function all(): array
     {
         return [
