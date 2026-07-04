@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Architecture;
 
 use PHPUnit\Framework\TestCase;
+use DirectoryIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -55,6 +56,27 @@ final class DependencyRuleTest extends TestCase
             roots: [self::root() . '/apps/shared/src'],
             forbiddenNeedles: ['App\\Cms\\', 'App\\Front\\'],
         );
+    }
+
+    public function testApplicationSecondLevelDirectoriesAreUseCases(): void
+    {
+        $violations = [];
+        foreach ([self::root() . '/apps/front/src/Application', self::root() . '/apps/cms/src/Application'] as $applicationRoot) {
+            foreach ($this->secondLevelDirectories(root: $applicationRoot) as $directory) {
+                $relativePath = $this->relativePath(path: $directory);
+                if ($relativePath === 'apps/cms/src/Application/Auth/Policy') {
+                    continue;
+                }
+
+                foreach (['Input.php', 'Interactor.php', 'Output.php'] as $requiredFile) {
+                    if (!is_file($directory . '/' . $requiredFile)) {
+                        $violations[] = $relativePath . ' does not have ' . $requiredFile;
+                    }
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
     }
 
     /**
@@ -119,6 +141,38 @@ final class DependencyRuleTest extends TestCase
 
     private function relativePath(string $path): string
     {
-        return ltrim(str_replace(self::root(), '', $path), '/');
+        $root = self::root();
+        if (str_starts_with($path, $root . '/')) {
+            return substr($path, strlen($root) + 1);
+        }
+
+        return $path;
+    }
+
+    /** @return list<string> */
+    private function secondLevelDirectories(string $root): array
+    {
+        if (!is_dir($root)) {
+            return [];
+        }
+
+        $directories = [];
+        foreach (new DirectoryIterator($root) as $feature) {
+            if (!$feature->isDir() || $feature->isDot()) {
+                continue;
+            }
+
+            foreach (new DirectoryIterator($feature->getPathname()) as $action) {
+                if (!$action->isDir() || $action->isDot()) {
+                    continue;
+                }
+
+                $directories[] = $action->getPathname();
+            }
+        }
+
+        sort($directories);
+
+        return $directories;
     }
 }

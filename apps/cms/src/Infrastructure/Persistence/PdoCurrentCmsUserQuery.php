@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;

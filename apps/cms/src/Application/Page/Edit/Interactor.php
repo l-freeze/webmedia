@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Page\Edit;
 
 use App\Cms\Application\Page\Edit\Query\IPageQuery;
-use App\Cms\Application\Media\ImagePicker\Query\IImageQuery;
+use App\Cms\Application\Page\Edit\Query\IImageQuery;
 
 final readonly class Interactor
 {

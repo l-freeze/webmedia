@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\Restore;
 
 use App\Cms\Application\Article\Restore\Input;
 use App\Cms\Application\Article\Restore\Interactor;
-use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
+use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;

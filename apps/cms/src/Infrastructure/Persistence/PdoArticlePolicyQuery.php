@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
-use App\Cms\Application\Article\Policy\Query\IArticlePolicyQuery;
-use App\Cms\Application\Article\Policy\Value\ArticlePolicyArticle;
+use App\Cms\Application\Auth\Policy\Query\IArticlePolicyQuery;
+use App\Cms\Application\Auth\Policy\Value\ArticlePolicyArticle;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;

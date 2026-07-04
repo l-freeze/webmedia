@@ -6,7 +6,7 @@ namespace App\Cms\Application\Article\Edit;
 
 use App\Cms\Application\Article\Edit\Value\Article;
 use App\Cms\Application\Article\Edit\Value\Category;
-use App\Cms\Application\Media\ImagePicker\Value\Image;
+use App\Cms\Application\Article\Edit\Value\Image;
 
 final readonly class Output
 {

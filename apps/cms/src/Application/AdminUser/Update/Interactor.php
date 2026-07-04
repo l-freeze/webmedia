@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Update;
 
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
-use App\Cms\Application\Auth\Password\PasswordHasher;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\AdminUser\Update\Port\PasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Shared\Validation\FormValidator;

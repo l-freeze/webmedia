@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Front\Sitemap;
 
-use App\Front\Application\Sitemap\Value\SitemapEntry;
+use App\Front\Application\Sitemap\Build\Value\SitemapEntry;
 use App\Front\Presentation\Seo\CanonicalUrl;
 use App\Front\Presentation\Sitemap\SitemapXml;
 use PHPUnit\Framework\TestCase;

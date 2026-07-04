@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Delete;
 
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 
 final readonly class Input
 {

@@ -15,6 +15,7 @@ use App\Front\Domain\Repository\IInquiryRepository;
 use App\Front\Infrastructure\Persistence\PdoArticleQuery;
 use App\Front\Infrastructure\Persistence\PdoCategoryQuery;
 use App\Front\Infrastructure\Persistence\PdoInquiryRepository;
+use App\Front\Infrastructure\Persistence\PdoLayoutCategoryQuery;
 use App\Front\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\Front\Infrastructure\Persistence\PdoPageQuery;
 use App\Front\Infrastructure\Persistence\PdoSiteSettingQuery;
@@ -83,19 +84,9 @@ $container->singleton(id: SitemapXml::class, factory: function (Container $conta
     return new SitemapXml(canonicalUrl: $canonicalUrl);
 });
 $container->singleton(id: LayoutGlobalProvider::class, factory: function (Container $container) use ($envString): LayoutGlobalProvider {
-    $pageLinkQuery = $container->get(id: Layout\Query\IPageLinkQuery::class);
-    if (!$pageLinkQuery instanceof Layout\Query\IPageLinkQuery) {
-        throw new \RuntimeException('Page link query is not registered.');
-    }
-
-    $siteSettingQuery = $container->get(id: Layout\Query\ISiteSettingQuery::class);
-    if (!$siteSettingQuery instanceof Layout\Query\ISiteSettingQuery) {
-        throw new \RuntimeException('Site setting query is not registered.');
-    }
-
-    $categoryQuery = $container->get(id: Home\Show\Query\ICategoryQuery::class);
-    if (!$categoryQuery instanceof Home\Show\Query\ICategoryQuery) {
-        throw new \RuntimeException('Home category query is not registered.');
+    $layout = $container->get(id: Layout\Load\Interactor::class);
+    if (!$layout instanceof Layout\Load\Interactor) {
+        throw new \RuntimeException('Layout load interactor is not registered.');
     }
 
     $cache = $container->get(id: CacheInterface::class);
@@ -104,9 +95,7 @@ $container->singleton(id: LayoutGlobalProvider::class, factory: function (Contai
     }
 
     return new LayoutGlobalProvider(
-        pageLinks: $pageLinkQuery,
-        settings: $siteSettingQuery,
-        categories: $categoryQuery,
+        layout: $layout,
         cache: $cache,
         ttlSeconds: max(0, (int) $envString('FRONT_LAYOUT_CACHE_TTL', '120')),
     );
@@ -138,9 +127,10 @@ $container->bind(abstract: Tag\List\Query\ITagQuery::class, concrete: PdoTagQuer
 $container->bind(abstract: Tag\Show\Query\ITagQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Tag\Show\Query\IArticleQuery::class, concrete: PdoTagQuery::class);
 $container->bind(abstract: Page\Show\Query\IPageQuery::class, concrete: PdoPageQuery::class);
-$container->bind(abstract: Sitemap\Query\ISitemapEntryQuery::class, concrete: PdoSitemapEntryQuery::class);
-$container->bind(abstract: Layout\Query\IPageLinkQuery::class, concrete: PdoPageLinkQuery::class);
-$container->bind(abstract: Layout\Query\ISiteSettingQuery::class, concrete: PdoSiteSettingQuery::class);
+$container->bind(abstract: Sitemap\Build\Query\ISitemapEntryQuery::class, concrete: PdoSitemapEntryQuery::class);
+$container->bind(abstract: Layout\Load\Query\IPageLinkQuery::class, concrete: PdoPageLinkQuery::class);
+$container->bind(abstract: Layout\Load\Query\ISiteSettingQuery::class, concrete: PdoSiteSettingQuery::class);
+$container->bind(abstract: Layout\Load\Query\ICategoryQuery::class, concrete: PdoLayoutCategoryQuery::class);
 $container->bind(abstract: IInquiryRepository::class, concrete: PdoInquiryRepository::class);
 
 return $container;

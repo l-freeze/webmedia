@@ -111,7 +111,8 @@
   - `rendered_body_html` を表示用 HTML の派生 cache として追加し、CMS 保存時に `body` + `body_format` から安全な HTML を生成して保存する。Front は `rendered_body_html` を優先し、未生成の既存行では従来どおり source から fallback 変換する。
   - 記事本文の検索・未入力時抜粋用に `search_body_text` を追加し、CMS 保存時に `body` + `body_format` から plain text を生成して保存する。Front 検索は `body` source ではなく `search_body_text` を見る。
   - 固定ページ本文も記事と同じ `body` / `body_format` / `rendered_body_html` 設計へ寄せ、固定ページ編集画面で Markdown / HTML / リッチエディターを切り替えられるようにした。
-  - 本文内画像選択は記事固有ではなく CMS 共通の画像ピッカー用途として `Application/Media/ImagePicker` に切り出し、記事編集と固定ページ編集で共有する。
+  - 本文内画像選択は、記事編集と固定ページ編集それぞれの UseCase 配下の画像 query port から取得する。
+  - Application 配下は `<Feature>/<Action>` を基本とし、`Input/Interactor/Output` を持たない中間分類ディレクトリを整理した。認可判定だけは例外として `Auth/Policy` に集約する。
   - CMS 編集画面では Markdown / HTML / rich_text の形式別ドラフトをブラウザ上で保持し、リッチエディターから Markdown / HTML へ切り替えた時に textarea を JSON で上書きしない。
   - 公開表示・CMSプレビューでは PHP 側の Tiptap JSON renderer が許可 node / mark だけ HTML 化し、既存 HTMLPurifier を通す。表、区切り線、画像、リンクも許可範囲内でレンダリングする。
   - Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensions、有料 Notion-like template は採用しない判断を `docs/decisions.md` に記録した。

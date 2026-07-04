@@ -48,7 +48,7 @@ use App\Cms\Presentation\Http\Controller\Tag\List\Controller as TagListControlle
 use App\Cms\Presentation\Http\Controller\Tag\Store\Controller as TagStoreController;
 use App\Cms\Presentation\Http\Controller\Tag\Update\Controller as TagUpdateController;
 use App\Cms\Presentation\Http\Controller\Trash\List\Controller as TrashListController;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
 
 /**
  * CMS route definitions.

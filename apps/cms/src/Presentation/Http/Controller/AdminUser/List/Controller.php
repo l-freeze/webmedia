@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\AdminUser\List;
 
 use App\Cms\Application\AdminUser\List\Input;
 use App\Cms\Application\AdminUser\List\Interactor;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;

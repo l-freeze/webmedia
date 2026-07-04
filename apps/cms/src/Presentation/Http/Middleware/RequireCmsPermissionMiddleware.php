@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
-use App\Cms\Application\Auth\Authorization\AuthorizationService;
+use App\Cms\Application\Auth\Policy\AuthorizationService;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\RequestHandlerInterface;

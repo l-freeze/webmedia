@@ -6,7 +6,7 @@ namespace App\Cms\Application\Article\Edit;
 
 use App\Cms\Application\Article\Edit\Query\IArticleQuery;
 use App\Cms\Application\Article\Edit\Query\ICategoryQuery;
-use App\Cms\Application\Media\ImagePicker\Query\IImageQuery;
+use App\Cms\Application\Article\Edit\Query\IImageQuery;
 
 final readonly class Interactor
 {

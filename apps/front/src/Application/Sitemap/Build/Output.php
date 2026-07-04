@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Front\Application\Sitemap\Build;
 
-use App\Front\Application\Sitemap\Value\SitemapEntry;
+use App\Front\Application\Sitemap\Build\Value\SitemapEntry;
 
 final readonly class Output
 {

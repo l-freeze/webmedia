@@ -389,7 +389,7 @@ apps/cms/
 Application は対象概念とユースケースアクションで分ける。
 
 ```text
-Application/<対象>/<ユースケース>/
+Application/<Feature>/<Action>/
   Input.php
   Interactor.php
   Output.php
@@ -407,6 +407,30 @@ Application/Tag/List/
 Application/Tag/Save/
 Application/Inquiry/Create/
 ```
+
+`Application/<Feature>/` の直下に置く通常ディレクトリは Action だけである。Action ディレクトリは原則として `Input.php`、`Interactor.php`、`Output.php` を持つ。
+
+禁止:
+
+```text
+Application/Article/Policy/
+Application/Media/ImagePicker/
+Application/Sitemap/Query/
+Application/Layout/Value/
+```
+
+許可:
+
+```text
+Application/Article/Edit/
+Application/Auth/ResetLoginAttempt/
+Application/Layout/Load/
+Application/Sitemap/Build/
+```
+
+例外として、Application level の認可判定だけは `Application/Auth/Policy/` に置いてよい。`Policy` は `Article/Policy`、`Page/Policy` のように各 Feature 配下へ分散させず、認可境界である `Auth/Policy` に集約する。
+
+`Service` ディレクトリは例外中の例外である。UseCase private method、UseCase 配下の `Port` / `Query` / `Value`、Domain、Domain Repository、`Auth/Policy` のいずれにも置けない場合だけ検討する。作成前に設計判断を明確にする。
 
 `Application` 直下に `ShowTag`、`ListTag`、`CreateTag` のような名前を乱立させてはならない。対象概念でグルーピングする。
 
@@ -433,7 +457,7 @@ Application/
 
 `Input.php` は Controller から Interactor へ渡す DTO である。
 
-`Input` は UseCase 専用型として、必ず `Application/<対象>/<ユースケース>/Input.php` に置く。複数の UseCase で共有する汎用 `Input`、`SaveInput`、`RequestInput` のような共通 DTO を作ってはならない。
+`Input` は UseCase 専用型として、必ず `Application/<Feature>/<Action>/Input.php` に置く。複数の UseCase で共有する汎用 `Input`、`SaveInput`、`RequestInput` のような共通 DTO を作ってはならない。
 
 ルール:
 
@@ -522,7 +546,7 @@ final readonly class Interactor
 `Value/` は Infrastructure / Application 間のレイヤー越えのための DTO を置く。
 
 ```text
-Application/<対象>/<ユースケース>/Value/<Name>.php
+Application/<Feature>/<Action>/Value/<Name>.php
 ```
 
 Query が単一の値を返す場合、PHP 組み込みの `array`、DB row、scalar を直接返してはならない。必ず UseCase 配下の `Value` DTO を返す。
@@ -557,7 +581,7 @@ Application Query は、Interactor が利用する読み取り側の port であ
 Query interface は、それを必要とするユースケース配下に置く。
 
 ```text
-Application/<対象>/<ユースケース>/Query/I<対象>Query.php
+Application/<Feature>/<Action>/Query/I<対象>Query.php
 ```
 
 例:
@@ -658,19 +682,19 @@ IArticleRevisionTableRepository
 
 ```text
 Presentation Controller
-  -> Application/<対象>/<ユースケース>/Input
-  -> Application/<対象>/<ユースケース>/Interactor
-  -> Application/<対象>/<ユースケース>/Query/I...Query
+  -> Application/<Feature>/<Action>/Input
+  -> Application/<Feature>/<Action>/Interactor
+  -> Application/<Feature>/<Action>/Query/I...Query
   -> Infrastructure/Persistence/Pdo...Query
-  -> Application/<対象>/<ユースケース>/Value
+  -> Application/<Feature>/<Action>/Value
 ```
 
 書き込み側:
 
 ```text
 Presentation Controller
-  -> Application/<対象>/<ユースケース>/Input
-  -> Application/<対象>/<ユースケース>/Interactor
+  -> Application/<Feature>/<Action>/Input
+  -> Application/<Feature>/<Action>/Interactor
   -> Domain Entity / ValueObject
   -> Domain/Repository/I...Repository
   -> Infrastructure/Persistence/Pdo...Repository
@@ -1517,7 +1541,10 @@ PDO test では test database を使ってよい。
 [ ] apps/shared を雑多な helper や業務ロジックの避難場所にしていない
 [ ] apps/common、apps/modules、apps/framework を作っていない
 [ ] Interface は依存制御のためだけに導入している
-[ ] Query interface は Application/<対象>/<ユースケース>/Query 配下にある
+[ ] Query interface は Application/<Feature>/<Action>/Query 配下にある
+[ ] Application/<Feature>/ 直下の通常ディレクトリは Action であり、Input / Interactor / Output を持つ
+[ ] Application/Auth/Policy 以外の Policy ディレクトリを作っていない
+[ ] Service ディレクトリを作る場合は、他に置けない理由を明確にしている
 [ ] Query interface は I prefix を使っている
 [ ] Query は PHP array ではなく Application Value DTO を返している
 [ ] 1つの Query interface に対して Value DTO は最大1つである

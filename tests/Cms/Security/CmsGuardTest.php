@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Security;
 
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\GetCurrentUser\Interactor;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
@@ -17,7 +18,7 @@ final class CmsGuardTest extends TestCase
     public function testReturnsNullWithoutUserIdInSession(): void
     {
         $query = new RecordingCurrentCmsUserQuery(user: $this->user());
-        $guard = new CmsGuard(session: $this->session(), users: $query);
+        $guard = new CmsGuard(session: $this->session(), currentUsers: new Interactor(users: $query));
 
         self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
@@ -29,7 +30,7 @@ final class CmsGuardTest extends TestCase
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 'abc');
         $query = new RecordingCurrentCmsUserQuery(user: $this->user());
-        $guard = new CmsGuard(session: $session, users: $query);
+        $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
 
         self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
@@ -41,7 +42,7 @@ final class CmsGuardTest extends TestCase
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 9);
         $query = new RecordingCurrentCmsUserQuery(user: null);
-        $guard = new CmsGuard(session: $session, users: $query);
+        $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
 
         self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
@@ -53,7 +54,7 @@ final class CmsGuardTest extends TestCase
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: '1');
         $query = new RecordingCurrentCmsUserQuery(user: $this->user());
-        $guard = new CmsGuard(session: $session, users: $query);
+        $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
 
         $user = $guard->currentUser();
 

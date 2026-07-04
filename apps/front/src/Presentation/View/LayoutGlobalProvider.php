@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Presentation\View;
 
-use App\Front\Application\Home\Show\Query\ICategoryQuery;
-use App\Front\Application\Layout\Query\IPageLinkQuery;
-use App\Front\Application\Layout\Query\ISiteSettingQuery;
+use App\Front\Application\Layout\Load\Input;
+use App\Front\Application\Layout\Load\Interactor;
 use Psr\SimpleCache\CacheInterface;
 
 final readonly class LayoutGlobalProvider
@@ -14,9 +13,7 @@ final readonly class LayoutGlobalProvider
     private const CACHE_KEY = 'front.layout_globals.v2';
 
     public function __construct(
-        private IPageLinkQuery $pageLinks,
-        private ISiteSettingQuery $settings,
-        private ICategoryQuery $categories,
+        private Interactor $layout,
         private CacheInterface $cache,
         private int $ttlSeconds,
     ) {
@@ -44,7 +41,8 @@ final readonly class LayoutGlobalProvider
     /** @return array<string, mixed> */
     private function loadGlobals(): array
     {
-        $settings = $this->settings->current();
+        $output = $this->layout->execute(new Input());
+        $settings = $output->settings;
 
         /** @var array<string, mixed> $globals */
         $globals = [
@@ -57,11 +55,11 @@ final readonly class LayoutGlobalProvider
             'heroDescription' => $settings->heroDescription,
             'publishedPages' => array_map(
                 static fn ($page): array => $page->toArray(),
-                $this->pageLinks->publishedPageLinks(),
+                $output->publishedPages,
             ),
             'publishedCategories' => array_map(
                 static fn ($category): array => $category->toArray(),
-                $this->categories->all(),
+                $output->publishedCategories,
             ),
         ];
 

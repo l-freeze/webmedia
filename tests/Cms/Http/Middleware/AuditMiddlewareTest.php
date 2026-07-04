@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditSummary;
 use App\Cms\Presentation\Audit\AuditTrail;
@@ -308,7 +308,9 @@ final class AuditMiddlewareTest extends TestCase
     {
         return new CmsGuard(
             session: $session ?? $this->session(),
-            users: new FixedAuditCmsUserQuery(user: $user),
+            currentUsers: new \App\Cms\Application\Auth\GetCurrentUser\Interactor(
+                users: new FixedAuditCmsUserQuery(user: $user),
+            ),
         );
     }
 }

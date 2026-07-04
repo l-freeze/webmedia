@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Authorization;
 
-use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Authorization\AuthorizationService;
+use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
+use App\Cms\Application\Auth\Policy\AuthorizationService;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
-use App\Cms\Application\Auth\Authorization\RoleHierarchy;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\Policy\RoleHierarchy;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use PHPUnit\Framework\TestCase;
 
 final class AuthorizationServiceTest extends TestCase

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Delete;
 
-use App\Cms\Application\Article\Policy\ArticlePolicy;
-use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\ArticlePolicy;
+use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
 use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 

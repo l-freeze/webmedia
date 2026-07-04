@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Save;
 
-use App\Cms\Application\Article\Policy\ArticlePolicy;
-use App\Cms\Application\Article\Policy\Query\IArticlePolicyQuery;
-use App\Cms\Application\Auth\Authorization\Exception\AuthorizationException;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\ArticlePolicy;
+use App\Cms\Application\Auth\Policy\Query\IArticlePolicyQuery;
+use App\Cms\Application\Auth\Policy\Exception\AuthorizationException;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;

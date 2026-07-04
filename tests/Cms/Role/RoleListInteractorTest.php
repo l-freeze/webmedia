@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Role;
 
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
 use App\Cms\Application\Role\List\Input;
 use App\Cms\Application\Role\List\Interactor;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;

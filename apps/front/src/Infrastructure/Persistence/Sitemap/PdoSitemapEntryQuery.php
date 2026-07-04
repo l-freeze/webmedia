@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Infrastructure\Persistence\Sitemap;
 
-use App\Front\Application\Sitemap\Query\ISitemapEntryQuery;
-use App\Front\Application\Sitemap\Value\SitemapEntry;
+use App\Front\Application\Sitemap\Build\Query\ISitemapEntryQuery;
+use App\Front\Application\Sitemap\Build\Value\SitemapEntry;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;

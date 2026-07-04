@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Cms;
 
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
 use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;

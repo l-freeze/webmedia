@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Front\Application\Sitemap\Build;
 
-use App\Front\Application\Sitemap\Query\ISitemapEntryQuery;
+use App\Front\Application\Sitemap\Build\Query\ISitemapEntryQuery;
 
 final readonly class Interactor
 {

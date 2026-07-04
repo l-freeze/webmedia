@@ -6,7 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Inquiry\Detail;
 
 use App\Cms\Application\Inquiry\Detail\Input;
 use App\Cms\Application\Inquiry\Detail\Interactor;
-use App\Cms\Application\Inquiry\Value\InquiryStatus;
+use App\Cms\Domain\Value\InquiryStatus;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;

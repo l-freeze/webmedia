@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Application\Auth\Authorization\AuthorizationService;
+use App\Cms\Application\Auth\Policy\AuthorizationService;
 use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
@@ -96,7 +96,9 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         $session = new Session(state: new SessionState(data: $data), runtime: new NativeSessionRuntime());
 
         return new RequireCmsPermissionMiddleware(
-            guard: new CmsGuard(session: $session, users: new FixedPermissionCmsUserQuery(user: $user)),
+            guard: new CmsGuard(session: $session, currentUsers: new \App\Cms\Application\Auth\GetCurrentUser\Interactor(
+                users: new FixedPermissionCmsUserQuery(user: $user),
+            )),
             authorization: new AuthorizationService(rolePermissions: new CodeDefinedRolePermissionQuery()),
             events: $events ?? new RecordingPermissionEventBus(),
         );

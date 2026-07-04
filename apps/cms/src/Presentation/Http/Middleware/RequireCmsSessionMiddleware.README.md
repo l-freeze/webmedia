@@ -20,7 +20,7 @@ Guard は認証境界であり、Permission や Policy の判定は行いませ�
 
 ```php
 $container->bind(
-    abstract: Auth\CurrentUser\Query\ICurrentCmsUserQuery::class,
+    abstract: Auth\GetCurrentUser\Query\ICurrentCmsUserQuery::class,
     concrete: PdoCurrentCmsUserQuery::class,
 );
 ```

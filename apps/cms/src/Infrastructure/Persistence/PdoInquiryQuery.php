@@ -7,7 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Application\Inquiry\Detail;
 use App\Cms\Application\Inquiry\List\Query\IInquiryQuery;
 use App\Cms\Application\Inquiry\List\Value\Inquiry;
-use App\Cms\Application\Inquiry\Value\InquiryStatus;
+use App\Cms\Domain\Value\InquiryStatus;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;

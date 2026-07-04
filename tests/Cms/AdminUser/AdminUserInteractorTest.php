@@ -10,9 +10,10 @@ use App\Cms\Application\AdminUser\Delete\Input as DeleteInput;
 use App\Cms\Application\AdminUser\Delete\Interactor as DeleteInteractor;
 use App\Cms\Application\AdminUser\Update\Input as UpdateInput;
 use App\Cms\Application\AdminUser\Update\Interactor as UpdateInteractor;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
-use App\Cms\Application\Auth\Password\PasswordHasher;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\AdminUser\Create\Port\PasswordHasher as CreatePasswordHasher;
+use App\Cms\Application\AdminUser\Update\Port\PasswordHasher as UpdatePasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use PHPUnit\Framework\TestCase;
@@ -89,7 +90,7 @@ final class AdminUserInteractorTest extends TestCase
     }
 }
 
-final class FixedPasswordHasher implements PasswordHasher
+final class FixedPasswordHasher implements CreatePasswordHasher, UpdatePasswordHasher
 {
     public function hash(string $plainPassword): string
     {

@@ -6,8 +6,8 @@ namespace App\Front\Infrastructure\Persistence;
 
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
-use App\Front\Application\Layout\Query\IPageLinkQuery;
-use App\Front\Application\Layout\Value\PageLink;
+use App\Front\Application\Layout\Load\Query\IPageLinkQuery;
+use App\Front\Application\Layout\Load\Value\PageLink;
 use PDO;
 
 final readonly class PdoPageLinkQuery implements IPageLinkQuery

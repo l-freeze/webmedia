@@ -9,7 +9,7 @@ use App\Framework\Http\Response;
 use App\Framework\View\TemplateRenderer;
 use App\Front\Application\Article\Search\Input;
 use App\Front\Application\Article\Search\Interactor;
-use App\Front\Application\Layout\Query\ISiteSettingQuery;
+use App\Front\Application\Layout\Load\Query\ISiteSettingQuery;
 
 final readonly class Controller
 {

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Front\Presentation\View;
 
-use App\Front\Application\Home\Show\Query\ICategoryQuery;
-use App\Front\Application\Home\Show\Value\Category;
-use App\Front\Application\Layout\Query\IPageLinkQuery;
-use App\Front\Application\Layout\Query\ISiteSettingQuery;
-use App\Front\Application\Layout\Value\PageLink;
-use App\Front\Application\Layout\Value\SiteSettings;
+use App\Front\Application\Layout\Load\Interactor;
+use App\Front\Application\Layout\Load\Query\ICategoryQuery;
+use App\Front\Application\Layout\Load\Query\IPageLinkQuery;
+use App\Front\Application\Layout\Load\Query\ISiteSettingQuery;
+use App\Front\Application\Layout\Load\Value\Category;
+use App\Front\Application\Layout\Load\Value\PageLink;
+use App\Front\Application\Layout\Load\Value\SiteSettings;
 use App\Front\Presentation\View\LayoutGlobalProvider;
 use DateInterval;
 use PHPUnit\Framework\TestCase;
@@ -59,9 +60,7 @@ final class LayoutGlobalProviderTest extends TestCase
         };
         $cache = new ArrayCache();
         $provider = new LayoutGlobalProvider(
-            pageLinks: $pageLinks,
-            settings: $settings,
-            categories: $categories,
+            layout: new Interactor(pageLinks: $pageLinks, settings: $settings, categories: $categories),
             cache: $cache,
             ttlSeconds: 120,
         );
@@ -119,9 +118,7 @@ final class LayoutGlobalProviderTest extends TestCase
         };
         $cache = new ArrayCache();
         $provider = new LayoutGlobalProvider(
-            pageLinks: $pageLinks,
-            settings: $settings,
-            categories: $categories,
+            layout: new Interactor(pageLinks: $pageLinks, settings: $settings, categories: $categories),
             cache: $cache,
             ttlSeconds: 0,
         );

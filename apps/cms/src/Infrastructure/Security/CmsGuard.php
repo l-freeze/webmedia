@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Security;
 
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Input;
+use App\Cms\Application\Auth\GetCurrentUser\Interactor;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Framework\Security\Session;
 
 final class CmsGuard
@@ -16,7 +17,7 @@ final class CmsGuard
 
     public function __construct(
         private readonly Session $session,
-        private readonly ICurrentCmsUserQuery $users,
+        private readonly Interactor $currentUsers,
     ) {
     }
 
@@ -32,7 +33,7 @@ final class CmsGuard
             return null;
         }
 
-        $this->currentUser = $this->users->findById(id: $userId);
+        $this->currentUser = $this->currentUsers->execute(new Input(userId: $userId))->user;
 
         return $this->currentUser;
     }

@@ -6,8 +6,8 @@ namespace App\Front\Infrastructure\Persistence;
 
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
-use App\Front\Application\Layout\Query\ISiteSettingQuery;
-use App\Front\Application\Layout\Value\SiteSettings;
+use App\Front\Application\Layout\Load\Query\ISiteSettingQuery;
+use App\Front\Application\Layout\Load\Value\SiteSettings;
 use PDO;
 
 final readonly class PdoSiteSettingQuery implements ISiteSettingQuery

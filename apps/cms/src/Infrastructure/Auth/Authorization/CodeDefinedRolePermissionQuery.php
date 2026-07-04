@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Auth\Authorization;
 
-use App\Cms\Application\Auth\Authorization\Query\IRolePermissionQuery;
-use App\Cms\Application\Auth\Authorization\Value\PermissionCode;
-use App\Cms\Application\Auth\Authorization\Value\RoleCode;
+use App\Cms\Application\Auth\Policy\Query\IRolePermissionQuery;
+use App\Cms\Application\Auth\Policy\Value\PermissionCode;
+use App\Cms\Application\Auth\Policy\Value\RoleCode;
 
 final class CodeDefinedRolePermissionQuery implements IRolePermissionQuery
 {

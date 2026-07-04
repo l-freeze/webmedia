@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Http\Middleware;
 
-use App\Cms\Application\Auth\CurrentUser\Query\ICurrentCmsUserQuery;
-use App\Cms\Application\Auth\CurrentUser\Value\CurrentCmsUser;
+use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
+use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
 use App\Framework\Http\Middleware\CallableRequestHandler;
@@ -74,8 +74,10 @@ final class RequireCmsSessionMiddlewareTest extends TestCase
 
     private function guard(Session $session): CmsGuard
     {
-        return new CmsGuard(session: $session, users: new FixedCurrentCmsUserQuery(
-            user: new CurrentCmsUser(id: 1, email: 'admin@example.com', name: 'Admin', role: 'admin'),
+        return new CmsGuard(session: $session, currentUsers: new \App\Cms\Application\Auth\GetCurrentUser\Interactor(
+            users: new FixedCurrentCmsUserQuery(
+                user: new CurrentCmsUser(id: 1, email: 'admin@example.com', name: 'Admin', role: 'admin'),
+            ),
         ));
     }
 }
