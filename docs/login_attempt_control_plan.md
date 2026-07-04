@@ -195,12 +195,8 @@ final readonly class Interactor
             return Output::blocked();
         }
 
-        $user = $this->users->findByEmail($input->email);
-
-        if ($user === null || !$this->passwordVerifier->verify(
-            plainPassword: $input->password,
-            passwordHash: $user->passwordHash,
-        )) {
+        $user = $this->findUserByValidCredentials($input);
+        if ($user === null) {
             $this->loginAttempts->save(LoginAttempt::failure(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
@@ -222,6 +218,23 @@ final readonly class Interactor
     private function loginAttemptWindowStart(DateTimeImmutable $now): DateTimeImmutable
     {
         return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
+    }
+
+    private function findUserByValidCredentials(Input $input): ?User
+    {
+        $user = $this->users->findByEmail($input->email);
+        if ($user === null) {
+            return null;
+        }
+
+        if (!$this->passwordVerifier->verify(
+            plainPassword: $input->password,
+            passwordHash: $user->passwordHash,
+        )) {
+            return null;
+        }
+
+        return $user;
     }
 
     private function hasTooManyFailedLoginAttempts(Input $input, DateTimeImmutable $now): bool

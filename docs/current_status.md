@@ -49,6 +49,7 @@
     - HTTP 経由で CSRF 付き POST を6回実行し、failure 5件、blocked 1件、SecurityLog `cms.login blocked` を確認済み。検証用 `login_attempts` 行は削除済み。
     - Application / Presentation の呼び出し規約は、複数引数を named arguments 優先、単一引数かつ意味が明白な呼び出しは positional arguments 可とし、既存コードも合わせた。抽象的な public API は単一引数でも named arguments を優先し、private method の単一引数呼び出しは named arguments 不要とした。
     - 失敗ログイン試行の上限判定は `hasTooManyFailedLoginAttempts()` に閉じ、`execute()` から中間の集計値を外へ出さない形にした。
+    - 認証情報で有効なユーザーを取得する処理は `findUserByValidCredentials()` に閉じ、`execute()` の失敗分岐を `User|null` の判定に寄せた。
   - 記事作成、編集、プレビュー、履歴、版プレビュー、復元、削除を HTTP 経由で確認。
   - カテゴリ / タグの作成、更新、削除を HTTP 経由で確認。
   - 検証用データは削除済み。
