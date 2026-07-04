@@ -215,11 +215,6 @@ final readonly class Interactor
         return Output::authenticated(userId: $user->id, role: $user->role);
     }
 
-    private function loginAttemptWindowStart(DateTimeImmutable $now): DateTimeImmutable
-    {
-        return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
-    }
-
     private function findUserByValidCredentials(Input $input): ?User
     {
         $user = $this->users->findByEmail($input->email);
@@ -239,10 +234,11 @@ final readonly class Interactor
 
     private function hasTooManyFailedLoginAttempts(Input $input, DateTimeImmutable $now): bool
     {
+        $since = $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
         $failureCounts = $this->loginAttemptQuery->countFailures(
             email: $input->email,
             ipAddress: $input->ipAddress,
-            since: $this->loginAttemptWindowStart($now),
+            since: $since,
         );
 
         return $failureCounts->byEmailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
