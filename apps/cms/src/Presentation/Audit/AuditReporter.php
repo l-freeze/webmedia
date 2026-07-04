@@ -123,6 +123,23 @@ final readonly class AuditReporter
         $this->describe(request: $request, action: 'admin_user.deleted', resourceType: 'admin_user', resourceId: (string) $userId);
     }
 
+    public function loginAttemptReset(Request $request, string $scope, string $ipAddress): void
+    {
+        $metadata = [
+            'scope' => $scope,
+            'ip_address' => $ipAddress,
+            'email_present' => $request->bodyInput(key: 'email') !== '',
+            'reason_present' => $request->bodyInput(key: 'reason') !== '',
+        ];
+
+        $this->describe(
+            request: $request,
+            action: 'security.login_attempt_reset',
+            resourceType: 'security',
+            metadata: $metadata,
+        );
+    }
+
     public function mediaDeleted(Request $request, int $mediaId): void
     {
         $this->describe(request: $request, action: 'media.deleted', resourceType: 'media', resourceId: (string) $mediaId);

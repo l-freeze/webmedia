@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Cms\Auth;
 
+use App\Cms\Domain\Entity\CmsLoginAttemptReset;
 use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Infrastructure\Persistence\LoginAttemptEmailHash;
+use App\Cms\Infrastructure\Persistence\PdoCmsLoginAttemptResetRepository;
 use App\Cms\Infrastructure\Persistence\PdoLoginAttemptQuery;
 use App\Cms\Infrastructure\Persistence\PdoLoginAttemptRepository;
 use DateTimeImmutable;
 use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
 
 final class LoginAttemptPersistenceTest extends TestCase
@@ -22,10 +25,12 @@ final class LoginAttemptPersistenceTest extends TestCase
 
         $pdo = new PDO('sqlite::memory:');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->exec('CREATE TABLE login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, email_hash TEXT NOT NULL, ip_address TEXT NOT NULL, result TEXT NOT NULL, attempted_at TEXT NOT NULL)');
+        $pdo->exec('CREATE TABLE cms_login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, email_hash TEXT NOT NULL, ip_address TEXT NOT NULL, result TEXT NOT NULL, attempted_at TEXT NOT NULL)');
+        $pdo->exec('CREATE TABLE cms_login_attempt_resets (id INTEGER PRIMARY KEY AUTOINCREMENT, scope TEXT NOT NULL, email_hash TEXT NULL, ip_address TEXT NOT NULL, reset_at TEXT NOT NULL, reset_by_user_id INTEGER NOT NULL, reason TEXT NOT NULL)');
 
         $hash = new LoginAttemptEmailHash(key: 'test-key');
         $repository = new PdoLoginAttemptRepository(pdo: $pdo, emailHash: $hash);
+        $resetRepository = new PdoCmsLoginAttemptResetRepository(pdo: $pdo, emailHash: $hash);
         $query = new PdoLoginAttemptQuery(pdo: $pdo, emailHash: $hash);
 
         $repository->save(attempt: LoginAttempt::failure(
@@ -67,12 +72,46 @@ final class LoginAttemptPersistenceTest extends TestCase
 
         self::assertSame(1, $counts->byEmailAndIp);
         self::assertSame(2, $counts->byIp);
-        $rawEmailStatement = $pdo->query("SELECT COUNT(*) FROM login_attempts WHERE email_hash = 'admin@example.test'");
-        self::assertInstanceOf(\PDOStatement::class, $rawEmailStatement);
+
+        $resetRepository->save(reset: CmsLoginAttemptReset::emailIp(
+            email: 'admin@example.test',
+            ipAddress: '192.0.2.10',
+            resetAt: new DateTimeImmutable('2026-07-03 10:02:30'),
+            resetByUserId: 1,
+            reason: 'unlock',
+        ));
+
+        $countsAfterEmailIpReset = $query->countFailures(
+            email: 'admin@example.test',
+            ipAddress: '192.0.2.10',
+            since: new DateTimeImmutable('2026-07-03 09:30:00'),
+        );
+
+        self::assertSame(0, $countsAfterEmailIpReset->byEmailAndIp);
+        self::assertSame(2, $countsAfterEmailIpReset->byIp);
+
+        $resetRepository->save(reset: CmsLoginAttemptReset::ip(
+            ipAddress: '192.0.2.10',
+            resetAt: new DateTimeImmutable('2026-07-03 10:03:30'),
+            resetByUserId: 1,
+            reason: 'unlock ip',
+        ));
+
+        $countsAfterIpReset = $query->countFailures(
+            email: 'admin@example.test',
+            ipAddress: '192.0.2.10',
+            since: new DateTimeImmutable('2026-07-03 09:30:00'),
+        );
+
+        self::assertSame(0, $countsAfterIpReset->byEmailAndIp);
+        self::assertSame(0, $countsAfterIpReset->byIp);
+
+        $rawEmailStatement = $pdo->query("SELECT COUNT(*) FROM cms_login_attempts WHERE email_hash = 'admin@example.test'");
+        self::assertInstanceOf(PDOStatement::class, $rawEmailStatement);
         self::assertSame(0, (int) $rawEmailStatement->fetchColumn());
 
-        $firstHashStatement = $pdo->query('SELECT email_hash FROM login_attempts ORDER BY id LIMIT 1');
-        self::assertInstanceOf(\PDOStatement::class, $firstHashStatement);
+        $firstHashStatement = $pdo->query('SELECT email_hash FROM cms_login_attempts ORDER BY id LIMIT 1');
+        self::assertInstanceOf(PDOStatement::class, $firstHashStatement);
         self::assertSame($hash->hash(email: 'admin@example.test'), (string) $firstHashStatement->fetchColumn());
     }
 }

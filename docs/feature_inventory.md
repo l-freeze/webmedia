@@ -22,7 +22,7 @@
 
 | 機能 | 状態 | 現行実装 | 残作業 |
 |---|---|---|---|
-| ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog、ログイン試行回数制限 | IP 制限、2FA は運用要件が出た時点で判断 |
+| ログイン / ログアウト | 完了 | `/admin/login`, `/admin/logout`, Login UseCase, `CmsGuard`, SecurityLog、ログイン試行回数制限、`/admin/security/login-attempts` での制限解除 | 恒久的な IP 制限、2FA は運用要件が出た時点で判断 |
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
 | 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, Audit middleware の業務要約, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache, 検索用 `search_body_text` 派生 text | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。検索と未入力時抜粋は保存時に生成する `search_body_text` を使う。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |

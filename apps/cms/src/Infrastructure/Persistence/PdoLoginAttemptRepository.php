@@ -19,7 +19,19 @@ final readonly class PdoLoginAttemptRepository implements ILoginAttemptRepositor
     {
         $stmt = PdoHelper::prepare(
             pdo: $this->pdo,
-            sql: 'INSERT INTO login_attempts (email_hash, ip_address, result, attempted_at) VALUES (:email_hash, :ip_address, :result, :attempted_at)',
+            sql: <<<'SQL'
+INSERT INTO cms_login_attempts (
+  email_hash,
+  ip_address,
+  result,
+  attempted_at
+) VALUES (
+  :email_hash,
+  :ip_address,
+  :result,
+  :attempted_at
+)
+SQL,
         );
         PdoHelper::execute(statement: $stmt, params: [
             'email_hash' => $this->emailHash->hash(email: $attempt->email),

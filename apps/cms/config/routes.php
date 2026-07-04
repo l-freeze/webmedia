@@ -35,6 +35,8 @@ use App\Cms\Presentation\Http\Controller\Page\Store\Controller as PageStoreContr
 use App\Cms\Presentation\Http\Controller\Page\Update\Controller as PageUpdateController;
 use App\Cms\Presentation\Http\Controller\Permission\List\Controller as PermissionListController;
 use App\Cms\Presentation\Http\Controller\Role\List\Controller as RoleListController;
+use App\Cms\Presentation\Http\Controller\Security\LoginAttempt\Reset\Controller as SecurityLoginAttemptResetController;
+use App\Cms\Presentation\Http\Controller\Security\LoginAttempt\Show\Controller as SecurityLoginAttemptShowController;
 use App\Cms\Presentation\Http\Controller\Setting\Edit\Controller as SettingEditController;
 use App\Cms\Presentation\Http\Controller\Setting\Update\Controller as SettingUpdateController;
 use App\Cms\Presentation\Http\Controller\Category\Delete\Controller as CategoryDeleteController;
@@ -105,6 +107,8 @@ $routes = [
     ['POST', '/admin/users/{id:\d+}/delete', AdminUserDeleteController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
     ['GET', '/admin/roles', RoleListController::class, ['requires_permission' => PermissionCode::ROLE_VIEW]],
     ['GET', '/admin/permissions', PermissionListController::class, ['requires_permission' => PermissionCode::PERMISSION_VIEW]],
+    ['GET', '/admin/security/login-attempts', SecurityLoginAttemptShowController::class, ['requires_permission' => PermissionCode::SECURITY_MANAGE]],
+    ['POST', '/admin/security/login-attempts/reset', SecurityLoginAttemptResetController::class, ['requires_permission' => PermissionCode::SECURITY_MANAGE]],
     ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
     ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],

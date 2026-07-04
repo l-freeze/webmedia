@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-03
+- 2026-07-04
 
 ## 現在地
 
@@ -43,14 +43,16 @@
 - CMS:
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
   - 管理ログインの試行回数制限を追加した。
-    - `login_attempts` に success / failure / blocked を記録する。
+    - `cms_login_attempts` に success / failure / blocked を記録する。
     - 10分間で email + IP の failure が5回、または IP 全体の failure が20回に達した場合、password verify 前に blocked とする。
     - 通常失敗と blocked の画面文言は同じ `ログインに失敗しました。時間をおいて再度お試しください。` にした。
-    - HTTP 経由で CSRF 付き POST を6回実行し、failure 5件、blocked 1件、SecurityLog `cms.login blocked` を確認済み。検証用 `login_attempts` 行は削除済み。
+    - HTTP 経由で CSRF 付き POST を6回実行し、failure 5件、blocked 1件、SecurityLog `cms.login blocked` を確認済み。検証用 login attempt 行は削除済み。
     - Application / Presentation の呼び出し規約は、複数引数を named arguments 優先、単一引数かつ意味が明白な呼び出しは positional arguments 可とし、既存コードも合わせた。抽象的な public API は単一引数でも named arguments を優先し、private method の単一引数呼び出しは named arguments 不要とした。
     - 失敗ログイン試行の上限判定は `hasTooManyFailedLoginAttempts()` に閉じ、`execute()` から中間の集計値を外へ出さない形にした。
     - 認証情報で有効なユーザーを取得する処理は `findUserByValidCredentials()` に閉じ、`execute()` の失敗分岐を `User|null` の判定に寄せた。
     - ログイン試行回数の集計開始時刻は小さすぎる private method にせず、`hasTooManyFailedLoginAttempts()` 内の local 変数にした。
+    - `/admin/security/login-attempts` を追加し、`security.manage` を持つ管理者が CMS ログイン制限を解除できるようにした。
+    - 解除は履歴削除ではなく `cms_login_attempt_resets` への append-only event として保存し、集計時に最新解除時刻以降の failure だけを数える。
   - 記事作成、編集、プレビュー、履歴、版プレビュー、復元、削除を HTTP 経由で確認。
   - カテゴリ / タグの作成、更新、削除を HTTP 経由で確認。
   - 検証用データは削除済み。

@@ -37,13 +37,17 @@ apps/cms/src/Application/Auth/Login/
     LoginAttemptFailureCounts.php
 
 apps/cms/src/Domain/Entity/
+  CmsLoginAttemptReset.php
   LoginAttempt.php
 apps/cms/src/Domain/Repository/
+  ICmsLoginAttemptResetRepository.php
   ILoginAttemptRepository.php
 apps/cms/src/Domain/Value/
+  CmsLoginAttemptResetScope.php
   LoginAttemptResult.php
 
 apps/cms/src/Infrastructure/Persistence/
+  PdoCmsLoginAttemptResetRepository.php
   PdoLoginAttemptQuery.php
   PdoLoginAttemptRepository.php
 ```
@@ -86,6 +90,13 @@ Domain/Repository/ILoginAttemptRepository.php
 
 Domain/Value/LoginAttemptResult.php
   LoginAttempt Entity の記録結果を表す enum。
+
+Domain/Entity/CmsLoginAttemptReset.php
+  管理画面からのログイン制限解除を表す Domain Entity。
+  既存のログイン試行履歴は削除せず、解除イベントを追記する。
+
+Domain/Repository/ICmsLoginAttemptResetRepository.php
+  CmsLoginAttemptReset Entity を保存する Domain Repository。
 ```
 
 ## 呼び出し
@@ -347,12 +358,21 @@ final readonly class LoginAttempt
 ## DB
 
 ```text
-login_attempts
+cms_login_attempts
   id
   email_hash
   ip_address
   result
   attempted_at
+
+cms_login_attempt_resets
+  id
+  scope
+  email_hash
+  ip_address
+  reset_at
+  reset_by_user_id
+  reason
 ```
 
 `result` は enum 相当の文字列。
@@ -369,12 +389,20 @@ enum LoginAttemptResult: string
 必要な index。
 
 ```text
-login_attempts_email_hash_ip_attempted_at_idx
+cms_login_attempts_email_hash_ip_attempted_at_idx
   email_hash, ip_address, attempted_at
 
-login_attempts_ip_attempted_at_idx
+cms_login_attempts_ip_attempted_at_idx
   ip_address, attempted_at
+
+cms_login_attempt_resets_scope_email_hash_ip_reset_at_idx
+  scope, email_hash, ip_address, reset_at
+
+cms_login_attempt_resets_scope_ip_reset_at_idx
+  scope, ip_address, reset_at
 ```
+
+制限解除は `cms_login_attempt_resets` へ append-only event として保存する。集計時は window 開始時刻と最新解除時刻の遅い方を使い、それ以降の failure だけを数える。
 
 ## SecurityLog
 
@@ -437,7 +465,7 @@ Controller test では、`blocked` のときも画面文言が通常失敗と同
 
 ## 実装順
 
-1. migration で `login_attempts` を追加する。
+1. migration で `cms_login_attempts` と `cms_login_attempt_resets` を追加する。
 2. `Domain/Entity/LoginAttempt.php`、`Domain/Repository/ILoginAttemptRepository.php` を追加する。
 3. `Domain/Value/LoginAttemptResult.php`、`Login/Query/ILoginAttemptQuery.php`、`Login/Value/LoginAttemptFailureCounts.php` を追加する。
 4. `PdoLoginAttemptRepository` と `PdoLoginAttemptQuery` を追加する。
