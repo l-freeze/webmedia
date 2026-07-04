@@ -999,7 +999,9 @@ $requestScope->set(Csrf::class, fn (Container $container): Csrf => new Csrf(
 
 ### 13.1 Named arguments
 
-プロジェクト内 class の object constructor、method、function 呼び出しでは、引数が1つ以上ある場合は原則として named arguments を使う。
+プロジェクト内 class の object constructor、method、function 呼び出しでは、引数が2つ以上ある場合は原則として named arguments を使う。
+
+`apps/cms`、`apps/front` の Application / Presentation では、引数が1つだけで、method 名や渡す値から意味が明白な場合は positional arguments を使ってよい。
 
 目的:
 
@@ -1030,14 +1032,27 @@ new Response($html, 422);
 new Article($id, $title, $slug, $body);
 ```
 
+単一引数で許可:
+
+```php
+$user = $this->users->findByEmail($input->email);
+
+if ($this->tooManyLoginAttempts($failureCounts)) {
+    return Output::blocked();
+}
+```
+
 例外:
 
 - PHP 標準関数のように named arguments がかえって読みにくい呼び出し
 - 外部ライブラリで引数名の後方互換性が保証されない public API
 - `sprintf`、`in_array` など短く慣用的な関数
 - 引数がない呼び出し
+- `apps/cms`、`apps/front` の Application / Presentation で、引数が1つだけで意味が明白な呼び出し
 
-例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
+Framework / Kernel では、引数が1つだけでも named arguments を使ってよい。基盤層は汎用名の method が増えやすく、呼び出し側だけでは引数の意味が読み取りにくい場合があるためである。
+
+UseCase `Input` の constructor 呼び出しでは、引数数に関わらず named arguments を使う。例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
 
 ### 13.2 配列処理
 

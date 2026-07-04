@@ -32,9 +32,9 @@ final readonly class Interactor
         $failureCounts = $this->loginAttemptQuery->countFailures(
             email: $input->email,
             ipAddress: $input->ipAddress,
-            since: $this->loginAttemptWindowStart(now: $now),
+            since: $this->loginAttemptWindowStart($now),
         );
-        if ($this->tooManyLoginAttempts(failureCounts: $failureCounts)) {
+        if ($this->tooManyLoginAttempts($failureCounts)) {
             $this->loginAttempts->save(attempt: LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
@@ -44,7 +44,7 @@ final readonly class Interactor
             return Output::blocked();
         }
 
-        $user = $this->users->findByEmail(email: $input->email);
+        $user = $this->users->findByEmail($input->email);
         if ($user === null || !$this->passwordVerifier->verify(
             plainPassword: $input->password,
             passwordHash: $user->passwordHash,
