@@ -1050,7 +1050,7 @@ new Article($id, $title, $slug, $body);
 ```php
 $user = $this->users->findByEmail($input->email);
 
-if ($this->tooManyLoginAttempts($failureCounts)) {
+if ($this->hasTooManyFailedLoginAttempts($input, $now)) {
     return Output::blocked();
 }
 

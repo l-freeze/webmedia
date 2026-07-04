@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Cms\Application\Auth\Login;
 
 use App\Cms\Application\Auth\Login\Query\ILoginAttemptQuery;
-use App\Cms\Application\Auth\Login\Value\LoginAttemptFailureCounts;
 use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
@@ -29,12 +28,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $now = new DateTimeImmutable();
-        $failureCounts = $this->loginAttemptQuery->countFailures(
-            email: $input->email,
-            ipAddress: $input->ipAddress,
-            since: $this->loginAttemptWindowStart($now),
-        );
-        if ($this->tooManyLoginAttempts($failureCounts)) {
+        if ($this->hasTooManyFailedLoginAttempts($input, $now)) {
             $this->loginAttempts->save(LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
@@ -72,8 +66,14 @@ final readonly class Interactor
         return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
     }
 
-    private function tooManyLoginAttempts(LoginAttemptFailureCounts $failureCounts): bool
+    private function hasTooManyFailedLoginAttempts(Input $input, DateTimeImmutable $now): bool
     {
+        $failureCounts = $this->loginAttemptQuery->countFailures(
+            email: $input->email,
+            ipAddress: $input->ipAddress,
+            since: $this->loginAttemptWindowStart($now),
+        );
+
         return $failureCounts->byEmailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
             || $failureCounts->byIp >= self::MAX_FAILURES_PER_IP;
     }

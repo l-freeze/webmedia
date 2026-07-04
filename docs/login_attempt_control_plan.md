@@ -185,14 +185,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $now = new DateTimeImmutable();
-        $since = $this->loginAttemptWindowStart(now: $now);
-        $failureCounts = $this->loginAttemptQuery->countFailures(
-            email: $input->email,
-            ipAddress: $input->ipAddress,
-            since: $since,
-        );
-
-        if ($this->tooManyLoginAttempts($failureCounts)) {
+        if ($this->hasTooManyFailedLoginAttempts($input, $now)) {
             $this->loginAttempts->save(LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
@@ -231,8 +224,14 @@ final readonly class Interactor
         return $now->modify('-' . self::ATTEMPT_WINDOW_SECONDS . ' seconds');
     }
 
-    private function tooManyLoginAttempts(LoginAttemptFailureCounts $failureCounts): bool
+    private function hasTooManyFailedLoginAttempts(Input $input, DateTimeImmutable $now): bool
     {
+        $failureCounts = $this->loginAttemptQuery->countFailures(
+            email: $input->email,
+            ipAddress: $input->ipAddress,
+            since: $this->loginAttemptWindowStart($now),
+        );
+
         return $failureCounts->byEmailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
             || $failureCounts->byIp >= self::MAX_FAILURES_PER_IP;
     }
