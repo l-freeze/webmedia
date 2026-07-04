@@ -6,7 +6,7 @@ namespace App\Cms\Application\Auth\Login\Value;
 
 final readonly class LoginAttemptFailureCounts
 {
-    public function __construct(public int $emailAndIp, public int $ip)
+    public function __construct(public int $byEmailAndIp, public int $byIp)
     {
     }
 }

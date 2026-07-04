@@ -40,7 +40,7 @@ final class LoginControllerTest extends TestCase
             login: new Interactor(
                 users: new EmptyLoginUserRepository(),
                 passwordVerifier: new NeverCalledPasswordVerifier(),
-                loginAttemptQuery: new ControllerLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 5, ip: 0)),
+                loginAttemptQuery: new ControllerLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 5, byIp: 0)),
                 loginAttempts: new ControllerLoginAttemptRepository(),
             ),
             events: $events,
@@ -117,7 +117,7 @@ final readonly class ControllerLoginAttemptQuery implements ILoginAttemptQuery
     {
     }
 
-    public function failureCounts(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
+    public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
     {
         return $this->counts;
     }

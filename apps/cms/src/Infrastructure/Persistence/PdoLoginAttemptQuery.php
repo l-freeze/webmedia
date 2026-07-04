@@ -18,11 +18,11 @@ final readonly class PdoLoginAttemptQuery implements ILoginAttemptQuery
     {
     }
 
-    public function failureCounts(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
+    public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
     {
         return new LoginAttemptFailureCounts(
-            emailAndIp: $this->countFailuresByEmailAndIp(email: $email, ipAddress: $ipAddress, since: $since),
-            ip: $this->countFailuresByIp(ipAddress: $ipAddress, since: $since),
+            byEmailAndIp: $this->countFailuresByEmailAndIp(email: $email, ipAddress: $ipAddress, since: $since),
+            byIp: $this->countFailuresByIp(ipAddress: $ipAddress, since: $since),
         );
     }
 

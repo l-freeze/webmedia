@@ -29,7 +29,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $now = new DateTimeImmutable();
-        $failureCounts = $this->loginAttemptQuery->failureCounts(
+        $failureCounts = $this->loginAttemptQuery->countFailures(
             email: $input->email,
             ipAddress: $input->ipAddress,
             since: $this->loginAttemptWindowStart(now: $now),
@@ -74,7 +74,7 @@ final readonly class Interactor
 
     private function tooManyLoginAttempts(LoginAttemptFailureCounts $failureCounts): bool
     {
-        return $failureCounts->emailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
-            || $failureCounts->ip >= self::MAX_FAILURES_PER_IP;
+        return $failureCounts->byEmailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
+            || $failureCounts->byIp >= self::MAX_FAILURES_PER_IP;
     }
 }

@@ -26,7 +26,7 @@ final class LoginInteractorTest extends TestCase
         $interactor = new Interactor(
             users: new InMemoryUserRepository($this->user()),
             passwordVerifier: new FixedPasswordVerifier(matches: true),
-            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 0, ip: 0)),
+            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
         );
 
@@ -48,7 +48,7 @@ final class LoginInteractorTest extends TestCase
         $interactor = new Interactor(
             users: new InMemoryUserRepository($this->user()),
             passwordVerifier: new FixedPasswordVerifier(matches: false),
-            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 0, ip: 0)),
+            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
         );
 
@@ -71,7 +71,7 @@ final class LoginInteractorTest extends TestCase
         $interactor = new Interactor(
             users: new InMemoryUserRepository(null),
             passwordVerifier: new FixedPasswordVerifier(matches: true),
-            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 0, ip: 0)),
+            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
         );
 
@@ -92,7 +92,7 @@ final class LoginInteractorTest extends TestCase
         $interactor = new Interactor(
             users: new InMemoryUserRepository($this->user()),
             passwordVerifier: $passwordVerifier,
-            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 5, ip: 0)),
+            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 5, byIp: 0)),
             loginAttempts: $attempts,
         );
 
@@ -114,7 +114,7 @@ final class LoginInteractorTest extends TestCase
         $interactor = new Interactor(
             users: new InMemoryUserRepository($this->user()),
             passwordVerifier: new FixedPasswordVerifier(matches: true),
-            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(emailAndIp: 0, ip: 20)),
+            loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 20)),
             loginAttempts: $attempts,
         );
 
@@ -200,7 +200,7 @@ final readonly class FixedLoginAttemptQuery implements ILoginAttemptQuery
     {
     }
 
-    public function failureCounts(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
+    public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
     {
         return $this->counts;
     }

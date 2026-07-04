@@ -59,14 +59,14 @@ final class LoginAttemptPersistenceTest extends TestCase
             attemptedAt: new DateTimeImmutable('2026-07-03 09:00:00'),
         ));
 
-        $counts = $query->failureCounts(
+        $counts = $query->countFailures(
             email: 'admin@example.test',
             ipAddress: '192.0.2.10',
             since: new DateTimeImmutable('2026-07-03 09:30:00'),
         );
 
-        self::assertSame(1, $counts->emailAndIp);
-        self::assertSame(2, $counts->ip);
+        self::assertSame(1, $counts->byEmailAndIp);
+        self::assertSame(2, $counts->byIp);
         $rawEmailStatement = $pdo->query("SELECT COUNT(*) FROM login_attempts WHERE email_hash = 'admin@example.test'");
         self::assertInstanceOf(\PDOStatement::class, $rawEmailStatement);
         self::assertSame(0, (int) $rawEmailStatement->fetchColumn());

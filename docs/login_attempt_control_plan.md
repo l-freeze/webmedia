@@ -186,7 +186,7 @@ final readonly class Interactor
     {
         $now = new DateTimeImmutable();
         $since = $this->loginAttemptWindowStart(now: $now);
-        $failureCounts = $this->loginAttemptQuery->failureCounts(
+        $failureCounts = $this->loginAttemptQuery->countFailures(
             email: $input->email,
             ipAddress: $input->ipAddress,
             since: $since,
@@ -233,8 +233,8 @@ final readonly class Interactor
 
     private function tooManyLoginAttempts(LoginAttemptFailureCounts $failureCounts): bool
     {
-        return $failureCounts->emailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
-            || $failureCounts->ip >= self::MAX_FAILURES_PER_IP;
+        return $failureCounts->byEmailAndIp >= self::MAX_FAILURES_PER_EMAIL_AND_IP
+            || $failureCounts->byIp >= self::MAX_FAILURES_PER_IP;
     }
 }
 ```
@@ -276,7 +276,7 @@ UseCase ディレクトリ直下に `Input.php`、`Interactor.php`、`Output.php
 ```php
 interface ILoginAttemptQuery
 {
-    public function failureCounts(
+    public function countFailures(
         string $email,
         string $ipAddress,
         DateTimeImmutable $since,

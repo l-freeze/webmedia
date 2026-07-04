@@ -9,5 +9,5 @@ use DateTimeImmutable;
 
 interface ILoginAttemptQuery
 {
-    public function failureCounts(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts;
+    public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts;
 }
