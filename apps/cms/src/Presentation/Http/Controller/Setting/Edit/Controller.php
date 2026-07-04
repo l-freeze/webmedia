@@ -25,8 +25,8 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $settings = $this->edit->execute(input: new Input())->settings;
-        $media = $this->media->execute(input: new List\Input())->rows;
+        $settings = $this->edit->execute(new Input())->settings;
+        $media = $this->media->execute(new List\Input())->rows;
 
         return new Response(body: $this->renderer->render(template: 'setting/edit.latte', params: [
             'title' => 'サイト設定',

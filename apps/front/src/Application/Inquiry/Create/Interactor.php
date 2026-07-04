@@ -16,7 +16,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $validation = (new FormValidator(input: new ValidationInput(values: [
+        $validation = (new FormValidator(new ValidationInput([
             'name' => $input->name,
             'email' => $input->email,
             'subject' => $input->subject,

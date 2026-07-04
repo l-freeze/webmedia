@@ -23,17 +23,17 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->create->execute(input: new Input(data: $request->body));
+        $output = $this->create->execute(new Input(data: $request->body));
         if (!$output->created) {
             $this->session->flashValue(key: 'admin_user.form_values', value: $request->body);
             $this->session->flash(key: 'admin_user.form_error', value: $output->error ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/users');
+            return Response::redirect('/admin/users');
         }
 
         $this->audit->adminUserCreated(request: $request, userId: $output->userId);
         $this->session->flash(key: 'success', value: '管理者アカウントを作成しました');
 
-        return Response::redirect(location: '/admin/users');
+        return Response::redirect('/admin/users');
     }
 }

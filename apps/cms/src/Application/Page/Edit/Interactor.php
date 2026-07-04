@@ -16,7 +16,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         return new Output(
-            page: $input->id === null ? null : $this->pages->find(id: $input->id),
+            page: $input->id === null ? null : $this->pages->find($input->id),
             media: $this->images->images(),
         );
     }

@@ -25,13 +25,13 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $currentRole = $this->users->roleOf(id: $input->id);
+        $currentRole = $this->users->roleOf($input->id);
         if ($currentRole === null) {
             return new Output(updated: false, error: '管理者アカウントが見つかりません。');
         }
 
-        $values = new ValidationInput(values: $input->data);
-        $validation = (new FormValidator(input: $values))
+        $values = new ValidationInput($input->data);
+        $validation = (new FormValidator($values))
             ->required(field: 'email', label: 'メールアドレス')
             ->email(field: 'email', label: 'メールアドレス')
             ->maxLength(field: 'email', label: 'メールアドレス', max: self::EMAIL_MAX_LENGTH)
@@ -63,7 +63,7 @@ final readonly class Interactor
             if (strlen($password) < self::PASSWORD_MIN_LENGTH) {
                 return new Output(updated: false, error: 'パスワードは8文字以上で入力してください。');
             }
-            $passwordHash = $this->passwords->hash(plainPassword: $password);
+            $passwordHash = $this->passwords->hash($password);
         }
 
         return new Output(updated: $this->users->update(user: new AdminUser(

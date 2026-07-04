@@ -16,7 +16,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->pages->restore(pageId: new PageId(value: $input->pageId), versionNo: new PageVersionNo(value: $input->versionNo));
+        $this->pages->restore(pageId: new PageId($input->pageId), versionNo: new PageVersionNo($input->versionNo));
 
         return new Output(restored: true);
     }

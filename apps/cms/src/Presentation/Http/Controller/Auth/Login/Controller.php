@@ -28,7 +28,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->login->execute(input: new Input(
+        $output = $this->login->execute(new Input(
             email: $request->input(key: 'email'),
             password: $request->input(key: 'password'),
             ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR') ?? '',
@@ -52,7 +52,7 @@ final readonly class Controller
             actorRole: $output->role,
         ));
 
-        return Response::redirect(location: '/admin');
+        return Response::redirect('/admin');
     }
 
     private function securityEvent(

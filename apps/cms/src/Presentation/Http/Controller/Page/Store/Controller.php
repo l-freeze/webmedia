@@ -23,17 +23,17 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->save->execute(input: new Input(id: null, data: $request->body));
+        $output = $this->save->execute(new Input(id: null, data: $request->body));
         if ($output->pageId === null) {
             $this->session->flashValue(key: 'page.form_input', value: $this->pageFormData(data: $request->body, id: null));
             $this->session->flash(key: 'page.form_error', value: $output->validation->firstMessage() ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/pages/create');
+            return Response::redirect('/admin/pages/create');
         }
 
         $this->session->flash(key: 'success', value: '保存しました');
         $this->audit->pageSaved(request: $request, pageId: $output->pageId->value, created: true);
-        return Response::redirect(location: '/admin/pages/' . $output->pageId->value);
+        return Response::redirect('/admin/pages/' . $output->pageId->value);
     }
 
     /**

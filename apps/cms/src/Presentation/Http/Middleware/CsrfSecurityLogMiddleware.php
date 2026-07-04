@@ -29,7 +29,7 @@ final readonly class CsrfSecurityLogMiddleware implements MiddlewareInterface
             return $handler->handle(request: $request);
         }
 
-        if (!$this->requiresCsrf(request: $request)) {
+        if (!$this->requiresCsrf($request)) {
             return $handler->handle(request: $request);
         }
 

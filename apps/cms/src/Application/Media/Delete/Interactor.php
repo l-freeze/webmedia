@@ -14,7 +14,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $result = $this->media->delete(id: $input->id);
+        $result = $this->media->delete($input->id);
 
         return new Output(deleted: $result->deleted, error: $result->error);
     }

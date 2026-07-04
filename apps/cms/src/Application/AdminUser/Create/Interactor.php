@@ -25,8 +25,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput(values: $input->data);
-        $validation = (new FormValidator(input: $values))
+        $values = new ValidationInput($input->data);
+        $validation = (new FormValidator($values))
             ->required(field: 'email', label: 'メールアドレス')
             ->email(field: 'email', label: 'メールアドレス')
             ->maxLength(field: 'email', label: 'メールアドレス', max: self::EMAIL_MAX_LENGTH)
@@ -59,7 +59,7 @@ final readonly class Interactor
             email: $email,
             name: $values->string(field: 'name'),
             role: $role,
-            passwordHash: $this->passwords->hash(plainPassword: $password),
+            passwordHash: $this->passwords->hash($password),
         ));
 
         return new Output(created: true, userId: $userId);

@@ -24,7 +24,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(input: new Input(slug: $vars['slug'] ?? ''));
+        $output = $this->interactor->execute(new Input(slug: $vars['slug'] ?? ''));
         $article = $output->article;
         if ($article === null) {
             return new Response(body: $this->renderer->render(template: 'state/simple.latte', params: [
@@ -40,7 +40,7 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'article/show.latte', params: [
             'title' => $article['title'],
             'description' => $article['excerpt'],
-            'canonicalUrl' => $this->canonicalUrl->article(slug: $slug),
+            'canonicalUrl' => $this->canonicalUrl->article($slug),
             'article' => $article,
             'related' => array_map(fn ($item): array => $item->toArray(), $output->related),
         ]));

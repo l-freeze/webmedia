@@ -25,7 +25,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
-        $permission = $this->requiredPermission(request: $request);
+        $permission = $this->requiredPermission($request);
         if ($permission === null) {
             return $handler->handle(request: $request);
         }
@@ -39,7 +39,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
                 permission: $permission,
             ));
 
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         if (!$this->authorization->can(user: $user, permission: $permission)) {

@@ -39,7 +39,7 @@ final readonly class AuditMiddleware implements MiddlewareInterface
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
-        if (!$this->shouldAudit(request: $request)) {
+        if (!$this->shouldAudit($request)) {
             return $handler->handle(request: $request);
         }
 
@@ -74,7 +74,7 @@ final readonly class AuditMiddleware implements MiddlewareInterface
 
     private function shouldAudit(Request $request): bool
     {
-        if (!$this->isAdminPath(path: $request->path)) {
+        if (!$this->isAdminPath($request->path)) {
             return false;
         }
 

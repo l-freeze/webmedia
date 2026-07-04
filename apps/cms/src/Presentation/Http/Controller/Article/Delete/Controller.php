@@ -28,11 +28,11 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         try {
-            $output = $this->delete->execute(input: new Input(id: (int) $vars['id'], currentUser: $currentUser));
+            $output = $this->delete->execute(new Input(id: (int) $vars['id'], currentUser: $currentUser));
         } catch (AuthorizationException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
@@ -42,6 +42,6 @@ final readonly class Controller
             $this->audit->articleTrashed(request: $request, articleId: (int) $vars['id']);
         }
 
-        return Response::redirect(location: '/admin/articles');
+        return Response::redirect('/admin/articles');
     }
 }

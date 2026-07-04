@@ -20,11 +20,11 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        if (!$this->articlePolicy->canDelete(user: $input->currentUser)) {
+        if (!$this->articlePolicy->canDelete($input->currentUser)) {
             throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_DELETE);
         }
 
-        $deleted = $this->articles->trash(articleId: new ArticleId(value: $input->id));
+        $deleted = $this->articles->trash(new ArticleId($input->id));
         if (!$deleted) {
             return new Output(deleted: false, error: '記事が見つからないか、すでに削除されています。');
         }

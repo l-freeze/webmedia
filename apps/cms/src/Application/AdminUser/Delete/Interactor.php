@@ -19,7 +19,7 @@ final readonly class Interactor
             return new Output(deleted: false, error: 'ログイン中の自分自身は削除できません。');
         }
 
-        $role = $this->users->roleOf(id: $input->id);
+        $role = $this->users->roleOf($input->id);
         if ($role === null) {
             return new Output(deleted: false, error: '管理者アカウントが見つかりません。');
         }
@@ -28,6 +28,6 @@ final readonly class Interactor
             return new Output(deleted: false, error: '最後のadminロールは削除できません。');
         }
 
-        return new Output(deleted: $this->users->delete(id: $input->id));
+        return new Output(deleted: $this->users->delete($input->id));
     }
 }

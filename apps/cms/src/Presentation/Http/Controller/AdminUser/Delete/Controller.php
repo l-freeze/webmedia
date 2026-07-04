@@ -27,19 +27,19 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         $userId = (int) $vars['id'];
-        $output = $this->delete->execute(input: new Input(id: $userId, currentUser: $currentUser));
+        $output = $this->delete->execute(new Input(id: $userId, currentUser: $currentUser));
         if (!$output->deleted) {
             $this->session->flash(key: 'admin_user.form_error', value: $output->error ?? '削除できませんでした。');
 
-            return Response::redirect(location: '/admin/users');
+            return Response::redirect('/admin/users');
         }
 
         $this->audit->adminUserDeleted(request: $request, userId: $userId);
         $this->session->flash(key: 'success', value: '管理者アカウントを削除しました');
-        return Response::redirect(location: '/admin/users');
+        return Response::redirect('/admin/users');
     }
 }

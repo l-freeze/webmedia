@@ -36,7 +36,7 @@ final readonly class Controller
 
         $this->session->destroy();
 
-        return Response::redirect(location: '/admin/login');
+        return Response::redirect('/admin/login');
     }
 
     private function serverString(Request $request, string $key): ?string

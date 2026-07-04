@@ -14,7 +14,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $article = $this->articles->findPublishedBySlug(slug: $input->slug);
+        $article = $this->articles->findPublishedBySlug($input->slug);
         if ($article === null) {
             return new Output(article: null);
         }

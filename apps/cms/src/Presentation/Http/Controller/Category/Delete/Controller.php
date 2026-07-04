@@ -23,16 +23,16 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->delete->execute(input: new Input(id: (int) $vars['id']));
+        $output = $this->delete->execute(new Input(id: (int) $vars['id']));
         if (!$output->deleted) {
             $this->session->flash(key: 'category.form_error', value: $output->error ?? '削除できませんでした');
 
-            return Response::redirect(location: '/admin/categories');
+            return Response::redirect('/admin/categories');
         }
 
         $this->audit->categoryDeleted(request: $request, categoryId: (int) $vars['id']);
         $this->session->flash(key: 'success', value: 'カテゴリを削除しました');
 
-        return Response::redirect(location: '/admin/categories');
+        return Response::redirect('/admin/categories');
     }
 }

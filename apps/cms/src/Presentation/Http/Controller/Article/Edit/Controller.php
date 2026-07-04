@@ -34,7 +34,7 @@ final readonly class Controller
         /** @var array<string, mixed>|null $formArticle */
 
         return $this->editForm(
-            output: $this->edit->execute(input: new Edit\Input(id: $id)),
+            output: $this->edit->execute(new Edit\Input(id: $id)),
             action: "/admin/articles/{$id}",
             formArticle: $formArticle,
             error: $this->session->pullFlash(key: 'article.form_error'),
@@ -49,7 +49,7 @@ final readonly class Controller
         $articleId = is_scalar($articleIdValue) ? (int) $articleIdValue : null;
         $versions = $articleId === null ? [] : array_map(
             fn ($version): array => $version->toArray(),
-            $this->history->execute(input: new History\Input(articleId: $articleId))->versions,
+            $this->history->execute(new History\Input(articleId: $articleId))->versions,
         );
 
         return new Response(body: $this->renderer->render(template: 'article/edit.latte', params: [

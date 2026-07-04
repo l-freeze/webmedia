@@ -23,7 +23,7 @@ final readonly class Controller
             'Disallow: /admin/',
         ];
 
-        $sitemapUrl = $this->canonicalUrl->fromPathWithFallbackBase(path: '/sitemap.xml', fallbackBaseUrl: $this->fallbackBaseUrl(request: $request));
+        $sitemapUrl = $this->canonicalUrl->fromPathWithFallbackBase(path: '/sitemap.xml', fallbackBaseUrl: $this->fallbackBaseUrl($request));
         if ($sitemapUrl !== null) {
             $lines[] = '';
             $lines[] = 'Sitemap: ' . $sitemapUrl;

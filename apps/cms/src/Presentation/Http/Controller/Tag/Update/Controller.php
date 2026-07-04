@@ -23,15 +23,15 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->update->execute(input: new Input(id: (int) $vars['id'], data: $request->body));
+        $output = $this->update->execute(new Input(id: (int) $vars['id'], data: $request->body));
         if (!$output->updated) {
             $this->session->flash(key: 'tag.form_error', value: $output->error ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/tags');
+            return Response::redirect('/admin/tags');
         }
 
         $this->audit->tagSaved(request: $request, tagId: (int) $vars['id'], created: false);
         $this->session->flash(key: 'success', value: 'タグを更新しました');
-        return Response::redirect(location: '/admin/tags');
+        return Response::redirect('/admin/tags');
     }
 }

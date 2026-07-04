@@ -23,11 +23,11 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $this->save->execute(input: new Input(data: $request->body));
-        $this->audit->settingsUpdated(request: $request);
+        $this->save->execute(new Input(data: $request->body));
+        $this->audit->settingsUpdated($request);
 
         $this->session->flash(key: 'success', value: '保存しました');
 
-        return Response::redirect(location: '/admin/settings');
+        return Response::redirect('/admin/settings');
     }
 }

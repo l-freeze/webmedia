@@ -19,7 +19,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $perPage = max(self::MIN_LIMIT, min(self::MAX_LIMIT, $input->limit));
-        $totalItems = $this->auditLogs->count(search: $input->search);
+        $totalItems = $this->auditLogs->count($input->search);
         $totalPages = max(self::FIRST_PAGE, (int) ceil($totalItems / $perPage));
         $currentPage = min(max(self::FIRST_PAGE, $input->page), $totalPages);
         $offset = ($currentPage - self::FIRST_PAGE) * $perPage;

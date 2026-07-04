@@ -20,7 +20,7 @@ final readonly class Interactor
         foreach (RoleCode::all() as $role) {
             $roles[] = new Role(
                 code: $role,
-                permissions: $this->rolePermissions->permissionsForRole(role: $role),
+                permissions: $this->rolePermissions->permissionsForRole($role),
             );
         }
 

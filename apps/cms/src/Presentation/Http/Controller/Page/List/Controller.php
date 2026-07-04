@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->list->execute(input: new Input());
+        $output = $this->list->execute(new Input());
 
         return new Response(body: $this->renderer->render(template: 'page/index.latte', params: [
             'title' => '固定ページ管理',

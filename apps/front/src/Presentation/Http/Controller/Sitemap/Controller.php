@@ -19,10 +19,10 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(input: new Input());
+        $output = $this->interactor->execute(new Input());
 
         return new Response(
-            body: $this->sitemapXml->render(entries: $output->entries, fallbackBaseUrl: $this->fallbackBaseUrl(request: $request)),
+            body: $this->sitemapXml->render(entries: $output->entries, fallbackBaseUrl: $this->fallbackBaseUrl($request)),
             headers: ['Content-Type' => 'application/xml; charset=utf-8'],
         );
     }

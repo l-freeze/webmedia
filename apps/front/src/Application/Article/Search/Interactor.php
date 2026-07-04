@@ -14,6 +14,6 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(keyword: $input->keyword, articles: $input->keyword === '' ? [] : $this->articles->search(keyword: $input->keyword));
+        return new Output(keyword: $input->keyword, articles: $input->keyword === '' ? [] : $this->articles->search($input->keyword));
     }
 }

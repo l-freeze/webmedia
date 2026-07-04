@@ -31,7 +31,7 @@ final readonly class ExampleMiddleware implements MiddlewareInterface
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
         if ($this->shouldStop($request)) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         return $handler->handle(request: $request);

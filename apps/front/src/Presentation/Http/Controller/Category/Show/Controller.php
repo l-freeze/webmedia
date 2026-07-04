@@ -23,14 +23,14 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(input: new Input(slug: $vars['slug'] ?? ''));
+        $output = $this->interactor->execute(new Input(slug: $vars['slug'] ?? ''));
         $category = $output->category?->toArray();
 
         return new Response(body: $this->renderer->render(template: 'list.latte', params: [
             'title' => $category['name'] ?? 'カテゴリ',
             'heading' => $category['name'] ?? 'カテゴリ',
             'lead' => $category['description'] ?? '',
-            'canonicalUrl' => $category !== null ? $this->canonicalUrl->category(slug: $category['slug']) : null,
+            'canonicalUrl' => $category !== null ? $this->canonicalUrl->category($category['slug']) : null,
             'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
         ]));
     }

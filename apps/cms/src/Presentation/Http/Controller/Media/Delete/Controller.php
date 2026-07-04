@@ -23,14 +23,14 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->delete->execute(input: new Input(id: (int) ($vars['id'] ?? 0)));
+        $output = $this->delete->execute(new Input(id: (int) ($vars['id'] ?? 0)));
         if (!$output->deleted) {
             $this->session->flash(key: 'error', value: $output->error ?? 'メディア削除に失敗しました。');
-            return Response::redirect(location: '/admin/media');
+            return Response::redirect('/admin/media');
         }
 
         $this->audit->mediaDeleted(request: $request, mediaId: (int) ($vars['id'] ?? 0));
         $this->session->flash(key: 'success', value: 'メディアを削除しました');
-        return Response::redirect(location: '/admin/media');
+        return Response::redirect('/admin/media');
     }
 }

@@ -21,8 +21,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput(values: $input->data);
-        $validation = (new FormValidator(input: $values))
+        $values = new ValidationInput($input->data);
+        $validation = (new FormValidator($values))
             ->required(field: 'title', label: 'タイトル')
             ->required(field: 'slug', label: 'スラッグ')
             ->required(field: 'body_format', label: '入力種別')
@@ -31,21 +31,21 @@ final readonly class Interactor
         $validation = SlugValidator::validate(input: $values, validation: $validation);
 
         if (!$validation->isValid()) {
-            return Output::invalid(validation: $validation);
+            return Output::invalid($validation);
         }
 
-        $richTextValidation = $this->validateRichTextBody(values: $values);
+        $richTextValidation = $this->validateRichTextBody($values);
         if (!$richTextValidation->isValid()) {
-            return Output::invalid(validation: $richTextValidation);
+            return Output::invalid($richTextValidation);
         }
 
         if ($this->pages->slugExists(slug: $values->string(field: 'slug'), exceptId: $input->id)) {
-            return Output::invalid(validation: ValidationOutput::invalid(
+            return Output::invalid(ValidationOutput::invalid(
                 new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),
             ));
         }
 
-        return Output::saved(pageId: $this->pages->save(page: Page::fromInput(id: $input->id, data: $input->data)));
+        return Output::saved($this->pages->save(Page::fromInput(id: $input->id, data: $input->data)));
     }
 
     private function validateRichTextBody(ValidationInput $values): ValidationOutput
@@ -60,7 +60,7 @@ final readonly class Interactor
         }
         /** @var array<string, mixed> $decoded */
 
-        if ($this->isEmptyRichTextDocument(node: $decoded)) {
+        if ($this->isEmptyRichTextDocument($decoded)) {
             return ValidationOutput::invalid(new ValidationError(field: 'body', message: '本文を入力してください。'));
         }
 
@@ -88,7 +88,7 @@ final readonly class Interactor
         foreach ($content as $child) {
             if (is_array($child)) {
                 /** @var array<string, mixed> $child */
-                if (!$this->isEmptyRichTextDocument(node: $child)) {
+                if (!$this->isEmptyRichTextDocument($child)) {
                     return false;
                 }
             }

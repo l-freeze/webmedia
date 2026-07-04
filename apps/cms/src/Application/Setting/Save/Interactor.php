@@ -17,7 +17,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->settings->save(data: $input->data);
+        $this->settings->save($input->data);
         $this->cache->delete(key: 'front.layout_globals.v2');
 
         return new Output(saved: true);

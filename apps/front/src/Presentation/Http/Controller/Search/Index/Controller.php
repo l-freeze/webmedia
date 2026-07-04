@@ -28,7 +28,7 @@ final readonly class Controller
             ]), status: Response::HTTP_NOT_FOUND);
         }
 
-        $output = $this->interactor->execute(input: new Input(keyword: $request->input(key: 'q')));
+        $output = $this->interactor->execute(new Input(keyword: $request->input(key: 'q')));
 
         return new Response(body: $this->renderer->render(template: 'list.latte', params: [
             'title' => '検索結果',

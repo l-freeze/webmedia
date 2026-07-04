@@ -17,8 +17,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput(values: $input->data);
-        $validation = (new FormValidator(input: $values))
+        $values = new ValidationInput($input->data);
+        $validation = (new FormValidator($values))
             ->required(field: 'name', label: '名前')
             ->required(field: 'slug', label: 'スラッグ')
             ->output();

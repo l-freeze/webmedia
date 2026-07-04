@@ -30,7 +30,7 @@ final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
         }
 
         if (!$this->guard->isAuthenticated()) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         return $handler->handle(request: $request);

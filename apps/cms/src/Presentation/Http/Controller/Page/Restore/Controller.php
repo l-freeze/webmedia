@@ -25,12 +25,12 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
-        $this->restore->execute(input: new Input(pageId: (int) $vars['id'], versionNo: (int) $vars['version']));
+        $this->restore->execute(new Input(pageId: (int) $vars['id'], versionNo: (int) $vars['version']));
         $this->audit->pageRestored(request: $request, pageId: (int) $vars['id'], versionNo: (int) $vars['version']);
 
-        return Response::redirect(location: '/admin/pages/' . $vars['id']);
+        return Response::redirect('/admin/pages/' . $vars['id']);
     }
 }

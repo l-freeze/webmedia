@@ -33,7 +33,7 @@ final readonly class Controller
         /** @var array<string, mixed>|null $formPage */
 
         return $this->editForm(
-            output: $this->edit->execute(input: new Input(id: null)),
+            output: $this->edit->execute(new Input(id: null)),
             action: '/admin/pages',
             formPage: $formPage,
             error: $this->session->pullFlash(key: 'page.form_error'),

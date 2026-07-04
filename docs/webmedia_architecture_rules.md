@@ -1040,6 +1040,10 @@ $user = $this->users->findByEmail($input->email);
 if ($this->tooManyLoginAttempts($failureCounts)) {
     return Output::blocked();
 }
+
+$output = $this->save->execute(new Input(
+    data: $request->body,
+));
 ```
 
 例外:
@@ -1052,7 +1056,9 @@ if ($this->tooManyLoginAttempts($failureCounts)) {
 
 Framework / Kernel では、引数が1つだけでも named arguments を使ってよい。基盤層は汎用名の method が増えやすく、呼び出し側だけでは引数の意味が読み取りにくい場合があるためである。
 
-UseCase `Input` の constructor 呼び出しでは、引数数に関わらず named arguments を使う。例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
+UseCase `Input` の constructor 呼び出しでは、引数数に関わらず named arguments を使う。ただし `execute(new Input(...))` のように、`Input` object 自体を唯一の引数として渡す呼び出しでは `execute` 側の `input:` は省略してよい。
+
+例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
 
 ### 13.2 配列処理
 

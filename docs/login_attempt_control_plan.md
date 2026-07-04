@@ -124,7 +124,7 @@ final readonly class Input
 Controller 側では `REMOTE_ADDR` を渡す。
 
 ```php
-$output = $this->login->execute(input: new Input(
+$output = $this->login->execute(new Input(
     email: $request->input(key: 'email'),
     password: $request->input(key: 'password'),
     ipAddress: $this->serverString(request: $request, key: 'REMOTE_ADDR') ?? '',

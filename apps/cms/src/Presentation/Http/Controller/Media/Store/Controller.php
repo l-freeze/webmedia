@@ -23,9 +23,9 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        if ($this->exceedsPostMaxSize(request: $request)) {
+        if ($this->exceedsPostMaxSize($request)) {
             $this->session->flash(key: 'error', value: 'アップロード全体のサイズが大きすぎます。画像は20MB以内、動画は512MB以内にしてください。');
-            return Response::redirect(location: '/admin/media');
+            return Response::redirect('/admin/media');
         }
         $file = $request->files['media_file'] ?? [];
         if (!is_array($file)) {
@@ -33,7 +33,7 @@ final readonly class Controller
         }
         /** @var array<string, mixed> $file */
 
-        $output = $this->upload->execute(input: new Input(
+        $output = $this->upload->execute(new Input(
             file: $file,
             altText: $request->input(key: 'alt_text'),
             caption: $request->input(key: 'caption'),
@@ -41,11 +41,11 @@ final readonly class Controller
 
         if (!$output->uploaded) {
             $this->session->flash(key: 'error', value: $output->error ?? 'メディアアップロードに失敗しました。');
-            return Response::redirect(location: '/admin/media');
+            return Response::redirect('/admin/media');
         }
 
         $this->session->flash(key: 'success', value: 'メディアをアップロードしました');
-        return Response::redirect(location: '/admin/media');
+        return Response::redirect('/admin/media');
     }
 
     private function exceedsPostMaxSize(Request $request): bool

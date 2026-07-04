@@ -27,13 +27,13 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         $id = (int) ($vars['id'] ?? 0);
         $status = $this->bodyString(request: $request, key: 'status');
         $adminNote = $this->bodyString(request: $request, key: 'admin_note');
-        $output = $this->update->execute(input: new Input(id: $id, status: $status, adminNote: $adminNote));
+        $output = $this->update->execute(new Input(id: $id, status: $status, adminNote: $adminNote));
         if (!$output->updated) {
             $message = $output->validation->errors[0]->message ?? '問い合わせの状態を更新できませんでした。';
             $this->session->flash(key: 'inquiry.form_error', value: $message);
@@ -42,13 +42,13 @@ final readonly class Controller
                 'admin_note' => $adminNote,
             ]);
 
-            return Response::redirect(location: "/admin/inquiries/{$id}");
+            return Response::redirect("/admin/inquiries/{$id}");
         }
 
         $this->audit->inquiryUpdated(request: $request, inquiryId: $id, status: $status, adminNote: $adminNote);
         $this->session->flash(key: 'success', value: '問い合わせの状態を更新しました。');
 
-        return Response::redirect(location: "/admin/inquiries/{$id}");
+        return Response::redirect("/admin/inquiries/{$id}");
     }
 
     private function bodyString(Request $request, string $key): string

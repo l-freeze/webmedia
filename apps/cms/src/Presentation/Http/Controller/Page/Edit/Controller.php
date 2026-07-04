@@ -34,7 +34,7 @@ final readonly class Controller
         /** @var array<string, mixed>|null $formPage */
 
         return $this->editForm(
-            output: $this->edit->execute(input: new Edit\Input(id: $id)),
+            output: $this->edit->execute(new Edit\Input(id: $id)),
             action: "/admin/pages/{$id}",
             formPage: $formPage,
             error: $this->session->pullFlash(key: 'page.form_error'),
@@ -49,7 +49,7 @@ final readonly class Controller
         $pageId = is_scalar($pageIdValue) ? (int) $pageIdValue : null;
         $versions = $pageId === null ? [] : array_map(
             fn ($version): array => $version->toArray(),
-            $this->history->execute(input: new History\Input(pageId: $pageId))->versions,
+            $this->history->execute(new History\Input(pageId: $pageId))->versions,
         );
 
         return new Response(body: $this->renderer->render(template: 'page/edit.latte', params: [

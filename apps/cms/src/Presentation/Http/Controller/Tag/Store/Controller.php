@@ -23,16 +23,16 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->save->execute(input: new Input(data: $request->body));
+        $output = $this->save->execute(new Input(data: $request->body));
         if (!$output->saved) {
             $this->session->flashValue(key: 'tag.form_values', value: $request->body);
             $this->session->flash(key: 'tag.form_error', value: $output->error ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/tags');
+            return Response::redirect('/admin/tags');
         }
 
         $this->audit->tagSaved(request: $request, tagId: null, created: true);
         $this->session->flash(key: 'success', value: '保存しました');
-        return Response::redirect(location: '/admin/tags');
+        return Response::redirect('/admin/tags');
     }
 }

@@ -43,7 +43,7 @@ final readonly class Media
             'usage_labels' => $this->usageLabels,
             'usage_count' => count($this->usageLabels),
             'is_image' => str_starts_with($this->mimeType, 'image/'),
-            'is_video' => $this->isVideoMime(mimeType: $this->mimeType),
+            'is_video' => $this->isVideoMime($this->mimeType),
         ];
     }
 

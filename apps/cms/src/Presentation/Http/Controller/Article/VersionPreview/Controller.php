@@ -23,9 +23,10 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $articleVersion = $this->articleVersionPreview->execute(
-            input: new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'])
-        )->articleVersion;
+        $articleVersion = $this->articleVersionPreview->execute(new Input(
+            articleId: (int) $vars['id'],
+            versionNo: (int) $vars['version'],
+        ))->articleVersion;
         if ($articleVersion === null) {
             return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }

@@ -27,19 +27,19 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         $userId = (int) $vars['id'];
-        $output = $this->update->execute(input: new Input(id: $userId, data: $request->body, currentUser: $currentUser));
+        $output = $this->update->execute(new Input(id: $userId, data: $request->body, currentUser: $currentUser));
         if (!$output->updated) {
             $this->session->flash(key: 'admin_user.form_error', value: $output->error ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/users');
+            return Response::redirect('/admin/users');
         }
 
         $this->audit->adminUserUpdated(request: $request, userId: $userId);
         $this->session->flash(key: 'success', value: '管理者アカウントを更新しました');
-        return Response::redirect(location: '/admin/users');
+        return Response::redirect('/admin/users');
     }
 }

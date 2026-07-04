@@ -28,8 +28,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput(values: $input->data);
-        $validation = (new FormValidator(input: $values))
+        $values = new ValidationInput($input->data);
+        $validation = (new FormValidator($values))
             ->required(field: 'title', label: 'タイトル')
             ->required(field: 'slug', label: 'スラッグ')
             ->required(field: 'body_format', label: '入力種別')
@@ -38,16 +38,16 @@ final readonly class Interactor
         $validation = SlugValidator::validate(input: $values, validation: $validation);
 
         if (!$validation->isValid()) {
-            return Output::invalid(validation: $validation);
+            return Output::invalid($validation);
         }
 
-        $richTextValidation = $this->validateRichTextBody(values: $values);
+        $richTextValidation = $this->validateRichTextBody($values);
         if (!$richTextValidation->isValid()) {
-            return Output::invalid(validation: $richTextValidation);
+            return Output::invalid($richTextValidation);
         }
 
         if ($this->articles->slugExists(slug: $values->string(field: 'slug'), exceptId: $input->id)) {
-            return Output::invalid(validation: ValidationOutput::invalid(
+            return Output::invalid(ValidationOutput::invalid(
                 new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),
             ));
         }
@@ -60,7 +60,7 @@ final readonly class Interactor
             $articleData['author_id'] = $input->currentUser->id;
         }
 
-        return Output::saved(articleId: $this->articles->save(article: Article::fromInput(id: $input->id, data: $articleData)));
+        return Output::saved($this->articles->save(Article::fromInput(id: $input->id, data: $articleData)));
     }
 
     private function validateRichTextBody(ValidationInput $values): ValidationOutput
@@ -75,7 +75,7 @@ final readonly class Interactor
         }
         /** @var array<string, mixed> $decoded */
 
-        if ($this->isEmptyRichTextDocument(node: $decoded)) {
+        if ($this->isEmptyRichTextDocument($decoded)) {
             return ValidationOutput::invalid(new ValidationError(field: 'body', message: '本文を入力してください。'));
         }
 
@@ -103,7 +103,7 @@ final readonly class Interactor
         foreach ($content as $child) {
             if (is_array($child)) {
                 /** @var array<string, mixed> $child */
-                if (!$this->isEmptyRichTextDocument(node: $child)) {
+                if (!$this->isEmptyRichTextDocument($child)) {
                     return false;
                 }
             }
@@ -115,17 +115,17 @@ final readonly class Interactor
     private function authorize(Input $input, string $status): void
     {
         if ($input->id === null) {
-            if (!$this->articlePolicy->canCreate(user: $input->currentUser)) {
+            if (!$this->articlePolicy->canCreate($input->currentUser)) {
                 throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_CREATE);
             }
         } else {
-            $article = $this->articlePolicyQuery->findById(id: $input->id);
+            $article = $this->articlePolicyQuery->findById($input->id);
             if ($article === null || !$this->articlePolicy->canUpdate(user: $input->currentUser, article: $article)) {
                 throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_UPDATE);
             }
         }
 
-        if ($status === 'published' && !$this->articlePolicy->canPublish(user: $input->currentUser)) {
+        if ($status === 'published' && !$this->articlePolicy->canPublish($input->currentUser)) {
             throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_PUBLISH);
         }
     }

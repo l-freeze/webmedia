@@ -35,7 +35,7 @@ final readonly class Interactor
             since: $this->loginAttemptWindowStart($now),
         );
         if ($this->tooManyLoginAttempts($failureCounts)) {
-            $this->loginAttempts->save(attempt: LoginAttempt::blocked(
+            $this->loginAttempts->save(LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
                 attemptedAt: $now,
@@ -49,7 +49,7 @@ final readonly class Interactor
             plainPassword: $input->password,
             passwordHash: $user->passwordHash,
         )) {
-            $this->loginAttempts->save(attempt: LoginAttempt::failure(
+            $this->loginAttempts->save(LoginAttempt::failure(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
                 attemptedAt: $now,
@@ -58,7 +58,7 @@ final readonly class Interactor
             return Output::failed();
         }
 
-        $this->loginAttempts->save(attempt: LoginAttempt::success(
+        $this->loginAttempts->save(LoginAttempt::success(
             email: $input->email,
             ipAddress: $input->ipAddress,
             attemptedAt: $now,

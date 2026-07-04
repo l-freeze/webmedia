@@ -23,16 +23,16 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->save->execute(input: new Input(data: $request->body));
+        $output = $this->save->execute(new Input(data: $request->body));
         if (!$output->saved) {
             $this->session->flashValue(key: 'category.form_values', value: $request->body);
             $this->session->flash(key: 'category.form_error', value: $output->error ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: '/admin/categories');
+            return Response::redirect('/admin/categories');
         }
 
         $this->audit->categorySaved(request: $request, categoryId: null, created: true);
         $this->session->flash(key: 'success', value: '保存しました');
-        return Response::redirect(location: '/admin/categories');
+        return Response::redirect('/admin/categories');
     }
 }

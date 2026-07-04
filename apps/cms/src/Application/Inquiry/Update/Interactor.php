@@ -20,18 +20,18 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $errors = [];
-        if (!InquiryStatus::isValid(status: $input->status)) {
+        if (!InquiryStatus::isValid($input->status)) {
             $errors[] = new ValidationError(field: 'status', message: '状態を選択してください。');
         }
         if (mb_strlen($input->adminNote) > self::ADMIN_NOTE_MAX_LENGTH) {
             $errors[] = new ValidationError(field: 'admin_note', message: '管理メモは1000文字以内で入力してください。');
         }
         if ($errors !== []) {
-            return Output::invalid(validation: ValidationOutput::invalid(...$errors));
+            return Output::invalid(ValidationOutput::invalid(...$errors));
         }
 
         return $this->inquiries->updateStatus(id: $input->id, status: $input->status, adminNote: $input->adminNote)
             ? Output::updated()
-            : Output::invalid(validation: ValidationOutput::invalid(new ValidationError(field: 'id', message: '問い合わせが見つかりません。')));
+            : Output::invalid(ValidationOutput::invalid(new ValidationError(field: 'id', message: '問い合わせが見つかりません。')));
     }
 }

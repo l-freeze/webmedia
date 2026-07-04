@@ -21,11 +21,11 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        if (!$this->articlePolicy->canRestore(user: $input->currentUser)) {
+        if (!$this->articlePolicy->canRestore($input->currentUser)) {
             throw new AuthorizationException(userId: $input->currentUser->id, permission: PermissionCode::ARTICLE_RESTORE);
         }
 
-        $this->articles->restore(articleId: new ArticleId(value: $input->articleId), versionNo: new ArticleVersionNo(value: $input->versionNo));
+        $this->articles->restore(articleId: new ArticleId($input->articleId), versionNo: new ArticleVersionNo($input->versionNo));
         return new Output(restored: true);
     }
 }

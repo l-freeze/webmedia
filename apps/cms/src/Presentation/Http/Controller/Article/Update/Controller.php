@@ -28,12 +28,12 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         $id = (int) $vars['id'];
         try {
-            $output = $this->save->execute(input: new Input(id: $id, data: $request->body, currentUser: $currentUser));
+            $output = $this->save->execute(new Input(id: $id, data: $request->body, currentUser: $currentUser));
         } catch (AuthorizationException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
@@ -42,13 +42,13 @@ final readonly class Controller
             $this->session->flashValue(key: 'article.form_input', value: $this->articleFormData(data: $request->body, id: $id));
             $this->session->flash(key: 'article.form_error', value: $output->validation->firstMessage() ?? '入力内容を確認してください。');
 
-            return Response::redirect(location: "/admin/articles/{$id}");
+            return Response::redirect("/admin/articles/{$id}");
         }
 
         $this->session->flash(key: 'success', value: '保存しました');
         $this->audit->articleSaved(request: $request, articleId: $output->articleId->value, created: false);
 
-        return Response::redirect(location: '/admin/articles/' . $output->articleId->value);
+        return Response::redirect('/admin/articles/' . $output->articleId->value);
     }
 
     /**

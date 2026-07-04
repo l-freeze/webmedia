@@ -26,17 +26,17 @@ final readonly class Controller
     {
         $currentUser = $this->guard->currentUser();
         if ($currentUser === null) {
-            return Response::redirect(location: '/admin/login');
+            return Response::redirect('/admin/login');
         }
 
         try {
-            $this->restore->execute(input: new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
+            $this->restore->execute(new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
         } catch (AuthorizationException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }
 
         $this->audit->articleRestored(request: $request, articleId: (int) $vars['id'], versionNo: (int) $vars['version']);
 
-        return Response::redirect(location: '/admin/articles/' . $vars['id']);
+        return Response::redirect('/admin/articles/' . $vars['id']);
     }
 }

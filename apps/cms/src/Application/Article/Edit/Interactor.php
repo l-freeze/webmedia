@@ -21,7 +21,7 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         return new Output(
-            article: $input->id === null ? null : $this->articles->find(id: $input->id),
+            article: $input->id === null ? null : $this->articles->find($input->id),
             categories: $this->categories->categories(),
             media: $this->images->images(),
         );
