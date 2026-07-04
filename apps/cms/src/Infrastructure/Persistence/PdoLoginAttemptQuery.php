@@ -20,9 +20,19 @@ final readonly class PdoLoginAttemptQuery implements ILoginAttemptQuery
 
     public function countFailures(string $email, string $ipAddress, DateTimeImmutable $since): LoginAttemptFailureCounts
     {
+        $sql = <<<'SQL'
+SELECT
+    COUNT(*) AS by_ip,
+    SUM(CASE WHEN email_hash = :email_hash THEN 1 ELSE 0 END) AS by_email_and_ip
+FROM login_attempts
+WHERE ip_address = :ip_address
+  AND result = :result
+  AND attempted_at >= :since
+SQL;
+
         $stmt = PdoHelper::prepare(
             pdo: $this->pdo,
-            sql: 'SELECT COUNT(*) AS by_ip, SUM(CASE WHEN email_hash = :email_hash THEN 1 ELSE 0 END) AS by_email_and_ip FROM login_attempts WHERE ip_address = :ip_address AND result = :result AND attempted_at >= :since',
+            sql: $sql,
         );
         PdoHelper::execute(statement: $stmt, params: [
             'email_hash' => $this->emailHash->hash(email: $email),
