@@ -1003,6 +1003,19 @@ $requestScope->set(Csrf::class, fn (Container $container): Csrf => new Csrf(
 
 `apps/cms`、`apps/front` の Application / Presentation では、引数が1つだけで、method 名や渡す値から意味が明白な場合は positional arguments を使ってよい。
 
+Framework / Kernel などの基盤層や、抽象的な public API では、引数が1つだけでも named arguments を優先する。`get(id: ...)`、`input(key: ...)`、`handle(request: ...)` のように method 名だけでは引数の意味が抽象的な呼び出しでは、引数名が読みやすさを補うためである。
+
+Application / Presentation で同じように抽象的な single argument API が増える場合は、named arguments で補う前に method 名、責務、配置を見直す。業務層の呼び出しは、原則として `findByEmail($email)`、`delete($id)`、`execute(new Input(...))` のように、呼び出し名と渡す値から意味が読める形を優先する。
+
+抽象的かどうかは固定リストで判定しない。判断に迷う場合は、次の観点でその都度判断する。
+
+- method 名だけで引数の役割が読めるか
+- 引数名を外しても、型と変数名から意味が落ちないか
+- 業務語彙ではなく `get`、`set`、`handle`、`run`、`input`、`process` のような基盤語彙だけで成り立っていないか
+- 同じ型の引数が増えた時に、呼び出し側が破綻しやすくないか
+
+private method の呼び出しでは、単一引数の named arguments は原則不要である。private method は同一 class 内に閉じており、定義へジャンプすれば意図と型をすぐ確認できるためである。
+
 目的:
 
 - 引数順の読み違いを防ぐ
@@ -1044,6 +1057,17 @@ if ($this->tooManyLoginAttempts($failureCounts)) {
 $output = $this->save->execute(new Input(
     data: $request->body,
 ));
+
+$secureCookie = $this->secureCookie($secure);
+```
+
+単一引数でも named arguments を優先:
+
+```php
+$value = $request->input(key: 'email');
+$service = $container->get(id: UserRepository::class);
+
+return $handler->handle(request: $request);
 ```
 
 例外:
@@ -1053,8 +1077,7 @@ $output = $this->save->execute(new Input(
 - `sprintf`、`in_array` など短く慣用的な関数
 - 引数がない呼び出し
 - `apps/cms`、`apps/front` の Application / Presentation で、引数が1つだけで意味が明白な呼び出し
-
-Framework / Kernel では、引数が1つだけでも named arguments を使ってよい。基盤層は汎用名の method が増えやすく、呼び出し側だけでは引数の意味が読み取りにくい場合があるためである。
+- private method の単一引数呼び出し
 
 UseCase `Input` の constructor 呼び出しでは、引数数に関わらず named arguments を使う。ただし `execute(new Input(...))` のように、`Input` object 自体を唯一の引数として渡す呼び出しでは `execute` 側の `input:` は省略してよい。
 
