@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Controller\Security\LoginAttempt\Reset;
 
-use App\Cms\Application\Auth\LoginAttempt\Reset\Input;
-use App\Cms\Application\Auth\LoginAttempt\Reset\Interactor;
+use App\Cms\Application\Auth\ResetLoginAttempt\Input;
+use App\Cms\Application\Auth\ResetLoginAttempt\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;

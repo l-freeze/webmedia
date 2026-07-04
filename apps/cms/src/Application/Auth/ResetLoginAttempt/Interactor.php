@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\Auth\LoginAttempt\Reset;
+namespace App\Cms\Application\Auth\ResetLoginAttempt;
 
 use App\Cms\Domain\Entity\CmsLoginAttemptReset;
 use App\Cms\Domain\Repository\ICmsLoginAttemptResetRepository;
