@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Media\Store;
 
 use App\Cms\Application\Media\Upload\Input;
 use App\Cms\Application\Media\Upload\Interactor;
+use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
@@ -17,6 +18,7 @@ final readonly class Controller
     public function __construct(
         private Session $session,
         private Interactor $upload,
+        private AuditReporter $audit,
     ) {
     }
 
@@ -43,7 +45,11 @@ final readonly class Controller
             $this->session->flash(key: 'error', value: $output->error ?? 'メディアアップロードに失敗しました。');
             return Response::redirect('/admin/media');
         }
+        if ($output->mediaId === null) {
+            throw new \LogicException('Uploaded media id is missing.');
+        }
 
+        $this->audit->mediaUploaded(request: $request, mediaId: $output->mediaId);
         $this->session->flash(key: 'success', value: 'メディアをアップロードしました');
         return Response::redirect('/admin/media');
     }

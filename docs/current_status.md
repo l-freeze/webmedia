@@ -71,6 +71,7 @@
 - `/admin/audit-logs` を追加し、`storage/logs/audit.log` を CMS から確認できるようにした。
 - CMS 状態変更 Audit は `AuditMiddleware` が最終出力する形に集約した。Controller / UseCase から `AuditEvent` は直接 dispatch しない。
 - 記事/固定ページ/分類/問い合わせ/管理者/設定/メディア削除は、成功時だけ Controller から `AuditReporter` へ業務要約を注入し、middleware が HTTP envelope と合わせて 1 件の AuditEvent として記録するようにした。
+- 監査対象の状態変更成功時は `AuditReporter` の業務要約を必須にし、状態変更なしの validation failure などは Audit success として記録しない方針へ整理した。メディアアップロードにも `media.uploaded` 要約を追加し、状態変更 route の Controller が `AuditReporter` を注入・呼び出すことをテストで検査するようにした。
 - `article.created` / `article.trashed` は HTTP 経由で記録と表示を確認済み。検証用記事は削除済み。
 - 問い合わせ管理:
   - 一覧を 100 件ページングにした。

@@ -91,7 +91,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
             height: $height,
         );
 
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at)');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at) RETURNING id');
         PdoHelper::execute(statement: $stmt, params: [
             'file_name' => $this->safeOriginalName(fileName: $input->string(key: 'name', default: $storedFileName)),
             'path' => $path,
@@ -105,8 +105,9 @@ final readonly class PdoMediaRepository implements IMediaRepository
             'caption' => $caption === '' ? null : $caption,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+        $mediaId = PdoHelper::fetch(statement: $stmt);
 
-        return new MediaUploadResult(uploaded: true);
+        return new MediaUploadResult(uploaded: true, mediaId: $mediaId === null ? null : PdoRow::from(values: $mediaId)->int(key: 'id'));
     }
 
     public function delete(int $id): MediaDeleteResult

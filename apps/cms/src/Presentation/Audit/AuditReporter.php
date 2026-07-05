@@ -145,6 +145,29 @@ final readonly class AuditReporter
         $this->describe(request: $request, action: 'media.deleted', resourceType: 'media', resourceId: (string) $mediaId);
     }
 
+    public function mediaUploaded(Request $request, int $mediaId): void
+    {
+        $file = $request->files['media_file'] ?? [];
+        if (!is_array($file)) {
+            $file = [];
+        }
+        /** @var array<string, mixed> $file */
+
+        $this->describe(
+            request: $request,
+            action: 'media.uploaded',
+            resourceType: 'media',
+            resourceId: (string) $mediaId,
+            metadata: [
+                'file_name' => $this->fileValue(file: $file, key: 'name'),
+                'mime_type' => $this->fileValue(file: $file, key: 'type'),
+                'file_size' => $this->fileInt(file: $file, key: 'size'),
+                'alt_text_present' => $request->bodyInput(key: 'alt_text') !== '',
+                'caption_present' => $request->bodyInput(key: 'caption') !== '',
+            ],
+        );
+    }
+
     public function settingsUpdated(Request $request): void
     {
         $keys = array_values(array_filter(array_keys($request->body), static fn (string $key): bool => $key !== '_csrf'));
@@ -196,5 +219,25 @@ final readonly class AuditReporter
         }
 
         return $values;
+    }
+
+    /**
+     * @param array<string, mixed> $file
+     */
+    private function fileValue(array $file, string $key): string
+    {
+        $value = $file[$key] ?? '';
+
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    /**
+     * @param array<string, mixed> $file
+     */
+    private function fileInt(array $file, string $key): int
+    {
+        $value = $file[$key] ?? 0;
+
+        return is_numeric($value) ? (int) $value : 0;
     }
 }

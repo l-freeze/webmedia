@@ -104,7 +104,11 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 Audit、SecurityLog、HTTP access log は分ける。
 
-CMS の状態変更 HTTP request は `AuditMiddleware` で記録する。Controller が何もしなければ HTTP envelope を記録し、後から説明できない更新操作だけ `AuditReporter` で業務要約を request の audit trail へ注入する。最終的な `AuditEvent` dispatch は middleware が 1 回だけ行う。
+CMS の状態変更 HTTP request は `AuditMiddleware` で記録する。状態変更が成功した場合は Controller が `AuditReporter` で業務要約を request の audit trail へ注入する。状態変更が発生していない場合は `AuditReporter` を呼ばない。最終的な `AuditEvent` dispatch は middleware が 1 回だけ行う。
+
+`AuditMiddleware` は、業務要約がある request を Audit として記録する。業務要約がない正常応答は、validation failure や表示遷移など状態変更なしの request として扱い、Audit には残さない。業務要約がない 4xx / 5xx / 例外は、状態変更前または途中の失敗として汎用 failure を記録する。
+
+監査対象の状態変更 route は、成功時に `AuditReporter` を呼べるよう Controller が `AuditReporter` を constructor injection する。例外は login / logout のように SecurityLog で扱う route だけとし、architecture test の除外リストに明示する。
 
 BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に集約する。区別は `action`、`resource_type`、`metadata` で表現する。
 
@@ -117,6 +121,8 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - Controller が AuditEvent を直接組み立てると、Controller 追加や Audit 仕様変更のたびに横断的な修正が必要になる。
 - middleware は横断処理の入口として妥当だが、DB schema や業務対象の差分計算を知るべきではない。
 - Controller は HTTP 操作の成功後に、必要な業務要約だけを `AuditReporter` へ渡す。actor、IP、user-agent、request-id、最終ログ出力は middleware に残す。
+- PRG では成功時も validation failure 時も redirect になるため、HTTP status や Location だけでは業務成功/失敗を判定しない。業務要約の有無を「状態変更成功」の明示 signal として扱う。
+- `AuditReporter` の呼び忘れは実行時には検出しにくいため、状態変更 route の Controller が `AuditReporter` を受け取ることを architecture test で検査する。
 - 記事本文や固定ページ本文の過去内容は履歴機能の責務であり、Audit は「誰が、いつ、どの対象に、どの種類の変更をしたか」を説明できる最小要約に留める。
 - HTTP envelope と業務イベントはどちらも監査証跡であり、保存先や閲覧 UI を分けるほどの運用要件は現時点ではない。
 - OWASP Logging Cheat Sheet は、ログの目的に合わせて十分な情報を残し、when / where / who / what、action、object、result などを記録する考え方を示している。一方で sensitive personal data や secrets は除外・mask・sanitize するべきとしている。
@@ -134,6 +140,8 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - `NullAuditLogger` を標準にしない。未設定を黙って捨てると検知できない。
 - `BusinessAuditLogger` のような別 logger を作らない。必要になるまでは `AuditEvent` に集約する。
 - 変更内容を知るために request body 全体を保存しない。対象 UseCase ごとに必要な項目だけを要約する。
+- validation failure のように状態変更がない正常応答を Audit success として残さない。
+- 状態変更成功の判定を redirect 先の path pattern に依存させない。
 
 ### 記録する粒度
 
@@ -145,7 +153,51 @@ BusinessAudit という別ログ種別は作らず、既存の `AuditEvent` に�
 - 問い合わせ更新: status、管理メモの有無・文字数・hash。問い合わせ本文は残さない。
 - カテゴリ / タグ更新: name、slug、SEO 項目など運用上説明に必要な値。
 - メディア削除: 対象 ID、file_name、path、mime_type。
+- メディアアップロード: 対象 ID、元ファイル名、mime_type、file_size、alt / caption の有無。
 - 問い合わせ閲覧や export を追加する場合: 個人情報アクセスとして Audit 対象にする。問い合わせ本文は Audit に複製しない。
+
+### Pub/Sub 方式の将来方針
+
+現時点では `AuditReporter` を Controller から明示的に呼ぶ方式を採用する。将来、Controller 追加ごとの `AuditReporter` 追記が負担になった場合は、ApplicationEvent / BusinessEvent を publish し、Audit subscriber が `AuditSummary` へ変換する方式を検討する。
+
+この event は DomainEvent とは呼ばない。DomainEvent は、Domain の状態遷移として意味がある出来事である。Fowler の Domain Event は、domain に影響する出来事を記録し、その event stream を audit log にも使えるという考え方を示している。一方、この CMS の監査要約は HTTP actor、request id、IP、user-agent、画面操作上の action 名、mask 済み metadata など Presentation / Application の文脈を含む。Domain 層が `AuditSummary` や HTTP 情報を知るべきではない。
+
+Pub/Sub 方式を採る場合の候補は次の通り。
+
+- Controller が UseCase 成功後に ApplicationEvent を publish する。
+  - 利点: 現行の `AuditReporter` と同じ場所で置き換えやすい。
+  - 欠点: Controller が「どの成功が状態変更か」を知り続ける。HTTP 以外から同じ UseCase を呼ぶ場合に event が出ない。呼び忘れ問題も残る。
+- UseCase が状態変更成功後に ApplicationEvent を publish する。
+  - 利点: 状態変更が成立した場所に近く、HTTP / CLI / batch など入口が増えても同じ event が出る。後から監査以外の subscriber を追加しやすい。
+  - 欠点: UseCase が EventBus に依存する。同期実行にするか、audit 書き込み失敗を業務失敗にするか、DB 更新と event dispatch の一貫性をどう保つかを設計する必要がある。
+- Entity / Repository lifecycle hook で拾う。
+  - 利点: 保存処理に近く、作成/更新/削除の検出は漏れにくい。Laravel Eloquent の model events / observers はこの系統である。
+  - 欠点: どの UseCase で何の意図で変わったかが見えにくい。Observer / signal は便利だが追跡が難しくなりやすい。Django docs も custom signal について、同一 project 内なら直接呼び出しの方が理解・変更・debug しやすいと警告している。
+- UseCase Output に `AuditSummary` を持たせる。
+  - 利点: Controller は Output を middleware や reporter に渡すだけにできる。
+  - 欠点: UseCase の返り値に監査表現が混ざる。UseCase は Audit があってもなくても成立するため、現方針では採用しない。
+
+決め兼ねている点:
+
+- Pub/Sub を採る場合、event dispatch は同期にするか非同期にするか。
+- Audit subscriber の失敗を UseCase の失敗として扱うか、業務成功を優先して別途 error log にするか。
+- DB 更新と Audit/Event 保存の一貫性をどこまで保証するか。厳密性が必要になれば outbox pattern を検討する。
+- ApplicationEvent の粒度を `ArticleCreated` のような個別 class にするか、`CmsStateChanged` のような汎用 event + action code にするか。
+- HTTP request metadata を UseCase publish event に含めるか、request scope の context provider から subscriber が取得するか。
+
+当面の結論:
+
+- DomainEvent ではなく ApplicationEvent / BusinessEvent として検討する。
+- UseCase が直接 `AuditSummary` を返す方式は採用しない。
+- lifecycle hook / observer は、暗黙性が強く、このコードベースでは採用しない。
+- 現時点では `AuditReporter` を厚くし、architecture test で state-changing route の reporter 漏れを防ぐ。
+
+参考:
+
+- OWASP Logging Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
+- Martin Fowler, Domain Event: https://martinfowler.com/eaaDev/DomainEvent.html
+- Django Signals: https://docs.djangoproject.com/en/5.2/topics/signals/
+- Laravel Eloquent Events / Observers: https://laravel.com/docs/12.x/eloquent#events
 
 ## 公開前仕様
 

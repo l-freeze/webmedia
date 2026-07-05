@@ -16,6 +16,6 @@ final readonly class Interactor
     {
         $result = $this->media->storeUploadedMedia(file: $input->file, altText: $input->altText, caption: $input->caption);
 
-        return new Output(uploaded: $result->uploaded, error: $result->error);
+        return new Output(uploaded: $result->uploaded, error: $result->error, mediaId: $result->mediaId);
     }
 }

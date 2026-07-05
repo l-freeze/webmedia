@@ -54,7 +54,7 @@ final class AuditMiddlewareTest extends TestCase
         self::assertSame([], $events->events);
     }
 
-    public function testPostAdminRequestIsRecorded(): void
+    public function testSuccessfulAdminRequestWithoutBusinessSummaryIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
         $session = $this->session();
@@ -75,29 +75,10 @@ final class AuditMiddlewareTest extends TestCase
         );
 
         self::assertSame(302, $response->status);
-        self::assertCount(1, $events->events);
-
-        $event = $events->events[0];
-        self::assertInstanceOf(AuditEvent::class, $event);
-        self::assertSame('cms.http_state_changed', $event->action);
-        self::assertSame('cms_request', $event->resourceType);
-        self::assertSame('success', $event->result);
-        self::assertSame('42', $event->actorUserId);
-        self::assertSame('editor', $event->actorRole);
-        self::assertNull($event->resourceId);
-        self::assertSame('127.0.0.1', $event->ipAddress);
-        self::assertSame('PHPUnit Browser', $event->userAgent);
-        self::assertSame('request-123', $event->requestId);
-        self::assertSame([], $event->before);
-        self::assertSame([], $event->after);
-        self::assertSame([
-            'method' => 'POST',
-            'path' => '/admin/articles/10',
-            'status_code' => 302,
-        ], $event->metadata);
+        self::assertSame([], $events->events);
     }
 
-    public function testUnknownAdminStateChangingRequestIsRecorded(): void
+    public function testUnknownSuccessfulAdminStateChangingRequestWithoutBusinessSummaryIsNotRecorded(): void
     {
         $events = new RecordingEventBus();
         $middleware = $this->middleware(events: $events);
@@ -107,9 +88,7 @@ final class AuditMiddlewareTest extends TestCase
             handler: $this->handler(response: new Response(body: 'ok')),
         );
 
-        self::assertCount(1, $events->events);
-        self::assertInstanceOf(AuditEvent::class, $events->events[0]);
-        self::assertSame('/admin/unknown-operation', $events->events[0]->metadata['path'] ?? null);
+        self::assertSame([], $events->events);
     }
 
     public function testLoginAndLogoutAreNotRecorded(): void
@@ -197,7 +176,18 @@ final class AuditMiddlewareTest extends TestCase
 
         $middleware->process(
             request: $this->request(method: 'POST', path: '/admin/articles/10'),
-            handler: $this->handler(response: new Response(body: 'ok')),
+            handler: new CallableRequestHandler(handler: static function (Request $request): Response {
+                $trail = $request->attribute(key: AuditTrail::ATTRIBUTE);
+                self::assertInstanceOf(AuditTrail::class, $trail);
+                $trail->describe(summary: new AuditSummary(
+                    action: 'article.updated',
+                    resourceType: 'article',
+                    resourceId: '10',
+                    metadata: [],
+                ));
+
+                return new Response(body: 'ok');
+            }),
         );
     }
 
@@ -216,7 +206,18 @@ final class AuditMiddlewareTest extends TestCase
                     'title' => 'Title',
                 ],
             ),
-            handler: $this->handler(response: new Response(body: 'ok')),
+            handler: new CallableRequestHandler(handler: static function (Request $request): Response {
+                $trail = $request->attribute(key: AuditTrail::ATTRIBUTE);
+                self::assertInstanceOf(AuditTrail::class, $trail);
+                $trail->describe(summary: new AuditSummary(
+                    action: 'article.updated',
+                    resourceType: 'article',
+                    resourceId: '10',
+                    metadata: ['status' => 'draft'],
+                ));
+
+                return new Response(body: 'ok');
+            }),
         );
 
         self::assertCount(1, $events->events);

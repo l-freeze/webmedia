@@ -62,6 +62,10 @@ final readonly class AuditMiddleware implements MiddlewareInterface
             ? null
             : $trail->summary();
 
+        if ($summary === null && $response->status < Response::HTTP_BAD_REQUEST) {
+            return $response;
+        }
+
         $this->record(
             request: $auditedRequest,
             result: $response->status >= Response::HTTP_BAD_REQUEST ? 'failure' : 'success',
