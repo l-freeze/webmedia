@@ -8,6 +8,7 @@ use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\GetCurrentUser\Interactor;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Infrastructure\Security\UnauthenticatedCmsUserException;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
@@ -15,38 +16,57 @@ use PHPUnit\Framework\TestCase;
 
 final class CmsGuardTest extends TestCase
 {
-    public function testReturnsNullWithoutUserIdInSession(): void
+    public function testIsNotAuthenticatedWithoutUserIdInSession(): void
     {
         $query = new RecordingCurrentCmsUserQuery(user: $this->user());
         $guard = new CmsGuard(session: $this->session(), currentUsers: new Interactor(users: $query));
 
-        self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
         self::assertSame([], $query->ids);
     }
 
-    public function testReturnsNullForInvalidUserIdInSession(): void
+    public function testThrowsCurrentUserWithoutUserIdInSession(): void
+    {
+        $query = new RecordingCurrentCmsUserQuery(user: $this->user());
+        $guard = new CmsGuard(session: $this->session(), currentUsers: new Interactor(users: $query));
+
+        $this->expectException(UnauthenticatedCmsUserException::class);
+
+        $guard->currentUser();
+    }
+
+    public function testIsNotAuthenticatedForInvalidUserIdInSession(): void
     {
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 'abc');
         $query = new RecordingCurrentCmsUserQuery(user: $this->user());
         $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
 
-        self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
         self::assertSame([], $query->ids);
     }
 
-    public function testReturnsNullWhenSessionUserNoLongerExists(): void
+    public function testIsNotAuthenticatedWhenSessionUserNoLongerExists(): void
     {
         $session = $this->session();
         $session->set(key: 'cms.user_id', value: 9);
         $query = new RecordingCurrentCmsUserQuery(user: null);
         $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
 
-        self::assertNull($guard->currentUser());
         self::assertFalse($guard->isAuthenticated());
         self::assertSame([9], $query->ids);
+    }
+
+    public function testThrowsCurrentUserWhenSessionUserNoLongerExists(): void
+    {
+        $session = $this->session();
+        $session->set(key: 'cms.user_id', value: 9);
+        $query = new RecordingCurrentCmsUserQuery(user: null);
+        $guard = new CmsGuard(session: $session, currentUsers: new Interactor(users: $query));
+
+        $this->expectException(UnauthenticatedCmsUserException::class);
+
+        $guard->currentUser();
     }
 
     public function testReturnsCurrentUserForValidSessionUserId(): void

@@ -21,7 +21,18 @@ final class CmsGuard
     ) {
     }
 
-    public function currentUser(): ?CurrentCmsUser
+    public function currentUser(): CurrentCmsUser
+    {
+        return $this->resolveCurrentUser()
+            ?? throw new UnauthenticatedCmsUserException('Current CMS user is not authenticated.');
+    }
+
+    public function isAuthenticated(): bool
+    {
+        return $this->resolveCurrentUser() !== null;
+    }
+
+    private function resolveCurrentUser(): ?CurrentCmsUser
     {
         if ($this->resolved) {
             return $this->currentUser;
@@ -36,11 +47,6 @@ final class CmsGuard
         $this->currentUser = $this->currentUsers->execute(new Input(userId: $userId))->user;
 
         return $this->currentUser;
-    }
-
-    public function isAuthenticated(): bool
-    {
-        return $this->currentUser() !== null;
     }
 
     private function userIdFromSession(): ?int

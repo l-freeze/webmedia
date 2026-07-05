@@ -306,8 +306,12 @@ final class AuditMiddlewareTest extends TestCase
 
     private function guard(?Session $session = null, ?CurrentCmsUser $user = null): CmsGuard
     {
+        $session ??= $this->session();
+        $user ??= new CurrentCmsUser(id: 1, email: 'admin@example.test', name: 'Admin', role: 'admin');
+        $session->set(key: 'cms.user_id', value: $user->id);
+
         return new CmsGuard(
-            session: $session ?? $this->session(),
+            session: $session,
             currentUsers: new \App\Cms\Application\Auth\GetCurrentUser\Interactor(
                 users: new FixedAuditCmsUserQuery(user: $user),
             ),

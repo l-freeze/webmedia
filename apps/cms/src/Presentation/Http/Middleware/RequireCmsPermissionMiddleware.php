@@ -31,8 +31,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
             return $handler->handle(request: $request);
         }
 
-        $user = $this->guard->currentUser();
-        if ($user === null) {
+        if (!$this->guard->isAuthenticated()) {
             $this->events->dispatch(event: $this->securityEvent(
                 request: $request,
                 eventType: 'cms.authorization.unauthenticated',
@@ -43,6 +42,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
             return Response::redirect('/admin/login');
         }
 
+        $user = $this->guard->currentUser();
         $authorization = $this->authorizeRoute->execute(new Input(
             actorRole: $user->role,
             requiredPermission: $permission,

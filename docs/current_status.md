@@ -49,6 +49,7 @@
     - Article Entity の作成 / 更新 / 削除 / 復元は許可済み操作 value を受け取る形にした。
     - `Application/Auth/Policy` と `PdoArticlePolicyQuery` を削除し、Application `<Feature>/<Action>` ルールの例外をなくした。
     - PHPUnit、PHPStan、HTTP 経由のログイン、記事作成、記事更新、記事削除、記事復元を確認済み。検証用記事と版履歴は削除済み。
+  - `CmsGuard::currentUser()` を認証済み領域用の non-null API にし、nullable なユーザー解決は Guard 内部へ閉じた。未ログイン redirect は `RequireCmsSessionMiddleware` に集約し、Controller 側の重複 redirect 分岐は削除した。
   - ログイン後にダッシュボード、記事、固定ページ、カテゴリ、タグ、メディア、問い合わせ、設定、ゴミ箱を HTTP 確認。
   - 管理ログインの試行回数制限を追加した。
     - `cms_login_attempts` に success / failure / blocked を記録する。

@@ -124,17 +124,13 @@ final readonly class AuditMiddleware implements MiddlewareInterface
         ));
     }
 
-    private function actorUserId(): ?string
+    private function actorUserId(): string
     {
-        $user = $this->guard->currentUser();
-
-        return $user === null ? null : (string) $user->id;
+        return (string) $this->guard->currentUser()->id;
     }
 
-    private function actorRole(): ?string
+    private function actorRole(): string
     {
-        $user = $this->guard->currentUser();
-
-        return $user === null ? null : $user->role;
+        return $this->guard->currentUser()->role;
     }
 }

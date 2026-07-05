@@ -6,7 +6,6 @@ namespace App\Cms\Presentation\Http\Controller\Inquiry\Update;
 
 use App\Cms\Application\Inquiry\Update\Input;
 use App\Cms\Application\Inquiry\Update\Interactor;
-use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -15,7 +14,6 @@ use App\Framework\Security\Session;
 final readonly class Controller
 {
     public function __construct(
-        private CmsGuard $guard,
         private Interactor $update,
         private Session $session,
         private AuditReporter $audit,
@@ -25,11 +23,6 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $currentUser = $this->guard->currentUser();
-        if ($currentUser === null) {
-            return Response::redirect('/admin/login');
-        }
-
         $id = (int) ($vars['id'] ?? 0);
         $status = $this->bodyString(request: $request, key: 'status');
         $adminNote = $this->bodyString(request: $request, key: 'admin_note');

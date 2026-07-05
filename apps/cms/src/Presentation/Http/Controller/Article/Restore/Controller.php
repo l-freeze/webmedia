@@ -25,9 +25,6 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $currentUser = $this->guard->currentUser();
-        if ($currentUser === null) {
-            return Response::redirect('/admin/login');
-        }
 
         try {
             $this->restore->execute(new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
