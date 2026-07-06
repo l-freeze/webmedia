@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Framework\Http;
 
-use InvalidArgumentException;
+use App\Framework\Http\Exception\MalformedRequestException;
 use Uri\Rfc3986\Uri;
 
 final readonly class Request
@@ -47,7 +47,7 @@ final readonly class Request
     {
         $uri = Uri::parse($requestUri);
         if (!$uri instanceof Uri) {
-            throw new InvalidArgumentException('Request URI is malformed.');
+            throw new MalformedRequestException('Request URI is malformed.');
         }
 
         $path = $uri->getPath();

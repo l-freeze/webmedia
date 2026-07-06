@@ -8,6 +8,7 @@ use App\Framework\Application\ApplicationInterface;
 use App\Framework\Container\Container;
 use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
 use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
+use App\Framework\Http\Exception\MalformedRequestException;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
@@ -17,7 +18,6 @@ use App\Framework\Routing\Router;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -53,7 +53,7 @@ final class Application implements ApplicationInterface
     {
         try {
             $request = Request::fromGlobals();
-        } catch (InvalidArgumentException) {
+        } catch (MalformedRequestException) {
             (new Response(
                 body: 'Bad Request',
                 status: Response::HTTP_BAD_REQUEST,

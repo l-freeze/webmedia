@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
+use App\Framework\Http\Exception\MalformedRequestException;
 use App\Framework\Http\Request;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class RequestTest extends TestCase
@@ -93,7 +93,7 @@ final class RequestTest extends TestCase
             $_POST = [];
             $_FILES = [];
 
-            $this->expectException(InvalidArgumentException::class);
+            $this->expectException(MalformedRequestException::class);
             $this->expectExceptionMessage('Request URI is malformed.');
 
             Request::fromGlobals();
