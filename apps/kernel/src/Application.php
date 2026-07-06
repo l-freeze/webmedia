@@ -6,9 +6,9 @@ namespace App\Kernel;
 
 use App\Framework\Application\ApplicationInterface;
 use App\Framework\Container\Container;
+use App\Framework\Http\Exception\MalformedRequestException;
 use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
 use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use App\Framework\Http\Exception\MalformedRequestException;
 use App\Framework\Http\Middleware\CallableRequestHandler;
 use App\Framework\Http\Middleware\MiddlewareInterface;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
@@ -51,15 +51,19 @@ final class Application implements ApplicationInterface
 
     public function handleGlobals(): void
     {
+        $this->handleCurrentRequest()->send();
+    }
+
+    private function handleCurrentRequest(): Response
+    {
         try {
             $request = Request::fromGlobals();
         } catch (MalformedRequestException) {
-            (new Response(
+            return new Response(
                 body: 'Bad Request',
                 status: Response::HTTP_BAD_REQUEST,
                 headers: ['Content-Type' => 'text/plain; charset=utf-8'],
-            ))->send();
-            return;
+            );
         }
 
         $this->sessionRuntime->start(secure: $request->isHttps());
@@ -72,7 +76,7 @@ final class Application implements ApplicationInterface
                 runtime: $this->sessionRuntime,
             );
 
-            $this->handleWithExceptionHandling(request: $request, session: $session)->send();
+            return $this->handleWithExceptionHandling(request: $request, session: $session);
         } finally {
             $this->sessionRuntime->close();
         }
