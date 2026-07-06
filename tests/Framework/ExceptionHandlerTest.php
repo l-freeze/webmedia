@@ -51,6 +51,24 @@ PHP;
         self::assertSame('handled: controller failed', $body);
     }
 
+    public function testApplicationReturnsBadRequestForMalformedRequestUri(): void
+    {
+        $root = sys_get_temp_dir() . '/webmedia-bad-request-test-' . bin2hex(random_bytes(4));
+        mkdir($root . '/apps/front/config', 0777, true);
+        mkdir($root . '/apps/cms/config', 0777, true);
+        file_put_contents($root . '/apps/front/config/routes.php', "<?php\ndeclare(strict_types=1);\nreturn [];\n");
+        file_put_contents($root . '/apps/cms/config/routes.php', "<?php\ndeclare(strict_types=1);\nreturn [];\n");
+
+        $application = new Application(root: $root);
+        $this->setRequestGlobals(path: '%');
+
+        ob_start();
+        $application->handleGlobals();
+        $body = (string) ob_get_clean();
+
+        self::assertSame('Bad Request', $body);
+    }
+
     private function setRequestGlobals(string $path): void
     {
         $_SERVER = ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => $path];

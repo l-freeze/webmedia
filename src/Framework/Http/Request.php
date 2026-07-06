@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Framework\Http;
 
+use InvalidArgumentException;
+use Uri\Rfc3986\Uri;
+
 final readonly class Request
 {
     /**
@@ -28,8 +31,7 @@ final readonly class Request
     {
         $server = self::stringMap(values: $_SERVER);
         $requestUri = $server['REQUEST_URI'] ?? '/';
-        $parsedPath = parse_url($requestUri, PHP_URL_PATH);
-        $path = is_string($parsedPath) && $parsedPath !== '' ? $parsedPath : '/';
+        $path = self::pathFromRequestUri(requestUri: $requestUri);
 
         return new self(
             method: strtoupper($server['REQUEST_METHOD'] ?? 'GET'),
@@ -39,6 +41,17 @@ final readonly class Request
             server: $server,
             files: self::mixedMap(values: $_FILES),
         );
+    }
+
+    private static function pathFromRequestUri(string $requestUri): string
+    {
+        $uri = Uri::parse($requestUri);
+        if (!$uri instanceof Uri) {
+            throw new InvalidArgumentException('Request URI is malformed.');
+        }
+
+        $path = $uri->getPath();
+        return $path !== '' ? $path : '/';
     }
 
     /**

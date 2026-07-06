@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Framework;
 
 use App\Framework\Http\Request;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class RequestTest extends TestCase
@@ -68,6 +69,34 @@ final class RequestTest extends TestCase
             self::assertSame('draft', $request->query['status']);
             self::assertSame('Example', $request->body['title']);
             self::assertTrue($request->isHttps());
+        } finally {
+            $_SERVER = $previousServer;
+            $_GET = $previousGet;
+            $_POST = $previousPost;
+            $_FILES = $previousFiles;
+        }
+    }
+
+    public function testFromGlobalsRejectsMalformedRequestUri(): void
+    {
+        $previousServer = $_SERVER;
+        $previousGet = $_GET;
+        $previousPost = $_POST;
+        $previousFiles = $_FILES;
+
+        try {
+            $_SERVER = [
+                'REQUEST_METHOD' => 'get',
+                'REQUEST_URI' => '%',
+            ];
+            $_GET = [];
+            $_POST = [];
+            $_FILES = [];
+
+            $this->expectException(InvalidArgumentException::class);
+            $this->expectExceptionMessage('Request URI is malformed.');
+
+            Request::fromGlobals();
         } finally {
             $_SERVER = $previousServer;
             $_GET = $previousGet;

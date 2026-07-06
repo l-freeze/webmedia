@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Presentation\Seo;
 
+use Uri\Rfc3986\Uri;
+
 final readonly class CanonicalUrl
 {
     public function __construct(private string $baseUrl)
@@ -50,9 +52,23 @@ final readonly class CanonicalUrl
             return null;
         }
 
-        $pathOnly = parse_url($path, PHP_URL_PATH);
-        $normalizedPath = '/' . ltrim(is_string($pathOnly) && $pathOnly !== '' ? $pathOnly : '/', '/');
+        $baseUri = Uri::parse($baseUrl);
+        if (!$baseUri instanceof Uri || $baseUri->getScheme() === null || $baseUri->getHost() === null) {
+            return null;
+        }
 
-        return $baseUrl . $normalizedPath;
+        $pathUri = Uri::parse($path);
+        if (!$pathUri instanceof Uri || $pathUri->getScheme() !== null || $pathUri->getHost() !== null) {
+            return null;
+        }
+
+        $pathOnly = $pathUri->getPath();
+        $normalizedPath = '/' . ltrim($pathOnly !== '' ? $pathOnly : '/', '/');
+
+        return $baseUri
+            ->withPath($normalizedPath)
+            ->withQuery(null)
+            ->withFragment(null)
+            ->toString();
     }
 }

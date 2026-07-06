@@ -45,4 +45,25 @@ final class CanonicalUrlTest extends TestCase
             $canonicalUrl->fromPath(path: '/tags/php?utm_source=mail'),
         );
     }
+
+    public function testReturnsNullWhenBaseUrlIsInvalid(): void
+    {
+        $canonicalUrl = new CanonicalUrl(baseUrl: 'example.com');
+
+        self::assertNull($canonicalUrl->fromPath(path: '/tags/php'));
+    }
+
+    public function testReturnsNullWhenPathIsAbsoluteUri(): void
+    {
+        $canonicalUrl = new CanonicalUrl(baseUrl: 'https://example.com');
+
+        self::assertNull($canonicalUrl->fromPath(path: 'https://other.example/tags/php'));
+    }
+
+    public function testReturnsNullWhenPathIsMalformed(): void
+    {
+        $canonicalUrl = new CanonicalUrl(baseUrl: 'https://example.com');
+
+        self::assertNull($canonicalUrl->fromPath(path: '%'));
+    }
 }

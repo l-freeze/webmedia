@@ -17,6 +17,7 @@ use App\Framework\Routing\Router;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -50,7 +51,17 @@ final class Application implements ApplicationInterface
 
     public function handleGlobals(): void
     {
-        $request = Request::fromGlobals();
+        try {
+            $request = Request::fromGlobals();
+        } catch (InvalidArgumentException) {
+            (new Response(
+                body: 'Bad Request',
+                status: Response::HTTP_BAD_REQUEST,
+                headers: ['Content-Type' => 'text/plain; charset=utf-8'],
+            ))->send();
+            return;
+        }
+
         $this->sessionRuntime->start(secure: $request->isHttps());
 
         try {
