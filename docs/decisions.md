@@ -169,7 +169,7 @@ Pub/Sub 方式を採る場合の候補は次の通り。
   - 欠点: Controller が「どの成功が状態変更か」を知り続ける。HTTP 以外から同じ UseCase を呼ぶ場合に event が出ない。呼び忘れ問題も残る。
 - UseCase が状態変更成功後に ApplicationEvent を publish する。
   - 利点: 状態変更が成立した場所に近く、HTTP / CLI / batch など入口が増えても同じ event が出る。後から監査以外の subscriber を追加しやすい。
-  - 欠点: UseCase が EventBus に依存する。同期実行にするか、audit 書き込み失敗を業務失敗にするか、DB 更新と event dispatch の一貫性をどう保つかを設計する必要がある。
+  - 欠点: UseCase が EventBus に依存する。同期実行にするか、audit 書き込み失敗を業務失敗にするか、DB 更新と event dispatch の一貫性をどう保つかを設計する必要がある。ただし、同期 EventBus で同一 request 中に Audit を保存する限り、outbox は不要である。
 - Entity / Repository lifecycle hook で拾う。
   - 利点: 保存処理に近く、作成/更新/削除の検出は漏れにくい。Laravel Eloquent の model events / observers はこの系統である。
   - 欠点: どの UseCase で何の意図で変わったかが見えにくい。Observer / signal は便利だが追跡が難しくなりやすい。Django docs も custom signal について、同一 project 内なら直接呼び出しの方が理解・変更・debug しやすいと警告している。
@@ -181,9 +181,17 @@ Pub/Sub 方式を採る場合の候補は次の通り。
 
 - Pub/Sub を採る場合、event dispatch は同期にするか非同期にするか。
 - Audit subscriber の失敗を UseCase の失敗として扱うか、業務成功を優先して別途 error log にするか。
-- DB 更新と Audit/Event 保存の一貫性をどこまで保証するか。厳密性が必要になれば outbox pattern を検討する。
+- DB 更新と Audit/Event 保存の一貫性をどこまで保証するか。同期 EventBus で同一 request 中に Audit を保存する限り、outbox pattern は導入しない。
 - ApplicationEvent の粒度を `ArticleCreated` のような個別 class にするか、`CmsStateChanged` のような汎用 event + action code にするか。
 - HTTP request metadata を UseCase publish event に含めるか、request scope の context provider から subscriber が取得するか。
+
+outbox pattern を再検討する条件:
+
+- event dispatch / Audit 保存を非同期 worker に移す。
+- Audit subscriber の失敗で業務処理を rollback したくないが、event は失いたくない。
+- retry 可能な event 配信保証が必要になる。
+- message broker や外部 service へ event を配信する。
+- Audit 以外の subscriber が増え、request 中の同期処理に置き続けるのが重くなる。
 
 当面の結論:
 
@@ -191,6 +199,7 @@ Pub/Sub 方式を採る場合の候補は次の通り。
 - UseCase が直接 `AuditSummary` を返す方式は採用しない。
 - lifecycle hook / observer は、暗黙性が強く、このコードベースでは採用しない。
 - 現時点では `AuditReporter` を厚くし、architecture test で state-changing route の reporter 漏れを防ぐ。
+- Pub/Sub 化する場合も、まずは同期 EventBus を前提にし、outbox は再検討条件が発生するまで採用しない。
 
 参考:
 
