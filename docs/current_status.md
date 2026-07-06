@@ -28,6 +28,7 @@
   - Audit / SecurityLog
   - Application Port
 - Framework:
+  - 軽量 Framework の名称を `pera` として `docs/README.md` と `src/Framework/README.md` に明記した。AGENTS 経由で読む docs 入口にも名称と配置責務を残した。
   - `ProcessRunner` / `ProcessResult` を追加し、PHP から外部プロセスを同期実行するための安全な薄い基盤を用意した。
   - command は shell 文字列ではなく配列形式だけを扱い、起動 warning は `@` ではなく局所 error handler で `startupError` として返す。
   - stdout / stderr は個別に上限を持って保持し、timeout 時は terminate / kill / close を best effort で行う。

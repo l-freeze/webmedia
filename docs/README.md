@@ -7,6 +7,12 @@
 3. `docs/feature_inventory.md`
 4. `docs/webmedia_architecture_rules.md`
 
+## Framework 名
+
+本プロジェクトの軽量 PHP Framework は `pera` と呼ぶ。
+
+`pera` は `src/Framework` に置く。HTTP / DI / Routing / View / Security / Process など、アプリケーション都合を持たない薄い実行基盤を担当する。`apps/kernel`、`apps/shared`、`apps/front`、`apps/cms` は `pera` の外側にあるプロジェクト側の層として扱う。
+
 ## 主要資料
 
 - `docs/current_status.md`: 現在地、未完了、次回再開地点。

@@ -1,8 +1,10 @@
-# Framework
+# pera Framework
 
-This Framework is a small PHP execution foundation for applications that keep their own composition and business requirements outside the framework.
+`pera` is a small PHP execution foundation for applications that keep their own composition and business requirements outside the framework.
 
-It is designed for projects that want explicit application code, readable boundaries, and a small amount of fixed structure.
+It is designed for projects that want explicit application code, readable boundaries, and a small amount of fixed structure. The core stays small because it owns only the web runtime rules that should be reliable before application code runs.
+
+The name of this Framework is `pera`.
 
 ## What It Provides
 
@@ -16,13 +18,15 @@ It is designed for projects that want explicit application code, readable bounda
 - Safe synchronous external process execution
 - Small support classes needed by the runtime
 
-The Framework gives an application a way to start, route, compose, and return responses. It does not decide what the application is.
+`pera` gives an application a way to start, route, compose, and return responses. It does not decide what the application is.
 
 ## Required Web Rules
 
 Small does not mean unopinionated.
 
-The Framework keeps rules that are part of the baseline shape of a PHP web application.
+`pera` keeps rules that are part of the baseline shape of a PHP web application.
+
+For example, malformed global request input is represented by a Framework HTTP exception before it reaches application code. The Kernel entrypoint converts that failure into a bad request response. This keeps the Framework strict at the boundary without making every application controller defend against invalid runtime input.
 
 `Csrf` and `CsrfMiddleware` are kept in the Framework because CSRF protection is a normal safety rule for session-backed web forms. The session key name is also fixed by the Framework. Users should not have to choose this rule before they can build a safe form. Applications decide whether to apply the middleware and which paths to exclude.
 
@@ -53,7 +57,7 @@ The Framework does not depend on Kernel or Shared. They are the standard project
 
 ## What It Does Not Own
 
-The Framework should not own application requirements.
+`pera` should not own application requirements.
 
 Examples that belong outside the Framework:
 
@@ -82,7 +86,7 @@ The default Shared scaffold also provides small PDO helpers for the default pers
 
 ## Scaffold
 
-The Framework provides fixed scaffold commands.
+`pera` provides fixed scaffold commands.
 
 ```bash
 php vendor/bin/scaffold-kernel
@@ -97,7 +101,7 @@ apps/kernel  App\Kernel
 apps/shared  App\Shared
 ```
 
-Namespace customization is intentionally not supported. The Framework gives users a clear starting structure instead of making the first decision ambiguous.
+Namespace customization is intentionally not supported. `pera` gives users a clear starting structure instead of making the first decision ambiguous.
 
 `scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `TemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
