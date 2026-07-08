@@ -49,6 +49,7 @@
     - 既存 front 用の固定ページは business site へ混ぜず、`/business/pages/...` は 404、footer/sitemap にも出さない。
     - business 固有 CSS は共有 `public/assets/css/app.css` に混ぜず、`public/assets/css/front-business.css` として分離する。
     - `business-architecture` theme を追加し、service-first の top、記事一覧、記事詳細を HTTP / ヘッドレス Chrome で確認済み。
+    - `/business` top は、記事メディア寄りの見え方を抑え、初期レビュー、設計・実装、判断手順が先に伝わる business service site 寄りの構成へ調整した。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。

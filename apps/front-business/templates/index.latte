@@ -3,7 +3,7 @@
 <div class="business-home">
   <section class="business-hero" aria-labelledby="business-hero-title">
     <div class="business-hero__copy">
-      <p class="business-eyebrow">権限 / 監査 / 履歴 / 状態変更</p>
+      <p class="business-eyebrow">業務システム / 管理画面 / 発注前レビュー</p>
       <h1 id="business-hero-title">{$heroTitle ?? $siteName}</h1>
       <p>{$heroDescription ?? $description ?? ''}</p>
       <div class="business-hero__actions">
@@ -16,32 +16,25 @@
         <div><dt>対象</dt><dd>管理画面・業務システム</dd></div>
       </dl>
     </div>
-    <div class="business-system-map" aria-label="設計対象">
-      <div class="business-system-map__node business-system-map__node--source">
-        <span>入力</span>
-        <strong>業務判断</strong>
-        <small>公開、承認、削除、差戻し</small>
+    <div class="business-offer" aria-label="提供内容">
+      <div class="business-offer__header">
+        <span>Review Scope</span>
+        <strong>最初に見る境界</strong>
       </div>
-      <div class="business-system-map__rail" aria-hidden="true"></div>
-      <div class="business-system-map__grid">
-        <div><span>権限</span><strong>誰ができるか</strong></div>
-        <div><span>状態</span><strong>何が変わるか</strong></div>
-        <div><span>履歴</span><strong>戻せるか</strong></div>
-        <div><span>監査</span><strong>説明できるか</strong></div>
-      </div>
-      <div class="business-system-map__rail" aria-hidden="true"></div>
-      <div class="business-system-map__node business-system-map__node--result">
-        <span>出力</span>
-        <strong>責任境界が壊れない管理画面</strong>
-        <small>後から説明できる実装に落とす</small>
-      </div>
+      <dl class="business-offer__list">
+        <div><dt>権限</dt><dd>誰が、どの状態で、何を実行できるか</dd></div>
+        <div><dt>状態変更</dt><dd>保存、公開、削除、承認、差戻しの責任境界</dd></div>
+        <div><dt>履歴</dt><dd>戻せる操作、戻してはいけない操作、証跡</dd></div>
+        <div><dt>監査</dt><dd>後から説明するために残すべき事実</dd></div>
+      </dl>
+      <p>安く作る前に、後で壊れる場所を先に潰します。</p>
     </div>
   </section>
 
   <section class="business-scope" aria-labelledby="business-scope-title">
     <div class="business-section-heading">
       <p class="business-eyebrow">Services</p>
-      <h2 id="business-scope-title">最初に決める領域</h2>
+      <h2 id="business-scope-title">買えるもの</h2>
     </div>
     <div class="business-scope__grid">
       <article>
@@ -63,6 +56,19 @@
         <strong>軽量 Framework</strong>
       </article>
     </div>
+  </section>
+
+  <section class="business-method" aria-labelledby="business-method-title">
+    <div class="business-section-heading">
+      <p class="business-eyebrow">Method</p>
+      <h2 id="business-method-title">判断の順番</h2>
+    </div>
+    <ol>
+      <li><span>01</span><strong>業務上の状態を洗い出す</strong><p>下書き、公開、削除、承認待ちなど、操作前後で何が変わるかを整理します。</p></li>
+      <li><span>02</span><strong>権限と責任を分ける</strong><p>画面に出すかどうかではなく、実行してよい理由があるかを確認します。</p></li>
+      <li><span>03</span><strong>履歴と監査を決める</strong><p>誰に、いつ、何を説明できる必要があるかを先に決めます。</p></li>
+      <li><span>04</span><strong>実装の境界へ落とす</strong><p>Controller、UseCase、Middleware、Repository の責務が混ざらない形にします。</p></li>
+    </ol>
   </section>
 
   <section class="business-articles" aria-labelledby="business-articles-title">
