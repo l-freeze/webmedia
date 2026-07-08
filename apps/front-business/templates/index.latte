@@ -58,6 +58,25 @@
     </div>
   </section>
 
+  <section class="business-review-document" aria-labelledby="business-review-document-title">
+    <div class="business-section-heading">
+      <p class="business-eyebrow">Initial Review</p>
+      <h2 id="business-review-document-title">初期リスクレビューで整理すること</h2>
+    </div>
+    <div class="business-review-document__body">
+      <div class="business-review-document__lead">
+        <h3>作る前に、後で説明できる状態変更を定義します。</h3>
+        <p>成果物は、危険箇所、改修順、削ってはいけない境界を判断するための業務資料です。実装前、発注前、改修前の判断材料として使えます。</p>
+      </div>
+      <dl class="business-review-document__table">
+        <div><dt>目的</dt><dd>後で説明できる状態変更を定義する</dd></div>
+        <div><dt>対象</dt><dd>権限、監査、履歴、復元、削除</dd></div>
+        <div><dt>出力</dt><dd>危険箇所、改修順、削らない境界</dd></div>
+        <div><dt>目安</dt><dd>40万円から。規模により調整</dd></div>
+      </dl>
+    </div>
+  </section>
+
   <section class="business-method" aria-labelledby="business-method-title">
     <div class="business-section-heading">
       <p class="business-eyebrow">Method</p>
@@ -71,27 +90,23 @@
     </ol>
   </section>
 
-  <section class="business-articles" aria-labelledby="business-articles-title">
-    <div class="business-section-heading">
-      <p class="business-eyebrow">Articles</p>
-      <h2 id="business-articles-title">判断材料</h2>
-    </div>
-    <div class="article-list">
-      {if count($articles) === 0}
-        <p class="card muted">公開中の記事はありません。</p>
-      {else}
-        {foreach $articles as $article}
-          {include 'partials/article-card.latte', article: $article}
-        {/foreach}
-      {/if}
-    </div>
+  <section class="business-final-cta" aria-labelledby="business-final-cta-title">
+    <p class="business-eyebrow">Contact</p>
+    <h2 id="business-final-cta-title">安く作る前に、壊れる場所を先に見ます。</h2>
+    <p>予算、対象画面、今困っている状態変更を送ってください。対応できる範囲と、最初に見るべき論点を返します。</p>
+    <a class="button" href="{$basePath}/contact">問い合わせる</a>
   </section>
 
-  <section class="business-category-panel" aria-label="カテゴリ">
-    <h2>カテゴリ</h2>
-    {foreach $categories as $category}
-      <p><a href="{$basePath}/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
-    {/foreach}
+  <section class="business-reference" aria-labelledby="business-reference-title">
+    <div class="business-section-heading">
+      <p class="business-eyebrow">References</p>
+      <h2 id="business-reference-title">判断材料</h2>
+    </div>
+    <div class="business-category-panel" aria-label="カテゴリ">
+      {foreach $categories as $category}
+        <p><a href="{$basePath}/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+      {/foreach}
+    </div>
   </section>
 </div>
 {/block}
