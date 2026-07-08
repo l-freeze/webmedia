@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-06
+- 2026-07-08
 
 ## 現在地
 
@@ -42,6 +42,13 @@
     - `sitemap.xml` はトップ、公開中記事、公開中固定ページ、公開記事を持つカテゴリ/タグを出す。
     - `FRONT_SITE_URL` 未設定時は request host を fallback にする。
     - PHPUnit、PHPStan、HTTP GET で確認済み。
+  - `apps/front-business` を追加し、`/business` 配下で業務システム設計サービス向けの公開画面を試せるようにした。
+    - Kernel の app 定義には `/business` の `front-business` 要素だけを追加し、Front Business app 内の routes、canonical、sitemap、redirect、template links は `App\FrontBusiness\Presentation\BasePath` が反映する。
+    - Kernel の app 定義に `front-business` を追加し、既存 `/` の `apps/front` はそのまま残した。
+    - business 側は `business-system-design`、`development-ordering`、`service-process`、`pera-framework` のカテゴリだけを表示対象にする。
+    - 既存 front 用の固定ページは business site へ混ぜず、`/business/pages/...` は 404、footer/sitemap にも出さない。
+    - business 固有 CSS は共有 `public/assets/css/app.css` に混ぜず、`public/assets/css/front-business.css` として分離する。
+    - `business-architecture` theme を追加し、service-first の top、記事一覧、記事詳細を HTTP / ヘッドレス Chrome で確認済み。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。

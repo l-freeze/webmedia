@@ -1,0 +1,13 @@
+{layout '../layout/default.latte'}
+{block content}
+<h1>{$heading}</h1>
+<div class="article-list">
+  {foreach $items as $item}
+    <article class="card">
+      <h2><a href="{$itemBasePath}/{$item['slug']}">{$item['name']}</a></h2>
+      <p class="muted">{$item['description'] ?? ''}</p>
+      <p>{$item['article_count']}件の記事</p>
+    </article>
+  {/foreach}
+</div>
+{/block}

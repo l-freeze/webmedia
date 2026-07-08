@@ -61,6 +61,16 @@
 | SEO / 配信 | 一部完了 | canonical は一部対応済み。`/robots.txt` は `/admin` を Disallow し sitemap URL を出す。`/sitemap.xml` はトップ、公開中記事、公開中固定ページ、公開記事を持つカテゴリ/タグを出す | OGP / Twitter Card、RSS / Atom。sitemap の拡張が必要になった場合は画像 sitemap、優先度、更新頻度、分割 sitemap を検討 |
 | 公開前運用 | 未実装 | - | デプロイ、バックアップ、復元、障害時手順 |
 
+## Front Business
+
+| 機能 | 状態 | 現行実装 | 残作業 |
+|---|---|---|---|
+| サブディレクトリ公開 | 完了 | `apps/front-business`, `/business`, Kernel app definition の要素追加, `Presentation/BasePath` | `apps/front` / `apps/cms` 側の prefix 集約は別途検討 |
+| 業務設計カテゴリ絞り込み | 完了 | `BusinessCategoryScope` で `business-system-design` / `development-ordering` / `service-process` / `pera-framework` のみ表示。top、カテゴリ、タグ、記事詳細、sitemap に反映 | カテゴリ slug を CMS 管理値として変更する運用が必要なら設定化を検討 |
+| 固定ページ共有停止 | 完了 | 既存 front 用の固定ページは business site では表示せず、page links / page detail / sitemap から除外 | business 専用の法務・運営者ページが必要なら専用 scope または専用固定ページ種別を検討 |
+| Business theme | 完了 | `business-architecture` theme、service-first top、記事一覧、記事詳細 | 本番文言、実績、問い合わせ導線、価格表示の調整 |
+| SEO / 配信 | 一部完了 | canonical と sitemap は `/business` prefix を出す | OGP / Twitter Card、business 専用 robots 方針 |
+
 ## Shared / Framework
 
 | 項目 | 状態 | 現行実装 | 残作業 |

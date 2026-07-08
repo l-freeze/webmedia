@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\FrontBusiness\Presentation\Http\Controller\Tag\List;
+
+use App\Framework\Http\Request;
+use App\Framework\Http\Response;
+use App\Framework\View\TemplateRenderer;
+use App\FrontBusiness\Application\Tag\List\Input;
+use App\FrontBusiness\Application\Tag\List\Interactor;
+use App\FrontBusiness\Presentation\BasePath;
+
+final readonly class Controller
+{
+    public function __construct(
+        private TemplateRenderer $renderer,
+        private Interactor $interactor,
+    ) {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $output = $this->interactor->execute(new Input());
+
+        return new Response(body: $this->renderer->render(template: 'taxonomy/index.latte', params: [
+            'title' => 'タグ一覧',
+            'heading' => 'タグ一覧',
+            'itemBasePath' => BasePath::path(path: '/tags'),
+            'items' => array_map(fn ($item): array => $item->toArray(), $output->items),
+        ]));
+    }
+}

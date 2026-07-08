@@ -1,0 +1,91 @@
+{layout 'layout/default.latte'}
+{block content}
+<div class="business-home">
+  <section class="business-hero" aria-labelledby="business-hero-title">
+    <div class="business-hero__copy">
+      <p class="business-eyebrow">権限 / 監査 / 履歴 / 状態変更</p>
+      <h1 id="business-hero-title">{$heroTitle ?? $siteName}</h1>
+      <p>{$heroDescription ?? $description ?? ''}</p>
+      <div class="business-hero__actions">
+        <a class="button" href="{$basePath}/contact">相談する</a>
+        <a class="button secondary" href="{$basePath}/articles/initial-risk-review-offer">初期リスクレビューを見る</a>
+      </div>
+      <dl class="business-hero__facts" aria-label="対応条件">
+        <div><dt>初期レビュー</dt><dd>40万円から</dd></div>
+        <div><dt>設計・実装</dt><dd>原則500万円から</dd></div>
+        <div><dt>対象</dt><dd>管理画面・業務システム</dd></div>
+      </dl>
+    </div>
+    <div class="business-system-map" aria-label="設計対象">
+      <div class="business-system-map__node business-system-map__node--source">
+        <span>入力</span>
+        <strong>業務判断</strong>
+        <small>公開、承認、削除、差戻し</small>
+      </div>
+      <div class="business-system-map__rail" aria-hidden="true"></div>
+      <div class="business-system-map__grid">
+        <div><span>権限</span><strong>誰ができるか</strong></div>
+        <div><span>状態</span><strong>何が変わるか</strong></div>
+        <div><span>履歴</span><strong>戻せるか</strong></div>
+        <div><span>監査</span><strong>説明できるか</strong></div>
+      </div>
+      <div class="business-system-map__rail" aria-hidden="true"></div>
+      <div class="business-system-map__node business-system-map__node--result">
+        <span>出力</span>
+        <strong>責任境界が壊れない管理画面</strong>
+        <small>後から説明できる実装に落とす</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="business-scope" aria-labelledby="business-scope-title">
+    <div class="business-section-heading">
+      <p class="business-eyebrow">Services</p>
+      <h2 id="business-scope-title">最初に決める領域</h2>
+    </div>
+    <div class="business-scope__grid">
+      <article>
+        <span>01</span>
+        <h3>初期リスクレビュー</h3>
+        <p>危険箇所を、実装前に権限、監査、履歴、状態変更の観点で整理します。</p>
+        <strong>40万円から</strong>
+      </article>
+      <article>
+        <span>02</span>
+        <h3>設計・実装</h3>
+        <p>削ってよい範囲と、削ると後で高くつく境界を分けて開発します。</p>
+        <strong>原則500万円から</strong>
+      </article>
+      <article>
+        <span>03</span>
+        <h3>pera</h3>
+        <p>worker 環境でも request state を漏らさず、HTTP、DI、Routing、Security の責任境界を保ちます。</p>
+        <strong>軽量 Framework</strong>
+      </article>
+    </div>
+  </section>
+
+  <section class="business-articles" aria-labelledby="business-articles-title">
+    <div class="business-section-heading">
+      <p class="business-eyebrow">Articles</p>
+      <h2 id="business-articles-title">判断材料</h2>
+    </div>
+    <div class="article-list">
+      {if count($articles) === 0}
+        <p class="card muted">公開中の記事はありません。</p>
+      {else}
+        {foreach $articles as $article}
+          {include 'partials/article-card.latte', article: $article}
+        {/foreach}
+      {/if}
+    </div>
+  </section>
+
+  <section class="business-category-panel" aria-label="カテゴリ">
+    <h2>カテゴリ</h2>
+    {foreach $categories as $category}
+      <p><a href="{$basePath}/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+    {/foreach}
+  </section>
+</div>
+{/block}

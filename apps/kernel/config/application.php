@@ -39,6 +39,13 @@ return static fn (ApplicationBootstrapConfig $config): ApplicationInterface => n
             middlewarePath: '/apps/cms/config/middleware.php',
         ),
         new ApplicationDefinition(
+            name: 'front-business',
+            pathPrefix: '/business',
+            routesPath: '/apps/front-business/config/routes.php',
+            containerPath: '/apps/front-business/config/container.php',
+            middlewarePath: '/apps/front-business/config/middleware.php',
+        ),
+        new ApplicationDefinition(
             name: 'front',
             pathPrefix: '/',
             routesPath: '/apps/front/config/routes.php',

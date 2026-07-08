@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{$title} | {$siteName}</title>
+  <meta name="description" content="{$description ?? ''}">
+  {if ($canonicalUrl ?? '') !== ''}
+    <link rel="canonical" href="{$canonicalUrl}">
+  {/if}
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260708-business">
+  <link rel="stylesheet" href="/assets/css/front-business.css?v=20260708-business">
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script type="module" src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"></script>
+  <script src="/assets/js/app.js?v=20260708-business" defer></script>
+</head>
+<body data-front-theme="{$frontTheme ?? 'business-architecture'}">
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="{$basePath}">{$siteName}</a>
+    <nav class="nav" aria-label="グローバルナビ">
+      <a href="{$basePath}/categories/business-system-design">設計記事</a>
+      <a href="{$basePath}/categories/development-ordering">発注の注意点</a>
+      <a href="{$basePath}/categories/pera-framework">pera</a>
+      <a href="{$basePath}/contact">問い合わせ</a>
+    </nav>
+    {if $searchEnabled ?? true}
+      <form class="search-inline" action="{$basePath}/search" method="get">
+        <input name="q" value="{$query ?? ''}" placeholder="記事を検索">
+        <button type="submit">検索</button>
+      </form>
+    {/if}
+  </div>
+</header>
+<main class="front-shell">
+  {include content}
+</main>
+<footer class="site-footer">
+  <div class="site-footer__inner nav">
+    <strong>{$siteName}</strong>
+    <span class="muted">© {date('Y')} {$siteName}</span>
+    {foreach $publishedPages as $pageLink}
+      <a href="{$basePath}/pages/{$pageLink['slug']}">{$pageLink['title']}</a>
+    {/foreach}
+    <a href="{$basePath}/contact">問い合わせ</a>
+  </div>
+</footer>
+</body>
+</html>

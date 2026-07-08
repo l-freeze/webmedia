@@ -27,6 +27,7 @@
       "App\\Kernel\\": "apps/kernel/src/",
       "App\\Shared\\": "apps/shared/src/",
       "App\\Front\\": "apps/front/src/",
+      "App\\FrontBusiness\\": "apps/front-business/src/",
       "App\\Cms\\": "apps/cms/src/"
     }
   },

@@ -1,0 +1,18 @@
+{layout 'layout/default.latte'}
+{block content}
+<h1>{$heading}</h1>
+{if isset($lead)}<p class="muted">{$lead}</p>{/if}
+{if count($articles) === 0}
+  <div class="card">
+    <h2>該当する記事はありません</h2>
+    <p>検索条件を変えるか、カテゴリ一覧から記事を探してください。</p>
+    <a class="button" href="{$basePath}/categories">カテゴリ一覧へ</a>
+  </div>
+{else}
+  <div class="article-list">
+    {foreach $articles as $article}
+      {include 'partials/article-card.latte', article: $article}
+    {/foreach}
+  </div>
+{/if}
+{/block}

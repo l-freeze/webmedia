@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\FrontBusiness\Application\Tag\Show;
+
+use App\FrontBusiness\Application\Tag\Show\Query\IArticleQuery;
+use App\FrontBusiness\Application\Tag\Show\Query\ITagQuery;
+
+final readonly class Interactor
+{
+    public function __construct(private ITagQuery $tags, private IArticleQuery $articles)
+    {
+    }
+
+    public function execute(Input $input): Output
+    {
+        return new Output(tag: $this->tags->find($input->slug), articles: $this->articles->articles($input->slug));
+    }
+}
