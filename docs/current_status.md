@@ -51,7 +51,7 @@
     - `business-architecture` theme を追加し、service-first の top、記事一覧、記事詳細を HTTP / ヘッドレス Chrome で確認済み。
     - `/business` top は、記事メディア寄りの見え方を抑え、初期レビュー、設計・実装、判断手順が先に伝わる business service site 寄りの構成へ調整した。
     - `/business` top は問い合わせを第一目的にし、hero 右側は Review Scope 表、初期レビュー説明は業務資料風の目的/対象/出力/目安、記事はトップ主役から外してカテゴリ導線のみとした。
-    - 1 CMS / 複数 front の違和感を、`site` という公開面の単位が未定義であることとして整理し、`docs/site-model-plan.md` に `sites`、`site_settings`、`site_integrations`、`page_placements`、`content_site_assignments`、`site_navigation_items` の追加方針を書き下ろした。
+    - 1 CMS / 複数 front の違和感を、`site` という公開面の単位が未定義であることとして整理し、`docs/site_model_plan.md` に `sites`、`site_settings`、`site_integrations`、`pages.visibility`、`page_placements`、`content_site_assignments`、`site_navigation_items` の追加方針を書き下ろした。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。
