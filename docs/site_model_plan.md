@@ -40,20 +40,20 @@ CMS に `sites` 概念を追加する主目的は、複数の公開面を後か�
 
 ## 方針
 
-`sites` は、マルチサイト対応のためだけの将来拡張ではなく、1 サイト運用でも意味を持つ基礎概念として扱う。`sites` は公開面に関する大元のテーブルであり、表示設定、外部連携、navigation、固定ページ配置、コンテンツ公開先は `sites` を起点にする。
+`sites` は、マルチサイト対応のためだけの将来拡張ではなく、1 サイト運用でも意味を持つ基礎概念として扱う。`sites` は公開面に関する大元のテーブルであり、表示設定、外部連携、固定ページ、トップページ設定は `sites` を起点にする。
 
 ただし、全テーブルへ機械的に `site_id` をばらまかない。`site_id` を持つのは、site に属する意味が明確なものだけにする。
 
 ### 持つべき概念
 
+最初の実装で持つ概念は次に絞る。
+
 ```text
 sites
 site_settings
 site_integrations
+pages.site_id
 pages.visibility
-page_placements
-content_site_assignments
-site_navigation_items
 ```
 
 `sites` は公開面そのものを表す。
@@ -62,13 +62,26 @@ site_navigation_items
 
 `site_integrations` は Slack、Google Search Console、Cloudflare、GA4 / GTM、Mailgun、Webhook など外部サービスとの接続設定を持つ。これは表示設定ではないため、`site_settings.settings` のような何でも箱には入れない。
 
+`pages.site_id` は、固定ページがどの site に属するかを表す。固定ページは記事よりも site の構造に近く、会社概要、問い合わせ、プライバシーポリシー、LP などは「どの site のページか」を直接持つ方が自然である。
+
 `pages.visibility` は、公開中の固定ページをどの経路で見せてよいかを表す。`status` は draft / published / trashed の公開状態、`visibility` は published の先にある見せ方であり、同じものではない。
 
-`page_placements` は「この site のこの特別な場所に、この固定ページを置く」という明示的な配置を表す。たとえば `site_key = business`, `placement_key = home`, `page_id = 123` のように扱う。
+次の概念は、最初の実装では入れない。
 
-`content_site_assignments` は記事や固定ページなどのコンテンツを、どの site の公開対象にするかを表す。コンテンツ本体と公開先を分けるための概念である。
+```text
+articles.site_id
+article_site_assignments
+page_placements
+site_navigation_items
+```
 
-`site_navigation_items` は site ごとの navigation を表す。公開中固定ページを自動で全部 navigation に出す方式だけでは、複数 site の運用に耐えない。
+`articles.site_id` は、記事が必ず 1 site だけに属する設計を選ぶ場合に入れる。現時点では、既存の記事を `/` と `/business` で別の見せ方にする試作が成立しており、記事の所属を DB schema で固定する段階ではない。ここで `articles.site_id` を入れると、カテゴリ、タグ、関連記事、検索、sitemap、既存 front / business front の振る舞いまで同時に決める必要が出る。
+
+同一の記事 ID を複数 site に公開したい要求が明確なら、`articles.site_id` ではなく `article_site_assignments` のような関連テーブルを検討する。逆に、記事は 1 site 所属でよいと決められるなら `articles.site_id` の方が単純でよい。今回の初期実装では、この判断を固定しない。
+
+`page_placements` は、site のテンプレートが `home` や `contact_success_body` のような用途名を知っており、その用途に固定ページ本文を差し込む必要が出た場合にだけ検討する。これはページ単位ではなく用途単位の結合であり、テンプレートとの契約が強い。トップページだけを固定ページにする段階では、`site_settings.home_page_id` の方が読みやすい。
+
+`site_navigation_items` は、固定ページ以外のリンク、外部 URL、カテゴリリンク、ヘッダー/フッター別の表示、ラベル差し替えなど、navigation を CMS で明示管理したくなった場合に入れる。公開中固定ページを `display_order` 順に出すだけなら、`pages.site_id` と `pages.visibility` で足りる。
 
 ### 責務境界
 
@@ -84,8 +97,8 @@ sites
 articles, pages
   = コンテンツ本体
 
-content_site_assignments
-  = コンテンツをどの site の公開対象にするか
+pages.site_id
+  = 固定ページが属する site
 
 pages.visibility
   = 固定ページ自体をどの経路で見せてよいか
@@ -93,27 +106,21 @@ pages.visibility
 site_settings
   = site の表示方針と公開設定
 
-page_placements
-  = site 上の意味ある slot に固定ページを割り当てる
-
-site_navigation_items
-  = site 上に表示するリンクと順序
-
 site_integrations
   = site に属する外部接続
 ```
 
 `apps/front` や `apps/front-business` は PHP code の境界であり、`site` そのものではない。1つの front app が1つの site だけを担当してもよいし、将来 routing / host / base path で site を解決して複数 site を担当してもよい。ただし Kernel が特定 site の設定を読む形にはしない。
 
-`site_settings` は「トップページを記事一覧にするか固定ページにするか」のような方針を持つが、固定ページ ID の羅列を持たない。外部連携の credential や webhook も持たない。
+`articles` は、今回の初期実装では site 所属を持たない。記事を site 固有にするか、同一記事を複数 site に公開できる共有コンテンツにするかが未決定であり、ここで `articles.site_id` を入れるとその判断を早く固定してしまうためである。
 
-`page_placements` は route 定義でも navigation でもない。`home`、`contact_success_body`、`privacy_policy` のように、アプリケーションが意味を知っている slot に page を割り当てるための表である。
+`pages` は、今回の初期実装で site 所属を持つ。固定ページは site の構造に近く、同じ本文を複数 site に出したい場合でも、最初は同内容の page を site ごとに複製する方が分かりやすい。固定ページを共有コンテンツとして扱いたい要求が出るまでは、関連テーブルで抽象化しない。
 
-`site_navigation_items` は、ユーザーに見せるリンクの表である。リンク先が固定ページでも記事でも外部URLでもよい。表示順、ラベル、表示場所は navigation の責務であり、`page_placements` に持たせない。
+`site_settings` は「トップページを記事一覧にするか固定ページにするか」のような方針を持つ。トップページが固定ページの場合に限り、`home_page_id` を持つ。これは site のトップ表示設定そのものであり、一般的な固定ページ配置とは分けて扱う。
 
-`content_site_assignments` は公開対象の scope であり、表示場所ではない。ある page が site に割り当てられていても、それだけで home や footer に出るわけではない。
+`site_integrations` は外部連携の所属先を持つ。credential や webhook を `site_settings` に混ぜると、表示設定と接続設定が同じ経路に乗ってしまうため分ける。
 
-`pages.visibility` は page 自体の表示経路であり、site 固有の公開先ではない。site ごとの公開先は `content_site_assignments` で決める。
+`pages.visibility` は page 自体の表示経路である。site ごとの所属は `pages.site_id`、その page を通常 URL で見せるか、導線から隠すかは `pages.visibility` で決める。
 
 ### トップページの扱い
 
@@ -127,16 +134,16 @@ site_settings.home_mode
 
 `article_index` は従来どおり記事一覧をトップにする。`page` は固定ページまたは LP をトップにする。
 
-`home_mode = page` の場合に、実際にどの固定ページをトップへ置くかは `page_placements` が持つ。
+`home_mode = page` の場合に、実際にどの固定ページをトップへ置くかは `site_settings.home_page_id` が持つ。
 
 ```text
-page_placements
+site_settings
 - site_id
-- placement_key = home
-- page_id
+- home_mode = page
+- home_page_id
 ```
 
-`site_settings.home_page_id` のように直接 page ID を持たせると、`privacy_policy_page_id`、`terms_page_id`、`contact_success_page_id` のように配置情報が settings へ増殖しやすい。そのため、`site_settings` は表示方針、`page_placements` は固定ページの割り当てとして分ける。
+`home_page_id` は、トップページの表示方針と一体の設定として扱う。`privacy_policy_page_id`、`terms_page_id`、`contact_success_page_id` のような用途別 page ID が増え始めたら、その時点で `page_placements` のような用途別配置テーブルを再検討する。トップページ 1 件だけの段階で `page_placements` を入れると、用途名とテンプレートの結合だけが先に増えて分かりづらい。
 
 ### 固定ページの表示経路
 
@@ -158,17 +165,17 @@ pages.visibility
 
 `unlisted` は、`/pages/{slug}` で直接表示できるが、固定ページ一覧や自動 navigation 候補には出さない状態を表す。公開 URL は持つが、能動的に導線を出さないページに使う。
 
-`placement_only` は、`/pages/{slug}` の通常ルートでは表示せず、`page_placements` など明示的な配置経由でだけ表示する状態を表す。LP を site のトップに置く、問い合わせ完了画面に固定ページ本文を差し込む、といった用途に使う。
+`placement_only` は、`/pages/{slug}` の通常ルートでは表示せず、トップページなど明示的な参照経由でだけ表示する状態を表す。LP を site のトップに置く、といった用途に使う。
 
-複数 site では、`listed` であっても最終的にどの site に出るかは `content_site_assignments` を見る。`listed` は「出してよい表示経路」を表すだけで、全 site へ出すという意味ではない。
+複数 site では、`listed` であっても最終的にどの site に出るかは `pages.site_id` を見る。`listed` は「その site 内で出してよい表示経路」を表すだけで、全 site へ出すという意味ではない。
 
-`page_placements` は `pages.visibility` の代わりではない。`visibility` はページ自身の見せ方、`page_placements` は site 上の特別な場所への割り当てである。
+`site_settings.home_page_id` は `pages.visibility` の代わりではない。`visibility` はページ自身の見せ方、`home_page_id` は site のトップとして使う page の参照である。
 
-### page_placements の用途
+### page_placements を初期実装に入れない理由
 
-`page_placements` は、通常の固定ページ一覧や navigation を作るためのものではない。site のコードやテンプレートが「この場所には固定ページ本文を使う」と明示的に知っている場合に使う。
+`page_placements` は、通常の固定ページ一覧や navigation を作るためのものではない。site のコードやテンプレートが「この場所には固定ページ本文を使う」と明示的に知っている場合に使う、用途単位の配置表である。
 
-代表例:
+代表例は次のようなものになる。
 
 ```text
 home
@@ -179,9 +186,11 @@ footer_profile
 campaign_landing
 ```
 
-`home` は site のトップページに置く固定ページを表す。`contact_success_body` は問い合わせ完了画面に差し込む説明本文を表す。`privacy_policy` や `terms` は、法務上またはテンプレート上、意味を持つページ参照として扱う。
+これはテンプレートと密結合になる。密結合自体が悪いのではなく、テンプレートがその用途を知っている以上、結合は実際に存在している。しかし、トップページだけを固定ページにする段階では、`home` という用途名を別テーブルに切り出すより、`site_settings.home_mode` と `site_settings.home_page_id` の方が意味を追いやすい。
 
-一方で、ヘッダーやフッターにどのリンクをどの順番で出すかは `site_navigation_items` が持つ。`page_placements` は「意味のあるslotへの割り当て」であり、「リンク一覧」ではない。
+そのため、初期実装では `page_placements` を入れない。問い合わせ完了本文、フッター紹介文、キャンペーン枠など、複数の用途別 page 参照が増え、`site_settings` に page ID が増殖し始めた時点で導入を再検討する。
+
+`page_placements` を導入する場合でも、これは「意味のある slot への割り当て」であり、「リンク一覧」ではない。ヘッダーやフッターにどのリンクをどの順番で出すかを CMS で明示管理したくなった場合は、別途 `site_navigation_items` を検討する。
 
 ### 避けること
 
@@ -189,10 +198,12 @@ campaign_landing
 
 - `slug = business-home` のような暗黙ルール。
 - `pages.is_business_home` のような app 固有フラグ。
-- `site_settings.home_page_id` のように、固定ページ配置を settings に直接増やすこと。
+- `site_settings` に用途別 page ID を無制限に増やすこと。トップページ用の `home_page_id` は例外として扱う。
 - `pages.auto_display` のように、何に自動表示するのか分からない曖昧なフラグ。
 - `settings` JSON に外部連携、配置、表示設定をすべて詰めること。
 - 全テーブルに `site_id = 1` を機械的に追加すること。
+- 初期実装で `articles.site_id` を追加し、記事の公開所属を早く固定すること。
+- 初期実装で汎用的な `content_site_assignments` を追加し、使わない抽象を先に作ること。
 - site ごとに `articles_1`、`articles_2` のような同型テーブルを増やすこと。
 - Kernel が特定 front app の base path や site 設定を読むこと。
 
@@ -205,14 +216,15 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 - 1 つの CMS で企業サイト、採用サイト、オウンドメディア、LP を分ける。
 - site ごとにトップページを記事一覧にするか固定ページ/LPにするかを選ぶ。
 - site ごとにトップページ用の固定ページを割り当てる。
-- site ごとに navigation を変える。
+- site ごとに固定ページを分ける。
 - site ごとに canonical base URL を変える。
 - site ごとに sitemap の対象を変える。
 - site ごとに theme / layout を変える。
 - site ごとに問い合わせ導線や外部連携を変える。
-- 同じ記事を複数 site に出すか、特定 site のみに出すかを明示する。
-- 固定ページを「本文」「表示経路」「配置」に分けて扱う。
+- 固定ページを「本文」「所属 site」「表示経路」「トップページ設定」に分けて扱う。
 - business 用 front app を増やしても、通常 front へ固定ページや navigation が漏れない。
+
+記事を site ごとに分けること、同じ記事を複数 site に出すこと、navigation を完全に CMS 管理することは、初期実装では扱わない。必要になった時点で `articles.site_id`、`article_site_assignments`、`site_navigation_items` のいずれが適切かを個別に判断する。
 
 ## 実装方針
 
@@ -227,30 +239,29 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
    - 既存 `setting_key` / `setting_value` をすぐ壊さない。
    - migration では既存設定を default site に所属させる。
    - トップページ方針として `home_mode = article_index | page` を持たせる。
+   - `home_mode = page` の場合の参照として `home_page_id` を持たせる。
    - front / cms の参照箇所を一気に壊さず、互換期間を設けるか、同一 commit で安全に置き換える。
 
 3. `site_integrations` を追加する。
    - 外部連携設定を `site_settings` に混ぜないための受け皿を作る。
    - secret を扱う場合は通常設定と同じ表示・監査・出力経路に乗せない。
 
-4. `pages.visibility` を追加する。
+4. `pages.site_id` と `pages.visibility` を追加する。
+   - 固定ページは site の構造に近いため、関連テーブルではなく直接 `site_id` を持たせる。
    - `status` と混同しない。
    - 最初の値は `listed` / `unlisted` / `placement_only` を候補にする。
    - 既存の固定ページは、現行挙動維持のため原則 `listed` へ移行する。
+   - 既存の固定ページは default site 所属へ移行する。
 
-5. `page_placements` を追加する。
-   - `home` のような placement key を明示する。
-   - `/` や `/business` が固定ページをトップとして読む場合は、slug ではなく placement を見る。
-   - 固定ページ本体は `pages` のままにする。
-   - navigation の代替にしない。リンク表示は `site_navigation_items` で扱う。
+5. 記事の site 所属はまだ schema に入れない。
+   - `apps/front-business` のような別表示は、当面は front app 側の query 条件で扱う。
+   - 記事を 1 site 所属にする必要が出たら `articles.site_id` を検討する。
+   - 同一記事 ID を複数 site に出す必要が出たら `article_site_assignments` を検討する。
 
-6. `content_site_assignments` を追加する。
-   - 記事、固定ページ、カテゴリ、タグのどこまで site assignment を持たせるかは段階的に決める。
-   - 最初から全コンテンツへ必須化しない。
-
-7. `site_navigation_items` を追加する。
-   - 既存の「公開中固定ページを display_order 順に出す」方式は単一 site 用の簡易実装として扱う。
-   - 複数 site では navigation を配置として明示する。
+6. `page_placements` と `site_navigation_items` は初期実装に入れない。
+   - トップページだけなら `site_settings.home_page_id` で扱う。
+   - 用途別 page 参照が増えたら `page_placements` を検討する。
+   - 固定ページ以外の navigation 管理が必要になったら `site_navigation_items` を検討する。
 
 ## 判断保留
 
@@ -259,14 +270,18 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 - `site_key` の値を `front`, `business` のような app 寄りにするか、`main`, `business_service` のような運用寄りにするか。
 - `site_settings` を key-value のまま site 所属にするか、主要項目だけ typed column にするか。
 - `site_integrations` の secret を DB に暗号化して持つか、env / secret manager 参照にするか。
-- `content_site_assignments` を記事だけ先に入れるか、固定ページまで同時に入れるか。
-- 固定ページに `page_kind = normal / landing` のような種類を持たせるか。現時点では `visibility = placement_only` と `page_placements.home` だけで LP 用途は表現できるため、本文種別としての `page_kind` は必須ではない。
+- 記事を将来 `articles.site_id` で 1 site 所属にするか、`article_site_assignments` で複数 site 公開を許すか。
+- 固定ページに `page_kind = normal / landing` のような種類を持たせるか。現時点では `visibility = placement_only` と `site_settings.home_page_id` で LP 用途は表現できるため、本文種別としての `page_kind` は必須ではない。
 - `pages.visibility` の値を `listed` / `unlisted` / `placement_only` で足りると見るか、navigation と sitemap を別軸に分けるか。
 - `home_mode` の値を `article_index` / `page` の 2 値にするか、将来の search / category / custom controller を見越して拡張可能な値にするか。
+- 用途別 page 参照が増えた場合に `page_placements` を入れるか、それぞれ typed column として扱うか。
+- navigation を `pages.display_order` の簡易導線に留めるか、`site_navigation_items` で明示管理するか。
 - 既存 `apps/front-business` を site model の試験対象にするか、別システム作成時の設計にだけ反映するか。
 
 ## 当面の結論
 
 現時点で `apps/front-business` を作るだけで済む範囲なら、マルチサイト CMS として格上げしない。カテゴリ絞り込みや別テンプレートだけで成立する front app は、既存 CMS に干渉しない別表示として扱う。
 
-ただし、CMS 上で front ごとのトップページ、固定ページ、navigation、sitemap、canonical、外部連携を管理したくなった時点で、slug 特別扱いや app 固有フラグではなく、`sites` を中核にした site model へ格上げする。
+ただし、CMS 上で front ごとのトップページ、固定ページ、sitemap、canonical、外部連携を管理したくなった時点で、slug 特別扱いや app 固有フラグではなく、`sites` を中核にした site model へ格上げする。
+
+navigation は、固定ページを site ごとに分けて `display_order` 順に出すだけなら `pages.site_id` で足りる。外部リンク、カテゴリリンク、任意ラベル、ヘッダー/フッター別配置などを CMS で扱いたくなった時点で、`site_navigation_items` を追加する。
