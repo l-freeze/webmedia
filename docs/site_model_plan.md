@@ -400,3 +400,71 @@ SEO 面では、同じ記事本文を複数 site に出す場合、canonical を
 この設計では、記事中の段落、CTA、画像、見出しなどを細かい fragment として pool 化し、front 側で組み立て直すことはしない。この記事 model で扱う共有単位は記事本体であり、本文内の要素単位の再利用ではない。要素単位の pool 化は編集体験と責務境界を壊しやすく、この CMS の方針には合わない。
 
 結論として、`article_site_publications` は「記事本体」と「site への公開」が業務上別概念として存在すると分かった場合にだけ導入する。現時点では初期実装へ入れず、`pages.site_id` と site 設定を先に整える。
+
+## 備考2: articles.site_id と article_site_publications の比較
+
+記事を site と紐づける方法は、大きく分けて `articles.site_id` を持たせる方法と、`article_site_publications` を持たせる方法がある。前者は「記事は 1 つの site に属する」という設計であり、後者は「記事本体と公開先 site は別」という設計である。
+
+この2つは、単に正規化の度合いが違うだけではない。CMS 上の操作、front query、監査、SEO、編集責任の考え方が変わる。
+
+| 観点 | `articles.site_id` | `article_site_publications` |
+| --- | --- | --- |
+| 意味 | 記事は 1 site に所属する | 記事本体は独立し、公開先 site を別管理する |
+| schema | `articles` に `site_id` を追加するだけ | 中間の公開先テーブルが必要 |
+| query | 単純。`articles.site_id = :siteId` で絞れる | 常に公開先テーブルとの join / exists が必要 |
+| CMS 編集 | 記事編集画面で所属 site を選べばよい | 記事本文編集と公開先管理を分ける必要がある |
+| 管理しやすさ | 高い。多くの運用者に説明しやすい | 低い。公開先という別概念を理解する必要がある |
+| 実装コスト | 低い | 高い |
+| バグの入りやすさ | 低い | 高い。公開状態、一覧表示、canonical の不整合が起きやすい |
+| sitemap | site ごとの記事を単純に出せる | site ごとの publication を見て出す |
+| canonical | 基本は自 site の記事 URL | 複数 site 公開時に canonical site を決める必要がある |
+| 同一記事の複数 site 公開 | できない。複製が必要 | できる |
+| site ごとの title / description | 基本は持たない。複製で対応 | publication 側に差し替え metadata を持てる |
+| site ごとの公開期間 | 基本は持たない。記事本体の公開期間になる | publication 側で site ごとに持てる |
+| site ごとの一覧表示制御 | 基本は記事本体の visibility になる | publication 側で制御できる |
+| 監査 | 記事更新に集約しやすい | 記事本文更新と公開先変更を分ける必要がある |
+| 権限 | site 所属記事の編集権限として扱いやすい | site への公開権限を別に考える必要がある |
+| 記事複製 | 同じ内容を複数 site に出すなら複製する | 複製せずに同じ記事 ID を公開できる |
+| 運用の見通し | 単純で追いやすい | 柔軟だが追う対象が増える |
+
+`articles.site_id` で実現しやすい動作は次の通り。
+
+- site ごとに記事を完全に分ける。
+- site ごとの記事一覧、記事詳細、検索、関連記事、sitemap を単純な条件で実装する。
+- 管理画面で「この記事はどの site の記事か」を分かりやすく表示する。
+- site 単位の権限を、記事の所属 site に対する権限として扱う。
+- 同じ内容の記事が必要な場合は、記事を複製して site ごとに管理する。
+
+`article_site_publications` で実現しやすい動作は次の通り。
+
+- 1 つの記事を複数 site に出す。
+- site ごとに公開状態、公開期間、一覧表示、sitemap 対象を変える。
+- site ごとに title / description / canonical など公開用 metadata を変える。
+- 記事本文を更新したとき、複数 site の公開内容へ同時に反映する。
+- 記事本体の編集責任と、どの site に出すかという公開責任を分ける。
+
+`articles.site_id` のメリットは、単純さである。記事の所属、URL、一覧、検索、sitemap、権限、監査の全てが 1 site 所属を前提にできる。業務上「記事はサイトごとのもの」と言えるなら、この設計の方が強い。不要な join がなく、管理画面も説明しやすい。
+
+`articles.site_id` のデメリットは、同じ記事本体を複数 site に出す場合に複製が必要になることである。複製した記事は、片方だけ修正される、canonical が曖昧になる、同じ内容の在庫が増える、という運用リスクを持つ。ただし、同じ記事を複数 site に出す頻度が低いなら、このリスクは schema を複雑にする理由にならない。
+
+`article_site_publications` のメリットは、記事本体と公開先を分けられることである。同一記事を複数 site に出す、site ごとに公開条件を変える、site ごとに metadata を変える、といった要求には自然に対応できる。
+
+`article_site_publications` のデメリットは、重さである。記事一覧や詳細表示のたびに publication 条件が必要になり、CMS では記事本文編集とは別に公開先管理が必要になる。監査ログも `article.updated` と `article_site_publication.*` を分ける必要がある。これは「汎用的にできるから」という理由で入れるには大きすぎるコストである。
+
+判断基準は次の通り。
+
+| 条件 | 推奨 |
+| --- | --- |
+| 記事は基本的に site ごとの資産である | `articles.site_id` |
+| 同じ内容を別 site に出すことは稀で、複製で足りる | `articles.site_id` |
+| site ごとの記事管理を単純にしたい | `articles.site_id` |
+| 同一記事 ID を複数 site に正式公開したい | `article_site_publications` |
+| site ごとに公開期間や metadata を変えたい | `article_site_publications` |
+| 記事本文の更新を複数 site へ同時反映したい | `article_site_publications` |
+| front の見た目変更やカテゴリ絞り込みだけで足りる | どちらも入れない |
+
+現時点の判断としては、`articles.site_id` も `article_site_publications` も初期実装には入れない。理由は、現在の目的が「固定ページ、トップページ、site 設定、外部連携を公開面ごとに扱うこと」であり、記事の site 所属や複数 site 公開をまだ決めなくても成立するためである。
+
+ただし、将来実装するなら、まず `articles.site_id` を第一候補として検討する。これは `article_site_publications` より機能が少ないからではなく、記事が 1 site 所属で済むなら構造が圧倒的に単純で、管理画面、query、監査、権限の全てが軽くなるためである。
+
+`article_site_publications` は、`articles.site_id` では表現できない業務要求が明確になった場合だけ選ぶ。特に「同じ article ID を複数 site に公開し、しかも複製では運用できない」と言える場合に限って、導入する価値がある。
