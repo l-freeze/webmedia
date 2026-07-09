@@ -75,9 +75,9 @@ page_placements
 site_navigation_items
 ```
 
-`articles.site_id` は、記事が必ず 1 site だけに属する設計を選ぶ場合に入れる。現時点では、既存の記事を `/` と `/business` で別の見せ方にする試作が成立しており、記事の所属を DB schema で固定する段階ではない。ここで `articles.site_id` を入れると、カテゴリ、タグ、関連記事、検索、sitemap、既存 front / business front の振る舞いまで同時に決める必要が出る。
+`articles.site_id` は、記事が必ず 1 site だけに属する設計を選ぶ場合に入れる。現時点では、既存の記事を `/` と `/business` で別の見せ方にする試作が成立しており、今回の実装目的を満たすために記事の site 所属を決める必要がない。ここで `articles.site_id` を入れると、カテゴリ、タグ、関連記事、検索、sitemap、既存 front / business front の振る舞いまで同時に決める必要が出る。
 
-同一の記事 ID を複数 site に公開したい要求が明確なら、`articles.site_id` ではなく `article_site_assignments` のような関連テーブルを検討する。逆に、記事は 1 site 所属でよいと決められるなら `articles.site_id` の方が単純でよい。今回の初期実装では、この判断を固定しない。
+これは「記事の site 所属を固定しないこと」を設計条件にするという意味ではない。現時点では、記事所属を固定しなくても目的を満たせるだけである。将来、記事は 1 site 所属でよいと決められるなら `articles.site_id` を入れる方が単純でよい。同一の記事 ID を複数 site に公開したい要求が明確なら、`articles.site_id` ではなく `article_site_assignments` のような関連テーブルを検討する。今回の初期実装では、どちらの判断も妨げない形に留める。
 
 `page_placements` は、site のテンプレートが `home` や `contact_success_body` のような用途名を知っており、その用途に固定ページ本文を差し込む必要が出た場合にだけ検討する。これはページ単位ではなく用途単位の結合であり、テンプレートとの契約が強い。トップページだけを固定ページにする段階では、`site_settings.home_page_id` の方が読みやすい。
 
@@ -112,7 +112,7 @@ site_integrations
 
 `apps/front` や `apps/front-business` は PHP code の境界であり、`site` そのものではない。1つの front app が1つの site だけを担当してもよいし、将来 routing / host / base path で site を解決して複数 site を担当してもよい。ただし Kernel が特定 site の設定を読む形にはしない。
 
-`articles` は、今回の初期実装では site 所属を持たない。記事を site 固有にするか、同一記事を複数 site に公開できる共有コンテンツにするかが未決定であり、ここで `articles.site_id` を入れるとその判断を早く固定してしまうためである。
+`articles` は、今回の初期実装では site 所属を持たない。記事を site 固有にするか、同一記事を複数 site に公開できる共有コンテンツにするかは、今回の目的を満たすうえでまだ決めなくてよい。ここで重要なのは「固定しないこと」ではなく、不要な決定を先に schema へ入れないことである。将来 `articles.site_id` を入れる判断が自然にできるよう、記事 query や front app 側の条件を過度に共有コンテンツ前提へ寄せない。
 
 `pages` は、今回の初期実装で site 所属を持つ。固定ページは site の構造に近く、同じ本文を複数 site に出したい場合でも、最初は同内容の page を site ごとに複製する方が分かりやすい。固定ページを共有コンテンツとして扱いたい要求が出るまでは、関連テーブルで抽象化しない。
 
@@ -202,7 +202,7 @@ campaign_landing
 - `pages.auto_display` のように、何に自動表示するのか分からない曖昧なフラグ。
 - `settings` JSON に外部連携、配置、表示設定をすべて詰めること。
 - 全テーブルに `site_id = 1` を機械的に追加すること。
-- 初期実装で `articles.site_id` を追加し、記事の公開所属を早く固定すること。
+- 今回の目的に不要な段階で `articles.site_id` を追加し、記事の公開所属を先に決めてしまうこと。
 - 初期実装で汎用的な `content_site_assignments` を追加し、使わない抽象を先に作ること。
 - site ごとに `articles_1`、`articles_2` のような同型テーブルを増やすこと。
 - Kernel が特定 front app の base path や site 設定を読むこと。
@@ -224,7 +224,7 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 - 固定ページを「本文」「所属 site」「表示経路」「トップページ設定」に分けて扱う。
 - business 用 front app を増やしても、通常 front へ固定ページや navigation が漏れない。
 
-記事を site ごとに分けること、同じ記事を複数 site に出すこと、navigation を完全に CMS 管理することは、初期実装では扱わない。必要になった時点で `articles.site_id`、`article_site_assignments`、`site_navigation_items` のいずれが適切かを個別に判断する。
+記事を site ごとに分けること、同じ記事を複数 site に出すこと、navigation を完全に CMS 管理することは、初期実装では扱わない。必要になった時点で `articles.site_id`、`article_site_assignments`、`site_navigation_items` のいずれが適切かを個別に判断する。初期実装では、記事を共有コンテンツとして扱うことを条件にしない。
 
 ## 実装方針
 
@@ -255,6 +255,7 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 
 5. 記事の site 所属はまだ schema に入れない。
    - `apps/front-business` のような別表示は、当面は front app 側の query 条件で扱う。
+   - これは記事を共有コンテンツに固定するためではなく、今回の目的に不要な決定を避けるためである。
    - 記事を 1 site 所属にする必要が出たら `articles.site_id` を検討する。
    - 同一記事 ID を複数 site に出す必要が出たら `article_site_assignments` を検討する。
 
