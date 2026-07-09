@@ -70,14 +70,14 @@ pages.visibility
 
 ```text
 articles.site_id
-article_site_assignments
+article_site_publications
 page_placements
 site_navigation_items
 ```
 
 `articles.site_id` は、記事が必ず 1 site だけに属する設計を選ぶ場合に入れる。現時点では、既存の記事を `/` と `/business` で別の見せ方にする試作が成立しており、今回の実装目的を満たすために記事の site 所属を決める必要がない。ここで `articles.site_id` を入れると、カテゴリ、タグ、関連記事、検索、sitemap、既存 front / business front の振る舞いまで同時に決める必要が出る。
 
-これは「記事の site 所属を固定しないこと」を設計条件にするという意味ではない。現時点では、記事所属を固定しなくても目的を満たせるだけである。将来、記事は 1 site 所属でよいと決められるなら `articles.site_id` を入れる方が単純でよい。同一の記事 ID を複数 site に公開したい要求が明確なら、`articles.site_id` ではなく `article_site_assignments` のような関連テーブルを検討する。今回の初期実装では、どちらの判断も妨げない形に留める。
+これは「記事の site 所属を固定しないこと」を設計条件にするという意味ではない。現時点では、記事所属を固定しなくても目的を満たせるだけである。将来、記事は 1 site 所属でよいと決められるなら `articles.site_id` を入れる方が単純でよい。同一の記事 ID を複数 site に公開したい要求が明確なら、`articles.site_id` ではなく `article_site_publications` のような公開先テーブルを検討する。今回の初期実装では、どちらの判断も妨げない形に留める。
 
 `page_placements` は、site のテンプレートが `home` や `contact_success_body` のような用途名を知っており、その用途に固定ページ本文を差し込む必要が出た場合にだけ検討する。これはページ単位ではなく用途単位の結合であり、テンプレートとの契約が強い。トップページだけを固定ページにする段階では、`site_settings.home_page_id` の方が読みやすい。
 
@@ -224,7 +224,7 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 - 固定ページを「本文」「所属 site」「表示経路」「トップページ設定」に分けて扱う。
 - business 用 front app を増やしても、通常 front へ固定ページや navigation が漏れない。
 
-記事を site ごとに分けること、同じ記事を複数 site に出すこと、navigation を完全に CMS 管理することは、初期実装では扱わない。必要になった時点で `articles.site_id`、`article_site_assignments`、`site_navigation_items` のいずれが適切かを個別に判断する。初期実装では、記事を共有コンテンツとして扱うことを条件にしない。
+記事を site ごとに分けること、同じ記事を複数 site に出すこと、navigation を完全に CMS 管理することは、初期実装では扱わない。必要になった時点で `articles.site_id`、`article_site_publications`、`site_navigation_items` のいずれが適切かを個別に判断する。初期実装では、記事を共有コンテンツとして扱うことを条件にしない。
 
 ## 実装方針
 
@@ -257,7 +257,7 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
    - `apps/front-business` のような別表示は、当面は front app 側の query 条件で扱う。
    - これは記事を共有コンテンツに固定するためではなく、今回の目的に不要な決定を避けるためである。
    - 記事を 1 site 所属にする必要が出たら `articles.site_id` を検討する。
-   - 同一記事 ID を複数 site に出す必要が出たら `article_site_assignments` を検討する。
+   - 同一記事 ID を複数 site に出す必要が出たら `article_site_publications` を検討する。
 
 6. `page_placements` と `site_navigation_items` は初期実装に入れない。
    - トップページだけなら `site_settings.home_page_id` で扱う。
@@ -271,7 +271,7 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 - `site_key` の値を `front`, `business` のような app 寄りにするか、`main`, `business_service` のような運用寄りにするか。
 - `site_settings` を key-value のまま site 所属にするか、主要項目だけ typed column にするか。
 - `site_integrations` の secret を DB に暗号化して持つか、env / secret manager 参照にするか。
-- 記事を将来 `articles.site_id` で 1 site 所属にするか、`article_site_assignments` で複数 site 公開を許すか。
+- 記事を将来 `articles.site_id` で 1 site 所属にするか、`article_site_publications` で複数 site 公開を許すか。
 - 固定ページに `page_kind = normal / landing` のような種類を持たせるか。現時点では `visibility = placement_only` と `site_settings.home_page_id` で LP 用途は表現できるため、本文種別としての `page_kind` は必須ではない。
 - `pages.visibility` の値を `listed` / `unlisted` / `placement_only` で足りると見るか、navigation と sitemap を別軸に分けるか。
 - `home_mode` の値を `article_index` / `page` の 2 値にするか、将来の search / category / custom controller を見越して拡張可能な値にするか。
@@ -286,3 +286,117 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 ただし、CMS 上で front ごとのトップページ、固定ページ、sitemap、canonical、外部連携を管理したくなった時点で、slug 特別扱いや app 固有フラグではなく、`sites` を中核にした site model へ格上げする。
 
 navigation は、固定ページを site ごとに分けて `display_order` 順に出すだけなら `pages.site_id` で足りる。外部リンク、カテゴリリンク、任意ラベル、ヘッダー/フッター別配置などを CMS で扱いたくなった時点で、`site_navigation_items` を追加する。
+
+## 備考: 記事の公開先を site ごとに分ける場合
+
+記事をどの site で公開するかを明示的に扱うなら、`articles.site_id` ではなく `article_site_publications` のような公開先テーブルを追加する選択肢がある。
+
+```text
+articles
+  = 記事本体
+
+sites
+  = 公開面
+
+article_site_publications
+  = この記事をどの site で公開対象にするか
+```
+
+この設計でできるようになることは次の通り。
+
+- 同じ記事本体を、複数 site の公開対象にできる。
+- site ごとに記事一覧、記事詳細、sitemap、canonical の対象範囲を分けられる。
+- site ごとに公開開始、公開停止、一覧表示有無を制御できる。
+- site ごとに title / description / canonical 指定など、公開上の metadata を差し替えられる。
+- `apps/front-business` のような別 front が、カテゴリ絞り込みだけではなく CMS 上の公開先設定を見て記事を出せる。
+
+ただし、これは単なる汎用化ではなく重い設計判断である。`article_site_publications` を入れると、記事の取得、一覧、詳細、sitemap、canonical、検索、関連記事、CMS 編集画面、監査、権限に「記事本体」と「site への公開」という二層構造が入る。
+
+そのため、導入条件は次のいずれかが明確になった場合に限る。
+
+- 同一 article ID を複数 site に正式公開したい。
+- site ごとに公開/非公開や公開期間を変えたい。
+- site ごとに canonical や sitemap 対象を明示管理したい。
+- 記事本体は共通だが、公開面ごとの title / description / 導線を変えたい。
+- 記事を複製して運用すると、編集漏れや更新差分の管理コストが実際に問題になる。
+
+逆に、次の場合は導入しない。
+
+- 記事は基本的に 1 site 所属でよい。
+- 同じ内容を別 site に出す頻度が低く、記事複製で十分に管理できる。
+- 現時点の要求が、front app 側の見た目変更やカテゴリ絞り込みだけで成立する。
+- 「後で便利そう」という理由だけで公開先を抽象化したい。
+
+実装する場合の最小 schema は次のようにする。
+
+```text
+article_site_publications
+- article_id
+- site_id
+- is_canonical
+- created_at
+- updated_at
+```
+
+必要になった時点で、次の列を追加候補にする。
+
+```text
+- visibility
+- published_at
+- unpublished_at
+- site_title
+- site_description
+```
+
+`visibility` は site 内で記事一覧や sitemap に出すかを表す。`published_at` / `unpublished_at` は site ごとの公開期間を表す。`site_title` / `site_description` は記事本体の title / description を壊さず、公開面ごとの検索表示や SNS 表示を調整するために使う。
+
+管理画面に追加する機能は、既存の記事編集画面へ無秩序に項目を混ぜない。記事本文の編集と site 公開設定は関心が違うため、次のどちらかで扱う。
+
+```text
+記事編集画面内の「公開先」タブ
+  - 記事本文と同じ画面内だが、編集領域を明確に分ける
+
+記事詳細配下の「公開先管理」画面
+  - /admin/articles/{id}/publications のように分ける
+```
+
+管理画面で必要になる操作は次の通り。
+
+- 記事を公開する site を追加する。
+- 記事を site の公開対象から外す。
+- canonical とする site を選ぶ。
+- site ごとの一覧表示 / sitemap 対象を切り替える。
+- site ごとの公開開始日時 / 公開終了日時を設定する。
+- site ごとの title / description を必要に応じて設定する。
+
+新たに必要な管理機能は次の通り。
+
+- site 一覧と site 設定管理。
+- 記事ごとの公開先一覧。
+- site ごとの公開記事一覧。
+- canonical 重複や canonical 未設定を検出する確認画面。
+- site ごとの sitemap 対象件数確認。
+- 公開先変更の audit summary。
+- site 単位の権限を入れる場合は、どの管理者がどの site へ公開できるかを扱う権限管理。
+
+監査ログでは、記事本文の更新と公開先の変更を混ぜない。
+
+```text
+article.updated
+  = 記事本体の変更
+
+article_site_publication.created
+  = 記事が site の公開対象になった
+
+article_site_publication.updated
+  = site ごとの公開条件が変わった
+
+article_site_publication.deleted
+  = 記事が site の公開対象から外れた
+```
+
+SEO 面では、同じ記事本文を複数 site に出す場合、canonical を明示する必要がある。これは検索流入の水増しではなく、読者接点を増やすための再掲であることを構造で示すためである。canonical の決定は `article_site_publications.is_canonical` のような明示情報で扱い、front app 側の暗黙ルールにしない。
+
+この設計では、記事中の段落、CTA、画像、見出しなどを細かい fragment として pool 化し、front 側で組み立て直すことはしない。この記事 model で扱う共有単位は記事本体であり、本文内の要素単位の再利用ではない。要素単位の pool 化は編集体験と責務境界を壊しやすく、この CMS の方針には合わない。
+
+結論として、`article_site_publications` は「記事本体」と「site への公開」が業務上別概念として存在すると分かった場合にだけ導入する。現時点では初期実装へ入れず、`pages.site_id` と site 設定を先に整える。
