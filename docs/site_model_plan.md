@@ -468,3 +468,59 @@ SEO 面では、同じ記事本文を複数 site に出す場合、canonical を
 ただし、将来実装するなら、まず `articles.site_id` を第一候補として検討する。これは `article_site_publications` より機能が少ないからではなく、記事が 1 site 所属で済むなら構造が圧倒的に単純で、管理画面、query、監査、権限の全てが軽くなるためである。
 
 `article_site_publications` は、`articles.site_id` では表現できない業務要求が明確になった場合だけ選ぶ。特に「同じ article ID を複数 site に公開し、しかも複製では運用できない」と言える場合に限って、導入する価値がある。
+
+## 備考3: pera の公開範囲と実践実装の扱い
+
+この文書は site model の計画であり、pera 自体の販売戦略や公開戦略を扱う資料ではない。ただし、`apps/front-business` や multi-site CMS の検討は、pera をどう見せるか、どこまで無償公開するかという判断にも関係するため、派生メモとして残す。
+
+pera の無料公開範囲は、Framework の価値と入口の低さを示すことに絞る。
+
+```text
+minimal scaffold
+  = 普通の PHP として小さく始められる入口
+
+layered scaffold
+  = 責務分離した実務向け構成の基本形
+
+docs / benchmark
+  = pera の設計思想、性能、HTTP / DI / Routing / View / Security の説明
+```
+
+`apps/minimal` は、Controller に処理をまとめて書くような最小構成でも、pera の HTTP 境界、DI、TemplateRenderer、FrankenPHP worker 実行基盤の恩恵を受けられることを示すための入口である。これは「低品質な書き方を推奨する」ためではなく、「雑に始めても土台の品質は落ちにくい」ことを示すためにある。
+
+そのため、`minimal` だけを前面に出すと、pera が単なる PDO 直書きの薄い framework だと誤解される可能性がある。見せ方としては、次の順序を明確にする。
+
+```text
+minimal
+  = まず動く。普通の PHP として書ける。
+
+layered
+  = 境界を分けて実務向けに育てられる。
+
+private practical implementation
+  = 監査、認可、履歴、CMS 運用、公開面分離などの実践知。
+```
+
+`cms/webmedia` の実装は、無料サンプルとして公開しない。これは Framework の使い方を示すだけの教材ではなく、監査、認可、履歴、管理画面、公開面分離、Presentation / Application / Domain の切り方、運用上の判断を含む実践実装であり、業務知見そのものに近い。
+
+無償公開してよいのは、Framework の核と、利用者が pera を始めるための入口である。実務向け CMS 実装や監査 middleware を含む具体構成は、次のいずれかとして扱う。
+
+- 有償テンプレート。
+- 契約顧客向け scaffold。
+- コンサルティング時の非公開参考実装。
+- 自社サービス基盤。
+- 公開する場合でも、コードではなく概要説明に留める実践投入例。
+
+公開説明としては、次の程度に留める。
+
+```text
+pera は実業務向け CMS 実装でも利用できる。
+認証、認可、監査ログ、履歴管理、管理画面、公開面分離などを含む構成で運用可能である。
+```
+
+ここで重要なのは、pera の価値を見せるために実践実装の中身まで無料で差し出さないことである。`minimal` と `layered` は入口として公開し、`cms/webmedia` のような業務知見を含む実装は別価値として守る。
+
+この線引きにより、pera は次の2つを両立できる。
+
+- 小さく始められる framework としての採用しやすさ。
+- 実務品質の設計を安売りしないこと。

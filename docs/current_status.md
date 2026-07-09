@@ -55,6 +55,7 @@
     - 初期 site model では `articles.site_id`、`article_site_publications`、`page_placements`、`site_navigation_items` は入れない方針にした。固定ページは site の構造に近いため `pages.site_id` を持たせる。記事は共有コンテンツに固定するのではなく、今回の目的に不要な所属決定を先送りし、要求が明確になってから `articles.site_id` か `article_site_publications` を判断する。
     - `docs/site_model_plan.md` に、将来 `article_site_publications` を導入する場合の導入条件、schema、CMS 管理画面、監査、SEO、要素単位 fragment pool を避ける方針を備考として追記した。
     - `docs/site_model_plan.md` に、`articles.site_id` と `article_site_publications` の機能、実装コスト、管理画面、query、監査、SEO、判断基準の比較を備考2として追記した。
+    - `docs/site_model_plan.md` に、pera の無料公開範囲と `cms/webmedia` 実践実装を無償公開しない方針を備考3として追記した。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。
