@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- 責務、境界、構造を無視する作りが残っていないかを全体精査し、後から検証・処理できるよう `docs/architecture_boundary_review.md` に抽出結果を整理した。
 - `docs/README.md` を薄い索引に整理。
 - `docs/plan.md` を現在の作業順序だけに整理。
 - `docs/current_status.md` を現在地と再開地点だけに整理。

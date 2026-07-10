@@ -20,6 +20,7 @@
 - `docs/feature_inventory.md`: CMS / Front / Shared / Framework の機能棚卸し。
 - `docs/decisions.md`: なぜやる / やらないの設計判断記録。
 - `docs/site_model_plan.md`: `sites` を中心にした公開面モデルの追加方針。
+- `docs/architecture_boundary_review.md`: 責務・境界・構造の全体精査で抽出した検証待ち候補。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。
 - `docs/resource-operation-policy-plan.md`: route-level permission と resource-level operation permission の整理プラン。
