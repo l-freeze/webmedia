@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Application\Setting\Edit\Query\ISettingQuery;
 use App\Cms\Application\Setting\Edit\Value\Settings;
+use App\Cms\Domain\Entity\SiteSettings;
 use App\Cms\Domain\Repository\ISettingRepository;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
@@ -13,13 +14,6 @@ use PDO;
 
 final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepository
 {
-    private const DEFAULT_FRONT_THEME = 'cafe-clean';
-    private const DEFAULT_HERO_TITLE = '読みやすく、探しやすいWEBメディア';
-    private const DEFAULT_HERO_DESCRIPTION = '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。';
-
-    /** @var list<string> */
-    private const FRONT_THEMES = ['cafe-clean', 'tech-edge', 'executive-trust', 'dev-docs', 'recipe-fresh', 'pop-girly', 'mama-soft'];
-
     public function __construct(private PDO $pdo)
     {
     }
@@ -32,18 +26,18 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
                 siteName: '',
                 siteDescription: '',
                 contactEmail: '',
-                frontTheme: self::DEFAULT_FRONT_THEME,
+                frontTheme: SiteSettings::DEFAULT_FRONT_THEME,
                 searchEnabled: true,
                 heroImage: '',
-                heroTitle: self::DEFAULT_HERO_TITLE,
-                heroDescription: self::DEFAULT_HERO_DESCRIPTION,
+                heroTitle: SiteSettings::DEFAULT_HERO_TITLE,
+                heroDescription: SiteSettings::DEFAULT_HERO_DESCRIPTION,
             );
         }
         $settings = PdoRow::from(values: $row);
 
-        $frontTheme = $settings->string(key: 'front_theme', default: self::DEFAULT_FRONT_THEME);
-        if (!in_array($frontTheme, self::FRONT_THEMES, true)) {
-            $frontTheme = self::DEFAULT_FRONT_THEME;
+        $frontTheme = $settings->string(key: 'front_theme', default: SiteSettings::DEFAULT_FRONT_THEME);
+        if (!in_array($frontTheme, SiteSettings::FRONT_THEMES, true)) {
+            $frontTheme = SiteSettings::DEFAULT_FRONT_THEME;
         }
 
         return new Settings(
@@ -53,42 +47,24 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
             frontTheme: $frontTheme,
             searchEnabled: self::boolValue(value: $row['search_enabled'] ?? null, default: true),
             heroImage: $settings->string(key: 'hero_image'),
-            heroTitle: self::settingOrDefault(value: $settings->nullableString(key: 'hero_title'), default: self::DEFAULT_HERO_TITLE),
-            heroDescription: self::settingOrDefault(value: $settings->nullableString(key: 'hero_description'), default: self::DEFAULT_HERO_DESCRIPTION),
+            heroTitle: self::settingOrDefault(value: $settings->nullableString(key: 'hero_title'), default: SiteSettings::DEFAULT_HERO_TITLE),
+            heroDescription: self::settingOrDefault(value: $settings->nullableString(key: 'hero_description'), default: SiteSettings::DEFAULT_HERO_DESCRIPTION),
         );
     }
 
-    /**
-     * @param array{
-     *     site_name?:mixed,
-     *     site_description?:mixed,
-     *     contact_email?:mixed,
-     *     front_theme?:mixed,
-     *     search_enabled?:mixed,
-     *     hero_image?:mixed,
-     *     hero_title?:mixed,
-     *     hero_description?:mixed
-     * } $data
-     */
-    public function save(array $data): void
+    public function save(SiteSettings $settings): void
     {
-        $input = PdoRow::from(values: $data);
-        $frontTheme = $input->string(key: 'front_theme');
-        if (!in_array($frontTheme, self::FRONT_THEMES, true)) {
-            $frontTheme = self::DEFAULT_FRONT_THEME;
-        }
-        $searchEnabled = $input->string(key: 'search_enabled', default: '1') === '1';
         $now = date('Y-m-d H:i:s');
 
         $params = [
-            'site_name' => $input->string(key: 'site_name'),
-            'site_description' => $input->string(key: 'site_description'),
-            'contact_email' => $input->string(key: 'contact_email'),
-            'front_theme' => $frontTheme,
-            'search_enabled' => $searchEnabled,
-            'hero_image' => $input->string(key: 'hero_image'),
-            'hero_title' => $input->string(key: 'hero_title'),
-            'hero_description' => $input->string(key: 'hero_description'),
+            'site_name' => $settings->siteName,
+            'site_description' => $settings->siteDescription,
+            'contact_email' => $settings->contactEmail,
+            'front_theme' => $settings->frontTheme,
+            'search_enabled' => $settings->searchEnabled,
+            'hero_image' => $settings->heroImage,
+            'hero_title' => $settings->heroTitle,
+            'hero_description' => $settings->heroDescription,
             'created_at' => $now,
             'updated_at' => $now,
         ];

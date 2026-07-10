@@ -6,6 +6,7 @@ namespace Tests\Front;
 
 use App\Front\Application\Inquiry\Create\Input;
 use App\Front\Application\Inquiry\Create\Interactor;
+use App\Front\Domain\Entity\Inquiry;
 use App\Front\Domain\Repository\IInquiryRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -53,7 +54,7 @@ final class InquiryCreateInteractorTest extends TestCase
 
 final class RecordingInquiryRepository implements IInquiryRepository
 {
-    public function create(string $name, string $email, string $subject, string $message): void
+    public function create(Inquiry $inquiry): void
     {
     }
 }

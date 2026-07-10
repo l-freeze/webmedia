@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Inquiry\Update;
 
+use App\Cms\Domain\Entity\InquiryStatusUpdate;
 use App\Cms\Domain\Value\InquiryStatus;
 use App\Cms\Domain\Repository\IInquiryRepository;
 use App\Shared\Validation\ValidationError;
@@ -30,7 +31,11 @@ final readonly class Interactor
             return Output::invalid(ValidationOutput::invalid(...$errors));
         }
 
-        return $this->inquiries->updateStatus(id: $input->id, status: $input->status, adminNote: $input->adminNote)
+        return $this->inquiries->updateStatus(new InquiryStatusUpdate(
+            id: $input->id,
+            status: $input->status,
+            adminNote: $input->adminNote,
+        ))
             ? Output::updated()
             : Output::invalid(ValidationOutput::invalid(new ValidationError(field: 'id', message: '問い合わせが見つかりません。')));
     }

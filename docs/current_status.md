@@ -59,7 +59,7 @@
     - 初期 schema の `site_settings` EAV を廃止し、`site_settings` は現行単一サイト用の typed table として作る方針へ変更した。Front / CMS の設定読み書きも typed `site_settings` を参照する。
     - 現行 schema として不要になった body rename、公開終了、media derivative、author などの schema-evolution migration は初期 migration へ畳み込み、fresh migrate で正しい schema だけが作られる状態にした。
     - CMS の設定保存 UseCase から Front の layout cache key 直接削除を外した。別アプリケーションの cache key を CMS が知る形にはせず、必要になった場合はアプリケーション横断の invalidation 境界として別途設計する。
-    - Repository interface の array 引数は PHPDoc で必要な shape を明示した。カテゴリ / タグ保存では、UseCase が検証済み入力から Repository に渡す項目だけを組み立てる。
+    - Repository interface は保存対象の Domain 型を受け取る方針へ戻した。カテゴリ / タグ / サイト設定 / 問い合わせ / メディアアップロードは Domain 型を Repository に渡し、Repository がフォーム配列 shape や入力項目列の知識を持たないようにした。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。

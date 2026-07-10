@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
+use App\Cms\Domain\Entity\Tag;
 use App\Cms\Domain\Repository\ITagRepository;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
@@ -16,33 +17,29 @@ final readonly class PdoTagRepository implements ITagRepository
     {
     }
 
-    /** @param array{name:mixed,slug:mixed} $data */
-    public function create(array $data): void
+    public function create(Tag $tag): void
     {
-        $input = PdoRow::from(values: $data);
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO tags (name, slug, created_at, updated_at) VALUES (:name, :slug, :created_at, :updated_at)');
         PdoHelper::execute(statement: $stmt, params: [
-            'name' => $input->string(key: 'name'),
-            'slug' => $input->string(key: 'slug'),
+            'name' => $tag->name,
+            'slug' => $tag->slug,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
     }
 
-    /** @param array{name:mixed,slug:mixed} $data */
-    public function update(int $id, array $data): bool
+    public function update(int $id, Tag $tag): bool
     {
-        $input = PdoRow::from(values: $data);
-        if ($this->slugExists(slug: $input->string(key: 'slug'), exceptId: $id)) {
+        if ($this->slugExists(slug: $tag->slug, exceptId: $id)) {
             return false;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE tags SET name = :name, slug = :slug, updated_at = :updated_at WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: [
             'id' => $id,
-            'name' => $input->string(key: 'name'),
-            'slug' => $input->string(key: 'slug'),
+            'name' => $tag->name,
+            'slug' => $tag->slug,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 

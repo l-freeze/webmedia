@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Setting\Save;
 
+use App\Cms\Domain\Entity\SiteSettings;
 use App\Cms\Domain\Repository\ISettingRepository;
 
 final readonly class Interactor
@@ -14,7 +15,7 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $this->settings->save($input->data);
+        $this->settings->save(SiteSettings::fromInput(data: $input->data));
 
         return new Output(saved: true);
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Category\Save;
 
 use App\Cms\Application\Validation\SlugValidator;
+use App\Cms\Domain\Entity\Category;
 use App\Cms\Domain\Repository\ICategoryRepository;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
@@ -32,11 +33,11 @@ final readonly class Interactor
             return new Output(saved: false, error: 'このスラッグは既に使われています。');
         }
 
-        $this->categories->create([
-            'name' => $values->string(field: 'name'),
-            'slug' => $values->string(field: 'slug'),
-            'description' => $values->string(field: 'description'),
-        ]);
+        $this->categories->create(new Category(
+            name: $values->string(field: 'name'),
+            slug: $values->string(field: 'slug'),
+            description: $values->string(field: 'description'),
+        ));
 
         return new Output(saved: true);
     }

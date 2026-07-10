@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Tag\Save;
 
 use App\Cms\Application\Validation\SlugValidator;
+use App\Cms\Domain\Entity\Tag;
 use App\Cms\Domain\Repository\ITagRepository;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
@@ -32,10 +33,10 @@ final readonly class Interactor
             return new Output(saved: false, error: 'このスラッグは既に使われています。');
         }
 
-        $this->tags->create([
-            'name' => $values->string(field: 'name'),
-            'slug' => $values->string(field: 'slug'),
-        ]);
+        $this->tags->create(new Tag(
+            name: $values->string(field: 'name'),
+            slug: $values->string(field: 'slug'),
+        ));
 
         return new Output(saved: true);
     }

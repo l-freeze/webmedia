@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Repository;
 
+use App\Cms\Domain\Entity\Tag;
+
 interface ITagRepository
 {
-    /** @param array{name:mixed,slug:mixed} $data */
-    public function create(array $data): void;
+    public function create(Tag $tag): void;
 
-    /** @param array{name:mixed,slug:mixed} $data */
-    public function update(int $id, array $data): bool;
+    public function update(int $id, Tag $tag): bool;
 
     public function delete(int $id): bool;
 

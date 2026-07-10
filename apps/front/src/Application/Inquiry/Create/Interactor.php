@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Front\Application\Inquiry\Create;
 
+use App\Front\Domain\Entity\Inquiry;
 use App\Front\Domain\Repository\IInquiryRepository;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationInput;
@@ -36,7 +37,12 @@ final readonly class Interactor
             return new Output(created: false, error: $validation->firstMessage());
         }
 
-        $this->inquiries->create(name: $input->name, email: $input->email, subject: $input->subject, message: $input->message);
+        $this->inquiries->create(new Inquiry(
+            name: $input->name,
+            email: $input->email,
+            subject: $input->subject,
+            message: $input->message,
+        ));
         return new Output(created: true);
     }
 }

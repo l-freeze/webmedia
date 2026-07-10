@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
+use App\Cms\Domain\Entity\MediaUpload;
 use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Value\MediaDeleteResult;
 use App\Cms\Domain\Value\MediaUploadResult;
@@ -44,15 +45,13 @@ final readonly class PdoMediaRepository implements IMediaRepository
     {
     }
 
-    /** @param array{name?:mixed,type?:mixed,tmp_name?:mixed,error?:mixed,size?:mixed} $file */
-    public function storeUploadedMedia(array $file, string $altText, string $caption): MediaUploadResult
+    public function storeUploadedMedia(MediaUpload $upload): MediaUploadResult
     {
-        $input = PdoRow::from(values: $file);
-        if ($input->int(key: 'error', default: UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return new MediaUploadResult(uploaded: false, error: $this->uploadErrorMessage(error: $input->int(key: 'error', default: UPLOAD_ERR_NO_FILE)));
+        if ($upload->error !== UPLOAD_ERR_OK) {
+            return new MediaUploadResult(uploaded: false, error: $this->uploadErrorMessage(error: $upload->error));
         }
 
-        $tmpName = $input->string(key: 'tmp_name');
+        $tmpName = $upload->tmpName;
         if ($tmpName === '' || !is_file($tmpName)) {
             return new MediaUploadResult(uploaded: false, error: 'アップロードされたファイルを確認できません。');
         }
@@ -62,7 +61,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
             return new MediaUploadResult(uploaded: false, error: 'アップロードできるメディアは JPEG / PNG / WebP / GIF / MP4 / WebM / Ogg / MOV / AVI です。');
         }
 
-        $fileSize = $input->int(key: 'size');
+        $fileSize = $upload->size;
         if ($fileSize <= 0 || $fileSize > $this->maxFileSize(mimeType: $mimeType)) {
             return new MediaUploadResult(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
         }
@@ -93,7 +92,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at) RETURNING id');
         PdoHelper::execute(statement: $stmt, params: [
-            'file_name' => $this->safeOriginalName(fileName: $input->string(key: 'name', default: $storedFileName)),
+            'file_name' => $this->safeOriginalName(fileName: $upload->originalName === '' ? $storedFileName : $upload->originalName),
             'path' => $path,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
@@ -101,8 +100,8 @@ final readonly class PdoMediaRepository implements IMediaRepository
             'height' => $height,
             'thumbnail_path' => $variants->thumbnailPath,
             'optimized_path' => $variants->optimizedPath,
-            'alt_text' => $altText === '' ? null : $altText,
-            'caption' => $caption === '' ? null : $caption,
+            'alt_text' => $upload->altText === '' ? null : $upload->altText,
+            'caption' => $upload->caption === '' ? null : $upload->caption,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
         $mediaId = PdoHelper::fetch(statement: $stmt);

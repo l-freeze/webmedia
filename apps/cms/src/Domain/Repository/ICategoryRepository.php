@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Repository;
 
+use App\Cms\Domain\Entity\Category;
+
 interface ICategoryRepository
 {
-    /** @param array{name:mixed,slug:mixed,description?:mixed} $data */
-    public function create(array $data): void;
+    public function create(Category $category): void;
 
-    /** @param array{name:mixed,slug:mixed,description?:mixed} $data */
-    public function update(int $id, array $data): bool;
+    public function update(int $id, Category $category): bool;
 
     public function delete(int $id): bool;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Persistence;
 
+use App\Cms\Domain\Entity\Category;
 use App\Cms\Domain\Repository\ICategoryRepository;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
@@ -16,35 +17,31 @@ final readonly class PdoCategoryRepository implements ICategoryRepository
     {
     }
 
-    /** @param array{name:mixed,slug:mixed,description?:mixed} $data */
-    public function create(array $data): void
+    public function create(Category $category): void
     {
-        $input = PdoRow::from(values: $data);
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO categories (name, slug, description, created_at, updated_at) VALUES (:name, :slug, :description, :created_at, :updated_at)');
         PdoHelper::execute(statement: $stmt, params: [
-            'name' => $input->string(key: 'name'),
-            'slug' => $input->string(key: 'slug'),
-            'description' => $input->string(key: 'description'),
+            'name' => $category->name,
+            'slug' => $category->slug,
+            'description' => $category->description,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
     }
 
-    /** @param array{name:mixed,slug:mixed,description?:mixed} $data */
-    public function update(int $id, array $data): bool
+    public function update(int $id, Category $category): bool
     {
-        $input = PdoRow::from(values: $data);
-        if ($this->slugExists(slug: $input->string(key: 'slug'), exceptId: $id)) {
+        if ($this->slugExists(slug: $category->slug, exceptId: $id)) {
             return false;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE categories SET name = :name, slug = :slug, description = :description, updated_at = :updated_at WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: [
             'id' => $id,
-            'name' => $input->string(key: 'name'),
-            'slug' => $input->string(key: 'slug'),
-            'description' => $input->string(key: 'description'),
+            'name' => $category->name,
+            'slug' => $category->slug,
+            'description' => $category->description,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 

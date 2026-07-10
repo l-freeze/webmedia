@@ -6,6 +6,7 @@ namespace Tests\Cms;
 
 use App\Cms\Application\Inquiry\Update\Input;
 use App\Cms\Application\Inquiry\Update\Interactor;
+use App\Cms\Domain\Entity\InquiryStatusUpdate;
 use App\Cms\Domain\Value\InquiryStatus;
 use App\Cms\Domain\Repository\IInquiryRepository;
 use PHPUnit\Framework\TestCase;
@@ -65,11 +66,11 @@ final class RecordingInquiryRepository implements IInquiryRepository
     public ?string $lastStatus = null;
     public ?string $lastAdminNote = null;
 
-    public function updateStatus(int $id, string $status, string $adminNote): bool
+    public function updateStatus(InquiryStatusUpdate $update): bool
     {
-        $this->lastId = $id;
-        $this->lastStatus = $status;
-        $this->lastAdminNote = $adminNote;
+        $this->lastId = $update->id;
+        $this->lastStatus = $update->status;
+        $this->lastAdminNote = $update->adminNote;
 
         return true;
     }
