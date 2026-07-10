@@ -106,11 +106,11 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery
     /** @return array<int, string> */
     private function settingUsages(string $path): array
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT setting_key FROM site_settings WHERE setting_value = :path OR setting_value LIKE :needle ORDER BY setting_key ASC LIMIT 5');
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT hero_image FROM site_settings WHERE hero_image = :path OR hero_image LIKE :needle LIMIT 5');
         PdoHelper::execute(statement: $stmt, params: ['path' => $path, 'needle' => '%' . $path . '%']);
 
         return array_map(
-            fn (array $row): string => 'サイト設定 ' . PdoRow::from(values: $row)->string(key: 'setting_key'),
+            fn (array $row): string => 'サイト設定 hero_image',
             PdoHelper::fetchAll(statement: $stmt),
         );
     }

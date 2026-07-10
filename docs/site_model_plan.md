@@ -58,7 +58,7 @@ pages.visibility
 
 `sites` は公開面そのものを表す。
 
-`site_settings` はサイト名、description、theme、canonical base URL、OGP 画像、トップページを記事一覧にするか固定ページ/LPにするかなど、公開表示に関係する設定を持つ。
+`site_settings` は typed table として、サイト名、description、theme、hero など現行公開表示に関係する設定を持つ。`setting_key` / `setting_value` の EAV 形式にはしない。現行システムでは単一サイト前提のため `site_id` を持たせず、multi-site 化する段階で site 所属を追加する。旧 EAV 形式の `site_settings` は migration / seed にも残さない。
 
 `site_integrations` は Slack、Google Search Console、Cloudflare、GA4 / GTM、Mailgun、Webhook など外部サービスとの接続設定を持つ。これは表示設定ではないため、`site_settings.settings` のような何でも箱には入れない。
 
@@ -104,7 +104,7 @@ pages.visibility
   = 固定ページ自体をどの経路で見せてよいか
 
 site_settings
-  = site の表示方針と公開設定
+  = 現行単一サイトの表示方針と公開設定
 
 site_integrations
   = site に属する外部接続
@@ -116,7 +116,7 @@ site_integrations
 
 `pages` は、今回の初期実装で site 所属を持つ。固定ページは site の構造に近く、同じ本文を複数 site に出したい場合でも、最初は同内容の page を site ごとに複製する方が分かりやすい。固定ページを共有コンテンツとして扱いたい要求が出るまでは、関連テーブルで抽象化しない。
 
-`site_settings` は「トップページを記事一覧にするか固定ページにするか」のような方針を持つ。トップページが固定ページの場合に限り、`home_page_id` を持つ。これは site のトップ表示設定そのものであり、一般的な固定ページ配置とは分けて扱う。
+multi-site 化後の `site_settings` は「トップページを記事一覧にするか固定ページにするか」のような方針を持つ。トップページが固定ページの場合に限り、`home_page_id` を持つ。これは site のトップ表示設定そのものであり、一般的な固定ページ配置とは分けて扱う。現行の単一サイト用 `site_settings` には、まだ `home_mode` / `home_page_id` を入れない。
 
 `site_integrations` は外部連携の所属先を持つ。credential や webhook を `site_settings` に混ぜると、表示設定と接続設定が同じ経路に乗ってしまうため分ける。
 
@@ -124,7 +124,7 @@ site_integrations
 
 ### トップページの扱い
 
-トップページに何を表示するかという方針は `site_settings` が持つ。
+multi-site 化後、トップページに何を表示するかという方針は `site_settings` が持つ。
 
 ```text
 site_settings.home_mode
@@ -230,17 +230,21 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 
 最初の実装では、既存 `apps/front` への影響を最小にする。現行挙動を変えるためではなく、site 概念を導入してから段階的に参照先を移す。
 
+ただし、旧 `site_settings` の EAV 解消は site model 格上げとは独立した先行修正として扱う。現行システムでは単一サイト前提の typed `site_settings` を作り、旧 EAV 形式は migration / seed からも除去する。`site_id`、`sites`、`pages.site_id` はまだ入れない。multi-site 化へ進む段階で、ここに site 所属を追加する。
+
 1. `sites` を追加する。
    - 初期 site を 1 件 seed する。
    - `site_key` は immutable な識別子として扱う。
    - 表示名は変更可能にする。
 
-2. `site_settings` を site 所属に寄せる。
-   - 既存 `setting_key` / `setting_value` をすぐ壊さない。
-   - migration では既存設定を default site に所属させる。
-   - トップページ方針として `home_mode = article_index | page` を持たせる。
-   - `home_mode = page` の場合の参照として `home_page_id` を持たせる。
-   - front / cms の参照箇所を一気に壊さず、互換期間を設けるか、同一 commit で安全に置き換える。
+2. 現行システム用の `site_settings` を typed table として作る。
+   - `setting_key` / `setting_value` の EAV 形式にしない。
+   - 旧 EAV 形式の `site_settings` は migration / seed にも残さない。
+   - 現行システムは単一サイトなので `site_id` を持たせない。
+   - migration では既存設定を typed row として seed する。
+   - `site_name`、`site_description`、`contact_email`、`front_theme`、`search_enabled`、`hero_image`、`hero_title`、`hero_description` を列として持つ。
+   - `home_mode`、`home_page_id`、`canonical_base_url` は multi-site / LP 配置へ進む段階まで入れない。
+   - front / cms の参照箇所は EAV ではなく typed `site_settings` を読む。
 
 3. `site_integrations` を追加する。
    - 外部連携設定を `site_settings` に混ぜないための受け皿を作る。
@@ -269,7 +273,6 @@ site ごとの同型テーブル分割は、完全独立 tenant、DB 分離、�
 次の点は実装前に決める。
 
 - `site_key` の値を `front`, `business` のような app 寄りにするか、`main`, `business_service` のような運用寄りにするか。
-- `site_settings` を key-value のまま site 所属にするか、主要項目だけ typed column にするか。
 - `site_integrations` の secret を DB に暗号化して持つか、env / secret manager 参照にするか。
 - 記事を将来 `articles.site_id` で 1 site 所属にするか、`article_site_publications` で複数 site 公開を許すか。
 - 固定ページに `page_kind = normal / landing` のような種類を持たせるか。現時点では `visibility = placement_only` と `site_settings.home_page_id` で LP 用途は表現できるため、本文種別としての `page_kind` は必須ではない。

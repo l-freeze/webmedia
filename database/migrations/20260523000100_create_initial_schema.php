@@ -142,9 +142,17 @@ final class CreateInitialSchema extends AbstractMigration
             ->addColumn('updated_at', 'datetime')
             ->create();
 
-        $this->table('site_settings', ['id' => false, 'primary_key' => ['setting_key']])
-            ->addColumn('setting_key', 'string', ['limit' => 120])
-            ->addColumn('setting_value', 'text', ['null' => true])
+        $this->table('site_settings', ['id' => false])
+            ->addColumn('site_name', 'string', ['limit' => 190, 'null' => false])
+            ->addColumn('site_description', 'text', ['null' => true])
+            ->addColumn('contact_email', 'string', ['limit' => 190, 'null' => true])
+            ->addColumn('front_theme', 'string', ['limit' => 80, 'default' => 'cafe-clean', 'null' => false])
+            ->addColumn('search_enabled', 'boolean', ['default' => true, 'null' => false])
+            ->addColumn('hero_image', 'string', ['limit' => 255, 'null' => true])
+            ->addColumn('hero_title', 'string', ['limit' => 190, 'null' => true])
+            ->addColumn('hero_description', 'text', ['null' => true])
+            ->addColumn('created_at', 'datetime', ['null' => false])
+            ->addColumn('updated_at', 'datetime', ['null' => false])
             ->create();
 
         $this->table('operation_logs')

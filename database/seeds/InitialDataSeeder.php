@@ -288,13 +288,18 @@ final class InitialDataSeeder extends AbstractSeed
         ])->saveData();
 
         $this->table('site_settings')->insert([
-            ['setting_key' => 'site_name', 'setting_value' => 'WEB Media'],
-            ['setting_key' => 'site_description', 'setting_value' => 'PHP技術記事と日常生活の知恵を届ける小規模WEBメディア'],
-            ['setting_key' => 'contact_email', 'setting_value' => 'admin@example.com'],
-            ['setting_key' => 'front_theme', 'setting_value' => 'cafe-clean'],
-            ['setting_key' => 'search_enabled', 'setting_value' => '1'],
-            ['setting_key' => 'hero_title', 'setting_value' => '読みやすく、探しやすいWEBメディア'],
-            ['setting_key' => 'hero_description', 'setting_value' => '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。'],
+            [
+                'site_name' => 'WEB Media',
+                'site_description' => 'PHP技術記事と日常生活の知恵を届ける小規模WEBメディア',
+                'contact_email' => 'admin@example.com',
+                'front_theme' => 'cafe-clean',
+                'search_enabled' => true,
+                'hero_image' => null,
+                'hero_title' => '読みやすく、探しやすいWEBメディア',
+                'hero_description' => '小規模メディア運営に必要な記事、カテゴリ、タグ、検索導線を整理しています。',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ])->saveData();
 
         foreach (['categories', 'tags', 'articles', 'pages'] as $table) {

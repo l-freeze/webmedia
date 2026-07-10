@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-09
+- 2026-07-10
 
 ## 現在地
 
@@ -56,6 +56,7 @@
     - `docs/site_model_plan.md` に、将来 `article_site_publications` を導入する場合の導入条件、schema、CMS 管理画面、監査、SEO、要素単位 fragment pool を避ける方針を備考として追記した。
     - `docs/site_model_plan.md` に、`articles.site_id` と `article_site_publications` の機能、実装コスト、管理画面、query、監査、SEO、判断基準の比較を備考2として追記した。
     - `docs/site_model_plan.md` に、pera の無料公開範囲と `cms/webmedia` 実践実装を無償公開しない方針を備考3として追記した。
+    - 初期 schema の `site_settings` EAV を廃止し、`site_settings` は現行単一サイト用の typed table として作る方針へ変更した。Front / CMS の設定読み書きも typed `site_settings` を参照する。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。
