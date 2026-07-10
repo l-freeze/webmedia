@@ -28,7 +28,13 @@ final readonly class Interactor
             return new Output(updated: false, error: $validation->firstMessage());
         }
 
-        if (!$this->categories->update(id: $input->id, data: $input->data)) {
+        $data = [
+            'name' => $values->string(field: 'name'),
+            'slug' => $values->string(field: 'slug'),
+            'description' => $values->string(field: 'description'),
+        ];
+
+        if (!$this->categories->update(id: $input->id, data: $data)) {
             return new Output(updated: false, error: '対象が見つからないか、同じスラッグがすでに使われています。');
         }
 

@@ -16,6 +16,7 @@ final readonly class PdoTagRepository implements ITagRepository
     {
     }
 
+    /** @param array{name:mixed,slug:mixed} $data */
     public function create(array $data): void
     {
         $input = PdoRow::from(values: $data);
@@ -29,6 +30,7 @@ final readonly class PdoTagRepository implements ITagRepository
         ]);
     }
 
+    /** @param array{name:mixed,slug:mixed} $data */
     public function update(int $id, array $data): bool
     {
         $input = PdoRow::from(values: $data);

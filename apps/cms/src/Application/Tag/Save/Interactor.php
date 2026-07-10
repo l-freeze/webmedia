@@ -32,7 +32,10 @@ final readonly class Interactor
             return new Output(saved: false, error: 'このスラッグは既に使われています。');
         }
 
-        $this->tags->create($input->data);
+        $this->tags->create([
+            'name' => $values->string(field: 'name'),
+            'slug' => $values->string(field: 'slug'),
+        ]);
 
         return new Output(saved: true);
     }

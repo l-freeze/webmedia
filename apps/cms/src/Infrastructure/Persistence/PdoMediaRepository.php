@@ -44,7 +44,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
     {
     }
 
-    /** @param array<string, mixed> $file */
+    /** @param array{name?:mixed,type?:mixed,tmp_name?:mixed,error?:mixed,size?:mixed} $file */
     public function storeUploadedMedia(array $file, string $altText, string $caption): MediaUploadResult
     {
         $input = PdoRow::from(values: $file);

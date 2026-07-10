@@ -32,7 +32,11 @@ final readonly class Interactor
             return new Output(saved: false, error: 'このスラッグは既に使われています。');
         }
 
-        $this->categories->create($input->data);
+        $this->categories->create([
+            'name' => $values->string(field: 'name'),
+            'slug' => $values->string(field: 'slug'),
+            'description' => $values->string(field: 'description'),
+        ]);
 
         return new Output(saved: true);
     }

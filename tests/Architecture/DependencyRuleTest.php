@@ -24,7 +24,7 @@ final class DependencyRuleTest extends TestCase
     {
         $this->assertNoForbiddenReferences(
             roots: [self::root() . '/apps/cms/src'],
-            forbiddenNeedles: ['App\\Front\\'],
+            forbiddenNeedles: ['App\\Front\\', 'front.layout_globals'],
         );
     }
 

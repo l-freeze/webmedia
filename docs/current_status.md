@@ -57,6 +57,9 @@
     - `docs/site_model_plan.md` に、`articles.site_id` と `article_site_publications` の機能、実装コスト、管理画面、query、監査、SEO、判断基準の比較を備考2として追記した。
     - `docs/site_model_plan.md` に、pera の無料公開範囲と `cms/webmedia` 実践実装を無償公開しない方針を備考3として追記した。
     - 初期 schema の `site_settings` EAV を廃止し、`site_settings` は現行単一サイト用の typed table として作る方針へ変更した。Front / CMS の設定読み書きも typed `site_settings` を参照する。
+    - 現行 schema として不要になった body rename、公開終了、media derivative、author などの schema-evolution migration は初期 migration へ畳み込み、fresh migrate で正しい schema だけが作られる状態にした。
+    - CMS の設定保存 UseCase から Front の layout cache key 直接削除を外した。別アプリケーションの cache key を CMS が知る形にはせず、必要になった場合はアプリケーション横断の invalidation 境界として別途設計する。
+    - Repository interface の array 引数は PHPDoc で必要な shape を明示した。カテゴリ / タグ保存では、UseCase が検証済み入力から Repository に渡す項目だけを組み立てる。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。
