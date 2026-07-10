@@ -7,7 +7,15 @@ namespace App\Cms\Application\Page\Save;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
+use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\PageBody;
 use App\Cms\Domain\Value\PageBodyFormat;
+use App\Cms\Domain\Value\PageDisplayOrder;
+use App\Cms\Domain\Value\PageId;
+use App\Cms\Domain\Value\PageSlug;
+use App\Cms\Domain\Value\PageStatus;
+use App\Cms\Domain\Value\PageTitle;
+use App\Cms\Domain\Value\SeoTitle;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationInput;
@@ -45,7 +53,7 @@ final readonly class Interactor
             ));
         }
 
-        return Output::saved($this->pages->save(Page::fromInput(id: $input->id, data: $input->data)));
+        return Output::saved($this->pages->save($this->pageFromInput(input: $input, values: $values)));
     }
 
     private function validateRichTextBody(ValidationInput $values): ValidationOutput
@@ -95,5 +103,20 @@ final readonly class Interactor
         }
 
         return true;
+    }
+
+    private function pageFromInput(Input $input, ValidationInput $values): Page
+    {
+        return new Page(
+            id: $input->id === null ? null : new PageId(value: $input->id),
+            title: new PageTitle(value: $values->string(field: 'title')),
+            slug: new PageSlug(value: $values->string(field: 'slug')),
+            body: new PageBody(value: $values->string(field: 'body')),
+            bodyFormat: new PageBodyFormat(value: $values->string(field: 'body_format')),
+            status: new PageStatus(value: $values->string(field: 'status')),
+            displayOrder: new PageDisplayOrder(value: (int) $values->string(field: 'display_order')),
+            seoTitle: new SeoTitle(value: $values->string(field: 'seo_title')),
+            metaDescription: new MetaDescription(value: $values->string(field: 'meta_description')),
+        );
     }
 }

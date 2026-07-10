@@ -6,8 +6,16 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
+use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\PageBody;
+use App\Cms\Domain\Value\PageBodyFormat;
+use App\Cms\Domain\Value\PageDisplayOrder;
 use App\Cms\Domain\Value\PageId;
+use App\Cms\Domain\Value\PageSlug;
+use App\Cms\Domain\Value\PageStatus;
+use App\Cms\Domain\Value\PageTitle;
 use App\Cms\Domain\Value\PageVersionNo;
+use App\Cms\Domain\Value\SeoTitle;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use App\Shared\Markdown\Infrastructure\Markdown;
@@ -58,16 +66,7 @@ final readonly class PdoPageRepository implements IPageRepository
             return;
         }
 
-        $this->save(page: Page::fromInput(id: $pageId->value, data: [
-            'title' => $version['title'],
-            'slug' => $version['slug'],
-            'body' => $version['body'],
-            'body_format' => $version['body_format'] ?? 'markdown',
-            'status' => $version['status'],
-            'display_order' => $version['display_order'],
-            'seo_title' => $version['seo_title'] ?? '',
-            'meta_description' => $version['meta_description'] ?? '',
-        ]));
+        $this->save(page: $this->pageFromVersionRow(pageId: $pageId, row: $version));
     }
 
     private function saveWithinTransaction(Page $page): PageId
@@ -142,5 +141,23 @@ final readonly class PdoPageRepository implements IPageRepository
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE pages SET current_version_no = :version_no WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: ['version_no' => $versionNo, 'id' => $pageId]);
+    }
+
+    /** @param array<string, mixed> $row */
+    private function pageFromVersionRow(PageId $pageId, array $row): Page
+    {
+        $version = PdoRow::from(values: $row);
+
+        return new Page(
+            id: $pageId,
+            title: new PageTitle(value: $version->string(key: 'title')),
+            slug: new PageSlug(value: $version->string(key: 'slug')),
+            body: new PageBody(value: $version->string(key: 'body')),
+            bodyFormat: new PageBodyFormat(value: $version->string(key: 'body_format', default: PageBodyFormat::MARKDOWN)),
+            status: new PageStatus(value: $version->string(key: 'status', default: 'draft')),
+            displayOrder: new PageDisplayOrder(value: $version->int(key: 'display_order')),
+            seoTitle: new SeoTitle(value: $version->string(key: 'seo_title')),
+            metaDescription: new MetaDescription(value: $version->string(key: 'meta_description')),
+        );
     }
 }

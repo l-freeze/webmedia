@@ -7,8 +7,17 @@ namespace Tests\Cms\Authorization;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Domain\Policy\ArticlePolicy;
+use App\Cms\Domain\Value\ArticleBody;
+use App\Cms\Domain\Value\ArticleBodyFormat;
+use App\Cms\Domain\Value\ArticleExcerpt;
+use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticleSlug;
+use App\Cms\Domain\Value\ArticleStatus;
+use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\CmsActor;
 use App\Cms\Domain\Value\CmsRole;
+use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\SeoTitle;
 use PHPUnit\Framework\TestCase;
 
 final class ArticlePolicyTest extends TestCase
@@ -69,13 +78,21 @@ final class ArticlePolicyTest extends TestCase
 
     private function article(?int $authorId): Article
     {
-        return Article::fromInput(id: 1, data: [
-            'title' => 'Title',
-            'slug' => 'slug',
-            'body' => 'Body',
-            'body_format' => 'markdown',
-            'status' => 'draft',
-            'author_id' => $authorId,
-        ]);
+        return new Article(
+            id: new ArticleId(1),
+            title: new ArticleTitle('Title'),
+            slug: new ArticleSlug('slug'),
+            body: new ArticleBody('Body'),
+            bodyFormat: new ArticleBodyFormat(ArticleBodyFormat::MARKDOWN),
+            excerpt: new ArticleExcerpt(''),
+            status: new ArticleStatus('draft'),
+            categoryId: null,
+            eyecatchPath: null,
+            publishedAt: null,
+            publishedEndsAt: null,
+            seoTitle: new SeoTitle(''),
+            metaDescription: new MetaDescription(''),
+            authorId: $authorId,
+        );
     }
 }

@@ -6,8 +6,20 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Value\ArticleBody;
+use App\Cms\Domain\Value\ArticleBodyFormat;
+use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticleSlug;
+use App\Cms\Domain\Value\ArticleStatus;
+use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\ArticleVersionNo;
+use App\Cms\Domain\Value\CategoryId;
+use App\Cms\Domain\Value\EyecatchPath;
+use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\PublishedAt;
+use App\Cms\Domain\Value\PublishedEndsAt;
+use App\Cms\Domain\Value\SeoTitle;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use App\Shared\Markdown\Infrastructure\Markdown;
@@ -194,20 +206,53 @@ final readonly class PdoArticleRepository implements IArticleRepository
     /** @param array<string, mixed> $row */
     private function articleFromRow(int $id, array $row): Article
     {
-        return Article::fromInput(id: $id, data: [
-            'title' => $row['title'] ?? '',
-            'slug' => $row['slug'] ?? '',
-            'body' => $row['body'] ?? '',
-            'body_format' => $row['body_format'] ?? 'markdown',
-            'excerpt' => $row['excerpt'] ?? '',
-            'status' => $row['status'] ?? 'draft',
-            'category_id' => $row['category_id'] ?? '',
-            'eyecatch_path' => $row['eyecatch_path'] ?? '',
-            'published_at' => $row['published_at'] ?? '',
-            'published_ends_at' => $row['published_ends_at'] ?? '',
-            'seo_title' => $row['seo_title'] ?? '',
-            'meta_description' => $row['meta_description'] ?? '',
-            'author_id' => $row['author_id'] ?? '',
-        ]);
+        $pdoRow = PdoRow::from(values: $row);
+
+        return new Article(
+            id: new ArticleId(value: $id),
+            title: new ArticleTitle(value: $pdoRow->string(key: 'title')),
+            slug: new ArticleSlug(value: $pdoRow->string(key: 'slug')),
+            body: new ArticleBody(value: $pdoRow->string(key: 'body')),
+            bodyFormat: new ArticleBodyFormat(value: $pdoRow->string(key: 'body_format', default: ArticleBodyFormat::MARKDOWN)),
+            excerpt: new ArticleExcerpt(value: $pdoRow->string(key: 'excerpt')),
+            status: new ArticleStatus(value: $pdoRow->string(key: 'status', default: 'draft')),
+            categoryId: $this->categoryIdFromRow(row: $pdoRow),
+            eyecatchPath: $this->eyecatchPathFromRow(row: $pdoRow),
+            publishedAt: $this->publishedAtFromRow(row: $pdoRow),
+            publishedEndsAt: $this->publishedEndsAtFromRow(row: $pdoRow),
+            seoTitle: new SeoTitle(value: $pdoRow->string(key: 'seo_title')),
+            metaDescription: new MetaDescription(value: $pdoRow->string(key: 'meta_description')),
+            authorId: $this->authorIdFromRow(row: $pdoRow),
+        );
+    }
+
+    private function categoryIdFromRow(PdoRow $row): ?CategoryId
+    {
+        $categoryId = $row->nullableInt(key: 'category_id');
+        return $categoryId === null ? null : new CategoryId(value: $categoryId);
+    }
+
+    private function eyecatchPathFromRow(PdoRow $row): ?EyecatchPath
+    {
+        $eyecatchPath = $row->nullableString(key: 'eyecatch_path');
+        return $eyecatchPath === null || $eyecatchPath === '' ? null : new EyecatchPath(value: $eyecatchPath);
+    }
+
+    private function publishedAtFromRow(PdoRow $row): ?PublishedAt
+    {
+        $publishedAt = $row->nullableString(key: 'published_at');
+        return $publishedAt === null || $publishedAt === '' ? null : new PublishedAt(value: $publishedAt);
+    }
+
+    private function publishedEndsAtFromRow(PdoRow $row): ?PublishedEndsAt
+    {
+        $publishedEndsAt = $row->nullableString(key: 'published_ends_at');
+        return $publishedEndsAt === null || $publishedEndsAt === '' ? null : new PublishedEndsAt(value: $publishedEndsAt);
+    }
+
+    private function authorIdFromRow(PdoRow $row): ?int
+    {
+        $authorId = $row->nullableInt(key: 'author_id');
+        return $authorId === null || $authorId <= 0 ? null : $authorId;
     }
 }

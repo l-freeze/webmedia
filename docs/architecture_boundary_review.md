@@ -19,6 +19,8 @@
 
 ### 1. Domain Entity が input / row shape を吸収している
 
+状態: 対応済み。
+
 対象:
 
 - `apps/cms/src/Domain/Entity/Article.php`
@@ -26,22 +28,24 @@
 - `apps/cms/src/Infrastructure/Persistence/PdoArticleRepository.php`
 - `apps/cms/src/Infrastructure/Persistence/PdoPageRepository.php`
 
-`Article::fromInput()` と `Page::fromInput()` が `array<string, mixed>` を受け取り、`title`、`body_format`、`published_ends_at` などの配列キーを Domain Entity 内で読んでいる。
+対応前は `Article::fromInput()` と `Page::fromInput()` が `array<string, mixed>` を受け取り、`title`、`body_format`、`published_ends_at` などの配列キーを Domain Entity 内で読んでいた。
 
-さらに Repository 側の DB row 復元でも `fromInput()` が使われている。これは、Repository interface が Domain 型を受け取るようになった後も、shape 変換責務が Domain Entity に残っている状態である。
+さらに Repository 側の DB row 復元でも `fromInput()` が使われていた。これは、Repository interface が Domain 型を受け取るようになった後も、shape 変換責務が Domain Entity に残っている状態だった。
 
-懸念:
+問題だった点:
 
 - Domain Entity がフォーム入力項目名を知っている。
 - DB row 復元と HTTP input からの生成が同じ入口に混ざっている。
 - `fromInput` という名前なのに、Repository の row 復元にも使われている。
 - 今後項目が増えた時に、どの層が変換責務を持つべきか曖昧になる。
 
-検証方針:
+対応:
 
-- Domain Entity は constructor と明示的な named arguments / ValueObject だけを受け取る形へ寄せられるか確認する。
-- UseCase 側の入力変換と Infrastructure 側の row 復元を別々に表現する。
-- ただし、薄い wrapper を増やすだけなら悪化するため、変換責務の置き場所を先に決める。
+- Domain Entity から `fromInput(array)` を削除した。
+- Entity 内の `stringValue` / `intValue` / `boolValue` / `nullablePositiveInt` のような shape helper を削除した。
+- UseCase 側は validation 済み input から ValueObject を明示的に作る。
+- Repository 側は DB row から ValueObject を明示的に作って `new Article(...)` / `new Page(...)` で復元する。
+- 薄い `restore` / `reconstruct` wrapper は増やさず、DB 復元であることは Repository 内の private method 名と処理位置で表現する。
 
 ### 2. migration に現行 schema ではない履歴が残っている
 
@@ -236,17 +240,16 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 
 優先順は次の通り。
 
-1. Domain Entity の `fromInput(array)` をどう扱うか。
-2. migration を現行 schema に畳めるか。
-3. 未使用 schema を削除できるか。
-4. Login / ResetLoginAttempt に Clock 境界を入れるべきか。
-5. 記事 status label の配置を見直すか。
-6. 妥協候補 6-10 は、現時点維持でよいかを確認し、必要なら `docs/decisions.md` に判断だけ残す。
+1. migration を現行 schema に畳めるか。
+2. 未使用 schema を削除できるか。
+3. Login / ResetLoginAttempt に Clock 境界を入れるべきか。
+4. 記事 status label の配置を見直すか。
+5. 妥協候補 6-10 は、現時点維持でよいかを確認し、必要なら `docs/decisions.md` に判断だけ残す。
 
 ## 精査時点の結論
 
 前回までに修正した `site_settings`、Repository interface、cross-app cache key まわりの明確な境界違反はかなり減っている。
 
-一方で、配列 shape の吸収口が Domain Entity に残っている点と、migration に現行 schema ではない履歴が残っている点は、まだ構造上の弱さとして目立つ。
+Domain Entity に残っていた配列 shape の吸収口は解消した。一方で、migration に現行 schema ではない履歴が残っている点は、まだ構造上の弱さとして目立つ。
 
 Audit metadata、route metadata、Tiptap JSON、BusinessCategoryScope は違和感はあるが、現時点では目的に対する妥協として説明可能である。無理に抽象化すると、かえって責務がぼやける可能性がある。

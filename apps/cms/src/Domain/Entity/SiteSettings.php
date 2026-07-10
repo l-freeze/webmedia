@@ -24,46 +24,4 @@ final readonly class SiteSettings
         public string $heroDescription,
     ) {
     }
-
-    /** @param array<string, mixed> $data */
-    public static function fromInput(array $data): self
-    {
-        $frontTheme = self::stringValue(data: $data, key: 'front_theme');
-        if (!in_array($frontTheme, self::FRONT_THEMES, true)) {
-            $frontTheme = self::DEFAULT_FRONT_THEME;
-        }
-
-        return new self(
-            siteName: self::stringValue(data: $data, key: 'site_name'),
-            siteDescription: self::stringValue(data: $data, key: 'site_description'),
-            contactEmail: self::stringValue(data: $data, key: 'contact_email'),
-            frontTheme: $frontTheme,
-            searchEnabled: self::boolValue(value: $data['search_enabled'] ?? null, default: true),
-            heroImage: self::stringValue(data: $data, key: 'hero_image'),
-            heroTitle: self::stringValue(data: $data, key: 'hero_title'),
-            heroDescription: self::stringValue(data: $data, key: 'hero_description'),
-        );
-    }
-
-    /** @param array<string, mixed> $data */
-    private static function stringValue(array $data, string $key, string $default = ''): string
-    {
-        $value = $data[$key] ?? null;
-        return is_scalar($value) ? (string) $value : $default;
-    }
-
-    private static function boolValue(mixed $value, bool $default): bool
-    {
-        if (is_bool($value)) {
-            return $value;
-        }
-        if (is_int($value)) {
-            return $value === 1;
-        }
-        if (is_string($value)) {
-            return in_array(strtolower($value), ['1', 'true', 't', 'yes', 'on'], true);
-        }
-
-        return $default;
-    }
 }

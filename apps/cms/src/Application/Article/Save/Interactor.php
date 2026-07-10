@@ -9,10 +9,21 @@ use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleBodyFormat;
+use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticlePublishPermission;
+use App\Cms\Domain\Value\ArticleSlug;
+use App\Cms\Domain\Value\ArticleStatus;
+use App\Cms\Domain\Value\ArticleTitle;
+use App\Cms\Domain\Value\CategoryId;
 use App\Cms\Domain\Value\CmsActor;
+use App\Cms\Domain\Value\EyecatchPath;
+use App\Cms\Domain\Value\MetaDescription;
+use App\Cms\Domain\Value\PublishedAt;
+use App\Cms\Domain\Value\PublishedEndsAt;
+use App\Cms\Domain\Value\SeoTitle;
 use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationInput;
@@ -52,12 +63,7 @@ final readonly class Interactor
             ));
         }
 
-        $articleData = $input->data;
-        if ($input->id === null) {
-            $articleData['author_id'] = $input->currentUser->id;
-        }
-
-        return Output::saved($this->articles->save($this->articleFromInput(input: $input, data: $articleData)));
+        return Output::saved($this->articles->save($this->articleFromInput(input: $input, values: $values)));
     }
 
     private function validateRichTextBody(ValidationInput $values): ValidationOutput
@@ -109,16 +115,28 @@ final readonly class Interactor
         return true;
     }
 
-    /** @param array<string, mixed> $data */
-    private function articleFromInput(Input $input, array $data): Article
+    private function articleFromInput(Input $input, ValidationInput $values): Article
     {
         $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
-        $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, data: $data);
+        $status = new ArticleStatus(value: $values->string(field: 'status'));
+        $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, status: $status);
 
         if ($input->id === null) {
             return Article::create(
                 permission: $this->articlePolicy->authorizeCreate($actor),
-                data: $data,
+                title: new ArticleTitle(value: $values->string(field: 'title')),
+                slug: new ArticleSlug(value: $values->string(field: 'slug')),
+                body: new ArticleBody(value: $values->string(field: 'body')),
+                bodyFormat: new ArticleBodyFormat(value: $values->string(field: 'body_format')),
+                excerpt: new ArticleExcerpt(value: $values->string(field: 'excerpt')),
+                status: $status,
+                categoryId: $this->categoryId(values: $values),
+                eyecatchPath: $this->eyecatchPath(values: $values),
+                publishedAt: $this->publishedAt(values: $values),
+                publishedEndsAt: $this->publishedEndsAt(values: $values),
+                seoTitle: new SeoTitle(value: $values->string(field: 'seo_title')),
+                metaDescription: new MetaDescription(value: $values->string(field: 'meta_description')),
+                authorId: $input->currentUser->id,
                 publishPermission: $publishPermission,
             );
         }
@@ -130,19 +148,52 @@ final readonly class Interactor
 
         return $article->update(
             permission: $this->articlePolicy->authorizeUpdate(actor: $actor, article: $article),
-            data: $data,
+            title: new ArticleTitle(value: $values->string(field: 'title')),
+            slug: new ArticleSlug(value: $values->string(field: 'slug')),
+            body: new ArticleBody(value: $values->string(field: 'body')),
+            bodyFormat: new ArticleBodyFormat(value: $values->string(field: 'body_format')),
+            excerpt: new ArticleExcerpt(value: $values->string(field: 'excerpt')),
+            status: $status,
+            categoryId: $this->categoryId(values: $values),
+            eyecatchPath: $this->eyecatchPath(values: $values),
+            publishedAt: $this->publishedAt(values: $values),
+            publishedEndsAt: $this->publishedEndsAt(values: $values),
+            seoTitle: new SeoTitle(value: $values->string(field: 'seo_title')),
+            metaDescription: new MetaDescription(value: $values->string(field: 'meta_description')),
             publishPermission: $publishPermission,
         );
     }
 
-    /** @param array<string, mixed> $data */
-    private function publishPermissionIfNeeded(CmsActor $actor, array $data): ?ArticlePublishPermission
+    private function publishPermissionIfNeeded(CmsActor $actor, ArticleStatus $status): ?ArticlePublishPermission
     {
-        $status = $data['status'] ?? 'draft';
-        if (!is_scalar($status) || (string) $status !== 'published') {
+        if ($status->value !== 'published') {
             return null;
         }
 
         return $this->articlePolicy->authorizePublish($actor);
+    }
+
+    private function categoryId(ValidationInput $values): ?CategoryId
+    {
+        $categoryId = $values->string(field: 'category_id');
+        return $categoryId === '' ? null : new CategoryId(value: (int) $categoryId);
+    }
+
+    private function eyecatchPath(ValidationInput $values): ?EyecatchPath
+    {
+        $eyecatchPath = $values->string(field: 'eyecatch_path');
+        return $eyecatchPath === '' ? null : new EyecatchPath(value: $eyecatchPath);
+    }
+
+    private function publishedAt(ValidationInput $values): ?PublishedAt
+    {
+        $publishedAt = $values->string(field: 'published_at');
+        return $publishedAt === '' ? null : new PublishedAt(value: $publishedAt);
+    }
+
+    private function publishedEndsAt(ValidationInput $values): ?PublishedEndsAt
+    {
+        $publishedEndsAt = $values->string(field: 'published_ends_at');
+        return $publishedEndsAt === '' ? null : new PublishedEndsAt(value: $publishedEndsAt);
     }
 }
