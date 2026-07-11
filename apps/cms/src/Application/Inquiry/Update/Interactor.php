@@ -31,12 +31,17 @@ final readonly class Interactor
             return Output::invalid(ValidationOutput::invalid(...$errors));
         }
 
-        return $this->inquiries->updateStatus(new InquiryStatusUpdate(
+        $statusUpdate = new InquiryStatusUpdate(
             id: $input->id,
             status: $input->status,
             adminNote: $input->adminNote,
-        ))
-            ? Output::updated()
-            : Output::invalid(ValidationOutput::invalid(new ValidationError(field: 'id', message: '問い合わせが見つかりません。')));
+        );
+        $updated = $this->inquiries->updateStatus($statusUpdate);
+
+        if (!$updated) {
+            return Output::invalid(ValidationOutput::invalid(new ValidationError(field: 'id', message: '問い合わせが見つかりません。')));
+        }
+
+        return Output::updated();
     }
 }

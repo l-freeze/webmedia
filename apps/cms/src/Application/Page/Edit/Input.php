@@ -6,7 +6,12 @@ namespace App\Cms\Application\Page\Edit;
 
 final readonly class Input
 {
-    public function __construct(public ?int $id)
+    private function __construct(public ?int $id)
     {
+    }
+
+    public static function create(?int $id): self
+    {
+        return new self(id: $id);
     }
 }

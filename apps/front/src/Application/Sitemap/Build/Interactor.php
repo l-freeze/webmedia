@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(entries: $this->entries->publicEntries());
+        $entries = $this->entries->publicEntries();
+
+        return new Output(entries: $entries);
     }
 }

@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $article = $this->preview->execute(new Input(id: (int) $vars['id']))->article;
+        $article = $this->preview->execute(Input::create(id: (int) $vars['id']))->article;
         if ($article === null) {
             return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }

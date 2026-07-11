@@ -24,7 +24,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(new Input(slug: $vars['slug'] ?? ''));
+        $output = $this->interactor->execute(Input::create(slug: $vars['slug'] ?? ''));
         $article = $output->article;
         if ($article === null) {
             return new Response(body: $this->renderer->render(template: 'state/simple.latte', params: [

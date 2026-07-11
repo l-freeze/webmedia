@@ -6,10 +6,19 @@ namespace App\Cms\Application\Auth\Login;
 
 final readonly class Input
 {
-    public function __construct(
+    private function __construct(
         public string $email,
         public string $password,
         public string $ipAddress,
     ) {
+    }
+
+    public static function create(string $email, string $password, string $ipAddress): self
+    {
+        return new self(
+            email: trim($email),
+            password: $password,
+            ipAddress: trim($ipAddress),
+        );
     }
 }

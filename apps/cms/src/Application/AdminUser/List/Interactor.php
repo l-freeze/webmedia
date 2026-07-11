@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(users: $this->users->users());
+        $users = $this->users->users();
+
+        return new Output(users: $users);
     }
 }

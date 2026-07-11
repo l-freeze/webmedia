@@ -43,7 +43,7 @@ final class HomePaginationTest extends TestCase
             }
         };
 
-        $output = (new Interactor(articles: $articles, categories: $categories))->execute(input: new Input(page: 2));
+        $output = (new Interactor(articles: $articles, categories: $categories))->execute(input: Input::create(page: 2));
 
         self::assertSame(10, $articles->limit);
         self::assertSame(10, $articles->offset);

@@ -29,10 +29,11 @@ final readonly class Interactor
         }
 
         $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
-        $this->articles->save($article->restore(
+        $restoredArticle = $article->restore(
             permission: $this->articlePolicy->authorizeRestore($actor),
             version: $version,
-        ));
+        );
+        $this->articles->save($restoredArticle);
 
         return new Output(restored: true);
     }

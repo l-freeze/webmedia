@@ -42,7 +42,7 @@ final readonly class LayoutGlobalProvider
     /** @return array<string, mixed> */
     private function loadGlobals(): array
     {
-        $output = $this->layout->execute(new Input());
+        $output = $this->layout->execute(Input::create());
         $settings = $output->settings;
 
         /** @var array<string, mixed> $globals */

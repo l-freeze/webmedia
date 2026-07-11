@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(rows: $this->media->list());
+        $rows = $this->media->list();
+
+        return new Output(rows: $rows);
     }
 }

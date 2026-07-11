@@ -21,7 +21,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->history->execute(new Input(articleId: (int) $vars['id']));
+        $output = $this->history->execute(Input::create(articleId: (int) $vars['id']));
 
         return new Response(body: $this->renderer->render(template: 'article/history.latte', params: [
             'title' => '更新履歴',

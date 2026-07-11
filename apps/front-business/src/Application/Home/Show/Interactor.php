@@ -21,11 +21,14 @@ final readonly class Interactor
         $totalPages = max(1, (int) ceil($totalArticles / self::ARTICLES_PER_PAGE));
         $currentPage = min($input->page, $totalPages);
         $offset = ($currentPage - 1) * self::ARTICLES_PER_PAGE;
+        $articles = $this->articles->latest(limit: self::ARTICLES_PER_PAGE, offset: $offset);
+        $categories = $this->categories->all();
+        $pagination = new Value\Pagination(currentPage: $currentPage, perPage: self::ARTICLES_PER_PAGE, totalItems: $totalArticles);
 
         return new Output(
-            articles: $this->articles->latest(limit: self::ARTICLES_PER_PAGE, offset: $offset),
-            categories: $this->categories->all(),
-            pagination: new Value\Pagination(currentPage: $currentPage, perPage: self::ARTICLES_PER_PAGE, totalItems: $totalArticles),
+            articles: $articles,
+            categories: $categories,
+            pagination: $pagination,
         );
     }
 }

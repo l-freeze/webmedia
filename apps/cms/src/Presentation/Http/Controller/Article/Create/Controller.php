@@ -33,7 +33,7 @@ final readonly class Controller
         /** @var array<string, mixed>|null $formArticle */
 
         return $this->editForm(
-            output: $this->edit->execute(new Input(id: null)),
+            output: $this->edit->execute(Input::create(id: null)),
             action: '/admin/articles',
             formArticle: $formArticle,
             error: $this->session->pullFlash(key: 'article.form_error'),

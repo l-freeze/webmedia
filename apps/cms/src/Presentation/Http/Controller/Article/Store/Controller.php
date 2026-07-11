@@ -29,7 +29,22 @@ final readonly class Controller
         $currentUser = $this->guard->currentUser();
 
         try {
-            $output = $this->save->execute(new Input(id: null, data: $request->body, currentUser: $currentUser));
+            $output = $this->save->execute(Input::create(
+                id: null,
+                currentUser: $currentUser,
+                title: $request->bodyInput('title'),
+                slug: $request->bodyInput('slug'),
+                bodyFormat: $request->bodyInput('body_format'),
+                body: $request->bodyInput('body'),
+                excerpt: $request->bodyInput('excerpt'),
+                status: $request->bodyInput('status'),
+                categoryId: $request->bodyInput('category_id'),
+                eyecatchPath: $request->bodyInput('eyecatch_path'),
+                publishedAt: $request->bodyInput('published_at'),
+                publishedEndsAt: $request->bodyInput('published_ends_at'),
+                seoTitle: $request->bodyInput('seo_title'),
+                metaDescription: $request->bodyInput('meta_description'),
+            ));
         } catch (ResourceOperationDeniedException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }

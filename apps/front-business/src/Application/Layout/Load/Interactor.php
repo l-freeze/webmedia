@@ -19,10 +19,14 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
+        $settings = $this->settings->current();
+        $publishedPages = $this->pageLinks->publishedPageLinks();
+        $publishedCategories = $this->categories->all();
+
         return new Output(
-            settings: $this->settings->current(),
-            publishedPages: $this->pageLinks->publishedPageLinks(),
-            publishedCategories: $this->categories->all(),
+            settings: $settings,
+            publishedPages: $publishedPages,
+            publishedCategories: $publishedCategories,
         );
     }
 }

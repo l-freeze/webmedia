@@ -15,7 +15,7 @@ final class RoleListInteractorTest extends TestCase
 {
     public function testListsRolesWithTheirPermissions(): void
     {
-        $output = (new Interactor(rolePermissions: new CodeDefinedRolePermissionQuery()))->execute(input: new Input());
+        $output = (new Interactor(rolePermissions: new CodeDefinedRolePermissionQuery()))->execute(input: Input::create());
 
         $roles = [];
         foreach ($output->roles as $role) {

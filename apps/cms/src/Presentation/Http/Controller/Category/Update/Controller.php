@@ -23,7 +23,12 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->update->execute(new Input(id: (int) $vars['id'], data: $request->body));
+        $output = $this->update->execute(Input::create(
+            id: (int) $vars['id'],
+            name: $request->bodyInput('name'),
+            slug: $request->bodyInput('slug'),
+            description: $request->bodyInput('description'),
+        ));
         if (!$output->updated) {
             $this->session->flash(key: 'category.form_error', value: $output->error ?? '入力内容を確認してください。');
 

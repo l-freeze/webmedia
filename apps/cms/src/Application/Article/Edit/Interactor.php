@@ -20,10 +20,14 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
+        $article = $input->id === null ? null : $this->articles->find($input->id);
+        $categories = $this->categories->categories();
+        $media = $this->images->images();
+
         return new Output(
-            article: $input->id === null ? null : $this->articles->find($input->id),
-            categories: $this->categories->categories(),
-            media: $this->images->images(),
+            article: $article,
+            categories: $categories,
+            media: $media,
         );
     }
 }

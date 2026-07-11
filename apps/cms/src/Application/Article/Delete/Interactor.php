@@ -19,13 +19,16 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $article = $this->articles->findById(new ArticleId($input->id));
+        $articleId = new ArticleId($input->id);
+        $article = $this->articles->findById($articleId);
         if ($article === null || $article->status->value === 'trashed') {
             return new Output(deleted: false, error: '記事が見つからないか、すでに削除されています。');
         }
 
         $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
-        $this->articles->save($article->trash($this->articlePolicy->authorizeDelete($actor)));
+        $permission = $this->articlePolicy->authorizeDelete($actor);
+        $trashedArticle = $article->trash($permission);
+        $this->articles->save($trashedArticle);
 
         return new Output(deleted: true);
     }

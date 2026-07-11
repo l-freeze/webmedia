@@ -43,7 +43,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
         }
 
         $user = $this->guard->currentUser();
-        $authorization = $this->authorizeRoute->execute(new Input(
+        $authorization = $this->authorizeRoute->execute(Input::create(
             actorRole: $user->role,
             requiredPermission: $permission,
         ));

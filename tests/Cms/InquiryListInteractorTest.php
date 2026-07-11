@@ -16,7 +16,7 @@ final class InquiryListInteractorTest extends TestCase
     {
         $query = new FixedInquiryQuery(total: 250);
 
-        $output = (new Interactor(inquiries: $query))->execute(input: new Input(page: 3));
+        $output = (new Interactor(inquiries: $query))->execute(input: Input::create(page: 3));
 
         self::assertSame(3, $output->currentPage);
         self::assertSame(100, $output->perPage);

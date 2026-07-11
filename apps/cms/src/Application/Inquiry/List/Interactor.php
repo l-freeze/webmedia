@@ -20,9 +20,10 @@ final readonly class Interactor
         $totalPages = max(1, (int) ceil($totalItems / self::PER_PAGE));
         $currentPage = min(max(1, $input->page), $totalPages);
         $offset = ($currentPage - 1) * self::PER_PAGE;
+        $rows = $this->inquiries->list(limit: self::PER_PAGE, offset: $offset);
 
         return new Output(
-            rows: $this->inquiries->list(limit: self::PER_PAGE, offset: $offset),
+            rows: $rows,
             currentPage: $currentPage,
             perPage: self::PER_PAGE,
             totalItems: $totalItems,

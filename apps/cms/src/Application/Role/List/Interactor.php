@@ -18,9 +18,10 @@ final readonly class Interactor
     {
         $roles = [];
         foreach (CmsRole::all() as $role) {
+            $permissions = $this->rolePermissions->permissionsForRole($role);
             $roles[] = new Role(
                 code: $role,
-                permissions: $this->rolePermissions->permissionsForRole($role),
+                permissions: $permissions,
             );
         }
 

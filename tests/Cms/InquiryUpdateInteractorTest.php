@@ -17,7 +17,7 @@ final class InquiryUpdateInteractorTest extends TestCase
     {
         $repository = new RecordingInquiryRepository();
 
-        $output = (new Interactor(inquiries: $repository))->execute(input: new Input(
+        $output = (new Interactor(inquiries: $repository))->execute(input: Input::create(
             id: 12,
             status: InquiryStatus::IN_PROGRESS,
             adminNote: '返信準備中',
@@ -33,7 +33,7 @@ final class InquiryUpdateInteractorTest extends TestCase
     {
         $repository = new RecordingInquiryRepository();
 
-        $output = (new Interactor(inquiries: $repository))->execute(input: new Input(
+        $output = (new Interactor(inquiries: $repository))->execute(input: Input::create(
             id: 12,
             status: 'unknown',
             adminNote: '',
@@ -48,7 +48,7 @@ final class InquiryUpdateInteractorTest extends TestCase
     {
         $repository = new RecordingInquiryRepository();
 
-        $output = (new Interactor(inquiries: $repository))->execute(input: new Input(
+        $output = (new Interactor(inquiries: $repository))->execute(input: Input::create(
             id: 12,
             status: InquiryStatus::CLOSED,
             adminNote: str_repeat('a', 1001),

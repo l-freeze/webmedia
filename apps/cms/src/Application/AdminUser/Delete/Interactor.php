@@ -24,10 +24,13 @@ final readonly class Interactor
             return new Output(deleted: false, error: '管理者アカウントが見つかりません。');
         }
 
-        if ($role === CmsRole::ADMIN && $this->users->adminCount() <= 1) {
+        $adminCount = $this->users->adminCount();
+        if ($role === CmsRole::ADMIN && $adminCount <= 1) {
             return new Output(deleted: false, error: '最後のadminロールは削除できません。');
         }
 
-        return new Output(deleted: $this->users->delete($input->id));
+        $deleted = $this->users->delete($input->id);
+
+        return new Output(deleted: $deleted);
     }
 }

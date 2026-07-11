@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(stats: $this->dashboard->stats());
+        $stats = $this->dashboard->stats();
+
+        return new Output(stats: $stats);
     }
 }

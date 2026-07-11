@@ -19,6 +19,8 @@ final readonly class Interactor
             return new Output(article: null);
         }
 
-        return new Output(article: $article, related: $this->articles->related(articleId: $article->id, categoryId: $article->categoryId));
+        $related = $this->articles->related(articleId: $article->id, categoryId: $article->categoryId);
+
+        return new Output(article: $article, related: $related);
     }
 }

@@ -6,7 +6,12 @@ namespace App\Cms\Application\ArticleVersion\Preview;
 
 final readonly class Input
 {
-    public function __construct(public int $articleId, public int $versionNo)
+    private function __construct(public int $articleId, public int $versionNo)
     {
+    }
+
+    public static function create(int $articleId, int $versionNo): self
+    {
+        return new self(articleId: $articleId, versionNo: $versionNo);
     }
 }

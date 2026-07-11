@@ -6,4 +6,12 @@ namespace App\Cms\Application\Permission\List;
 
 final readonly class Input
 {
+    private function __construct()
+    {
+    }
+
+    public static function create(): self
+    {
+        return new self();
+    }
 }

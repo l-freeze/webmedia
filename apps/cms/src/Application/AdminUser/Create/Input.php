@@ -6,8 +6,21 @@ namespace App\Cms\Application\AdminUser\Create;
 
 final readonly class Input
 {
-    /** @param array<string, mixed> $data */
-    public function __construct(public array $data)
+    private function __construct(
+        public string $email,
+        public string $name,
+        public string $password,
+        public string $role,
+    ) {
+    }
+
+    public static function create(string $email, string $name, string $password, string $role): self
     {
+        return new self(
+            email: trim($email),
+            name: trim($name),
+            password: $password,
+            role: trim($role),
+        );
     }
 }

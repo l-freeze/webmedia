@@ -30,7 +30,7 @@ final readonly class Controller
         $subject = $request->input(key: 'subject');
         $message = $request->input(key: 'message');
 
-        $output = $this->interactor->execute(new Input(name: $name, email: $email, subject: $subject, message: $message));
+        $output = $this->interactor->execute(Input::create(name: $name, email: $email, subject: $subject, message: $message));
         if (!$output->created) {
             return $this->form(error: $output->error ?? '入力内容を確認してください。', old: $request->body);
         }

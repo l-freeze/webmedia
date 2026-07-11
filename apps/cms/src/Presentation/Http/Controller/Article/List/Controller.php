@@ -25,7 +25,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->list->execute(new Input(keyword: $request->input(key: 'q')));
+        $output = $this->list->execute(Input::create(keyword: $request->input(key: 'q')));
 
         return new Response(body: $this->renderer->render(template: 'article/index.latte', params: [
             'title' => '記事管理',

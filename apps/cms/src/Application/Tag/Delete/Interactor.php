@@ -14,7 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        if (!$this->tags->delete($input->id)) {
+        $deleted = $this->tags->delete($input->id);
+        if (!$deleted) {
             return new Output(deleted: false, error: '対象が見つからないか、すでに削除されています。');
         }
 

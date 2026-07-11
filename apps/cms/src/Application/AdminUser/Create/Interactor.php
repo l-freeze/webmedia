@@ -8,8 +8,8 @@ use App\Cms\Application\AdminUser\Create\Port\PasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Value\CmsRole;
-use App\Shared\Validation\FormValidator;
-use App\Shared\Validation\ValidationInput;
+use App\Shared\Validation\ValidationError;
+use App\Shared\Validation\ValidationOutput;
 
 final readonly class Interactor
 {
@@ -25,43 +25,65 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput($input->data);
-        $validation = (new FormValidator($values))
-            ->required(field: 'email', label: 'メールアドレス')
-            ->email(field: 'email', label: 'メールアドレス')
-            ->maxLength(field: 'email', label: 'メールアドレス', max: self::EMAIL_MAX_LENGTH)
-            ->required(field: 'name', label: '名前')
-            ->maxLength(field: 'name', label: '名前', max: self::NAME_MAX_LENGTH)
-            ->required(field: 'password', label: 'パスワード')
-            ->output();
+        $validation = $this->validate($input);
 
         if (!$validation->isValid()) {
             return new Output(created: false, error: $validation->firstMessage());
         }
 
-        $password = $values->string(field: 'password');
-        if (strlen($password) < self::PASSWORD_MIN_LENGTH) {
+        if (strlen($input->password) < self::PASSWORD_MIN_LENGTH) {
             return new Output(created: false, error: 'パスワードは8文字以上で入力してください。');
         }
 
-        $role = $values->string(field: 'role');
-        if (!in_array($role, CmsRole::all(), true)) {
+        if (!in_array($input->role, CmsRole::all(), true)) {
             return new Output(created: false, error: 'ロールを正しく選択してください。');
         }
 
-        $email = $values->string(field: 'email');
-        if ($this->users->emailExists(email: $email, exceptId: null)) {
+        $emailExists = $this->users->emailExists(email: $input->email, exceptId: null);
+        if ($emailExists) {
             return new Output(created: false, error: 'このメールアドレスは既に使われています。');
         }
 
-        $userId = $this->users->create(user: new AdminUser(
+        $user = new AdminUser(
             id: null,
-            email: $email,
-            name: $values->string(field: 'name'),
-            role: $role,
-            passwordHash: $this->passwords->hash($password),
-        ));
+            email: $input->email,
+            name: $input->name,
+            role: $input->role,
+            passwordHash: $this->passwords->hash($input->password),
+        );
+        $userId = $this->users->create(user: $user);
 
         return new Output(created: true, userId: $userId);
+    }
+
+    private function validate(Input $input): ValidationOutput
+    {
+        return ValidationOutput::invalid(...array_values(array_filter([
+            self::required(field: 'email', label: 'メールアドレス', value: $input->email),
+            self::email(field: 'email', label: 'メールアドレス', value: $input->email),
+            self::maxLength(field: 'email', label: 'メールアドレス', value: $input->email, max: self::EMAIL_MAX_LENGTH),
+            self::required(field: 'name', label: '名前', value: $input->name),
+            self::maxLength(field: 'name', label: '名前', value: $input->name, max: self::NAME_MAX_LENGTH),
+            self::required(field: 'password', label: 'パスワード', value: $input->password),
+        ])));
+    }
+
+    private static function required(string $field, string $label, string $value): ?ValidationError
+    {
+        return $value === '' ? new ValidationError(field: $field, message: "{$label}を入力してください。") : null;
+    }
+
+    private static function email(string $field, string $label, string $value): ?ValidationError
+    {
+        return $value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false
+            ? new ValidationError(field: $field, message: "{$label}を正しく入力してください。")
+            : null;
+    }
+
+    private static function maxLength(string $field, string $label, string $value, int $max): ?ValidationError
+    {
+        return $value !== '' && mb_strlen($value) > $max
+            ? new ValidationError(field: $field, message: "{$label}は{$max}文字以内で入力してください。")
+            : null;
     }
 }

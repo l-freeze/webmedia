@@ -15,6 +15,9 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(category: $this->categories->find($input->slug), articles: $this->articles->articles($input->slug));
+        $category = $this->categories->find($input->slug);
+        $articles = $this->articles->articles($input->slug);
+
+        return new Output(category: $category, articles: $articles);
     }
 }

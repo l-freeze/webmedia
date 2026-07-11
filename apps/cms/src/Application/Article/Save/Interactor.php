@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Save;
 
-use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticlePublishPermission;
 use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
-use App\Cms\Domain\Value\ArticleId;
-use App\Cms\Domain\Value\ArticlePublishPermission;
 use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
@@ -24,9 +23,7 @@ use App\Cms\Domain\Value\MetaDescription;
 use App\Cms\Domain\Value\PublishedAt;
 use App\Cms\Domain\Value\PublishedEndsAt;
 use App\Cms\Domain\Value\SeoTitle;
-use App\Shared\Validation\FormValidator;
 use App\Shared\Validation\ValidationError;
-use App\Shared\Validation\ValidationInput;
 use App\Shared\Validation\ValidationOutput;
 
 final readonly class Interactor
@@ -39,103 +36,60 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $values = new ValidationInput($input->data);
-        $validation = (new FormValidator($values))
-            ->required(field: 'title', label: 'タイトル')
-            ->required(field: 'slug', label: 'スラッグ')
-            ->required(field: 'body_format', label: '入力種別')
-            ->required(field: 'body', label: '本文')
-            ->output();
-        $validation = SlugValidator::validate(input: $values, validation: $validation);
-
+        $validation = $this->validate($input);
         if (!$validation->isValid()) {
             return Output::invalid($validation);
         }
 
-        $richTextValidation = $this->validateRichTextBody($values);
-        if (!$richTextValidation->isValid()) {
-            return Output::invalid($richTextValidation);
+        $validation = $this->validateSlugUniqueness($input);
+        if (!$validation->isValid()) {
+            return Output::invalid($validation);
         }
 
-        if ($this->articles->slugExists(slug: $values->string(field: 'slug'), exceptId: $input->id)) {
-            return Output::invalid(ValidationOutput::invalid(
-                new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),
-            ));
-        }
+        $article = $this->createEntity($input);
+        $articleId = $this->articles->save($article);
 
-        return Output::saved($this->articles->save($this->articleFromInput(input: $input, values: $values)));
+        return Output::saved($articleId);
     }
 
-    private function validateRichTextBody(ValidationInput $values): ValidationOutput
+    private function validate(Input $input): ValidationOutput
     {
-        if ($values->string(field: 'body_format') !== ArticleBodyFormat::RICH_TEXT) {
-            return ValidationOutput::valid();
-        }
+        return InputValidator::validate($input);
+    }
 
-        $decoded = json_decode($values->string(field: 'body'), true);
-        if (!is_array($decoded) || ($decoded['type'] ?? '') !== 'doc') {
-            return ValidationOutput::invalid(new ValidationError(field: 'body', message: 'リッチエディター本文の形式が正しくありません。'));
-        }
-        /** @var array<string, mixed> $decoded */
-
-        if ($this->isEmptyRichTextDocument($decoded)) {
-            return ValidationOutput::invalid(new ValidationError(field: 'body', message: '本文を入力してください。'));
+    private function validateSlugUniqueness(Input $input): ValidationOutput
+    {
+        $slugExists = $this->articles->slugExists(slug: $input->slug, exceptId: $input->id);
+        if ($slugExists) {
+            return ValidationOutput::invalid(
+                new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),
+            );
         }
 
         return ValidationOutput::valid();
     }
 
-    /** @param array<string, mixed> $node */
-    private function isEmptyRichTextDocument(array $node): bool
-    {
-        $text = is_string($node['text'] ?? null) ? trim($node['text']) : '';
-        if ($text !== '') {
-            return false;
-        }
-
-        $type = is_string($node['type'] ?? null) ? $node['type'] : '';
-        if ($type === 'image') {
-            return false;
-        }
-
-        $content = $node['content'] ?? [];
-        if (!is_array($content)) {
-            return true;
-        }
-
-        foreach ($content as $child) {
-            if (is_array($child)) {
-                /** @var array<string, mixed> $child */
-                if (!$this->isEmptyRichTextDocument($child)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private function articleFromInput(Input $input, ValidationInput $values): Article
+    private function createEntity(Input $input): Article
     {
         $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
-        $status = new ArticleStatus(value: $values->string(field: 'status'));
+        $status = new ArticleStatus(value: $input->status);
         $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, status: $status);
 
         if ($input->id === null) {
             return Article::create(
                 permission: $this->articlePolicy->authorizeCreate($actor),
-                title: new ArticleTitle(value: $values->string(field: 'title')),
-                slug: new ArticleSlug(value: $values->string(field: 'slug')),
-                body: new ArticleBody(value: $values->string(field: 'body')),
-                bodyFormat: new ArticleBodyFormat(value: $values->string(field: 'body_format')),
-                excerpt: new ArticleExcerpt(value: $values->string(field: 'excerpt')),
+                title: new ArticleTitle(value: $input->title),
+                slug: new ArticleSlug(value: $input->slug),
+                body: new ArticleBody(value: $input->body),
+                bodyFormat: new ArticleBodyFormat(value: $input->bodyFormat),
+                excerpt: new ArticleExcerpt(value: $input->excerpt),
                 status: $status,
-                categoryId: $this->categoryId(values: $values),
-                eyecatchPath: $this->eyecatchPath(values: $values),
-                publishedAt: $this->publishedAt(values: $values),
-                publishedEndsAt: $this->publishedEndsAt(values: $values),
-                seoTitle: new SeoTitle(value: $values->string(field: 'seo_title')),
-                metaDescription: new MetaDescription(value: $values->string(field: 'meta_description')),
+                categoryId: $this->categoryId($input),
+                eyecatchPath: $this->eyecatchPath($input),
+                publishedAt: $this->publishedAt($input),
+                publishedEndsAt: $this->publishedEndsAt($input),
+                seoTitle: new SeoTitle(value: $input->seoTitle),
+                metaDescription: new MetaDescription(value: $input->metaDescription),
                 authorId: $input->currentUser->id,
                 publishPermission: $publishPermission,
             );
@@ -148,18 +102,18 @@ final readonly class Interactor
 
         return $article->update(
             permission: $this->articlePolicy->authorizeUpdate(actor: $actor, article: $article),
-            title: new ArticleTitle(value: $values->string(field: 'title')),
-            slug: new ArticleSlug(value: $values->string(field: 'slug')),
-            body: new ArticleBody(value: $values->string(field: 'body')),
-            bodyFormat: new ArticleBodyFormat(value: $values->string(field: 'body_format')),
-            excerpt: new ArticleExcerpt(value: $values->string(field: 'excerpt')),
+            title: new ArticleTitle(value: $input->title),
+            slug: new ArticleSlug(value: $input->slug),
+            body: new ArticleBody(value: $input->body),
+            bodyFormat: new ArticleBodyFormat(value: $input->bodyFormat),
+            excerpt: new ArticleExcerpt(value: $input->excerpt),
             status: $status,
-            categoryId: $this->categoryId(values: $values),
-            eyecatchPath: $this->eyecatchPath(values: $values),
-            publishedAt: $this->publishedAt(values: $values),
-            publishedEndsAt: $this->publishedEndsAt(values: $values),
-            seoTitle: new SeoTitle(value: $values->string(field: 'seo_title')),
-            metaDescription: new MetaDescription(value: $values->string(field: 'meta_description')),
+            categoryId: $this->categoryId($input),
+            eyecatchPath: $this->eyecatchPath($input),
+            publishedAt: $this->publishedAt($input),
+            publishedEndsAt: $this->publishedEndsAt($input),
+            seoTitle: new SeoTitle(value: $input->seoTitle),
+            metaDescription: new MetaDescription(value: $input->metaDescription),
             publishPermission: $publishPermission,
         );
     }
@@ -170,30 +124,28 @@ final readonly class Interactor
             return null;
         }
 
-        return $this->articlePolicy->authorizePublish($actor);
+        $publishPermission = $this->articlePolicy->authorizePublish($actor);
+
+        return $publishPermission;
     }
 
-    private function categoryId(ValidationInput $values): ?CategoryId
+    private function categoryId(Input $input): ?CategoryId
     {
-        $categoryId = $values->string(field: 'category_id');
-        return $categoryId === '' ? null : new CategoryId(value: (int) $categoryId);
+        return $input->categoryId === '' ? null : new CategoryId(value: (int) $input->categoryId);
     }
 
-    private function eyecatchPath(ValidationInput $values): ?EyecatchPath
+    private function eyecatchPath(Input $input): ?EyecatchPath
     {
-        $eyecatchPath = $values->string(field: 'eyecatch_path');
-        return $eyecatchPath === '' ? null : new EyecatchPath(value: $eyecatchPath);
+        return $input->eyecatchPath === '' ? null : new EyecatchPath(value: $input->eyecatchPath);
     }
 
-    private function publishedAt(ValidationInput $values): ?PublishedAt
+    private function publishedAt(Input $input): ?PublishedAt
     {
-        $publishedAt = $values->string(field: 'published_at');
-        return $publishedAt === '' ? null : new PublishedAt(value: $publishedAt);
+        return $input->publishedAt === '' ? null : new PublishedAt(value: $input->publishedAt);
     }
 
-    private function publishedEndsAt(ValidationInput $values): ?PublishedEndsAt
+    private function publishedEndsAt(Input $input): ?PublishedEndsAt
     {
-        $publishedEndsAt = $values->string(field: 'published_ends_at');
-        return $publishedEndsAt === '' ? null : new PublishedEndsAt(value: $publishedEndsAt);
+        return $input->publishedEndsAt === '' ? null : new PublishedEndsAt(value: $input->publishedEndsAt);
     }
 }

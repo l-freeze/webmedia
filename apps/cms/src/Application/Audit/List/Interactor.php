@@ -24,14 +24,15 @@ final readonly class Interactor
         $currentPage = min(max(self::FIRST_PAGE, $input->page), $totalPages);
         $offset = ($currentPage - self::FIRST_PAGE) * $perPage;
         $sortDirection = $input->sortDirection === 'asc' ? 'asc' : 'desc';
+        $rows = $this->auditLogs->list(
+            search: $input->search,
+            limit: $perPage,
+            offset: $offset,
+            sortDirection: $sortDirection,
+        );
 
         return new Output(
-            rows: $this->auditLogs->list(
-                search: $input->search,
-                limit: $perPage,
-                offset: $offset,
-                sortDirection: $sortDirection,
-            ),
+            rows: $rows,
             currentPage: $currentPage,
             perPage: $perPage,
             totalItems: $totalItems,

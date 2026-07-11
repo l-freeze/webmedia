@@ -28,7 +28,7 @@ final readonly class Controller
         $currentUser = $this->guard->currentUser();
 
         $userId = (int) $vars['id'];
-        $output = $this->delete->execute(new Input(id: $userId, currentUser: $currentUser));
+        $output = $this->delete->execute(Input::create(id: $userId, currentUser: $currentUser));
         if (!$output->deleted) {
             $this->session->flash(key: 'admin_user.form_error', value: $output->error ?? '削除できませんでした。');
 

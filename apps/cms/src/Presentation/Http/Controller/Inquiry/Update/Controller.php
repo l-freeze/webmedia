@@ -26,7 +26,7 @@ final readonly class Controller
         $id = (int) ($vars['id'] ?? 0);
         $status = $this->bodyString(request: $request, key: 'status');
         $adminNote = $this->bodyString(request: $request, key: 'admin_note');
-        $output = $this->update->execute(new Input(id: $id, status: $status, adminNote: $adminNote));
+        $output = $this->update->execute(Input::create(id: $id, status: $status, adminNote: $adminNote));
         if (!$output->updated) {
             $message = $output->validation->errors[0]->message ?? '問い合わせの状態を更新できませんでした。';
             $this->session->flash(key: 'inquiry.form_error', value: $message);

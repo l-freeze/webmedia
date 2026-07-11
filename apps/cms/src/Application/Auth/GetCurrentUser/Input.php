@@ -6,7 +6,12 @@ namespace App\Cms\Application\Auth\GetCurrentUser;
 
 final readonly class Input
 {
-    public function __construct(public int $userId)
+    private function __construct(public int $userId)
     {
+    }
+
+    public static function create(int $userId): self
+    {
+        return new self(userId: $userId);
     }
 }

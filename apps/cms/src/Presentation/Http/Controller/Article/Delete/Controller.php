@@ -29,7 +29,7 @@ final readonly class Controller
         $currentUser = $this->guard->currentUser();
 
         try {
-            $output = $this->delete->execute(new Input(id: (int) $vars['id'], currentUser: $currentUser));
+            $output = $this->delete->execute(Input::create(id: (int) $vars['id'], currentUser: $currentUser));
         } catch (ResourceOperationDeniedException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }

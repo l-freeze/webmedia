@@ -27,7 +27,7 @@ final readonly class Controller
         $currentUser = $this->guard->currentUser();
 
         try {
-            $this->restore->execute(new Input(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
+            $this->restore->execute(Input::create(articleId: (int) $vars['id'], versionNo: (int) $vars['version'], currentUser: $currentUser));
         } catch (ResourceOperationDeniedException) {
             return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
         }

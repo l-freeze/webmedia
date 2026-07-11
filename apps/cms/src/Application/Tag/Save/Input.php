@@ -6,8 +6,14 @@ namespace App\Cms\Application\Tag\Save;
 
 final readonly class Input
 {
-    /** @param array<string, mixed> $data */
-    public function __construct(public array $data)
+    private function __construct(
+        public string $name,
+        public string $slug,
+    ) {
+    }
+
+    public static function create(string $name, string $slug): self
     {
+        return new self(name: trim($name), slug: trim($slug));
     }
 }

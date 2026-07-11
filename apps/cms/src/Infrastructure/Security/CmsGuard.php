@@ -44,7 +44,7 @@ final class CmsGuard
             return null;
         }
 
-        $this->currentUser = $this->currentUsers->execute(new Input(userId: $userId))->user;
+        $this->currentUser = $this->currentUsers->execute(Input::create(userId: $userId))->user;
 
         return $this->currentUser;
     }

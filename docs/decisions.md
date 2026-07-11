@@ -98,6 +98,36 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 - route 数が増え、match コストが実測で問題になる。
 - route name、vars、metadata、controller をまとめた `MatchedRoute` が必要になる。
 
+## Application Input Validation
+
+### 判断
+
+UseCase では、HTTP request body の配列 shape を `Interactor` / Domain / Repository へ持ち込まない。
+
+`apps/front`、`apps/front-business`、`apps/cms` の UseCase 固有 `Input` は public readonly property を持つ DTO とし、constructor は private にして constructor property promotion で保持だけを行う。HTTP body からの生成は `Input::create()` に寄せ、trim してよい項目だけを項目単位で明示する。本文や password、upload file 配列など、入力そのものを保持すべき項目は一律 trim の対象にしない。
+
+入力検証の結果は Shared の `ValidationOutput` に寄せる。Article / Page のように入力項目が多く、required / slug / rich_text 形式確認などが膨らむ場合は `Application/<Feature>/<Action>/InputValidator` を置く。`Interactor` は `ValidationOutput` を確認し、valid な場合だけ Policy / Repository / Entity 操作へ進む。
+
+### 理由
+
+- Controller に validation を置くと、HTTP 以外から同じ UseCase を呼ぶ入口で検証が抜ける。
+- Laravel の `FormRequest` 的な HTTP lifecycle hook は分かりやすい反面、UseCase 直前の境界が見えにくくなる。
+- Interactor は UseCase の手順を読む場所であり、HTTP body 配列の key 解釈や scalar fallback を抱える場所ではない。
+- `Form` は HTTP / 画面入力の語彙なので Application の概念名にはしない。Application では UseCase の入口入力を検証する `InputValidator` として扱う。
+- Domain Entity が request body shape を知ると、Domain と Presentation / HTTP 入力の境界が壊れる。
+- Repository が request body shape を知ると、永続化境界に入力都合が漏れる。
+- PHP で `Result<ValidatedInput, ValidationOutput>` のような型を再現すると、中間型が増えて責務が曖昧になる。このプロジェクトでは、validation 済みであることは `Interactor` の制御フローで保証する。
+
+### 採用しないこと
+
+- Entity に `fromInput(array)` や `stringValue()` / `intValue()` のような入力 helper を置かない。
+- UseCase `Input` に `array $data` を持たせない。
+- UseCase `Input` の public constructor 内で値を加工しない。
+- request body 全体を一律 trim する middleware は置かない。
+- `ValidatedInput` や `ValidationResult` のような PHP 版 Result 型を作らない。
+- Controller / middleware / lifecycle hook で UseCase 固有 validation を完結させない。
+- `InputValidator` を複数 UseCase で共有する汎用 DTO にしない。必要な UseCase 配下に置く。
+
 ## Audit / SecurityLog
 
 ### 判断

@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $articleVersion = $this->articleVersionPreview->execute(new Input(
+        $articleVersion = $this->articleVersionPreview->execute(Input::create(
             articleId: (int) $vars['id'],
             versionNo: (int) $vars['version'],
         ))->articleVersion;

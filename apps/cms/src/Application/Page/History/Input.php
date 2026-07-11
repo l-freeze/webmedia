@@ -6,7 +6,12 @@ namespace App\Cms\Application\Page\History;
 
 final readonly class Input
 {
-    public function __construct(public int $pageId)
+    private function __construct(public int $pageId)
     {
+    }
+
+    public static function create(int $pageId): self
+    {
+        return new self(pageId: $pageId);
     }
 }

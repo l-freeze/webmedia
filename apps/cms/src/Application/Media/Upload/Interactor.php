@@ -15,14 +15,19 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $result = $this->media->storeUploadedMedia(new MediaUpload(
-            originalName: $this->stringValue(data: $input->file, key: 'name'),
-            tmpName: $this->stringValue(data: $input->file, key: 'tmp_name'),
-            error: $this->intValue(data: $input->file, key: 'error', default: UPLOAD_ERR_NO_FILE),
-            size: $this->intValue(data: $input->file, key: 'size'),
+        $originalName = $this->stringValue(data: $input->file, key: 'name');
+        $tmpName = $this->stringValue(data: $input->file, key: 'tmp_name');
+        $error = $this->intValue(data: $input->file, key: 'error', default: UPLOAD_ERR_NO_FILE);
+        $size = $this->intValue(data: $input->file, key: 'size');
+        $mediaUpload = new MediaUpload(
+            originalName: $originalName,
+            tmpName: $tmpName,
+            error: $error,
+            size: $size,
             altText: $input->altText,
             caption: $input->caption,
-        ));
+        );
+        $result = $this->media->storeUploadedMedia($mediaUpload);
 
         return new Output(uploaded: $result->uploaded, error: $result->error, mediaId: $result->mediaId);
     }

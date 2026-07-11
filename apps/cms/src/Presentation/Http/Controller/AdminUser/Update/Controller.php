@@ -28,7 +28,14 @@ final readonly class Controller
         $currentUser = $this->guard->currentUser();
 
         $userId = (int) $vars['id'];
-        $output = $this->update->execute(new Input(id: $userId, data: $request->body, currentUser: $currentUser));
+        $output = $this->update->execute(Input::create(
+            id: $userId,
+            currentUser: $currentUser,
+            email: $request->bodyInput('email'),
+            name: $request->bodyInput('name'),
+            password: $request->bodyInput('password'),
+            role: $request->bodyInput('role'),
+        ));
         if (!$output->updated) {
             $this->session->flash(key: 'admin_user.form_error', value: $output->error ?? '入力内容を確認してください。');
 

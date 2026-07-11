@@ -29,32 +29,36 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $now = new DateTimeImmutable();
-        if ($this->hasTooManyFailedLoginAttempts($input, $now)) {
-            $this->loginAttempts->save(LoginAttempt::blocked(
+        $blockedByRateLimit = $this->hasTooManyFailedLoginAttempts($input, $now);
+        if ($blockedByRateLimit) {
+            $loginAttempt = LoginAttempt::blocked(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
                 attemptedAt: $now,
-            ));
+            );
+            $this->loginAttempts->save($loginAttempt);
 
             return Output::blocked();
         }
 
         $user = $this->findUserByValidCredentials($input);
         if ($user === null) {
-            $this->loginAttempts->save(LoginAttempt::failure(
+            $loginAttempt = LoginAttempt::failure(
                 email: $input->email,
                 ipAddress: $input->ipAddress,
                 attemptedAt: $now,
-            ));
+            );
+            $this->loginAttempts->save($loginAttempt);
 
             return Output::failed();
         }
 
-        $this->loginAttempts->save(LoginAttempt::success(
+        $loginAttempt = LoginAttempt::success(
             email: $input->email,
             ipAddress: $input->ipAddress,
             attemptedAt: $now,
-        ));
+        );
+        $this->loginAttempts->save($loginAttempt);
 
         return Output::authenticated(userId: $user->id, role: $user->role);
     }
@@ -66,10 +70,11 @@ final readonly class Interactor
             return null;
         }
 
-        if (!$this->passwordVerifier->verify(
+        $validPassword = $this->passwordVerifier->verify(
             plainPassword: $input->password,
             passwordHash: $user->passwordHash,
-        )) {
+        );
+        if (!$validPassword) {
             return null;
         }
 

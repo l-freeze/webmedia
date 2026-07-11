@@ -23,7 +23,16 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $this->save->execute(new Input(data: $request->body));
+        $this->save->execute(Input::create(
+            siteName: $request->bodyInput('site_name'),
+            siteDescription: $request->bodyInput('site_description'),
+            contactEmail: $request->bodyInput('contact_email'),
+            frontTheme: $request->bodyInput('front_theme'),
+            searchEnabled: $request->bodyInput('search_enabled', '1') === '1',
+            heroImage: $request->bodyInput('hero_image'),
+            heroTitle: $request->bodyInput('hero_title'),
+            heroDescription: $request->bodyInput('hero_description'),
+        ));
         $this->audit->settingsUpdated($request);
 
         $this->session->flash(key: 'success', value: '保存しました');

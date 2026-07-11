@@ -25,7 +25,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(new Input());
+        $output = $this->interactor->execute(Input::create());
 
         return new Response(body: $this->renderer->render(template: 'media/index.latte', params: [
             'title' => 'メディア管理',

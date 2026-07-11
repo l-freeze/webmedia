@@ -6,9 +6,14 @@ namespace App\Cms\Application\Page\Restore;
 
 final readonly class Input
 {
-    public function __construct(
+    private function __construct(
         public int $pageId,
         public int $versionNo,
     ) {
+    }
+
+    public static function create(int $pageId, int $versionNo): self
+    {
+        return new self(pageId: $pageId, versionNo: $versionNo);
     }
 }

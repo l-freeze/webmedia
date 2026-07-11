@@ -21,7 +21,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->interactor->execute(new Input(page: (int) $request->queryInput(key: 'page', default: '1')));
+        $output = $this->interactor->execute(Input::create(page: (int) $request->queryInput(key: 'page', default: '1')));
 
         return new Response(body: $this->renderer->render(template: 'inquiry/index.latte', params: [
             'title' => '問い合わせ管理',

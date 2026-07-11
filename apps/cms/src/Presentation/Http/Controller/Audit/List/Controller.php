@@ -39,7 +39,7 @@ final readonly class Controller
         $page = (int) $request->queryInput(key: 'page', default: '1');
         $sort = $request->queryInput(key: 'sort', default: 'desc') === 'asc' ? 'asc' : 'desc';
 
-        $output = $this->interactor->execute(new Input(
+        $output = $this->interactor->execute(Input::create(
             page: $page,
             limit: $limit,
             sortDirection: $sort,

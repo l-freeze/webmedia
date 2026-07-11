@@ -18,7 +18,7 @@ final class PageRestoreInteractorTest extends TestCase
     {
         $repository = new RecordingPageRepository();
 
-        $output = (new Interactor(pages: $repository))->execute(input: new Input(pageId: 7, versionNo: 3));
+        $output = (new Interactor(pages: $repository))->execute(input: Input::create(pageId: 7, versionNo: 3));
 
         self::assertTrue($output->restored);
         self::assertSame(7, $repository->restoredPageId);

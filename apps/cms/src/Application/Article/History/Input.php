@@ -6,7 +6,12 @@ namespace App\Cms\Application\Article\History;
 
 final readonly class Input
 {
-    public function __construct(public int $articleId)
+    private function __construct(public int $articleId)
     {
+    }
+
+    public static function create(int $articleId): self
+    {
+        return new self(articleId: $articleId);
     }
 }

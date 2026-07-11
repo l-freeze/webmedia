@@ -38,23 +38,25 @@ final readonly class Interactor
                 return Output::invalid('メールアドレスを正しく入力してください。');
             }
 
-            $this->resets->save(CmsLoginAttemptReset::emailIp(
+            $reset = CmsLoginAttemptReset::emailIp(
                 email: $email,
                 ipAddress: $ipAddress,
                 resetAt: $now,
                 resetByUserId: $input->resetByUserId,
                 reason: $reason,
-            ));
+            );
+            $this->resets->save($reset);
 
             return Output::reset();
         }
 
-        $this->resets->save(CmsLoginAttemptReset::ip(
+        $reset = CmsLoginAttemptReset::ip(
             ipAddress: $ipAddress,
             resetAt: $now,
             resetByUserId: $input->resetByUserId,
             reason: $reason,
-        ));
+        );
+        $this->resets->save($reset);
 
         return Output::reset();
     }

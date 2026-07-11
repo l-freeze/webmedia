@@ -35,7 +35,7 @@ final readonly class Controller
         }
         /** @var array<string, mixed> $file */
 
-        $output = $this->upload->execute(new Input(
+        $output = $this->upload->execute(Input::create(
             file: $file,
             altText: $request->input(key: 'alt_text'),
             caption: $request->input(key: 'caption'),

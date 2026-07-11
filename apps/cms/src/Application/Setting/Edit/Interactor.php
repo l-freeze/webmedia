@@ -14,6 +14,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(settings: $this->settings->all());
+        $settings = $this->settings->all();
+
+        return new Output(settings: $settings);
     }
 }

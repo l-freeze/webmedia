@@ -44,11 +44,11 @@ final class AuthorizeRouteInteractorTest extends TestCase
     {
         $interactor = new Interactor(rolePermissions: new CodeDefinedRolePermissionQuery());
 
-        self::assertTrue($interactor->execute(new Input(
+        self::assertTrue($interactor->execute(Input::create(
             actorRole: CmsRole::EDITOR,
             requiredPermission: PermissionCode::ARTICLE_PUBLISH,
         ))->allowed);
-        self::assertFalse($interactor->execute(new Input(
+        self::assertFalse($interactor->execute(Input::create(
             actorRole: CmsRole::WRITER,
             requiredPermission: PermissionCode::ARTICLE_PUBLISH,
         ))->allowed);

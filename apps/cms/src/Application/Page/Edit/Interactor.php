@@ -15,9 +15,12 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
+        $page = $input->id === null ? null : $this->pages->find($input->id);
+        $media = $this->images->images();
+
         return new Output(
-            page: $input->id === null ? null : $this->pages->find($input->id),
-            media: $this->images->images(),
+            page: $page,
+            media: $media,
         );
     }
 }

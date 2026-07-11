@@ -24,7 +24,17 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $id = (int) $vars['id'];
-        $output = $this->save->execute(new Input(id: $id, data: $request->body));
+        $output = $this->save->execute(Input::create(
+            id: $id,
+            title: $request->bodyInput('title'),
+            slug: $request->bodyInput('slug'),
+            bodyFormat: $request->bodyInput('body_format'),
+            body: $request->bodyInput('body'),
+            status: $request->bodyInput('status'),
+            displayOrder: $request->bodyInput('display_order'),
+            seoTitle: $request->bodyInput('seo_title'),
+            metaDescription: $request->bodyInput('meta_description'),
+        ));
         if ($output->pageId === null) {
             $this->session->flashValue(key: 'page.form_input', value: $this->pageFormData(data: $request->body, id: $id));
             $this->session->flash(key: 'page.form_error', value: $output->validation->firstMessage() ?? '入力内容を確認してください。');

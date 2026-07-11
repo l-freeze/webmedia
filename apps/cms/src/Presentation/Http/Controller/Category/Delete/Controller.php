@@ -23,7 +23,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->delete->execute(new Input(id: (int) $vars['id']));
+        $output = $this->delete->execute(Input::create(id: (int) $vars['id']));
         if (!$output->deleted) {
             $this->session->flash(key: 'category.form_error', value: $output->error ?? '削除できませんでした');
 

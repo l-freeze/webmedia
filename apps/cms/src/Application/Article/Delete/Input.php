@@ -8,7 +8,12 @@ use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 
 final readonly class Input
 {
-    public function __construct(public int $id, public CurrentCmsUser $currentUser)
+    private function __construct(public int $id, public CurrentCmsUser $currentUser)
     {
+    }
+
+    public static function create(int $id, CurrentCmsUser $currentUser): self
+    {
+        return new self(id: $id, currentUser: $currentUser);
     }
 }

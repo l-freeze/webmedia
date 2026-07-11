@@ -21,7 +21,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $this->restore->execute(new Input(pageId: (int) $vars['id'], versionNo: (int) $vars['version']));
+        $this->restore->execute(Input::create(pageId: (int) $vars['id'], versionNo: (int) $vars['version']));
         $this->audit->pageRestored(request: $request, pageId: (int) $vars['id'], versionNo: (int) $vars['version']);
 
         return Response::redirect('/admin/pages/' . $vars['id']);

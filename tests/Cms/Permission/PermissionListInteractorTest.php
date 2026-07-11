@@ -15,7 +15,7 @@ final class PermissionListInteractorTest extends TestCase
 {
     public function testListsPermissionsWithGrantedRoles(): void
     {
-        $output = (new Interactor(rolePermissions: new CodeDefinedRolePermissionQuery()))->execute(input: new Input());
+        $output = (new Interactor(rolePermissions: new CodeDefinedRolePermissionQuery()))->execute(input: Input::create());
 
         $permissions = [];
         foreach ($output->permissions as $permission) {

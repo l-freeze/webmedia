@@ -24,7 +24,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $page = $this->interactor->execute(new Input(slug: $vars['slug'] ?? ''))->page;
+        $page = $this->interactor->execute(Input::create(slug: $vars['slug'] ?? ''))->page;
         if ($page === null) {
             return new Response(body: 'Not Found', status: Response::HTTP_NOT_FOUND);
         }

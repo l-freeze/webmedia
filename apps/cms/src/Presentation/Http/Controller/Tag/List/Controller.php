@@ -25,7 +25,7 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->list->execute(new Input());
+        $output = $this->list->execute(Input::create());
         $tags = [];
         foreach ($output->tags as $tag) {
             $tags[] = $tag->toArray();

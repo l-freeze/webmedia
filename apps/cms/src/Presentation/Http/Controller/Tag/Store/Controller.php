@@ -23,7 +23,10 @@ final readonly class Controller
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $output = $this->save->execute(new Input(data: $request->body));
+        $output = $this->save->execute(Input::create(
+            name: $request->bodyInput('name'),
+            slug: $request->bodyInput('slug'),
+        ));
         if (!$output->saved) {
             $this->session->flashValue(key: 'tag.form_values', value: $request->body);
             $this->session->flash(key: 'tag.form_error', value: $output->error ?? '入力内容を確認してください。');

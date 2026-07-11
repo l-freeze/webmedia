@@ -32,7 +32,7 @@ final readonly class Controller
         $ipAddress = $request->bodyInput(key: 'ip_address');
         $reason = $request->bodyInput(key: 'reason');
 
-        $output = $this->reset->execute(new Input(
+        $output = $this->reset->execute(Input::create(
             scope: $scope,
             email: $email,
             ipAddress: $ipAddress,

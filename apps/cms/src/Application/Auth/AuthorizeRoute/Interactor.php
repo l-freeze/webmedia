@@ -14,9 +14,11 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        return new Output(allowed: $this->rolePermissions->hasPermission(
+        $allowed = $this->rolePermissions->hasPermission(
             role: $input->actorRole,
             permission: $input->requiredPermission,
-        ));
+        );
+
+        return new Output(allowed: $allowed);
     }
 }

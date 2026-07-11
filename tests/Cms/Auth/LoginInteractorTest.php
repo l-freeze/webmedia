@@ -30,7 +30,7 @@ final class LoginInteractorTest extends TestCase
             loginAttempts: $attempts,
         );
 
-        $output = $interactor->execute(input: new Input(
+        $output = $interactor->execute(input: Input::create(
             email: 'admin@example.test',
             password: 'secret',
             ipAddress: '192.0.2.10',
@@ -52,7 +52,7 @@ final class LoginInteractorTest extends TestCase
             loginAttempts: $attempts,
         );
 
-        $output = $interactor->execute(input: new Input(
+        $output = $interactor->execute(input: Input::create(
             email: 'admin@example.test',
             password: 'wrong',
             ipAddress: '192.0.2.10',
@@ -75,7 +75,7 @@ final class LoginInteractorTest extends TestCase
             loginAttempts: $attempts,
         );
 
-        $output = $interactor->execute(input: new Input(
+        $output = $interactor->execute(input: Input::create(
             email: 'missing@example.test',
             password: 'secret',
             ipAddress: '192.0.2.10',
@@ -96,7 +96,7 @@ final class LoginInteractorTest extends TestCase
             loginAttempts: $attempts,
         );
 
-        $output = $interactor->execute(input: new Input(
+        $output = $interactor->execute(input: Input::create(
             email: 'admin@example.test',
             password: 'secret',
             ipAddress: '192.0.2.10',
@@ -118,7 +118,7 @@ final class LoginInteractorTest extends TestCase
             loginAttempts: $attempts,
         );
 
-        $output = $interactor->execute(input: new Input(
+        $output = $interactor->execute(input: Input::create(
             email: 'admin@example.test',
             password: 'secret',
             ipAddress: '192.0.2.10',

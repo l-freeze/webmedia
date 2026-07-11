@@ -14,7 +14,7 @@ final class InquiryCreateInteractorTest extends TestCase
 {
     public function testRejectsTooLongName(): void
     {
-        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: new Input(
+        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: Input::create(
             name: str_repeat('あ', 17),
             email: 'test@example.com',
             subject: '件名',
@@ -27,7 +27,7 @@ final class InquiryCreateInteractorTest extends TestCase
 
     public function testRejectsTooLongSubject(): void
     {
-        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: new Input(
+        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: Input::create(
             name: '山田太郎',
             email: 'test@example.com',
             subject: str_repeat('a', 101),
@@ -40,7 +40,7 @@ final class InquiryCreateInteractorTest extends TestCase
 
     public function testRejectsTooLongMessage(): void
     {
-        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: new Input(
+        $output = (new Interactor(inquiries: new RecordingInquiryRepository()))->execute(input: Input::create(
             name: '山田太郎',
             email: 'test@example.com',
             subject: '件名',

@@ -25,12 +25,12 @@ final class AdminUserInteractorTest extends TestCase
         $users = new InMemoryAdminUserRepository();
         $interactor = new CreateInteractor(users: $users, passwords: new FixedPasswordHasher());
 
-        $output = $interactor->execute(input: new CreateInput(data: [
-            'email' => 'editor@example.test',
-            'name' => 'Editor',
-            'role' => CmsRole::EDITOR,
-            'password' => 'password123',
-        ]));
+        $output = $interactor->execute(input: CreateInput::create(
+            email: 'editor@example.test',
+            name: 'Editor',
+            password: 'password123',
+            role: CmsRole::EDITOR,
+        ));
 
         self::assertTrue($output->created);
         self::assertSame(2, $output->userId);
@@ -42,12 +42,12 @@ final class AdminUserInteractorTest extends TestCase
         $users = new InMemoryAdminUserRepository();
         $interactor = new CreateInteractor(users: $users, passwords: new FixedPasswordHasher());
 
-        $output = $interactor->execute(input: new CreateInput(data: [
-            'email' => 'admin@example.test',
-            'name' => 'Admin',
-            'role' => CmsRole::ADMIN,
-            'password' => 'password123',
-        ]));
+        $output = $interactor->execute(input: CreateInput::create(
+            email: 'admin@example.test',
+            name: 'Admin',
+            password: 'password123',
+            role: CmsRole::ADMIN,
+        ));
 
         self::assertFalse($output->created);
         self::assertSame('このメールアドレスは既に使われています。', $output->error);
@@ -58,15 +58,13 @@ final class AdminUserInteractorTest extends TestCase
         $users = new InMemoryAdminUserRepository();
         $interactor = new UpdateInteractor(users: $users, passwords: new FixedPasswordHasher());
 
-        $output = $interactor->execute(input: new UpdateInput(
+        $output = $interactor->execute(input: UpdateInput::create(
             id: 1,
-            data: [
-                'email' => 'admin@example.test',
-                'name' => 'Admin',
-                'role' => CmsRole::EDITOR,
-                'password' => '',
-            ],
             currentUser: $this->currentUser(),
+            email: 'admin@example.test',
+            name: 'Admin',
+            password: '',
+            role: CmsRole::EDITOR,
         ));
 
         self::assertFalse($output->updated);
@@ -78,7 +76,7 @@ final class AdminUserInteractorTest extends TestCase
         $users = new InMemoryAdminUserRepository();
         $interactor = new DeleteInteractor(users: $users);
 
-        $output = $interactor->execute(input: new DeleteInput(id: 1, currentUser: $this->currentUser()));
+        $output = $interactor->execute(input: DeleteInput::create(id: 1, currentUser: $this->currentUser()));
 
         self::assertFalse($output->deleted);
         self::assertSame('ログイン中の自分自身は削除できません。', $output->error);
