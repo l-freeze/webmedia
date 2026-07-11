@@ -71,29 +71,7 @@
 - `page_versions` の unique index を初期 schema に畳む。
 - 既存データ移行を重視する段階か、fresh schema の正しさを優先する段階かを確認する。
 
-### 3. 未使用に見える schema が残っている
-
-対象:
-
-- `database/migrations/20260523000100_create_initial_schema.php`
-  - `operation_logs`
-  - `redirects`
-
-検索範囲では、`operation_logs` と `redirects` を参照する production code が見つからなかった。
-
-懸念:
-
-- 将来使うかもしれないテーブルが現行 schema に混ざっている。
-- 実装されていない責務が、DB schema 上だけ存在している。
-- Audit / SecurityLog が整備された後に `operation_logs` が残ると、ログ責務が曖昧に見える。
-
-検証方針:
-
-- 現行機能として使っていないなら初期 schema から外す。
-- redirect 機能を本当に作るなら、Front / CMS / site model のどこに所属する機能かを先に決める。
-- operation log は Audit / SecurityLog と責務が重複しないか確認する。
-
-### 4. Application が現在時刻を直接生成している
+### 3. Application が現在時刻を直接生成している
 
 対象:
 
@@ -113,7 +91,7 @@
 - Clock port を入れる価値があるか、現状の小ささを理由に妥協するか判断する。
 - 広域 Clock を安易に入れず、必要なら CMS Auth 用の時刻境界として最小化する。
 
-### 5. 記事 status label が Infrastructure の static helper にある
+### 4. 記事 status label が Infrastructure の static helper にある
 
 対象:
 
@@ -138,7 +116,7 @@
 
 ## 妥協として成立しそうな候補
 
-### 6. AuditSummary metadata
+### 5. AuditSummary metadata
 
 対象:
 
@@ -159,7 +137,7 @@
 - `AuditReporter` を経由せず、何でも metadata に入れられる経路が増えた場合に問題化する。
 - password、token、本文全文、過度な個人情報を入れない境界を維持する。
 
-### 7. Route metadata
+### 6. Route metadata
 
 対象:
 
@@ -179,7 +157,7 @@ route metadata は `array<string, mixed>` で、CMS では `requires_permission`
 - metadata を読む middleware が増えた場合は typed metadata / route definition を検討する。
 - `Router::ROUTE_METADATA_ATTRIBUTE` 参照が広がった場合は見直す。
 
-### 8. Tiptap JSON validation の重複
+### 7. Tiptap JSON validation の重複
 
 対象:
 
@@ -200,7 +178,7 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 - Domain Entity に外部 editor schema を持ち込みすぎない。
 - renderer と validation の責務を混ぜない。
 
-### 9. Front Business のカテゴリ slug 固定
+### 8. Front Business のカテゴリ slug 固定
 
 対象:
 
@@ -218,7 +196,7 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 - CMS 側でカテゴリ slug を変えると壊れる。
 - site model / article publication / site scope を導入するなら、この固定 slug scope は消える候補になる。
 
-### 10. DB を読まない PdoSiteSettingQuery
+### 9. DB を読まない PdoSiteSettingQuery
 
 対象:
 

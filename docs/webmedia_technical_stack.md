@@ -350,9 +350,7 @@ media_files
 pages
 page_versions
 inquiries
-redirects
 site_settings
-operation_logs
 ```
 
 `page_versions` は固定ページの保存履歴を保持する。

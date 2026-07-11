@@ -163,19 +163,5 @@ final class CreateInitialSchema extends AbstractMigration
             ->addColumn('updated_at', 'datetime', ['null' => false])
             ->create();
 
-        $this->table('operation_logs')
-            ->addColumn('user_id', 'integer', ['null' => true])
-            ->addColumn('action', 'string', ['limit' => 120])
-            ->addColumn('detail', 'text', ['null' => true])
-            ->addColumn('created_at', 'datetime')
-            ->create();
-
-        $this->table('redirects')
-            ->addColumn('from_path', 'string', ['limit' => 255])
-            ->addColumn('to_path', 'string', ['limit' => 255])
-            ->addColumn('status_code', 'integer', ['default' => 301])
-            ->addColumn('created_at', 'datetime')
-            ->addIndex(['from_path'], ['unique' => true])
-            ->create();
     }
 }
