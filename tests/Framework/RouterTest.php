@@ -42,7 +42,7 @@ final class RouterTest extends TestCase
     public function testAddsMatchedRouteMetadataToRequestAttributes(): void
     {
         $router = new Router(routes: [
-            ['POST', '/admin/articles/{id:\d+}', InvokableController::class, ['requires_permission' => 'article.update']],
+            ['POST', '/admin/articles/{id:\d+}', InvokableController::class, ['feature' => 'enabled']],
         ]);
 
         $request = $router->withRouteMetadata(
@@ -50,7 +50,7 @@ final class RouterTest extends TestCase
         );
 
         self::assertSame(
-            ['requires_permission' => 'article.update'],
+            ['feature' => 'enabled'],
             $request->attribute(key: Router::ROUTE_METADATA_ATTRIBUTE),
         );
     }

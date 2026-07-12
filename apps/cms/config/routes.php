@@ -49,6 +49,7 @@ use App\Cms\Presentation\Http\Controller\Tag\Store\Controller as TagStoreControl
 use App\Cms\Presentation\Http\Controller\Tag\Update\Controller as TagUpdateController;
 use App\Cms\Presentation\Http\Controller\Trash\List\Controller as TrashListController;
 use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 
 /**
  * CMS route definitions.
@@ -57,13 +58,13 @@ use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
  * - 0: HTTP method. FastRouteへ渡す大文字のHTTPメソッド。
  * - 1: Path pattern. `/admin/articles/{id:\d+}` のようなFastRoute形式のパス。
  * - 2: Controller class. DI containerから解決して呼び出すController FQCN。
- * - 3: Route metadata. 省略可。`requires_permission` はこのrouteへ入るために必要なPermission名。
+ * - 3: Route metadata. 省略可。middleware FQCNをkey、そのmiddleware用の設定値をvalueにする。
  *
  * @var list<array{
  *     0: 'GET'|'POST'|'PUT'|'PATCH'|'DELETE',
  *     1: non-empty-string,
  *     2: class-string,
- *     3?: array{requires_permission?: non-empty-string}
+ *     3?: array<class-string, non-empty-string>
  * }> $routes
  */
 $routes = [
@@ -74,44 +75,44 @@ $routes = [
     ['GET', '/admin/articles', ArticleListController::class],
     ['GET', '/admin/articles/create', ArticleCreateController::class],
     ['GET', '/admin/articles/{id:\d+}', ArticleEditController::class],
-    ['POST', '/admin/articles', ArticleStoreController::class, ['requires_permission' => PermissionCode::ARTICLE_CREATE]],
-    ['POST', '/admin/articles/{id:\d+}', ArticleUpdateController::class, ['requires_permission' => PermissionCode::ARTICLE_UPDATE]],
-    ['POST', '/admin/articles/{id:\d+}/delete', ArticleDeleteController::class, ['requires_permission' => PermissionCode::ARTICLE_DELETE]],
+    ['POST', '/admin/articles', ArticleStoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ARTICLE_CREATE]],
+    ['POST', '/admin/articles/{id:\d+}', ArticleUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ARTICLE_UPDATE]],
+    ['POST', '/admin/articles/{id:\d+}/delete', ArticleDeleteController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ARTICLE_DELETE]],
     ['GET', '/admin/articles/{id:\d+}/preview', ArticlePreviewController::class],
     ['GET', '/admin/articles/{id:\d+}/history', ArticleHistoryController::class],
     ['GET', '/admin/articles/{id:\d+}/history/{version:\d+}/preview', ArticleVersionPreviewController::class],
-    ['POST', '/admin/articles/{id:\d+}/restore/{version:\d+}', ArticleRestoreController::class, ['requires_permission' => PermissionCode::ARTICLE_RESTORE]],
+    ['POST', '/admin/articles/{id:\d+}/restore/{version:\d+}', ArticleRestoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ARTICLE_RESTORE]],
     ['GET', '/admin/pages', PageListController::class],
     ['GET', '/admin/pages/create', PageCreateController::class],
     ['GET', '/admin/pages/{id:\d+}', PageEditController::class],
-    ['POST', '/admin/pages', PageStoreController::class, ['requires_permission' => PermissionCode::PAGE_CREATE]],
-    ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class, ['requires_permission' => PermissionCode::PAGE_UPDATE]],
-    ['POST', '/admin/pages/{id:\d+}/restore/{version:\d+}', PageRestoreController::class, ['requires_permission' => PermissionCode::PAGE_UPDATE]],
+    ['POST', '/admin/pages', PageStoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::PAGE_CREATE]],
+    ['POST', '/admin/pages/{id:\d+}', PageUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::PAGE_UPDATE]],
+    ['POST', '/admin/pages/{id:\d+}/restore/{version:\d+}', PageRestoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::PAGE_UPDATE]],
     ['GET', '/admin/categories', CategoryListController::class],
-    ['POST', '/admin/categories', CategoryStoreController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
-    ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
-    ['POST', '/admin/categories/{id:\d+}/delete', CategoryDeleteController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories', CategoryStoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories/{id:\d+}', CategoryUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/categories/{id:\d+}/delete', CategoryDeleteController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
     ['GET', '/admin/tags', TagListController::class],
-    ['POST', '/admin/tags', TagStoreController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
-    ['POST', '/admin/tags/{id:\d+}', TagUpdateController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
-    ['POST', '/admin/tags/{id:\d+}/delete', TagDeleteController::class, ['requires_permission' => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags', TagStoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags/{id:\d+}', TagUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
+    ['POST', '/admin/tags/{id:\d+}/delete', TagDeleteController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::TAXONOMY_MANAGE]],
     ['GET', '/admin/media', MediaListController::class],
-    ['POST', '/admin/media', MediaStoreController::class, ['requires_permission' => PermissionCode::MEDIA_UPLOAD]],
-    ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, ['requires_permission' => PermissionCode::MEDIA_DELETE]],
+    ['POST', '/admin/media', MediaStoreController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::MEDIA_UPLOAD]],
+    ['POST', '/admin/media/{id:\d+}/delete', MediaDeleteController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::MEDIA_DELETE]],
     ['GET', '/admin/inquiries', InquiryListController::class],
-    ['GET', '/admin/inquiries/{id:\d+}', InquiryDetailController::class, ['requires_permission' => PermissionCode::INQUIRY_READ]],
-    ['POST', '/admin/inquiries/{id:\d+}', InquiryUpdateController::class, ['requires_permission' => PermissionCode::INQUIRY_UPDATE]],
-    ['GET', '/admin/users', AdminUserListController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
-    ['POST', '/admin/users', AdminUserCreateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
-    ['POST', '/admin/users/{id:\d+}', AdminUserUpdateController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
-    ['POST', '/admin/users/{id:\d+}/delete', AdminUserDeleteController::class, ['requires_permission' => PermissionCode::ADMIN_USER_MANAGE]],
-    ['GET', '/admin/roles', RoleListController::class, ['requires_permission' => PermissionCode::ROLE_VIEW]],
-    ['GET', '/admin/permissions', PermissionListController::class, ['requires_permission' => PermissionCode::PERMISSION_VIEW]],
-    ['GET', '/admin/security/login-attempts', SecurityLoginAttemptShowController::class, ['requires_permission' => PermissionCode::SECURITY_MANAGE]],
-    ['POST', '/admin/security/login-attempts/reset', SecurityLoginAttemptResetController::class, ['requires_permission' => PermissionCode::SECURITY_MANAGE]],
-    ['GET', '/admin/audit-logs', AuditListController::class, ['requires_permission' => PermissionCode::AUDIT_VIEW]],
+    ['GET', '/admin/inquiries/{id:\d+}', InquiryDetailController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::INQUIRY_READ]],
+    ['POST', '/admin/inquiries/{id:\d+}', InquiryUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::INQUIRY_UPDATE]],
+    ['GET', '/admin/users', AdminUserListController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users', AdminUserCreateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users/{id:\d+}', AdminUserUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ADMIN_USER_MANAGE]],
+    ['POST', '/admin/users/{id:\d+}/delete', AdminUserDeleteController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ADMIN_USER_MANAGE]],
+    ['GET', '/admin/roles', RoleListController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::ROLE_VIEW]],
+    ['GET', '/admin/permissions', PermissionListController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::PERMISSION_VIEW]],
+    ['GET', '/admin/security/login-attempts', SecurityLoginAttemptShowController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::SECURITY_MANAGE]],
+    ['POST', '/admin/security/login-attempts/reset', SecurityLoginAttemptResetController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::SECURITY_MANAGE]],
+    ['GET', '/admin/audit-logs', AuditListController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::AUDIT_VIEW]],
     ['GET', '/admin/settings', SettingEditController::class],
-    ['POST', '/admin/settings', SettingUpdateController::class, ['requires_permission' => PermissionCode::SETTING_UPDATE]],
+    ['POST', '/admin/settings', SettingUpdateController::class, [RequireCmsPermissionMiddleware::class => PermissionCode::SETTING_UPDATE]],
     ['GET', '/admin/trash', TrashListController::class],
 ];
 

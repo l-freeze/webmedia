@@ -1,13 +1,13 @@
 # RequireCmsPermissionMiddleware
 
-`RequireCmsPermissionMiddleware` は route metadata の `requires_permission` を読み、ログイン中 CMS ユーザーがその Permission を持っているかを確認します。
+`RequireCmsPermissionMiddleware` は、自身の FQCN を key とする route metadata を読み、ログイン中 CMS ユーザーがその Permission を持っているかを確認します。
 
 ## 初期設定
 
 CMS permission middleware を有効にするには、次の3点を揃えます。
 
 1. `apps/cms/config/middleware.php` に `RequireCmsPermissionMiddleware::class` を登録する。
-2. `apps/cms/config/routes.php` の保護したい route に `requires_permission` metadata を設定する。
+2. `apps/cms/config/routes.php` の保護したい route に `RequireCmsPermissionMiddleware::class => PermissionCode` を設定する。
 3. `apps/cms/config/container.php` で Guard / Query / `Auth/AuthorizeRoute` の依存が解決できるようにする。
 
 `Auth/AuthorizeRoute/Interactor` は `Auth/AuthorizeRoute/Query/IRolePermissionQuery` に依存します。現状は `Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery` を container で bind しており、コード上の permission mapping から判定します。将来 DB 化する場合は `PdoRolePermissionQuery` のような実装へ差し替えます。
@@ -38,25 +38,24 @@ CMS の route entry は次の形式を基本にします。
 ]
 ```
 
-metadata は任意です。認可が必要な route には `requires_permission` を付けます。
+metadata は任意です。top-level key は設定を消費する middleware の FQCN とし、値の型と意味はその middleware が所有します。認可が必要な route には `RequireCmsPermissionMiddleware::class` を key として Permission を設定します。
 
 ```php
 use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
 use App\Cms\Presentation\Http\Controller\Article\Update\Controller as ArticleUpdateController;
+use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 
 return [
     [
         'POST',
         '/admin/articles/{id:\d+}',
         ArticleUpdateController::class,
-        ['requires_permission' => PermissionCode::ARTICLE_UPDATE],
+        [RequireCmsPermissionMiddleware::class => PermissionCode::ARTICLE_UPDATE],
     ],
 ];
 ```
 
-`requires_permission` が未設定の route は、この middleware では止めません。
-
-命名として `can` は使いません。`can` は「できるかどうか」を返す関数名としては短すぎ、route metadata としては何を要求しているのかが曖昧なためです。この CMS では、route が要求する Permission であることが分かる `requires_permission` に統一します。
+`RequireCmsPermissionMiddleware::class` が未設定の route は、この middleware では止めません。FQCNをkeyにすることで、文字列keyの衝突を避け、設定の所有者をroute定義上で明示します。
 
 ## 拒否時の挙動
 
@@ -85,7 +84,7 @@ return [
 
 ## 書き込み Route 追加時の確認
 
-- route に `requires_permission` が必要か。
+- route に `RequireCmsPermissionMiddleware::class` の設定が必要か。
 - 既存 Permission で表現できるか。
 - 新しい Permission を追加するなら `PermissionCode`、`CodeDefinedRolePermissionQuery`、テストを同じ変更単位で更新したか。
 - route-level check だけで足りないリソース状態判定があるなら、UseCase / Policy へ追加したか。

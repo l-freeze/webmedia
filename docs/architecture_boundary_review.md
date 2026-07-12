@@ -93,57 +93,7 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 - Audit の検索・集計要件により、metadata 内の特定項目に型、index、制約が必要になる。
 - 記録禁止値の混入をテストとレビューで防げなくなる。
 
-### 3. Route metadata
-
-対象:
-
-- `apps/cms/config/routes.php`
-- `src/Framework/Routing/Router.php`
-- `apps/cms/src/Presentation/Http/Middleware/RequireCmsPermissionMiddleware.php`
-
-#### metadata が何を表すか
-
-Route metadata は監査ログとは別物で、各 route の実行前に middleware が使う設定値である。現在の CMS では `requires_permission` 一つだけを使っている。
-
-例えば記事更新 route は次のように定義される。
-
-```php
-[
-    'POST',
-    '/admin/articles/{id:\d+}',
-    ArticleUpdateController::class,
-    ['requires_permission' => PermissionCode::ARTICLE_UPDATE],
-]
-```
-
-#### 処理経路
-
-1. `Router` が route 配列の4番目を `array<string, mixed>` の metadata として保持する。
-2. route match 後、`Router::withRouteMetadata()` が metadata を Request attribute `route.metadata` に入れる。
-3. `RequireCmsPermissionMiddleware` が `requires_permission` を読み、ログイン中ユーザーがその Permission を持つか確認する。
-4. metadata がない route は、この middleware では追加の permission 判定を行わない。
-
-`requires_permission` は route に入るための粗い権限だけを表す。例えば「writer がこの記事を編集できるか」のように対象記事を読まないと判断できないルールは、metadata / middleware ではなく UseCase / Policy が扱う。
-
-#### なぜ typed object にしていないか
-
-- `Router` は CMS 専用ではなく、各アプリケーションが任意の route 補足情報を渡せる Framework 拡張点である。Framework が `requires_permission` という CMS 固有のキーを typed property として知るべきではない。
-- 読み取り側は現在 `RequireCmsPermissionMiddleware` のみで、CMS routes の PHPDoc は `requires_permission?: non-empty-string` まで shape を絞っている。
-- この規模で `RouteMetadataReader` や `MatchedRoute` DTO を追加すると、実際の用途より抽象が大きくなる。
-
-現時点の判断:
-
-- Framework の汎用 route metadata と、CMS の `requires_permission` 利用は現状維持する。
-- CMS の状態変更 route に `requires_permission` が必要なことと、値が空文字でないことは `tests/Cms/CmsConfigTest.php` で検査する。
-
-見直し条件:
-
-- `requires_permission` 以外に、rate limit、cache、content negotiation などのキーが増える。
-- route metadata を読む middleware や Controller が増え、`Router::ROUTE_METADATA_ATTRIBUTE` 参照が複数箇所へ広がる。
-- route name、vars、metadata、controller を一つの match result として渡す必要が出る。
-- キーの typo や不正な型が実際の障害原因になる。
-
-### 4. Front Business のカテゴリ slug 固定
+### 3. Front Business のカテゴリ slug 固定
 
 対象:
 
@@ -166,11 +116,11 @@ Route metadata は監査ログとは別物で、各 route の実行前に middle
 ## 次の検証順
 
 1. Login / ResetLoginAttempt のテスト性を確認し、Clock port が必要か判断する。
-2. Audit metadata と Route metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
+2. Audit metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
 3. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
 
 ## 現時点の結論
 
 明確な境界違反としてすぐ修正すべき項目は、現在このメモには残っていない。
 
-現在時刻の生成はテスト性の観点から追加判断が必要である。Audit metadata と Route metadata は、同じ metadata という名称でも目的とライフサイクルが異なる。どちらも現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。
+現在時刻の生成はテスト性の観点から追加判断が必要である。Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。

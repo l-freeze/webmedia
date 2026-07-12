@@ -70,7 +70,7 @@ final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterfa
             return null;
         }
 
-        $permission = $metadata['requires_permission'] ?? null;
+        $permission = $metadata[self::class] ?? null;
 
         return is_string($permission) && $permission !== '' ? $permission : null;
     }

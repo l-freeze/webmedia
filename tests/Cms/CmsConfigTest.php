@@ -76,9 +76,13 @@ final class CmsConfigTest extends TestCase
             }
 
             $metadata = $route[3] ?? [];
-            self::assertArrayHasKey('requires_permission', $metadata, "{$method} {$path} must declare requires_permission.");
-            self::assertIsString($metadata['requires_permission']);
-            self::assertNotSame('', $metadata['requires_permission']);
+            self::assertArrayHasKey(
+                RequireCmsPermissionMiddleware::class,
+                $metadata,
+                "{$method} {$path} must declare middleware permission metadata.",
+            );
+            self::assertIsString($metadata[RequireCmsPermissionMiddleware::class]);
+            self::assertNotSame('', $metadata[RequireCmsPermissionMiddleware::class]);
         }
     }
 
@@ -123,7 +127,7 @@ final class CmsConfigTest extends TestCase
         foreach ($routes as $route) {
             if ($route[0] === $method && $route[1] === $path) {
                 $metadata = $route[3] ?? [];
-                $permission = $metadata['requires_permission'] ?? null;
+                $permission = $metadata[RequireCmsPermissionMiddleware::class] ?? null;
 
                 return is_string($permission) ? $permission : null;
             }

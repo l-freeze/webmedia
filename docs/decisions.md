@@ -64,7 +64,7 @@ Middleware は HTTP request / response の入口制御と横断処理に限定�
 ### Middleware で扱ってよいこと
 
 - ログイン済みか確認する。
-- route metadata の `requires_permission` を確認する。
+- route metadata から自身の FQCN を key とする Permission 設定を確認する。
 - CSRF token を検証する。
 - IP address、user-agent、request id など HTTP metadata を event に載せる。
 - CMS の状態変更 request の HTTP envelope を Audit として記録する。
@@ -83,11 +83,14 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 ### 判断
 
-現時点では `RouteMetadataReader` や `MatchedRoute` value は作らない。
+- Framework の Router は route metadata を解釈せず、`array<string, mixed>` のまま Request へ渡す。
+- アプリケーション側の middleware 設定は、その設定を消費する middleware の FQCN を top-level key にする。値の型と意味は各 middleware が所有する。
+- 現時点では `RouteMetadataReader` や `MatchedRoute` value は作らない。
 
 ### 理由
 
 - route metadata を読む箇所がまだ少ない。
+- FQCNをkeyにすれば、文字列keyの衝突を避けながら設定の所有者をroute定義上で明示できる。
 - 先に抽象化すると、何のための概念かが半端に見える。
 - 現行の route match 2回は理解しやすく、route 数も少ないため性能問題になっていない。
 

@@ -30,7 +30,7 @@ CMS の route-level permission と、記事などの resource-level permission �
 
 ```text
 POST /admin/articles/{id}
-  requires_permission = article.update
+  RequireCmsPermissionMiddleware::class => article.update
 ```
 
 これは `RequireCmsPermissionMiddleware` が見る。

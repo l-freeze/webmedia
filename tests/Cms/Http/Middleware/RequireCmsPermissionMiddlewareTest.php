@@ -111,7 +111,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
             'HTTP_USER_AGENT' => 'PHPUnit Browser',
             'HTTP_X_REQUEST_ID' => 'request-123',
         ]))
-            ->withAttribute(key: Router::ROUTE_METADATA_ATTRIBUTE, value: ['requires_permission' => $permission]);
+            ->withAttribute(key: Router::ROUTE_METADATA_ATTRIBUTE, value: [RequireCmsPermissionMiddleware::class => $permission]);
     }
 
     private function okHandler(): CallableRequestHandler

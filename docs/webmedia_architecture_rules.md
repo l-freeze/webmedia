@@ -1442,7 +1442,7 @@ Middleware は HTTP pipeline の入口制御と横断処理を担当する。コ
 - まず UseCase `Input` に必要な id と `CurrentCmsUser` を渡す。
 - UseCase 内で対象リソースの Domain Policy を呼ぶ。
 - 対象リソースの所有者、状態、公開可否、復元可否などは Policy または Domain / Application の業務ルールとして判定する。
-- middleware には、必要なら `requires_permission` のような route metadata による粗い入口制御だけを残す。
+- middleware には、必要なら自身の FQCN を key とする route metadata による粗い入口制御だけを残す。
 
 例:
 

@@ -121,10 +121,10 @@ final class RequestTest extends TestCase
     public function testReadsAttributesAndCreatesCopyWithAttribute(): void
     {
         $request = new Request(method: 'GET', path: '/', query: [], body: [], server: []);
-        $updated = $request->withAttribute(key: 'route.metadata', value: ['requires_permission' => 'article.update']);
+        $updated = $request->withAttribute(key: 'route.metadata', value: ['feature' => 'enabled']);
 
         self::assertNull($request->attribute(key: 'route.metadata'));
-        self::assertSame(['requires_permission' => 'article.update'], $updated->attribute(key: 'route.metadata'));
+        self::assertSame(['feature' => 'enabled'], $updated->attribute(key: 'route.metadata'));
         self::assertSame('fallback', $updated->attribute(key: 'missing', default: 'fallback'));
     }
 }
