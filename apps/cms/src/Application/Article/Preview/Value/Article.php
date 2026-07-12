@@ -13,9 +13,9 @@ final readonly class Article
         public string $body,
         public string $bodyFormat,
         public string $status,
-        public string $statusLabel,
         public string $eyecatchPath,
         public string $publishedAt,
+        public string $publishedEndsAt,
     ) {
     }
 
@@ -30,9 +30,9 @@ final readonly class Article
             'body_format' => $this->bodyFormat,
             'rendered_body_html' => $bodyHtml,
             'status' => $this->status,
-            'status_label' => $this->statusLabel,
             'eyecatch_path' => $this->eyecatchPath,
             'published_at' => $this->publishedAt,
+            'published_ends_at' => $this->publishedEndsAt,
         ];
     }
 }

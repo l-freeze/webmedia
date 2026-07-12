@@ -179,30 +179,6 @@ final readonly class PdoArticleRepository implements IArticleRepository
         PdoHelper::execute(statement: $stmt, params: ['version_no' => $versionNo, 'id' => $articleId]);
     }
 
-    public static function statusLabel(string $status, ?string $publishedAt = null, ?string $publishedEndsAt = null, ?\DateTimeImmutable $now = null): string
-    {
-        if ($status === 'published') {
-            $now ??= new \DateTimeImmutable();
-            if ($publishedAt === null || $publishedAt === '') {
-                return '表示（公開日時未設定）';
-            }
-            $publishedAtDate = new \DateTimeImmutable($publishedAt);
-            if ($publishedAtDate > $now) {
-                return '公開予約';
-            }
-            if ($publishedEndsAt !== null && $publishedEndsAt !== '' && new \DateTimeImmutable($publishedEndsAt) <= $now) {
-                return '公開終了';
-            }
-            return '公開中';
-        }
-
-        return match ($status) {
-            'private' => '非表示',
-            'trashed' => 'ゴミ箱',
-            default => '下書き',
-        };
-    }
-
     /** @param array<string, mixed> $row */
     private function articleFromRow(int $id, array $row): Article
     {

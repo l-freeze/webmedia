@@ -10,7 +10,8 @@ final readonly class Article
         public int $id,
         public string $title,
         public string $status,
-        public string $statusLabel,
+        public string $publishedAt,
+        public string $publishedEndsAt,
         public ?string $categoryName,
         public string $updatedAt,
     ) {
@@ -23,7 +24,6 @@ final readonly class Article
             'id' => $this->id,
             'title' => $this->title,
             'status' => $this->status,
-            'status_label' => $this->statusLabel,
             'category_name' => $this->categoryName,
             'updated_at' => $this->updatedAt,
         ];

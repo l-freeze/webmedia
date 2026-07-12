@@ -7,6 +7,7 @@
 ## Directory Roles
 
 - `Http/Controller/`: Request を受け、Application Interactor を呼び、Response または template params を組み立てる。
+- `Presenter/`: Application が返す値を表示用の文字列や値に変換する。
 - `ViewModel/`: template 専用の表示モデルを置く。UseCase Output をそのまま HTML に渡すと表示都合が混ざる場合に作成する。
 
 ## Responsibility Boundary
@@ -53,6 +54,14 @@ apps/cms/src/Presentation/ViewModel/Layout/AdminNavigationViewModel.php
 ```
 
 ViewModel は HTML の見せ方に寄せた値を持ちます。UseCase の戻り値を置き換えるものではありません。
+
+## Presenter Placement
+
+Application Value の生値から日本語ラベルなどの表示値を導く場合は `Presenter` に置きます。Presenter は DB や HTTP request を読まず、Controller から渡された値だけを表示用に変換します。
+
+```text
+apps/cms/src/Presentation/Presenter/Article/ArticleStatusPresenter.php
+```
 
 ## Dependency Rules
 

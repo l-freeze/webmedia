@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\List;
 
 use App\Cms\Application\Article\List\Input;
 use App\Cms\Application\Article\List\Interactor;
+use App\Cms\Presentation\Presenter\Article\ArticleStatusPresenter;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
@@ -19,6 +20,7 @@ final readonly class Controller
         private Csrf $csrf,
         private Session $session,
         private Interactor $list,
+        private ArticleStatusPresenter $articleStatus,
     ) {
     }
 
@@ -30,7 +32,14 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'article/index.latte', params: [
             'title' => '記事管理',
             'query' => $output->keyword,
-            'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
+            'articles' => array_map(fn ($article): array => [
+                ...$article->toArray(),
+                'status_label' => $this->articleStatus->label(
+                    status: $article->status,
+                    publishedAt: $article->publishedAt,
+                    publishedEndsAt: $article->publishedEndsAt,
+                ),
+            ], $output->articles),
             'flash' => $this->session->pullFlash(key: 'success'),
             'csrf' => $this->csrf->token(),
         ]));

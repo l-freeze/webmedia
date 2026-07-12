@@ -34,9 +34,9 @@ final readonly class PdoArticlePreviewQuery implements IArticleQuery
             body: $pdoRow->string(key: 'body'),
             bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
             status: $pdoRow->string(key: 'status'),
-            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
             eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
             publishedAt: $pdoRow->string(key: 'published_at'),
+            publishedEndsAt: $pdoRow->string(key: 'published_ends_at'),
         );
     }
 }

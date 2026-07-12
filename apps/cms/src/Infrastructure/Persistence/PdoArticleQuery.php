@@ -44,7 +44,8 @@ final readonly class PdoArticleQuery implements List\Query\IArticleQuery
             id: $pdoRow->int(key: 'id'),
             title: $pdoRow->string(key: 'title'),
             status: $pdoRow->string(key: 'status'),
-            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
+            publishedAt: $pdoRow->string(key: 'published_at'),
+            publishedEndsAt: $pdoRow->string(key: 'published_ends_at'),
             categoryName: $pdoRow->nullableString(key: 'category_name'),
             updatedAt: $pdoRow->date(key: 'updated_at', format: 'Y-m-d H:i'),
         );

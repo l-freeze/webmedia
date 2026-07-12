@@ -35,6 +35,22 @@ final class DependencyRuleTest extends TestCase
         );
     }
 
+    public function testInfrastructureDoesNotDependOnPresentation(): void
+    {
+        $this->assertNoForbiddenReferences(
+            root: self::root() . '/apps/cms/src/Infrastructure',
+            forbiddenNeedles: ['\\Presentation\\'],
+        );
+    }
+
+    public function testPresentationDoesNotDependOnCmsPersistenceImplementations(): void
+    {
+        $this->assertNoForbiddenReferences(
+            root: self::root() . '/apps/cms/src/Presentation',
+            forbiddenNeedles: ['App\\Cms\\Infrastructure\\Persistence\\'],
+        );
+    }
+
     /** @param list<string> $forbiddenNeedles */
     private function assertNoForbiddenReferences(string $root, array $forbiddenNeedles): void
     {

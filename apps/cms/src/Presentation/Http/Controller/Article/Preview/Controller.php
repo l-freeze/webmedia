@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\Preview;
 
 use App\Cms\Application\Article\Preview\Input;
 use App\Cms\Application\Article\Preview\Interactor;
+use App\Cms\Presentation\Presenter\Article\ArticleStatusPresenter;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -17,6 +18,7 @@ final readonly class Controller
         private TemplateRenderer $renderer,
         private Markdown $markdown,
         private Interactor $preview,
+        private ArticleStatusPresenter $articleStatus,
     ) {
     }
 
@@ -30,7 +32,14 @@ final readonly class Controller
 
         return new Response(body: $this->renderer->render(template: 'article/preview.latte', params: [
             'title' => 'プレビュー',
-            'article' => $article->toArray($this->markdown->bodyToSafeHtml(body: $article->body, format: $article->bodyFormat)),
+            'article' => [
+                ...$article->toArray($this->markdown->bodyToSafeHtml(body: $article->body, format: $article->bodyFormat)),
+                'status_label' => $this->articleStatus->label(
+                    status: $article->status,
+                    publishedAt: $article->publishedAt,
+                    publishedEndsAt: $article->publishedEndsAt,
+                ),
+            ],
         ]));
     }
 }

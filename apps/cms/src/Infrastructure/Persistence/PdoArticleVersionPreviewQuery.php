@@ -36,7 +36,6 @@ final readonly class PdoArticleVersionPreviewQuery implements IArticleVersionQue
             bodyFormat: $pdoRow->string(key: 'body_format', default: 'markdown'),
             excerpt: $pdoRow->string(key: 'excerpt'),
             status: $pdoRow->string(key: 'status'),
-            statusLabel: PdoArticleRepository::statusLabel(status: $pdoRow->string(key: 'status'), publishedAt: $pdoRow->string(key: 'published_at'), publishedEndsAt: $pdoRow->string(key: 'published_ends_at')),
             categoryId: $pdoRow->nullableInt(key: 'category_id'),
             eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
             publishedAt: $pdoRow->string(key: 'published_at'),

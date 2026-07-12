@@ -93,6 +93,8 @@
 
 ### 4. 記事 status label が Infrastructure の static helper にある
 
+状態: 対応済み。
+
 対象:
 
 - `apps/cms/src/Infrastructure/Persistence/PdoArticleRepository.php`
@@ -100,19 +102,21 @@
 - `apps/cms/src/Infrastructure/Persistence/PdoArticlePreviewQuery.php`
 - `apps/cms/src/Infrastructure/Persistence/PdoArticleVersionPreviewQuery.php`
 
-記事の表示用 status label が `PdoArticleRepository::statusLabel()` に置かれ、複数の Query 実装から参照されている。
+対応前は、記事の表示用 status label が `PdoArticleRepository::statusLabel()` に置かれ、複数の Query 実装から参照されていた。
 
-懸念:
+問題だった点:
 
 - Repository 実装に表示ラベル判断が置かれている。
 - `InquiryStatus::label()` は Domain 側にあるため、配置の一貫性が弱い。
 - status、published_at、published_ends_at から表示状態を読む判断が Infrastructure static helper に集まっている。
 
-検証方針:
+対応:
 
-- Domain Value / Application Value / Presentation helper のどこに置くべきか判断する。
-- 「公開予約」「公開終了」は表示上の派生状態か、業務状態の読み替えかを先に決める。
-- Infrastructure static helper は避ける方向で検討する。
+- DB に保存する `status` は変えず、「公開予約」「公開終了」は現在時刻と公開期間から導く CMS の表示上の派生状態と判断した。
+- Query 実装は Application Value へ `status`、`publishedAt`、`publishedEndsAt` の生値だけを詰める。
+- 日本語ラベルへの変換は `Presentation/Presenter/Article/ArticleStatusPresenter` に置き、Controller が template params の `status_label` を組み立てる。
+- `PdoArticleRepository::statusLabel()` と Application Value の `statusLabel` を削除した。
+- CMS Infrastructure から Presentation への依存と、Presentation から CMS Persistence 実装への直接依存を Architecture Test で禁止した。
 
 ## 妥協として成立しそうな候補
 
@@ -221,8 +225,7 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 1. migration を現行 schema に畳めるか。
 2. 未使用 schema を削除できるか。
 3. Login / ResetLoginAttempt に Clock 境界を入れるべきか。
-4. 記事 status label の配置を見直すか。
-5. 妥協候補 6-10 は、現時点維持でよいかを確認し、必要なら `docs/decisions.md` に判断だけ残す。
+4. 妥協候補 6-10 は、現時点維持でよいかを確認し、必要なら `docs/decisions.md` に判断だけ残す。
 
 ## 精査時点の結論
 

@@ -6,6 +6,7 @@ namespace App\Cms\Presentation\Http\Controller\Article\VersionPreview;
 
 use App\Cms\Application\ArticleVersion\Preview\Input;
 use App\Cms\Application\ArticleVersion\Preview\Interactor;
+use App\Cms\Presentation\Presenter\Article\ArticleStatusPresenter;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -17,6 +18,7 @@ final readonly class Controller
         private TemplateRenderer $renderer,
         private Markdown $markdown,
         private Interactor $articleVersionPreview,
+        private ArticleStatusPresenter $articleStatus,
     ) {
     }
 
@@ -33,7 +35,14 @@ final readonly class Controller
 
         return new Response(body: $this->renderer->render(template: 'article/version-preview.latte', params: [
             'title' => '履歴プレビュー',
-            'articleVersion' => $articleVersion->toArray($this->markdown->bodyToSafeHtml(body: $articleVersion->body, format: $articleVersion->bodyFormat)),
+            'articleVersion' => [
+                ...$articleVersion->toArray($this->markdown->bodyToSafeHtml(body: $articleVersion->body, format: $articleVersion->bodyFormat)),
+                'status_label' => $this->articleStatus->label(
+                    status: $articleVersion->status,
+                    publishedAt: $articleVersion->publishedAt,
+                    publishedEndsAt: $articleVersion->publishedEndsAt,
+                ),
+            ],
         ]));
     }
 }
