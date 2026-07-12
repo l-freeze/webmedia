@@ -10,12 +10,12 @@ use App\Cms\Application\Media\List;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Session;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Session $session,
         private Interactor $edit,
         private List\Interactor $media,

@@ -6,20 +6,22 @@ namespace App\Cms\Presentation\Http\Controller\Article\Edit;
 
 use App\Cms\Application\Article\Edit;
 use App\Cms\Application\Article\History;
+use App\Cms\Application\Article\PublicationDateTime;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Csrf $csrf,
         private Session $session,
         private Edit\Interactor $edit,
         private History\Interactor $history,
+        private PublicationDateTime $publicationDateTime,
     ) {
     }
 
@@ -44,7 +46,7 @@ final readonly class Controller
     /** @param array<string, mixed>|null $formArticle */
     private function editForm(Edit\Output $output, string $action, ?array $formArticle = null, ?string $error = null): Response
     {
-        $article = $formArticle ?? $output->article?->toArray();
+        $article = $formArticle ?? $this->articleForEditor($output->article?->toArray());
         $articleIdValue = $article['id'] ?? null;
         $articleId = is_scalar($articleIdValue) ? (int) $articleIdValue : null;
         $versions = $articleId === null ? [] : array_map(
@@ -68,5 +70,23 @@ final readonly class Controller
                 'private' => '非表示',
             ],
         ]));
+    }
+
+    /**
+     * @param array<string, mixed>|null $article
+     * @return array<string, mixed>|null
+     */
+    private function articleForEditor(?array $article): ?array
+    {
+        if ($article === null) {
+            return null;
+        }
+
+        $publishedAt = $article['published_at'] ?? '';
+        $publishedEndsAt = $article['published_ends_at'] ?? '';
+        $article['published_at'] = $this->publicationDateTime->toEditor(is_string($publishedAt) ? $publishedAt : '');
+        $article['published_ends_at'] = $this->publicationDateTime->toEditor(is_string($publishedEndsAt) ? $publishedEndsAt : '');
+
+        return $article;
     }
 }

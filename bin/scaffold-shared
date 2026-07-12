@@ -55,28 +55,28 @@ The scaffold includes small PDO helpers under `App\Shared\Database`. Framework c
 
 ## View
 
-`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `App\Framework\View\TemplateRenderer`.
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `App\Framework\View\ITemplateRenderer`.
 
 Register it in each app container with that app's template directory:
 
 ```php
 $container->singleton(
-    id: TemplateRenderer::class,
-    factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
+    id: ITemplateRenderer::class,
+    factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
         templateDirectory: $root . '/apps/front/templates',
     ),
 );
 ```
 
-Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `TemplateRenderer`.
+Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `ITemplateRenderer`.
 
 `LatteTemplateRenderer` disables Latte's compiled view cache by default because worker mode keeps loaded template classes in the PHP process. Pass `cacheDirectory` explicitly only when running a classic/non-worker runtime.
 
 To switch an app to Smarty:
 
 1. Add `smarty/smarty` to the project.
-2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `TemplateRenderer`.
-3. Bind `TemplateRenderer::class` to `SmartyTemplateRenderer` in the target app container.
+2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `ITemplateRenderer`.
+3. Bind `ITemplateRenderer::class` to `SmartyTemplateRenderer` in the target app container.
 4. Convert that app's templates from Latte syntax to Smarty syntax.
 
 The Smarty renderer can keep the same `addGlobalProvider()` convenience method used by the default Latte renderer. That keeps common template values, such as site settings, CSRF data, flash messages, or current user information, registered once in the container instead of being passed by every controller.
@@ -267,12 +267,12 @@ declare(strict_types=1);
 
 namespace App\Shared\Security\Infrastructure\Http;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
+final readonly class SecurityHeadersMiddleware implements IMiddleware
 {
     /**
      * @param array<string, string> $headers
@@ -288,7 +288,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $response = $handler->handle(request: $request);
 
@@ -421,10 +421,10 @@ declare(strict_types=1);
 
 namespace App\Shared\View\Infrastructure;
 
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use Latte\Engine;
 
-final class LatteTemplateRenderer implements TemplateRenderer
+final class LatteTemplateRenderer implements ITemplateRenderer
 {
     private const AUTO_REFRESH = true;
 

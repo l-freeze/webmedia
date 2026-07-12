@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Framework\Application\ApplicationInterface;
+use App\Framework\Application\IApplication;
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;
 use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
@@ -22,7 +22,7 @@ $envString = static function (string $key, string $default): string {
     return is_scalar($value) ? (string) $value : $default;
 };
 
-return static fn (ApplicationBootstrapConfig $config): ApplicationInterface => new Application(
+return static fn (ApplicationBootstrapConfig $config): IApplication => new Application(
     root: $config->root,
     sessionRuntime: $config->sessionRuntime ?? new NativeSessionRuntime(
         cookieSameSite: $envString(key: 'SESSION_COOKIE_SAMESITE', default: 'Lax'),

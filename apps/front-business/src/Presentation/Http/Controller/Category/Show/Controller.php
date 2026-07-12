@@ -6,7 +6,7 @@ namespace App\FrontBusiness\Presentation\Http\Controller\Category\Show;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\FrontBusiness\Application\Category\Show\Input;
 use App\FrontBusiness\Application\Category\Show\Interactor;
 use App\FrontBusiness\Presentation\Seo\CanonicalUrl;
@@ -14,7 +14,7 @@ use App\FrontBusiness\Presentation\Seo\CanonicalUrl;
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
         private CanonicalUrl $canonicalUrl,
     ) {

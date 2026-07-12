@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Framework\Runtime;
 
-use App\Framework\Application\ApplicationInterface;
+use App\Framework\Application\IApplication;
 use Closure;
 
-final readonly class FrankenWorkerRuntime implements Runtime
+final readonly class FrankenWorkerRuntime implements IRuntime
 {
     public function __construct(private Closure $frankenHandleRequest)
     {
     }
 
-    public function run(ApplicationInterface $application): void
+    public function run(IApplication $application): void
     {
         while (($this->frankenHandleRequest)(static function () use ($application): void {
             $application->handleGlobals();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Entity;
 
+use App\Cms\Domain\Value\CmsRole;
+
 final readonly class User
 {
     public function __construct(
@@ -11,7 +13,7 @@ final readonly class User
         public string $email,
         public string $passwordHash,
         public string $name,
-        public string $role,
+        public CmsRole $role,
     ) {
     }
 }

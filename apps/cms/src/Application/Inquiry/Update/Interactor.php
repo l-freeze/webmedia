@@ -21,7 +21,8 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $errors = [];
-        if (!InquiryStatus::isValid($input->status)) {
+        $status = InquiryStatus::tryFrom($input->status);
+        if ($status === null) {
             $errors[] = new ValidationError(field: 'status', message: '状態を選択してください。');
         }
         if (mb_strlen($input->adminNote) > self::ADMIN_NOTE_MAX_LENGTH) {
@@ -33,7 +34,7 @@ final readonly class Interactor
 
         $statusUpdate = new InquiryStatusUpdate(
             id: $input->id,
-            status: $input->status,
+            status: $status,
             adminNote: $input->adminNote,
         );
         $updated = $this->inquiries->updateStatus($statusUpdate);

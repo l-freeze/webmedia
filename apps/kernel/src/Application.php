@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Kernel;
 
-use App\Framework\Application\ApplicationInterface;
+use App\Framework\Application\IApplication;
 use App\Framework\Container\Container;
 use App\Framework\Http\Exception\MalformedRequestException;
-use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
+use App\Framework\Http\ExceptionHandling\IExceptionHandler;
 use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
 use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Middleware\MiddlewareInterface;
+use App\Framework\Http\Middleware\IMiddleware;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
@@ -21,7 +21,7 @@ use App\Framework\Security\SessionState;
 use RuntimeException;
 use Throwable;
 
-final class Application implements ApplicationInterface
+final class Application implements IApplication
 {
     /** @var list<ApplicationDefinition> */
     private array $definitions;
@@ -29,7 +29,7 @@ final class Application implements ApplicationInterface
     /** @var array<string, Router> */
     private array $routers = [];
 
-    /** @var array<string, array<int, class-string<MiddlewareInterface>>> */
+    /** @var array<string, array<int, class-string<IMiddleware>>> */
     private array $middleware = [];
 
     /**
@@ -39,7 +39,7 @@ final class Application implements ApplicationInterface
         private readonly string $root,
         private readonly NativeSessionRuntime $sessionRuntime = new NativeSessionRuntime(),
         private readonly MiddlewarePipeline $middlewarePipeline = new MiddlewarePipeline(),
-        private readonly ExceptionHandlerInterface $exceptionHandler = new RethrowingExceptionHandler(),
+        private readonly IExceptionHandler $exceptionHandler = new RethrowingExceptionHandler(),
         array $definitions = [],
     ) {
         $this->definitions = $definitions !== [] ? $this->sortDefinitions(definitions: $definitions) : $this->defaultDefinitions();
@@ -150,7 +150,7 @@ final class Application implements ApplicationInterface
     }
 
     /**
-     * @return array<int, class-string<MiddlewareInterface>>
+     * @return array<int, class-string<IMiddleware>>
      */
     private function loadMiddleware(string $path): array
     {
@@ -164,7 +164,7 @@ final class Application implements ApplicationInterface
             throw new RuntimeException('Application middleware configuration is invalid.');
         }
 
-        /** @var array<int, class-string<MiddlewareInterface>> $middleware */
+        /** @var array<int, class-string<IMiddleware>> $middleware */
         return $middleware;
     }
 

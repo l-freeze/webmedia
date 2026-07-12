@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Framework\Application;
 
-interface ApplicationInterface
+interface IApplication
 {
     public function handleGlobals(): void;
 }

@@ -102,6 +102,63 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 - route 数が増え、match コストが実測で問題になる。
 - route name、vars、metadata、controller をまとめた `MatchedRoute` が必要になる。
 
+## IClock と記事公開日時
+
+### 判断
+
+- 現在時刻を業務判断に使う場合は、Shared Application の `IClock` に依存する。実装はShared Infrastructureの`SystemClock`とし、UTCの現在時刻を返す。
+- CMS Application は `new DateTimeImmutable()` で現在時刻を直接生成しない。この境界は`tests/Cms/Application/ClockBoundaryTest.php`で検査する。
+- 記事公開判定ではSQLの`NOW()`を使わず、IClockから得たUTC時刻をquery parameterとしてbindする。通常Front内の同一公開条件は`ArticlePublicationCondition`に集約する。
+- CMSの記事公開日時入力はJSTの`Y-m-d H:i:s`として受け、ApplicationでUTCのtimezoneなし文字列へ変換して保存する。CMSとFrontの表示時にPresentationでJSTへ戻す。
+- `front-business`はPOCのため、今回のIClock・公開日時整理の対象外とする。
+
+### 理由
+
+- ログイン試行期限、解除時刻、予約公開、公開終了は、現在時刻が業務判断の入力になる。
+- PHP実行環境やDB sessionのtimezoneへ暗黙に依存すると、CMSがJSTとして入力した公開日時とSQLの現在時刻が9時間ずれる。
+- IClockを固定できれば期限と公開境界を再現でき、DB serverの時計を変更せずにテストできる。
+- UTC保存とPresentationでのJST変換を分けることで、保存値の意味と日本向け表示の責務を明確にできる。
+
+### 採用しないこと
+
+- PostgreSQL session全体をJSTへ変更して差を隠さない。
+- FrameworkにIClockやプロジェクト固有timezoneを置かない。
+- 既存timestampを一律9時間変換しない。既存値がUTC意図かJST意図かは値だけでは判別できないため、必要な環境では個別に確認する。
+
+## Interface naming
+
+### 判断
+
+- プロジェクトが定義するInterfaceは、Framework、Shared、各appを通して`I` prefixへ統一する。
+- ファイル名はInterfaceの短名と一致させる。
+- PSRなど外部packageのInterfaceは提供元の名前を維持する。
+
+### 理由
+
+- QueryとRepositoryの大多数が既に`IQuery` / `IRepository`形式であり、`Clock`、`SecurityLoggerInterface`、`TemplateRenderer`などに別規則を残す実益がない。
+- `I` prefix、`*Interface` suffix、接辞なしを混在させるより、コード検索とDI定義でInterfaceを一目で識別できることを優先する。
+- `I` prefix自体が一般に唯一正しいわけではないが、このproject内では一貫性の利益が上回る。
+
+## Domainの有限集合
+
+### 判断
+
+- CMS Domainで取り得る値が閉じている状態・形式・roleは、文字列定数を持つclassではなくstring backed enumで表現する。
+- `ArticleStatus`、`PageStatus`、`ArticleBodyFormat`、`PageBodyFormat`、`CmsRole`、`InquiryStatus`をenumとして扱う。
+- HTTP入力では`tryFrom()`でvalidationし、DB復元では`from()`を使って未知の保存値を不整合として検出する。
+- Domain内部では文字列比較ではなくenum caseを比較し、DB、session、templateなど文字列境界でだけ`->value`へ変換する。
+
+### 理由
+
+- 許可値の配列、定数、`all()`、validationを別々に保守せず、caseを唯一の定義にできる。
+- 未知値を`draft`や`markdown`へ黙って置き換えると入力不正と保存データ不整合を区別できない。
+- PolicyやEntityが`string`ではなく有限集合を受け取ることで、不正な状態をDomain内部へ持ち込まない。
+
+### 採用しないこと
+
+- HTTP method、MIME type、環境名など、外部仕様や拡張可能な入力を一律にenum化しない。
+- 記事と固定ページの状態・本文形式は、現時点では共通enumへ統合しない。caseが同じでも別コンテキストとして独立させ、共通化が必要になる振る舞いが生じてから判断する。
+
 ## Application Input Validation
 
 ### 判断

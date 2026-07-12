@@ -127,7 +127,7 @@ final readonly class Article
             body: $this->body,
             bodyFormat: $this->bodyFormat,
             excerpt: $this->excerpt,
-            status: new ArticleStatus(value: 'trashed'),
+            status: ArticleStatus::Trashed,
             categoryId: $this->categoryId,
             eyecatchPath: $this->eyecatchPath,
             publishedAt: $this->publishedAt,
@@ -160,7 +160,7 @@ final readonly class Article
 
     private static function assertPublishPermission(Article $article, ?ArticlePublishPermission $permission): void
     {
-        if ($article->status->value === 'published' && $permission === null) {
+        if ($article->status === ArticleStatus::Published && $permission === null) {
             throw new \LogicException('Publishing an article requires ArticlePublishPermission.');
         }
     }

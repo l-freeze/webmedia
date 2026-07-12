@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
+use App\Framework\Http\ExceptionHandling\IExceptionHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\NativeSessionRuntime;
@@ -88,7 +88,7 @@ final readonly class ExceptionController
     }
 }
 
-final readonly class TestExceptionHandler implements ExceptionHandlerInterface
+final readonly class TestExceptionHandler implements IExceptionHandler
 {
     public function handle(Throwable $throwable, Request $request): Response
     {

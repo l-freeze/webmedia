@@ -8,12 +8,12 @@ use App\Cms\Application\Trash\List\Input;
 use App\Cms\Application\Trash\List\Interactor;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
     ) {
     }

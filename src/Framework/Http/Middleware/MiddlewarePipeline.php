@@ -12,13 +12,13 @@ use RuntimeException;
 final readonly class MiddlewarePipeline
 {
     /**
-     * @param array<int, class-string<MiddlewareInterface>> $middleware
+     * @param array<int, class-string<IMiddleware>> $middleware
      */
     public function handle(
         Request $request,
         Container $container,
         array $middleware,
-        RequestHandlerInterface $destination,
+        IRequestHandler $destination,
     ): Response {
         $handler = $destination;
 
@@ -28,8 +28,8 @@ final readonly class MiddlewarePipeline
             $handler = new CallableRequestHandler(
                 handler: static function (Request $request) use ($container, $middlewareClass, $next): Response {
                     $instance = $container->get(id: $middlewareClass);
-                    if (!$instance instanceof MiddlewareInterface) {
-                        throw new RuntimeException("Middleware {$middlewareClass} must implement MiddlewareInterface.");
+                    if (!$instance instanceof IMiddleware) {
+                        throw new RuntimeException("Middleware {$middlewareClass} must implement IMiddleware.");
                     }
 
                     return $instance->process(request: $request, handler: $next);

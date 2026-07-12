@@ -9,7 +9,7 @@ use App\Framework\Http\Request;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -54,7 +54,7 @@ final class LogoutControllerTest extends TestCase
     }
 }
 
-final class RecordingLogoutEventBus implements EventBusInterface
+final class RecordingLogoutEventBus implements IEventBus
 {
     /** @var list<object> */
     public array $events = [];

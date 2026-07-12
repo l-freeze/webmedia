@@ -7,7 +7,7 @@ namespace App\Framework\Http\Middleware;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-interface RequestHandlerInterface
+interface IMiddleware
 {
-    public function handle(Request $request): Response;
+    public function process(Request $request, IRequestHandler $handler): Response;
 }

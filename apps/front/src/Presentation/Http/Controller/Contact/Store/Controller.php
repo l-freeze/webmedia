@@ -7,7 +7,7 @@ namespace App\Front\Presentation\Http\Controller\Contact\Store;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Inquiry\Create\Input;
 use App\Front\Application\Inquiry\Create\InquiryInputLimits;
 use App\Front\Application\Inquiry\Create\Interactor;
@@ -15,7 +15,7 @@ use App\Front\Application\Inquiry\Create\Interactor;
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Csrf $csrf,
         private Interactor $interactor,
     ) {

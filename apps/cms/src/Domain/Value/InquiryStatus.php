@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Value;
 
-final class InquiryStatus
+enum InquiryStatus: string
 {
-    public const NEW = 'new';
-    public const IN_PROGRESS = 'in_progress';
-    public const CLOSED = 'closed';
+    case New = 'new';
+    case InProgress = 'in_progress';
+    case Closed = 'closed';
 
     /** @return array<string, string> */
     public static function labels(): array
     {
         return [
-            self::NEW => '未対応',
-            self::IN_PROGRESS => '対応中',
-            self::CLOSED => '対応済み',
+            self::New->value => '未対応',
+            self::InProgress->value => '対応中',
+            self::Closed->value => '対応済み',
         ];
     }
 
     public static function isValid(string $status): bool
     {
-        return array_key_exists($status, self::labels());
+        return self::tryFrom($status) !== null;
     }
 
     public static function label(string $status): string

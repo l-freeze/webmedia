@@ -10,15 +10,17 @@ shared の実装は機能単位で `apps/shared/src/{Feature}` に置きます�
 
 ```text
 apps/shared/src/Cors/Infrastructure/Http/CorsMiddleware.php
-apps/shared/src/ApplicationLog/Application/ApplicationLoggerInterface.php
-apps/shared/src/Audit/Application/AuditLoggerInterface.php
+apps/shared/src/ApplicationLog/Application/IApplicationLogger.php
+apps/shared/src/Audit/Application/IAuditLogger.php
 apps/shared/src/Cache/Infrastructure/FileSimpleCache.php
 apps/shared/src/Database/PdoHelper.php
-apps/shared/src/Event/Application/EventBusInterface.php
+apps/shared/src/Event/Application/IEventBus.php
 apps/shared/src/Logging/Infrastructure/JsonFileLogger.php
 apps/shared/src/Markdown/Infrastructure/Markdown.php
 apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php
-apps/shared/src/SecurityLog/Application/SecurityLoggerInterface.php
+apps/shared/src/SecurityLog/Application/ISecurityLogger.php
+apps/shared/src/Time/Application/IClock.php
+apps/shared/src/Time/Infrastructure/SystemClock.php
 apps/shared/src/Validation/FormValidator.php
 apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php
 ```
@@ -50,6 +52,10 @@ return static function (Container $container, string $root): void {
 ```
 
 `apps/cms/config/container.php` と `apps/front/config/container.php` は、この callable を読み込んでから各アプリ固有の定義を追加します。
+
+## IClock
+
+業務判断で現在時刻が必要な場合は`App\Shared\Time\Application\IClock`へ依存します。標準実装の`SystemClock`はUTCを返します。Application内で現在時刻を直接生成せず、テストではIClockを固定します。表示timezoneへの変換は各アプリのPresentation、入力日時から保存日時への正規化は対象Applicationの責務です。
 
 ## Middleware 定義
 
@@ -106,7 +112,7 @@ FRONT_CORS_MAX_AGE=600
 
 CMS では、GET 以外の状態変更 request はまず横断的に記録対象にします。認証・認可を通過した状態変更は Audit、ログイン/ログアウトや認可拒否は SecurityLog に分けます。
 
-イベント発火側は `EventBusInterface::dispatch()` に event value を渡します。標準実装の `SynchronousEventBus` が handler を同期実行し、`AuditEvent` は `RecordAuditEventHandler` 経由で Audit、`SecurityLogEvent` は `RecordSecurityLogEventHandler` 経由で SecurityLog に保存します。
+イベント発火側は `IEventBus::dispatch()` に event value を渡します。標準実装の `SynchronousEventBus` が handler を同期実行し、`AuditEvent` は `RecordAuditEventHandler` 経由で Audit、`SecurityLogEvent` は `RecordSecurityLogEventHandler` 経由で SecurityLog に保存します。
 
 標準保存先は `storage/logs/application.log`、`storage/logs/audit.log`、`storage/logs/security.log` です。
 
@@ -127,9 +133,9 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 ### Latte template renderer
 
-`App\Shared\View\Infrastructure\LatteTemplateRenderer` は `App\Framework\View\TemplateRenderer` の Latte 実装です。
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` は `App\Framework\View\ITemplateRenderer` の Latte 実装です。
 
-Framework は template engine を決めません。Controller は `TemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
+Framework は template engine を決めません。Controller は `ITemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
 
 `LatteTemplateRenderer` は Latte の compiled view cache をデフォルトで無効にします。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic/non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
 
@@ -142,8 +148,8 @@ Latte は標準の starting point ですが、Framework の要件ではありま
 Smarty を使う場合は、次の手順で切り替えます。
 
 1. `smarty/smarty` を project に追加する。
-2. `App\Shared\View\Infrastructure\SmartyTemplateRenderer` を作り、`TemplateRenderer` を実装する。
-3. 対象 app の container で `TemplateRenderer::class` を `SmartyTemplateRenderer` に bind する。
+2. `App\Shared\View\Infrastructure\SmartyTemplateRenderer` を作り、`ITemplateRenderer` を実装する。
+3. 対象 app の container で `ITemplateRenderer::class` を `SmartyTemplateRenderer` に bind する。
 4. 対象 app の templates を Latte 記法から Smarty 記法へ変換する。
 
 `SmartyTemplateRenderer` には、標準の `LatteTemplateRenderer` と同じ `addGlobalProvider()` を持たせても構いません。site settings、CSRF、flash message、current user などの共通 template 値を container で一度だけ登録でき、Controller ごとに渡す必要がなくなります。

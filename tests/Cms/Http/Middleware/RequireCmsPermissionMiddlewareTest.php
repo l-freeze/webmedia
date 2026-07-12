@@ -19,7 +19,7 @@ use App\Framework\Routing\Router;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +27,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
 {
     public function testAllowsRequestWithoutPermissionMetadata(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: CmsRole::VIEWER));
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::Viewer->value));
 
         $response = $middleware->process(
             request: new Request(method: 'GET', path: '/admin/articles', query: [], body: [], server: []),
@@ -59,7 +59,7 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
     public function testReturnsForbiddenWhenUserDoesNotHaveRequiredPermission(): void
     {
         $events = new RecordingPermissionEventBus();
-        $middleware = $this->middleware(user: $this->user(role: CmsRole::WRITER), events: $events);
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::Writer->value), events: $events);
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
@@ -73,13 +73,13 @@ final class RequireCmsPermissionMiddlewareTest extends TestCase
         self::assertSame('cms.authorization.denied', $events->events[0]->eventType);
         self::assertSame('failure', $events->events[0]->result);
         self::assertSame('1', $events->events[0]->actorUserId);
-        self::assertSame(CmsRole::WRITER, $events->events[0]->actorRole);
+        self::assertSame(CmsRole::Writer->value, $events->events[0]->actorRole);
         self::assertSame(PermissionCode::SETTING_UPDATE, $events->events[0]->metadata['permission'] ?? null);
     }
 
     public function testAllowsUserWithRequiredPermission(): void
     {
-        $middleware = $this->middleware(user: $this->user(role: CmsRole::ADMIN));
+        $middleware = $this->middleware(user: $this->user(role: CmsRole::Admin->value));
 
         $response = $middleware->process(
             request: $this->requestWithPermission(permission: PermissionCode::SETTING_UPDATE),
@@ -143,7 +143,7 @@ final readonly class FixedPermissionCmsUserQuery implements ICurrentCmsUserQuery
     }
 }
 
-final class RecordingPermissionEventBus implements EventBusInterface
+final class RecordingPermissionEventBus implements IEventBus
 {
     /** @var list<object> */
     public array $events = [];

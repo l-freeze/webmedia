@@ -6,11 +6,11 @@ namespace App\Front\Presentation\Http\Controller\Contact\Success;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer)
+    public function __construct(private ITemplateRenderer $renderer)
     {
     }
 

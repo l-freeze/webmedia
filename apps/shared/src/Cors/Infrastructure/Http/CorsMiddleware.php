@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Shared\Cors\Infrastructure\Http;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class CorsMiddleware implements MiddlewareInterface
+final readonly class CorsMiddleware implements IMiddleware
 {
     private const DEFAULT_PREFLIGHT_MAX_AGE_SECONDS = 600;
 
@@ -27,7 +27,7 @@ final readonly class CorsMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $origin = $this->header(request: $request, name: 'Origin');
         if ($origin === null || !$this->isAllowedOrigin(origin: $origin)) {

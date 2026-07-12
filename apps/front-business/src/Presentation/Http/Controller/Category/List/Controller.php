@@ -6,7 +6,7 @@ namespace App\FrontBusiness\Presentation\Http\Controller\Category\List;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\FrontBusiness\Application\Category\List\Input;
 use App\FrontBusiness\Application\Category\List\Interactor;
 use App\FrontBusiness\Presentation\BasePath;
@@ -14,7 +14,7 @@ use App\FrontBusiness\Presentation\BasePath;
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
     ) {
     }

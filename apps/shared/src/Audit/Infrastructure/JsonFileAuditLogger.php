@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Shared\Audit\Infrastructure;
 
-use App\Shared\Audit\Application\AuditLoggerInterface;
+use App\Shared\Audit\Application\IAuditLogger;
 use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Logging\Infrastructure\JsonLineFileWriter;
 
-final readonly class JsonFileAuditLogger implements AuditLoggerInterface
+final readonly class JsonFileAuditLogger implements IAuditLogger
 {
     private JsonLineFileWriter $writer;
 

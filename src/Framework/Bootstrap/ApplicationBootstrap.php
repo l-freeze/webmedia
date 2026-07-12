@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Framework\Bootstrap;
 
-use App\Framework\Application\ApplicationInterface;
+use App\Framework\Application\IApplication;
 use App\Framework\Runtime\RuntimeFactory;
 use RuntimeException;
 
@@ -19,7 +19,7 @@ final readonly class ApplicationBootstrap
         RuntimeFactory::fromEnvironment()->run(application: self::createApplication(config: $config));
     }
 
-    public static function createApplication(ApplicationBootstrapConfig $config): ApplicationInterface
+    public static function createApplication(ApplicationBootstrapConfig $config): IApplication
     {
         if ($config->applicationFactory === null) {
             throw new RuntimeException('Application factory is not configured.');

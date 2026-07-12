@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\IUserRepository;
+use App\Cms\Domain\Value\CmsRole;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -32,7 +33,7 @@ final readonly class PdoUserRepository implements IUserRepository
             email: $pdoRow->string(key: 'email'),
             passwordHash: $pdoRow->string(key: 'password_hash'),
             name: $pdoRow->string(key: 'name'),
-            role: $pdoRow->string(key: 'role'),
+            role: CmsRole::from($pdoRow->string(key: 'role')),
         );
     }
 }

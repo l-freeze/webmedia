@@ -26,7 +26,7 @@
 | ダッシュボード | 完了 | `/admin`, Dashboard Show UseCase / template | 実データで HTTP 表示確認済み |
 | 記事一覧 | 完了 | `/admin/articles`, Article List UseCase / template | HTTP 表示確認済み。絞り込み・検索・ページングの要件充足度確認は必要時に行う |
 | 記事作成 / 編集 / 保存 | 完了 | create/edit/store/update routes, Article Save UseCase, validation, history 保存, Audit middleware の業務要約, Markdown / HTML / Tiptap リッチエディター切替, 見出し shortcut, 簡易 slash menu, 選択範囲装飾メニュー, リンク/画像/区切り線/テーブル挿入, 表示用 `rendered_body_html` 派生 cache, 検索用 `search_body_text` 派生 text | HTTP 経由で作成/編集確認済み。リッチエディターは OSS Tiptap を自前ビルドし、JSON を PHP renderer + HTMLPurifier 経由で `rendered_body_html` に保存。検索と未入力時抜粋は保存時に生成する `search_body_text` を使う。選択範囲装飾メニューは太字/斜体/下線/取り消し線/コード/リンクを扱い、マウス選択時は mouseup 後に表示する。CMS 切替時は形式別ドラフトを保持し、JSON で Markdown / HTML 入力を上書きしない |
-| 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status, `published_at`, `published_ends_at` 入力 | 入力 UI は確認済み。予約公開の運用確認、公開状態の UI 表示確認 |
+| 公開 / 非公開 / 公開予約 / 公開終了 | 一部完了 | Article status、`published_at` / `published_ends_at`のJST入力・UTC保存、Clockによる公開境界、CMS/FrontのJST表示 | 固定Clockで予約・開始・終了境界を確認済み。実時間経過を伴う画面遷移の確認 |
 | 記事プレビュー | 完了 | `/admin/articles/{id}/preview` | 下書きプレビュー URL の保護強化は公開前課題 |
 | 記事更新履歴 / 版プレビュー / 復元 | 一部完了 | history, version preview, restore routes / UseCase | HTTP 経由で履歴/版プレビュー/復元確認済み。差分比較 UI は未実装 |
 | 固定ページ管理 | 一部完了 | list/create/edit/store/update/restore routes, Page UseCase, Markdown / HTML / Tiptap リッチエディター切替, 表示用 `rendered_body_html` 派生 cache, 編集画面の履歴復元 UI | 複製は未実装。固定ページ編集画面 GET と Front 固定ページ表示は HTTP 確認済み |

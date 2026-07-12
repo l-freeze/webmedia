@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Shared\SecurityLog\Application;
 
-use App\Shared\Event\Application\EventHandlerInterface;
+use App\Shared\Event\Application\IEventHandler;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-final readonly class RecordSecurityLogEventHandler implements EventHandlerInterface
+final readonly class RecordSecurityLogEventHandler implements IEventHandler
 {
-    public function __construct(private SecurityLoggerInterface $logger)
+    public function __construct(private ISecurityLogger $logger)
     {
     }
 

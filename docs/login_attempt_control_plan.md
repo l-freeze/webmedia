@@ -32,7 +32,7 @@ apps/cms/src/Application/Auth/Login/
   Query/
     ILoginAttemptQuery.php
   Port/
-    PasswordVerifier.php
+    IPasswordVerifier.php
   Value/
     LoginAttemptFailureCounts.php
 
@@ -60,7 +60,7 @@ apps/cms/src/Infrastructure/Persistence/
 
 `LoginAttemptPolicy` も初期実装では作らない。閾値判断は `Login\Interactor` の private method に閉じ込める。
 
-`PasswordVerifier` は PHP の password API への Application port なので `Login/Port/` に置く。
+`IPasswordVerifier` は PHP の password API への Application port なので `Login/Port/` に置く。
 
 ログイン試行制御そのものは port にしない。ログイン制限の判定条件は Application 側の方針であり、Infrastructure へ押し出さない。
 
@@ -72,7 +72,7 @@ Login/Interactor.php
   ログイン試行制御の流れと閾値判断もここで扱う。
   補助 private method へ分け、public な補助 class は増やさない。
 
-Login/Port/PasswordVerifier.php
+Login/Port/IPasswordVerifier.php
   入力パスワードが保存済み hash と一致するか検証する port。
 
 Login/Query/ILoginAttemptQuery.php
@@ -110,7 +110,7 @@ LoginController
   -> Login\Interactor
        -> ILoginAttemptQuery
        -> IUserRepository
-       -> PasswordVerifier
+       -> IPasswordVerifier
        -> ILoginAttemptRepository
   -> SecurityLog
   -> Response
@@ -187,7 +187,7 @@ final readonly class Interactor
 
     public function __construct(
         private IUserRepository $users,
-        private PasswordVerifier $passwordVerifier,
+        private IPasswordVerifier $passwordVerifier,
         private ILoginAttemptQuery $loginAttemptQuery,
         private ILoginAttemptRepository $loginAttempts,
     ) {

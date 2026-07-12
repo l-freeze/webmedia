@@ -28,7 +28,7 @@ $container->singleton(
 
 注意点:
 
-- 差し替え先も `MiddlewareInterface` を実装する。
+- 差し替え先も `IMiddleware` を実装する。
 - 差し替え先は Framework ではなくアプリ側に置く。
 - Framework の `CsrfMiddleware` に CMS 固有 logger や EventBus を注入しない。
 - 差し替えた場合は、アプリ側 middleware README または container 付近の README に明記する。

@@ -6,14 +6,15 @@ namespace App\Front\Presentation\Http\Controller\Search\Index;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Article\Search\Input;
 use App\Front\Application\Article\Search\Interactor;
 use App\Front\Application\Layout\Load\Query\ISiteSettingQuery;
+use App\Front\Presentation\Presenter\ArticleDatePresenter;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer, private Interactor $interactor, private ISiteSettingQuery $settings)
+    public function __construct(private ITemplateRenderer $renderer, private Interactor $interactor, private ISiteSettingQuery $settings, private ArticleDatePresenter $articleDates)
     {
     }
 
@@ -34,7 +35,7 @@ final readonly class Controller
             'title' => '検索結果',
             'heading' => $output->keyword === '' ? '検索' : "「{$output->keyword}」の検索結果",
             'lead' => count($output->articles) . '件の記事が見つかりました。',
-            'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
+            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
             'query' => $output->keyword,
         ]));
     }

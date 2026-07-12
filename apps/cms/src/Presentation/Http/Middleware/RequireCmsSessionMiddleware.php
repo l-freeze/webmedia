@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Cms\Presentation\Http\Middleware;
 
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
+final readonly class RequireCmsSessionMiddleware implements IMiddleware
 {
     /**
      * @param array<int, string> $publicPaths
@@ -23,7 +23,7 @@ final readonly class RequireCmsSessionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         if (in_array($request->path, $this->publicPaths, true)) {
             return $handler->handle(request: $request);

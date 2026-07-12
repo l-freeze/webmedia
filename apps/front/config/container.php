@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Framework\Container\Container;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Article;
 use App\Front\Application\Category;
 use App\Front\Application\Home;
@@ -101,7 +101,7 @@ $container->singleton(id: LayoutGlobalProvider::class, factory: function (Contai
     );
 });
 
-$container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
+$container->singleton(id: ITemplateRenderer::class, factory: function () use (&$container, $root): ITemplateRenderer {
     $renderer = new LatteTemplateRenderer(
         templateDirectory: $root . '/apps/front/templates',
     );

@@ -61,7 +61,7 @@ return [
 
 - 未ログインの場合は `/admin/login` へ redirect する。
 - ログイン済みだが Permission 不足の場合は `403 Forbidden` を返す。
-- どちらも `EventBusInterface` へ security event を dispatch する。
+- どちらも `IEventBus` へ security event を dispatch する。
   - 未ログイン: `cms.authorization.unauthenticated`
   - Permission 不足: `cms.authorization.denied`
 

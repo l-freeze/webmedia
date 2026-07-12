@@ -10,18 +10,18 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
-use App\Framework\View\TemplateRenderer;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Framework\View\ITemplateRenderer;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Csrf $csrf,
         private Session $session,
         private Interactor $login,
-        private EventBusInterface $events,
+        private IEventBus $events,
     ) {
     }
 

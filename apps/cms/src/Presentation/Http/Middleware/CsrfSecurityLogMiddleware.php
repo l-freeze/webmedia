@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-final readonly class CsrfSecurityLogMiddleware implements MiddlewareInterface
+final readonly class CsrfSecurityLogMiddleware implements IMiddleware
 {
     /** @param list<string> $excludedPaths */
     public function __construct(
         private Csrf $csrf,
-        private EventBusInterface $events,
+        private IEventBus $events,
         private array $excludedPaths = [],
         private bool $enabled = true,
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         if (!$this->enabled) {
             return $handler->handle(request: $request);

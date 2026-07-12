@@ -6,9 +6,9 @@ namespace Tests\Framework;
 
 use App\Framework\Container\Container;
 use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Middleware\MiddlewareInterface;
+use App\Framework\Http\Middleware\IMiddleware;
 use App\Framework\Http\Middleware\MiddlewarePipeline;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use PHPUnit\Framework\TestCase;
@@ -59,9 +59,9 @@ final class MiddlewarePipelineTest extends TestCase
     }
 }
 
-final readonly class FirstMiddleware implements MiddlewareInterface
+final readonly class FirstMiddleware implements IMiddleware
 {
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $response = $handler->handle(request: $request);
 
@@ -69,9 +69,9 @@ final readonly class FirstMiddleware implements MiddlewareInterface
     }
 }
 
-final readonly class SecondMiddleware implements MiddlewareInterface
+final readonly class SecondMiddleware implements IMiddleware
 {
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $response = $handler->handle(request: $request);
 
@@ -79,9 +79,9 @@ final readonly class SecondMiddleware implements MiddlewareInterface
     }
 }
 
-final readonly class ShortCircuitMiddleware implements MiddlewareInterface
+final readonly class ShortCircuitMiddleware implements IMiddleware
 {
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         return new Response(body: 'blocked', status: 403);
     }

@@ -39,16 +39,16 @@ storage/logs/security.log
 `apps/shared/config/container.php` で以下を登録します。
 
 ```php
-ApplicationLoggerInterface::class => JsonFileApplicationLogger(storage/logs/application.log)
-LoggerInterface::class => ApplicationLoggerInterface::class と同じ instance
-AuditLoggerInterface::class => JsonFileAuditLogger(storage/logs/audit.log)
-SecurityLoggerInterface::class => JsonFileSecurityLogger(storage/logs/security.log)
-EventBusInterface::class => SynchronousEventBus([Audit handler, SecurityLog handler])
+IApplicationLogger::class => JsonFileApplicationLogger(storage/logs/application.log)
+LoggerInterface::class => IApplicationLogger::class と同じ instance
+IAuditLogger::class => JsonFileAuditLogger(storage/logs/audit.log)
+ISecurityLogger::class => JsonFileSecurityLogger(storage/logs/security.log)
+IEventBus::class => SynchronousEventBus([Audit handler, SecurityLog handler])
 ```
 
 CMSだけ別ログにしたい場合は、`apps/cms/config/container.php` で shared container 読み込み後に同じ `LoggerInterface::class` を再定義します。
 
-CMS の Audit / SecurityLog 発火側は logger を直接呼ばず、`EventBusInterface::dispatch()` へ event value を渡します。標準 handler が各 logger へ保存します。
+CMS の Audit / SecurityLog 発火側は logger を直接呼ばず、`IEventBus::dispatch()` へ event value を渡します。標準 handler が各 logger へ保存します。
 
 ## 方針
 

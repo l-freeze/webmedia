@@ -25,7 +25,7 @@ final class ArticlePolicyTest extends TestCase
     public function testWriterCanUpdateOwnArticleOnly(): void
     {
         $policy = $this->policy();
-        $writer = $this->actor(id: 10, role: CmsRole::WRITER);
+        $writer = $this->actor(id: 10, role: CmsRole::Writer);
 
         self::assertSame($writer, $policy->authorizeUpdate(
             actor: $writer,
@@ -41,15 +41,15 @@ final class ArticlePolicyTest extends TestCase
         $policy = $this->policy();
         $article = $this->article(authorId: 10);
 
-        self::assertSame(20, $policy->authorizeUpdate(actor: $this->actor(id: 20, role: CmsRole::EDITOR), article: $article)->actor->id);
-        self::assertSame(30, $policy->authorizeUpdate(actor: $this->actor(id: 30, role: CmsRole::ADMIN), article: $article)->actor->id);
+        self::assertSame(20, $policy->authorizeUpdate(actor: $this->actor(id: 20, role: CmsRole::Editor), article: $article)->actor->id);
+        self::assertSame(30, $policy->authorizeUpdate(actor: $this->actor(id: 30, role: CmsRole::Admin), article: $article)->actor->id);
     }
 
     public function testViewerCannotUpdateArticle(): void
     {
         $this->expectException(ResourceOperationDeniedException::class);
         $this->policy()->authorizeUpdate(
-            actor: $this->actor(id: 10, role: CmsRole::VIEWER),
+            actor: $this->actor(id: 10, role: CmsRole::Viewer),
             article: $this->article(authorId: 10),
         );
     }
@@ -58,12 +58,12 @@ final class ArticlePolicyTest extends TestCase
     {
         $policy = $this->policy();
 
-        self::assertSame(CmsRole::EDITOR, $policy->authorizePublish($this->actor(role: CmsRole::EDITOR))->actor->role);
-        self::assertSame(CmsRole::EDITOR, $policy->authorizeDelete($this->actor(role: CmsRole::EDITOR))->actor->role);
-        self::assertSame(CmsRole::EDITOR, $policy->authorizeRestore($this->actor(role: CmsRole::EDITOR))->actor->role);
+        self::assertSame(CmsRole::Editor, $policy->authorizePublish($this->actor(role: CmsRole::Editor))->actor->role);
+        self::assertSame(CmsRole::Editor, $policy->authorizeDelete($this->actor(role: CmsRole::Editor))->actor->role);
+        self::assertSame(CmsRole::Editor, $policy->authorizeRestore($this->actor(role: CmsRole::Editor))->actor->role);
 
         $this->expectException(ResourceOperationDeniedException::class);
-        $policy->authorizePublish($this->actor(role: CmsRole::WRITER));
+        $policy->authorizePublish($this->actor(role: CmsRole::Writer));
     }
 
     private function policy(): ArticlePolicy
@@ -71,7 +71,7 @@ final class ArticlePolicyTest extends TestCase
         return new ArticlePolicy();
     }
 
-    private function actor(int $id = 1, string $role = CmsRole::ADMIN): CmsActor
+    private function actor(int $id = 1, CmsRole $role = CmsRole::Admin): CmsActor
     {
         return new CmsActor(id: $id, role: $role);
     }
@@ -83,9 +83,9 @@ final class ArticlePolicyTest extends TestCase
             title: new ArticleTitle('Title'),
             slug: new ArticleSlug('slug'),
             body: new ArticleBody('Body'),
-            bodyFormat: new ArticleBodyFormat(ArticleBodyFormat::MARKDOWN),
+            bodyFormat: ArticleBodyFormat::Markdown,
             excerpt: new ArticleExcerpt(''),
-            status: new ArticleStatus('draft'),
+            status: ArticleStatus::Draft,
             categoryId: null,
             eyecatchPath: null,
             publishedAt: null,

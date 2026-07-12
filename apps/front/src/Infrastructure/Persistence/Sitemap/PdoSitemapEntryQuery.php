@@ -6,13 +6,14 @@ namespace App\Front\Infrastructure\Persistence\Sitemap;
 
 use App\Front\Application\Sitemap\Build\Query\ISitemapEntryQuery;
 use App\Front\Application\Sitemap\Build\Value\SitemapEntry;
+use App\Front\Infrastructure\Persistence\ArticlePublicationCondition;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
 
 final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ArticlePublicationCondition $publication)
     {
     }
 
@@ -32,7 +33,7 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
     private function articles(): array
     {
         $entries = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT slug, updated_at FROM articles a WHERE ' . $this->articlePublicCondition() . ' ORDER BY published_at DESC, id DESC')) as $row) {
+        foreach ($this->fetchPublished(sql: 'SELECT slug, updated_at FROM articles a WHERE ' . $this->publication->sql() . ' ORDER BY published_at DESC, id DESC') as $row) {
             $pdoRow = PdoRow::from(values: $row);
             $entries[] = new SitemapEntry(
                 path: '/articles/' . $pdoRow->string(key: 'slug'),
@@ -62,7 +63,7 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
     private function categories(): array
     {
         $entries = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT c.slug, MAX(a.updated_at) AS lastmod FROM categories c INNER JOIN articles a ON a.category_id = c.id AND ' . $this->articlePublicCondition() . ' GROUP BY c.id, c.slug ORDER BY c.sort_order, c.name')) as $row) {
+        foreach ($this->fetchPublished(sql: 'SELECT c.slug, MAX(a.updated_at) AS lastmod FROM categories c INNER JOIN articles a ON a.category_id = c.id AND ' . $this->publication->sql() . ' GROUP BY c.id, c.slug ORDER BY c.sort_order, c.name') as $row) {
             $pdoRow = PdoRow::from(values: $row);
             $entries[] = new SitemapEntry(
                 path: '/categories/' . $pdoRow->string(key: 'slug'),
@@ -77,7 +78,7 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
     private function tags(): array
     {
         $entries = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.slug, MAX(a.updated_at) AS lastmod FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id INNER JOIN articles a ON a.id = at.article_id AND ' . $this->articlePublicCondition() . ' GROUP BY t.id, t.slug ORDER BY t.name')) as $row) {
+        foreach ($this->fetchPublished(sql: 'SELECT t.slug, MAX(a.updated_at) AS lastmod FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id INNER JOIN articles a ON a.id = at.article_id AND ' . $this->publication->sql() . ' GROUP BY t.id, t.slug ORDER BY t.name') as $row) {
             $pdoRow = PdoRow::from(values: $row);
             $entries[] = new SitemapEntry(
                 path: '/tags/' . $pdoRow->string(key: 'slug'),
@@ -90,7 +91,9 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
 
     private function siteLastmod(): ?string
     {
-        $articles = PdoRow::from(values: ['lastmod' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT MAX(updated_at) FROM articles a WHERE ' . $this->articlePublicCondition()))])->nullableString(key: 'lastmod');
+        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT MAX(updated_at) FROM articles a WHERE ' . $this->publication->sql());
+        PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
+        $articles = PdoRow::from(values: ['lastmod' => PdoHelper::fetchColumn(statement: $statement)])->nullableString(key: 'lastmod');
         $pages = PdoRow::from(values: ['lastmod' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT MAX(updated_at) FROM pages WHERE status = 'published'"))])->nullableString(key: 'lastmod');
         $candidates = array_filter([$articles, $pages], static fn (?string $value): bool => $value !== null && $value !== '');
         if ($candidates === []) {
@@ -102,8 +105,13 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
         return $timestamp === false ? null : date('Y-m-d', $timestamp);
     }
 
-    private function articlePublicCondition(): string
+    /** @return array<int, array<string, mixed>> */
+    private function fetchPublished(string $sql): array
     {
-        return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
+        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
+        PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
+
+        return PdoHelper::fetchAll(statement: $statement);
     }
+
 }

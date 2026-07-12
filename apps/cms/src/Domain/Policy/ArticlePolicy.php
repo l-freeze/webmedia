@@ -18,7 +18,7 @@ final readonly class ArticlePolicy
 {
     public function authorizeCreate(CmsActor $actor): ArticleCreatePermission
     {
-        if (!CmsRole::isAtLeast(actualRole: $actor->role, requiredRole: CmsRole::WRITER)) {
+        if (!$actor->role->isAtLeast(CmsRole::Writer)) {
             throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.create');
         }
 
@@ -27,11 +27,11 @@ final readonly class ArticlePolicy
 
     public function authorizeUpdate(CmsActor $actor, Article $article): ArticleUpdatePermission
     {
-        if (CmsRole::isAtLeast(actualRole: $actor->role, requiredRole: CmsRole::EDITOR)) {
+        if ($actor->role->isAtLeast(CmsRole::Editor)) {
             return new ArticleUpdatePermission(actor: $actor);
         }
 
-        if ($actor->role === CmsRole::WRITER && $article->authorId === $actor->id) {
+        if ($actor->role === CmsRole::Writer && $article->authorId === $actor->id) {
             return new ArticleUpdatePermission(actor: $actor);
         }
 
@@ -40,7 +40,7 @@ final readonly class ArticlePolicy
 
     public function authorizePublish(CmsActor $actor): ArticlePublishPermission
     {
-        if (!CmsRole::isAtLeast(actualRole: $actor->role, requiredRole: CmsRole::EDITOR)) {
+        if (!$actor->role->isAtLeast(CmsRole::Editor)) {
             throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.publish');
         }
 
@@ -49,7 +49,7 @@ final readonly class ArticlePolicy
 
     public function authorizeDelete(CmsActor $actor): ArticleDeletePermission
     {
-        if (!CmsRole::isAtLeast(actualRole: $actor->role, requiredRole: CmsRole::EDITOR)) {
+        if (!$actor->role->isAtLeast(CmsRole::Editor)) {
             throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.delete');
         }
 
@@ -58,7 +58,7 @@ final readonly class ArticlePolicy
 
     public function authorizeRestore(CmsActor $actor): ArticleRestorePermission
     {
-        if (!CmsRole::isAtLeast(actualRole: $actor->role, requiredRole: CmsRole::EDITOR)) {
+        if (!$actor->role->isAtLeast(CmsRole::Editor)) {
             throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.restore');
         }
 

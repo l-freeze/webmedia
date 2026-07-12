@@ -6,19 +6,21 @@ namespace App\Cms\Presentation\Http\Controller\Article\VersionPreview;
 
 use App\Cms\Application\ArticleVersion\Preview\Input;
 use App\Cms\Application\ArticleVersion\Preview\Interactor;
+use App\Cms\Application\Article\PublicationDateTime;
 use App\Cms\Presentation\Presenter\Article\ArticleStatusPresenter;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Markdown $markdown,
         private Interactor $articleVersionPreview,
         private ArticleStatusPresenter $articleStatus,
+        private PublicationDateTime $publicationDateTime,
     ) {
     }
 
@@ -42,6 +44,8 @@ final readonly class Controller
                     publishedAt: $articleVersion->publishedAt,
                     publishedEndsAt: $articleVersion->publishedEndsAt,
                 ),
+                'published_at' => $this->publicationDateTime->toEditor($articleVersion->publishedAt),
+                'published_ends_at' => $this->publicationDateTime->toEditor($articleVersion->publishedEndsAt),
             ],
         ]));
     }

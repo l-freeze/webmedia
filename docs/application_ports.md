@@ -34,7 +34,7 @@ Port を切ってよいのは、次の条件を満たす場合に限る。
 - Application が具象実装を直接知ると、依存方向が外側へ向いてしまう。
 - Interface 名が、外側の実装名ではなく Application 側の要求を表している。
 
-たとえば CMS ログインでは、Application が必要としているのは `password_verify()` そのものではなく「入力パスワードが保存済みハッシュと一致するかを検証する能力」である。そのため、Application 側に `PasswordVerifier` を置き、PHP の `password_verify()` 呼び出しは Infrastructure 側の実装に閉じ込めるのが自然である。
+たとえば CMS ログインでは、Application が必要としているのは `password_verify()` そのものではなく「入力パスワードが保存済みハッシュと一致するかを検証する能力」である。そのため、Application 側に `IPasswordVerifier` を置き、PHP の `password_verify()` 呼び出しは Infrastructure 側の実装に閉じ込めるのが自然である。
 
 ## Port を切るべきではない条件
 
@@ -51,7 +51,7 @@ Port を切ってよいのは、次の条件を満たす場合に限る。
 
 Port が必要に見える場合でも、先に責務分割、UseCase 分割、配置、データ構造を疑う。
 
-たとえば通常の application logger は、現時点では PSR-3 `LoggerInterface` を shared / framework 側で扱えばよい。PSR-3 は具象実装ではなく、ロギング相互運用のための標準 contract である。Application のユースケースが「業務イベントとして何を記録するか」を要求しているなら event value や用途別 logger を検討するが、PSR-3 を薄く包むだけの `ApplicationLoggerInterface` は作らない。
+たとえば通常の application logger は、現時点では PSR-3 `LoggerInterface` を shared / framework 側で扱えばよい。PSR-3 は具象実装ではなく、ロギング相互運用のための標準 contract である。Application のユースケースが「業務イベントとして何を記録するか」を要求しているなら event value や用途別 logger を検討するが、PSR-3 を薄く包むだけの `IApplicationLogger` は作らない。
 
 ## Port と Infrastructure の関係
 
@@ -70,7 +70,7 @@ Application -> password_verify()
 Application -> MailSender port
 Application -> TransactionRunner port
 Application -> MarkdownRenderer port
-Application -> PasswordVerifier port
+Application -> IPasswordVerifier port
 Infrastructure -> implements those ports
 ```
 
@@ -82,7 +82,7 @@ Infrastructure -> implements those ports
 
 通常ログ、HTTP envelope audit、security log は、まず shared / framework / presentation 側の横断基盤として扱う。これらは「ユースケースを成立させるために Application が外部能力を要求している」よりも、「実行基盤が操作や通信の事実を記録している」性質が強い。
 
-そのため、PSR-3 logger や標準的な `AuditLoggerInterface` を薄く包むだけの Application Port は作らない。
+そのため、PSR-3 logger や標準的な `IAuditLogger` を薄く包むだけの Application Port は作らない。
 
 一方で、次のように監査記録そのものが業務成立条件になる場合は、Application 側の要求として扱う余地がある。
 
@@ -97,7 +97,7 @@ Infrastructure -> implements those ports
 Application が必要とする言葉:
 
 ```text
-PasswordVerifier::verify(plainPassword, passwordHash): bool
+IPasswordVerifier::verify(plainPassword, passwordHash): bool
 ```
 
 外側の実装:
@@ -112,7 +112,7 @@ Application は PHP の関数名、アルゴリズム、再ハッシュ判断、
 
 Application が公開期間、予約公開、期限切れ判定を行うなら、現在時刻はユースケース判断の材料になる。ただし `new DateTimeImmutable()` を Application 内で直接呼ぶと、実行時刻に依存してテストしづらく、batch や再実行時の基準時刻も差し替えにくい。
 
-この場合は `Clock` のような Port を置く価値がある。
+この場合は `IClock` のような Port を置く価値がある。
 
 ### Markdown 変換
 
@@ -159,7 +159,7 @@ Application の完了条件に外部副作用が含まれる場合。
 - SLA、期限超過、公開予約、予約受付、キャンペーン適用、監査証跡の時刻証明。
 - 外部 timestamp authority、NTP、クラウド署名時刻などを使う場合。
 
-単に `new DateTimeImmutable()` をテストで固定したいだけなら安易に広域 `Clock` を作らない。複数ユースケースの業務判断で時刻が中心になるなら `Clock` または用途別の時刻 Port を検討する。
+単に `new DateTimeImmutable()` をテストで固定したいだけなら安易に広域 `IClock` を作らない。複数ユースケースの業務判断で時刻が中心になるなら `IClock` または用途別の時刻 Port を検討する。
 
 ### 暗号、署名、鍵管理
 
@@ -169,7 +169,7 @@ Application が秘密鍵、署名、暗号処理の技術詳細を知るべき�
 - KMS / HSM による鍵管理、トークン発行、パスワード検証、証明書検証。
 - 銀行 API の署名、取引メッセージの MAC、カード情報 tokenization、PIN / 認証情報の検証。
 
-`PasswordVerifier` はこの分類に入る。PHP 組み込み関数を直接呼ぶかどうかより、Application が暗号アルゴリズムや鍵管理を知るべきでない点が判断理由である。
+`IPasswordVerifier` はこの分類に入る。PHP 組み込み関数を直接呼ぶかどうかより、Application が暗号アルゴリズムや鍵管理を知るべきでない点が判断理由である。
 
 ### 永続化先が業務上の外部境界である保存
 
@@ -332,7 +332,7 @@ Query / Repository 以外の Port は、まず必要としている UseCase ま�
 例:
 
 ```text
-apps/cms/src/Application/Auth/Login/Port/PasswordVerifier.php
+apps/cms/src/Application/Auth/Login/Port/IPasswordVerifier.php
 apps/cms/src/Infrastructure/Auth/Password/NativePasswordVerifier.php
 ```
 

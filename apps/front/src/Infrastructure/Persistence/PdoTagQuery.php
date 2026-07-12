@@ -11,7 +11,7 @@ use PDO;
 
 final readonly class PdoTagQuery implements Tag\List\Query\ITagQuery, Tag\Show\Query\ITagQuery, Tag\Show\Query\IArticleQuery
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ArticlePublicationCondition $publication)
     {
     }
 
@@ -19,7 +19,9 @@ final readonly class PdoTagQuery implements Tag\List\Query\ITagQuery, Tag\Show\Q
     public function all(): array
     {
         $tags = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publicCondition() . ' GROUP BY t.id ORDER BY t.name')) as $row) {
+        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT t.*, COUNT(a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id = t.id LEFT JOIN articles a ON a.id = at.article_id AND ' . $this->publication->sql() . ' GROUP BY t.id ORDER BY t.name');
+        PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
+        foreach (PdoHelper::fetchAll(statement: $statement) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
             $tags[] = new Tag\List\Value\Tag(
@@ -49,8 +51,8 @@ final readonly class PdoTagQuery implements Tag\List\Query\ITagQuery, Tag\Show\Q
     /** @return array<int, Tag\Show\Value\Article> */
     public function articles(string $slug): array
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
-        PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name FROM articles a INNER JOIN article_tags at ON at.article_id = a.id INNER JOIN tags t ON t.id = at.tag_id LEFT JOIN categories c ON c.id = a.category_id WHERE t.slug = :slug AND ' . $this->publication->sql() . ' ORDER BY a.published_at DESC');
+        PdoHelper::execute(statement: $stmt, params: [...$this->publication->parameters(), 'slug' => $slug]);
         $articles = [];
         foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
@@ -62,16 +64,12 @@ final readonly class PdoTagQuery implements Tag\List\Query\ITagQuery, Tag\Show\Q
                 excerpt: $pdoRow->string(key: 'excerpt'),
                 categoryName: $pdoRow->string(key: 'category_name', default: '未分類') ?: '未分類',
                 eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
-                publishedAt: $pdoRow->date(key: 'published_at'),
-                updatedAt: $pdoRow->date(key: 'updated_at'),
+                publishedAt: $pdoRow->string(key: 'published_at'),
+                updatedAt: $pdoRow->string(key: 'updated_at'),
             );
         }
 
         return $articles;
     }
 
-    private function publicCondition(): string
-    {
-        return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
-    }
 }

@@ -23,7 +23,7 @@ final class PermissionListInteractorTest extends TestCase
         }
 
         self::assertSame(PermissionCode::all(), array_keys($permissions));
-        self::assertSame([CmsRole::ADMIN], $permissions[PermissionCode::ADMIN_USER_MANAGE]);
-        self::assertContains(CmsRole::EDITOR, $permissions[PermissionCode::ARTICLE_UPDATE]);
+        self::assertSame([CmsRole::Admin->value], $permissions[PermissionCode::ADMIN_USER_MANAGE]);
+        self::assertContains(CmsRole::Editor->value, $permissions[PermissionCode::ARTICLE_UPDATE]);
     }
 }

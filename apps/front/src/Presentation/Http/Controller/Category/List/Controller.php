@@ -6,14 +6,14 @@ namespace App\Front\Presentation\Http\Controller\Category\List;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Category\List\Input;
 use App\Front\Application\Category\List\Interactor;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
     ) {
     }

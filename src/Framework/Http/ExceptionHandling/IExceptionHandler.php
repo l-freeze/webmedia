@@ -8,7 +8,7 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use Throwable;
 
-interface ExceptionHandlerInterface
+interface IExceptionHandler
 {
     public function handle(Throwable $throwable, Request $request): Response;
 }

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Shared\SecurityLog\Infrastructure;
 
 use App\Shared\Logging\Infrastructure\JsonLineFileWriter;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Application\ISecurityLogger;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-final readonly class JsonFileSecurityLogger implements SecurityLoggerInterface
+final readonly class JsonFileSecurityLogger implements ISecurityLogger
 {
     private JsonLineFileWriter $writer;
 

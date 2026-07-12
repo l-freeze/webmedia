@@ -73,7 +73,7 @@ Kernel に接続するための config only 構成だけを生成します。
 php bin/scaffold-app api /api --template=bare
 ```
 
-生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`TemplateRenderer` binding は生成しません。
+生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`ITemplateRenderer` binding は生成しません。
 
 これまで `--template=minimal` を config only として使っていた自動化は、`--template=bare` へ移行してください。
 
@@ -89,12 +89,12 @@ php bin/scaffold-app api /api --template=minimal
 
 追加で生成される主な構成:
 
-- `src/Presentation/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、TemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
+- `src/Presentation/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、ITemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
 - `templates/index.latte`: 一枚絵の HTML として成立する Latte template
 
 `config/routes.php` には `GET <path-prefix>` の route が追加されます。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を route にします。
 
-`config/container.php` は Kernel container から既存の `PDO::class` binding を読み込み、Shared container を読み込んだうえで、`TemplateRenderer::class` を `LatteTemplateRenderer` へ binding します。scaffold 側で独自の sqlite `PDO::class` binding は生成しません。
+`config/container.php` は Kernel container から既存の `PDO::class` binding を読み込み、Shared container を読み込んだうえで、`ITemplateRenderer::class` を `LatteTemplateRenderer` へ binding します。scaffold 側で独自の sqlite `PDO::class` binding は生成しません。
 
 `minimal` は layered architecture の見本ではなく、request から HTML response までの導線を最短で確認するための single-controller HTML starter です。層を分けた構成から始める場合は `layered` を使います。
 
@@ -178,7 +178,7 @@ php bin/scaffold-shared
 
 `PdoHelper` と `PdoRow` は PDO persistence 実装の標準スターターです。Framework 本体は PDO を要求しません。PDO を使う default persistence examples の補助として Shared に生成します。
 
-`LatteTemplateRenderer` は Framework の `TemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
+`LatteTemplateRenderer` は Framework の `ITemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 
 scaffold が生成する `LatteTemplateRenderer` は、Latte の compiled view cache をデフォルトでは有効にしません。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic / non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
 
@@ -199,7 +199,7 @@ namespace を任意指定する option は用意しません。
 
 `composer require` と同時に Kernel と Shared を生成したい場合は、Framework package 側で Composer plugin を提供し、install event から `scaffold-kernel` と `scaffold-shared` と同等の処理を呼びます。
 
-Framework package の標準 scaffold は Latte 実装を生成するため、package の `require` には `latte/latte` を含めます。ただし Framework core は Latte クラスへ依存せず、`TemplateRenderer` interface だけを持ちます。
+Framework package の標準 scaffold は Latte 実装を生成するため、package の `require` には `latte/latte` を含めます。ただし Framework core は Latte クラスへ依存せず、`ITemplateRenderer` interface だけを持ちます。
 
 plugin を使わない運用では、Framework 追加後に次を実行します。
 

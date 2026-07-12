@@ -7,18 +7,20 @@ use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;
 use App\Framework\Security\Session;
 use App\Shared\Audit\Application\RecordAuditEventHandler;
-use App\Shared\Audit\Application\AuditLoggerInterface;
-use App\Shared\ApplicationLog\Application\ApplicationLoggerInterface;
+use App\Shared\Audit\Application\IAuditLogger;
+use App\Shared\ApplicationLog\Application\IApplicationLogger;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
 use App\Shared\Cache\Infrastructure\NullCache;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use App\Shared\Markdown\Infrastructure\Markdown;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Application\ISecurityLogger;
 use App\Shared\SecurityLog\Application\RecordSecurityLogEventHandler;
 use App\Shared\SecurityLog\Infrastructure\JsonFileSecurityLogger;
+use App\Shared\Time\Application\IClock;
+use App\Shared\Time\Infrastructure\SystemClock;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 
@@ -68,25 +70,26 @@ return static function (Container $container, string $root): void {
         );
     });
     $container->singleton(id: Markdown::class, factory: fn (): Markdown => new Markdown());
-    $container->singleton(id: ApplicationLoggerInterface::class, factory: fn (): ApplicationLoggerInterface => new JsonFileApplicationLogger($root . '/storage/logs/application.log'));
+    $container->singleton(id: IClock::class, factory: static fn (): IClock => new SystemClock());
+    $container->singleton(id: IApplicationLogger::class, factory: fn (): IApplicationLogger => new JsonFileApplicationLogger($root . '/storage/logs/application.log'));
     $container->singleton(id: LoggerInterface::class, factory: function (Container $container): LoggerInterface {
-        $logger = $container->get(id: ApplicationLoggerInterface::class);
+        $logger = $container->get(id: IApplicationLogger::class);
         if (!$logger instanceof LoggerInterface) {
             throw new \RuntimeException('Application logger service is not registered.');
         }
 
         return $logger;
     });
-    $container->singleton(id: AuditLoggerInterface::class, factory: fn (): AuditLoggerInterface => new JsonFileAuditLogger($root . '/storage/logs/audit.log'));
-    $container->singleton(id: SecurityLoggerInterface::class, factory: fn (): SecurityLoggerInterface => new JsonFileSecurityLogger($root . '/storage/logs/security.log'));
-    $container->singleton(id: EventBusInterface::class, factory: function (Container $container): EventBusInterface {
-        $auditLogger = $container->get(id: AuditLoggerInterface::class);
-        if (!$auditLogger instanceof AuditLoggerInterface) {
+    $container->singleton(id: IAuditLogger::class, factory: fn (): IAuditLogger => new JsonFileAuditLogger($root . '/storage/logs/audit.log'));
+    $container->singleton(id: ISecurityLogger::class, factory: fn (): ISecurityLogger => new JsonFileSecurityLogger($root . '/storage/logs/security.log'));
+    $container->singleton(id: IEventBus::class, factory: function (Container $container): IEventBus {
+        $auditLogger = $container->get(id: IAuditLogger::class);
+        if (!$auditLogger instanceof IAuditLogger) {
             throw new \RuntimeException('Audit logger service is not registered.');
         }
 
-        $securityLogger = $container->get(id: SecurityLoggerInterface::class);
-        if (!$securityLogger instanceof SecurityLoggerInterface) {
+        $securityLogger = $container->get(id: ISecurityLogger::class);
+        if (!$securityLogger instanceof ISecurityLogger) {
             throw new \RuntimeException('Security logger service is not registered.');
         }
 

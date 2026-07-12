@@ -7,15 +7,15 @@ namespace App\Cms\Presentation\Http\Middleware;
 use App\Cms\Presentation\Audit\AuditSummary;
 use App\Cms\Presentation\Audit\AuditTrail;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Shared\Audit\Domain\AuditEvent;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use Throwable;
 
-final readonly class AuditMiddleware implements MiddlewareInterface
+final readonly class AuditMiddleware implements IMiddleware
 {
     /** @var array<int, string> */
     private const DENIED_PATHS = [
@@ -32,12 +32,12 @@ final readonly class AuditMiddleware implements MiddlewareInterface
     ];
 
     public function __construct(
-        private EventBusInterface $events,
+        private IEventBus $events,
         private CmsGuard $guard,
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         if (!$this->shouldAudit($request)) {
             return $handler->handle(request: $request);

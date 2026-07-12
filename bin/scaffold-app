@@ -117,7 +117,7 @@ if ($template === 'todo') {
     ]);
     $paths = array_merge($paths, [
         "{$appRoot}/src/Application/Todo/TodoItem.php",
-        "{$appRoot}/src/Application/Todo/TodoRepository.php",
+        "{$appRoot}/src/Application/Todo/ITodoRepository.php",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php",
@@ -232,10 +232,10 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 
 declare(strict_types=1);
 
-use App\{{ namespace }}\Application\Todo\TodoRepository;
+use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoTodoRepository;
 use App\Framework\Container\Container;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -253,8 +253,8 @@ if (!is_callable($sharedContainer)) {
 }
 $sharedContainer($container, $root);
 
-$container->bind(abstract: TodoRepository::class, concrete: PdoTodoRepository::class);
-$container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
+$container->bind(abstract: ITodoRepository::class, concrete: PdoTodoRepository::class);
+$container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
     templateDirectory: $root . '/apps/{{ name }}/templates',
 ));
 
@@ -267,7 +267,7 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 declare(strict_types=1);
 
 use App\Framework\Container\Container;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -285,7 +285,7 @@ if (!is_callable($sharedContainer)) {
 }
 $sharedContainer($container, $root);
 
-$container->singleton(id: TemplateRenderer::class, factory: fn (): TemplateRenderer => new LatteTemplateRenderer(
+$container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
     templateDirectory: $root . '/apps/{{ name }}/templates',
 ));
 
@@ -404,12 +404,12 @@ echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
 if ($template === 'bare') {
     echo "Bare starter:\n";
     echo "- Config only: routes, container, middleware, and src placeholder.\n";
-    echo "- No route, Controller, TemplateRenderer binding, or view template is generated.\n\n";
+    echo "- No route, Controller, ITemplateRenderer binding, or view template is generated.\n\n";
 }
 if ($template === 'minimal') {
     echo "Minimal starter:\n";
     echo "- Single-controller HTML starter at {$basePath}.\n";
-    echo "- Presentation/Http/Controller/Index: Controller with PDO access and TemplateRenderer output.\n";
+    echo "- Presentation/Http/Controller/Index: Controller with PDO access and ITemplateRenderer output.\n";
     echo "- templates/index.latte: Single-page Latte view.\n\n";
 }
 if ($template === 'layered') {
@@ -756,18 +756,18 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Infrastructure\Http\Middleware;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class AppNameHeaderMiddleware implements MiddlewareInterface
+final readonly class AppNameHeaderMiddleware implements IMiddleware
 {
     public function __construct(private string $appName)
     {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         return $handler->handle(request: $request)->withHeader(name: 'X-App-Name', value: $this->appName);
     }
@@ -817,7 +817,7 @@ namespace App\{{ namespace }}\Presentation\Http\Controller\Index;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Shared\Database\PdoHelper;
 use PDO;
 
@@ -825,7 +825,7 @@ final readonly class Controller
 {
     public function __construct(
         private PDO $pdo,
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
     ) {
     }
 
@@ -936,14 +936,14 @@ final readonly class TodoItem
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));
 
-    writeFile("{$appRoot}/src/Application/Todo/TodoRepository.php", renderTemplate(<<<'PHP'
+    writeFile("{$appRoot}/src/Application/Todo/ITodoRepository.php", renderTemplate(<<<'PHP'
 <?php
 
 declare(strict_types=1);
 
 namespace App\{{ namespace }}\Application\Todo;
 
-interface TodoRepository
+interface ITodoRepository
 {
     /** @return list<TodoItem> */
     public function all(): array;
@@ -961,16 +961,16 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Index;
 
-use App\{{ namespace }}\Application\Todo\TodoRepository;
+use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TodoRepository $todos,
-        private TemplateRenderer $renderer,
+        private ITodoRepository $todos,
+        private ITemplateRenderer $renderer,
     ) {
     }
 
@@ -998,13 +998,13 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Store;
 
-use App\{{ namespace }}\Application\Todo\TodoRepository;
+use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
 final readonly class Controller
 {
-    public function __construct(private TodoRepository $todos)
+    public function __construct(private ITodoRepository $todos)
     {
     }
 
@@ -1028,13 +1028,13 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete;
 
-use App\{{ namespace }}\Application\Todo\TodoRepository;
+use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
 final readonly class Controller
 {
-    public function __construct(private TodoRepository $todos)
+    public function __construct(private ITodoRepository $todos)
     {
     }
 
@@ -1059,12 +1059,12 @@ declare(strict_types=1);
 namespace App\{{ namespace }}\Infrastructure\Persistence;
 
 use App\{{ namespace }}\Application\Todo\TodoItem;
-use App\{{ namespace }}\Application\Todo\TodoRepository;
+use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
 
-final readonly class PdoTodoRepository implements TodoRepository
+final readonly class PdoTodoRepository implements ITodoRepository
 {
     public function __construct(private PDO $pdo)
     {

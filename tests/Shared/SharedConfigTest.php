@@ -6,16 +6,16 @@ namespace Tests\Shared;
 
 use App\Framework\Container\Container;
 use App\Framework\Security\CsrfMiddleware;
-use App\Shared\Audit\Application\AuditLoggerInterface;
-use App\Shared\ApplicationLog\Application\ApplicationLoggerInterface;
+use App\Shared\Audit\Application\IAuditLogger;
+use App\Shared\ApplicationLog\Application\IApplicationLogger;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use App\Shared\Markdown\Infrastructure\Markdown;
 use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Application\ISecurityLogger;
 use App\Shared\SecurityLog\Infrastructure\JsonFileSecurityLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -33,11 +33,11 @@ final class SharedConfigTest extends TestCase
         $sharedContainer($container, $root);
 
         self::assertInstanceOf(Markdown::class, $container->get(id: Markdown::class));
-        self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: ApplicationLoggerInterface::class));
+        self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: IApplicationLogger::class));
         self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: LoggerInterface::class));
-        self::assertInstanceOf(JsonFileAuditLogger::class, $container->get(id: AuditLoggerInterface::class));
-        self::assertInstanceOf(JsonFileSecurityLogger::class, $container->get(id: SecurityLoggerInterface::class));
-        self::assertInstanceOf(SynchronousEventBus::class, $container->get(id: EventBusInterface::class));
+        self::assertInstanceOf(JsonFileAuditLogger::class, $container->get(id: IAuditLogger::class));
+        self::assertInstanceOf(JsonFileSecurityLogger::class, $container->get(id: ISecurityLogger::class));
+        self::assertInstanceOf(SynchronousEventBus::class, $container->get(id: IEventBus::class));
         self::assertInstanceOf(FileSimpleCache::class, $container->get(id: CacheInterface::class));
     }
 

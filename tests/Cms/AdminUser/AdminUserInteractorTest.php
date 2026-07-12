@@ -12,8 +12,8 @@ use App\Cms\Application\AdminUser\Update\Input as UpdateInput;
 use App\Cms\Application\AdminUser\Update\Interactor as UpdateInteractor;
 use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
-use App\Cms\Application\AdminUser\Create\Port\PasswordHasher as CreatePasswordHasher;
-use App\Cms\Application\AdminUser\Update\Port\PasswordHasher as UpdatePasswordHasher;
+use App\Cms\Application\AdminUser\Create\Port\IPasswordHasher as CreatePasswordHasher;
+use App\Cms\Application\AdminUser\Update\Port\IPasswordHasher as UpdatePasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +29,7 @@ final class AdminUserInteractorTest extends TestCase
             email: 'editor@example.test',
             name: 'Editor',
             password: 'password123',
-            role: CmsRole::EDITOR,
+            role: CmsRole::Editor->value,
         ));
 
         self::assertTrue($output->created);
@@ -46,7 +46,7 @@ final class AdminUserInteractorTest extends TestCase
             email: 'admin@example.test',
             name: 'Admin',
             password: 'password123',
-            role: CmsRole::ADMIN,
+            role: CmsRole::Admin->value,
         ));
 
         self::assertFalse($output->created);
@@ -64,7 +64,7 @@ final class AdminUserInteractorTest extends TestCase
             email: 'admin@example.test',
             name: 'Admin',
             password: '',
-            role: CmsRole::EDITOR,
+            role: CmsRole::Editor->value,
         ));
 
         self::assertFalse($output->updated);
@@ -84,7 +84,7 @@ final class AdminUserInteractorTest extends TestCase
 
     private function currentUser(): CurrentCmsUser
     {
-        return new CurrentCmsUser(id: 1, email: 'admin@example.test', name: 'Admin', role: CmsRole::ADMIN);
+        return new CurrentCmsUser(id: 1, email: 'admin@example.test', name: 'Admin', role: CmsRole::Admin->value);
     }
 }
 
@@ -103,7 +103,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         1 => [
             'email' => 'admin@example.test',
             'name' => 'Admin',
-            'role' => CmsRole::ADMIN,
+            'role' => CmsRole::Admin->value,
             'password_hash' => 'hash',
         ],
     ];
@@ -115,7 +115,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         $this->records[$id] = [
             'email' => $user->email,
             'name' => $user->name,
-            'role' => $user->role,
+            'role' => $user->role->value,
             'password_hash' => $user->passwordHash,
         ];
 
@@ -130,7 +130,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
 
         $this->records[$user->id]['email'] = $user->email;
         $this->records[$user->id]['name'] = $user->name;
-        $this->records[$user->id]['role'] = $user->role;
+        $this->records[$user->id]['role'] = $user->role->value;
         if ($user->passwordHash !== '') {
             $this->records[$user->id]['password_hash'] = $user->passwordHash;
         }
@@ -160,16 +160,18 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         return false;
     }
 
-    public function roleOf(int $id): ?string
+    public function roleOf(int $id): ?CmsRole
     {
-        return $this->records[$id]['role'] ?? null;
+        $role = $this->records[$id]['role'] ?? null;
+
+        return $role === null ? null : CmsRole::from($role);
     }
 
     public function adminCount(): int
     {
         return count(array_filter(
             $this->records,
-            static fn (array $record): bool => $record['role'] === CmsRole::ADMIN,
+            static fn (array $record): bool => $record['role'] === CmsRole::Admin->value,
         ));
     }
 }

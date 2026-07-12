@@ -6,13 +6,14 @@ namespace App\Front\Presentation\Http\Controller\Home\Show;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Home\Show\Input;
 use App\Front\Application\Home\Show\Interactor;
+use App\Front\Presentation\Presenter\ArticleDatePresenter;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer, private Interactor $interactor)
+    public function __construct(private ITemplateRenderer $renderer, private Interactor $interactor, private ArticleDatePresenter $articleDates)
     {
     }
 
@@ -23,7 +24,7 @@ final readonly class Controller
 
         return new Response(body: $this->renderer->render(template: 'index.latte', params: [
             'title' => 'トップ',
-            'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
+            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
             'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
             'pagination' => $output->pagination->toArray(),
         ]));

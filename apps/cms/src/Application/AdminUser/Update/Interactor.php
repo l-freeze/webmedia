@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Update;
 
-use App\Cms\Application\AdminUser\Update\Port\PasswordHasher;
+use App\Cms\Application\AdminUser\Update\Port\IPasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Value\CmsRole;
@@ -19,7 +19,7 @@ final readonly class Interactor
 
     public function __construct(
         private IAdminUserRepository $users,
-        private PasswordHasher $passwords,
+        private IPasswordHasher $passwords,
     ) {
     }
 
@@ -36,12 +36,13 @@ final readonly class Interactor
             return new Output(updated: false, error: $validation->firstMessage());
         }
 
-        if (!in_array($input->role, CmsRole::all(), true)) {
+        $role = CmsRole::tryFrom($input->role);
+        if ($role === null) {
             return new Output(updated: false, error: 'ロールを正しく選択してください。');
         }
 
         $adminCount = $this->users->adminCount();
-        if ($currentRole === CmsRole::ADMIN && $input->role !== CmsRole::ADMIN && $adminCount <= 1) {
+        if ($currentRole === CmsRole::Admin && $role !== CmsRole::Admin && $adminCount <= 1) {
             return new Output(updated: false, error: '最後のadminロールは変更できません。');
         }
 
@@ -62,7 +63,7 @@ final readonly class Interactor
             id: $input->id,
             email: $input->email,
             name: $input->name,
-            role: $input->role,
+            role: $role,
             passwordHash: $passwordHash,
         );
         $updated = $this->users->update(user: $user);

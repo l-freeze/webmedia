@@ -489,7 +489,7 @@ docs / benchmark
   = pera の設計思想、性能、HTTP / DI / Routing / View / Security の説明
 ```
 
-`apps/minimal` は、Controller に処理をまとめて書くような最小構成でも、pera の HTTP 境界、DI、TemplateRenderer、FrankenPHP worker 実行基盤の恩恵を受けられることを示すための入口である。これは「低品質な書き方を推奨する」ためではなく、「雑に始めても土台の品質は落ちにくい」ことを示すためにある。
+`apps/minimal` は、Controller に処理をまとめて書くような最小構成でも、pera の HTTP 境界、DI、ITemplateRenderer、FrankenPHP worker 実行基盤の恩恵を受けられることを示すための入口である。これは「低品質な書き方を推奨する」ためではなく、「雑に始めても土台の品質は落ちにくい」ことを示すためにある。
 
 そのため、`minimal` だけを前面に出すと、pera が単なる PDO 直書きの薄い framework だと誤解される可能性がある。見せ方としては、次の順序を明確にする。
 

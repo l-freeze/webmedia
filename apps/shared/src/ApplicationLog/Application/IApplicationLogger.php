@@ -6,6 +6,6 @@ namespace App\Shared\ApplicationLog\Application;
 
 use Psr\Log\LoggerInterface;
 
-interface ApplicationLoggerInterface extends LoggerInterface
+interface IApplicationLogger extends LoggerInterface
 {
 }

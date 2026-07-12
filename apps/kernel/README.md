@@ -62,7 +62,7 @@ Worker mode 用エントリポイントは `apps/kernel/` に追加します。
 php bin/scaffold-app api /api
 ```
 
-デフォルトの `minimal` template は、単一 Controller、`GET <path-prefix>` route、Latte template、`TemplateRenderer` binding を含む single-controller HTML starter です。DB 接続は Kernel 側の既存 `PDO::class` binding を使います。
+デフォルトの `minimal` template は、単一 Controller、`GET <path-prefix>` route、Latte template、`ITemplateRenderer` binding を含む single-controller HTML starter です。DB 接続は Kernel 側の既存 `PDO::class` binding を使います。
 
 config only の極薄構成だけが必要な場合は `bare` を使います。
 

@@ -6,11 +6,11 @@ namespace App\FrontBusiness\Presentation\Http\Controller\State\NotFound;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer)
+    public function __construct(private ITemplateRenderer $renderer)
     {
     }
 

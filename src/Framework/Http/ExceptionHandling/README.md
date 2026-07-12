@@ -4,19 +4,19 @@
 
 HTTP 処理中に発生した例外を `Response` へ変換するための差し込み口です。
 
-Framework は `ExceptionHandlerInterface` だけを定義し、どの画面を返すか、ログに何を残すか、公開環境で詳細を隠すかはアプリケーション側で決めます。
+Framework は `IExceptionHandler` だけを定義し、どの画面を返すか、ログに何を残すか、公開環境で詳細を隠すかはアプリケーション側で決めます。
 
 ## ハンドラの作り方
 
-`ExceptionHandlerInterface` を実装します。
+`IExceptionHandler` を実装します。
 
 ```php
-use App\Framework\Http\ExceptionHandling\ExceptionHandlerInterface;
+use App\Framework\Http\ExceptionHandling\IExceptionHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use Throwable;
 
-final readonly class FrontExceptionHandler implements ExceptionHandlerInterface
+final readonly class FrontExceptionHandler implements IExceptionHandler
 {
     public function handle(Throwable $throwable, Request $request): Response
     {
@@ -73,7 +73,7 @@ $application = new Application(
 
 デフォルトは `RethrowingExceptionHandler` です。これは従来挙動を保つため、受け取った例外をそのまま再 throw します。
 
-未処理例外を 500 response に変換したい場合は、`PlainTextExceptionHandler` またはアプリケーション固有の `ExceptionHandlerInterface` 実装を `ApplicationBootstrapConfig` に渡してください。
+未処理例外を 500 response に変換したい場合は、`PlainTextExceptionHandler` またはアプリケーション固有の `IExceptionHandler` 実装を `ApplicationBootstrapConfig` に渡してください。
 
 ```php
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;

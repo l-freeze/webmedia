@@ -4,39 +4,25 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Value;
 
-final class CmsRole
+enum CmsRole: string
 {
-    public const VIEWER = 'viewer';
-    public const WRITER = 'writer';
-    public const EDITOR = 'editor';
-    public const ADMIN = 'admin';
+    case Viewer = 'viewer';
+    case Writer = 'writer';
+    case Editor = 'editor';
+    case Admin = 'admin';
 
-    private const VIEWER_RANK = 10;
-    private const WRITER_RANK = 20;
-    private const EDITOR_RANK = 30;
-    private const ADMIN_RANK = 40;
-
-    /** @var array<string, int> */
-    private const RANKS = [
-        self::VIEWER => self::VIEWER_RANK,
-        self::WRITER => self::WRITER_RANK,
-        self::EDITOR => self::EDITOR_RANK,
-        self::ADMIN => self::ADMIN_RANK,
-    ];
-
-    /** @return list<string> */
-    public static function all(): array
+    public function isAtLeast(self $required): bool
     {
-        return [
-            self::VIEWER,
-            self::WRITER,
-            self::EDITOR,
-            self::ADMIN,
-        ];
+        return $this->rank() >= $required->rank();
     }
 
-    public static function isAtLeast(string $actualRole, string $requiredRole): bool
+    private function rank(): int
     {
-        return (self::RANKS[$actualRole] ?? 0) >= (self::RANKS[$requiredRole] ?? PHP_INT_MAX);
+        return match ($this) {
+            self::Viewer => 10,
+            self::Writer => 20,
+            self::Editor => 30,
+            self::Admin => 40,
+        };
     }
 }

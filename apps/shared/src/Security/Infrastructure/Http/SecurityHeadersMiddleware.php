@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Shared\Security\Infrastructure\Http;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
+final readonly class SecurityHeadersMiddleware implements IMiddleware
 {
     /**
      * @param array<string, string> $headers
@@ -25,7 +25,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $response = $handler->handle(request: $request);
 

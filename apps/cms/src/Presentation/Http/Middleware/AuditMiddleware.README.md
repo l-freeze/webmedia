@@ -1,6 +1,6 @@
 # AuditMiddleware
 
-`AuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`EventBusInterface` に dispatch します。
+`AuditMiddleware` は CMS の監査対象 request から `AuditEvent` を作り、`IEventBus` に dispatch します。
 
 ## 対象
 
@@ -53,4 +53,4 @@ middleware は request body 全体、password、CSRF token、cookie、session id
 
 IP address は `Request::$server['REMOTE_ADDR']` を基本にします。trusted proxy 設計を導入するまで、`X-Forwarded-For` などの forwarded header を無条件に信用してはいけません。
 
-DB schema、`AuditEvent` から DB 保存形式への mapping は AuditLogger 実装側の責務です。DB 永続化が必要になったら `PdoAuditLogger` を追加し、`AuditLoggerInterface` の binding を差し替えます。
+DB schema、`AuditEvent` から DB 保存形式への mapping は AuditLogger 実装側の責務です。DB 永続化が必要になったら `PdoAuditLogger` を追加し、`IAuditLogger` の binding を差し替えます。

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Shared\Audit\Application;
 
 use App\Shared\Audit\Domain\AuditEvent;
-use App\Shared\Event\Application\EventHandlerInterface;
+use App\Shared\Event\Application\IEventHandler;
 
-final readonly class RecordAuditEventHandler implements EventHandlerInterface
+final readonly class RecordAuditEventHandler implements IEventHandler
 {
-    public function __construct(private AuditLoggerInterface $logger)
+    public function __construct(private IAuditLogger $logger)
     {
     }
 

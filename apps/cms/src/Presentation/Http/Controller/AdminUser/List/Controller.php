@@ -11,12 +11,12 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\Session;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Csrf $csrf,
         private Session $session,
         private Interactor $list,
@@ -37,7 +37,7 @@ final readonly class Controller
         return new Response(body: $this->renderer->render(template: 'admin-user/index.latte', params: [
             'title' => '管理者',
             'users' => $users,
-            'roles' => CmsRole::all(),
+            'roles' => array_map(static fn (CmsRole $role): string => $role->value, CmsRole::cases()),
             'formValues' => is_array($formValues) ? $formValues : [],
             'error' => $this->session->pullFlash(key: 'admin_user.form_error'),
             'flash' => $this->session->pullFlash(key: 'success'),

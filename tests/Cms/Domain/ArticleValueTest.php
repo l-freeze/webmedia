@@ -10,18 +10,18 @@ use PHPUnit\Framework\TestCase;
 
 final class ArticleValueTest extends TestCase
 {
-    public function testScheduledIsNotPersistedAsArticleStatus(): void
+    public function testUnknownArticleStatusIsRejected(): void
     {
-        self::assertSame('draft', (new ArticleStatus(value: 'scheduled'))->value);
+        self::assertNotContains('scheduled', array_column(ArticleStatus::cases(), 'value'));
     }
 
-    public function testUnknownArticleBodyFormatFallsBackToMarkdown(): void
+    public function testUnknownArticleBodyFormatIsRejected(): void
     {
-        self::assertSame('markdown', (new ArticleBodyFormat(value: 'plain'))->value);
+        self::assertNotContains('plain', array_column(ArticleBodyFormat::cases(), 'value'));
     }
 
     public function testRichTextArticleBodyFormatIsAllowed(): void
     {
-        self::assertSame('rich_text', (new ArticleBodyFormat(value: 'rich_text'))->value);
+        self::assertSame('rich_text', ArticleBodyFormat::RichText->value);
     }
 }

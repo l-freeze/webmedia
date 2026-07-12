@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Framework\Security;
 
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class CsrfMiddleware implements MiddlewareInterface
+final readonly class CsrfMiddleware implements IMiddleware
 {
     /** @param list<string> $excludedPaths */
     public function __construct(
@@ -19,7 +19,7 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         if (!$this->enabled) {
             return $handler->handle(request: $request);

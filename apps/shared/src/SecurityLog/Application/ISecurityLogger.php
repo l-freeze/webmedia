@@ -6,7 +6,7 @@ namespace App\Shared\SecurityLog\Application;
 
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-interface SecurityLoggerInterface
+interface ISecurityLogger
 {
     public function record(SecurityLogEvent $event): void;
 }

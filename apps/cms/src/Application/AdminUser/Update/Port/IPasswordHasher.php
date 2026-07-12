@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Cms\Application\AdminUser\Create\Port;
+namespace App\Cms\Application\AdminUser\Update\Port;
 
-interface PasswordHasher
+interface IPasswordHasher
 {
     public function hash(string $plainPassword): string;
 }

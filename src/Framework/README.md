@@ -103,13 +103,13 @@ apps/shared  App\Shared
 
 Namespace customization is intentionally not supported. `pera` gives users a clear starting structure instead of making the first decision ambiguous.
 
-`scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `TemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
+`scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `ITemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
 ## Composer Package Direction
 
 When this Framework is split into a Composer package, the package should include the scaffold commands. Framework installation should create Kernel and Shared during project setup. `scaffold-app` is for adding individual apps after that setup. Templates do not decide whether Kernel or Shared exist.
 
-The default shared scaffold generates a Latte implementation for `TemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
+The default shared scaffold generates a Latte implementation for `ITemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
 
 Automatic generation during `composer require` requires a Composer plugin. This repository includes `src/Framework/Installer/Composer/FrameworkInstallerPlugin.php` for that package direction. It is Framework installer code, but not Framework runtime code. The plugin creates Kernel and Shared only when their required config files are missing.
 

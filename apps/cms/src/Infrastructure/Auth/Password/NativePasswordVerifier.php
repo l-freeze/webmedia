@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Auth\Password;
 
-use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 
-final readonly class NativePasswordVerifier implements PasswordVerifier
+final readonly class NativePasswordVerifier implements IPasswordVerifier
 {
     public function verify(string $plainPassword, string $passwordHash): bool
     {

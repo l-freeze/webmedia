@@ -8,7 +8,7 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use Throwable;
 
-final readonly class PlainTextExceptionHandler implements ExceptionHandlerInterface
+final readonly class PlainTextExceptionHandler implements IExceptionHandler
 {
     public function __construct(
         private string $message = 'Internal Server Error',

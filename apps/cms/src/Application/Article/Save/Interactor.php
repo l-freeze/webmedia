@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\Article\Save;
 
+use App\Cms\Application\Article\PublicationDateTime;
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Domain\Policy\ArticlePolicy;
@@ -18,6 +19,7 @@ use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\CategoryId;
 use App\Cms\Domain\Value\CmsActor;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Domain\Value\EyecatchPath;
 use App\Cms\Domain\Value\MetaDescription;
 use App\Cms\Domain\Value\PublishedAt;
@@ -31,6 +33,7 @@ final readonly class Interactor
     public function __construct(
         private IArticleRepository $articles,
         private ArticlePolicy $articlePolicy,
+        private PublicationDateTime $publicationDateTime,
     ) {
     }
 
@@ -71,8 +74,8 @@ final readonly class Interactor
 
     private function createEntity(Input $input): Article
     {
-        $actor = new CmsActor(id: $input->currentUser->id, role: $input->currentUser->role);
-        $status = new ArticleStatus(value: $input->status);
+        $actor = new CmsActor(id: $input->currentUser->id, role: CmsRole::from($input->currentUser->role));
+        $status = ArticleStatus::from($input->status);
         $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, status: $status);
 
         if ($input->id === null) {
@@ -81,7 +84,7 @@ final readonly class Interactor
                 title: new ArticleTitle(value: $input->title),
                 slug: new ArticleSlug(value: $input->slug),
                 body: new ArticleBody(value: $input->body),
-                bodyFormat: new ArticleBodyFormat(value: $input->bodyFormat),
+                bodyFormat: ArticleBodyFormat::from($input->bodyFormat),
                 excerpt: new ArticleExcerpt(value: $input->excerpt),
                 status: $status,
                 categoryId: $this->categoryId($input),
@@ -105,7 +108,7 @@ final readonly class Interactor
             title: new ArticleTitle(value: $input->title),
             slug: new ArticleSlug(value: $input->slug),
             body: new ArticleBody(value: $input->body),
-            bodyFormat: new ArticleBodyFormat(value: $input->bodyFormat),
+            bodyFormat: ArticleBodyFormat::from($input->bodyFormat),
             excerpt: new ArticleExcerpt(value: $input->excerpt),
             status: $status,
             categoryId: $this->categoryId($input),
@@ -120,7 +123,7 @@ final readonly class Interactor
 
     private function publishPermissionIfNeeded(CmsActor $actor, ArticleStatus $status): ?ArticlePublishPermission
     {
-        if ($status->value !== 'published') {
+        if ($status !== ArticleStatus::Published) {
             return null;
         }
 
@@ -141,11 +144,11 @@ final readonly class Interactor
 
     private function publishedAt(Input $input): ?PublishedAt
     {
-        return $input->publishedAt === '' ? null : new PublishedAt(value: $input->publishedAt);
+        return $input->publishedAt === '' ? null : new PublishedAt(value: $this->publicationDateTime->toStorage($input->publishedAt));
     }
 
     private function publishedEndsAt(Input $input): ?PublishedEndsAt
     {
-        return $input->publishedEndsAt === '' ? null : new PublishedEndsAt(value: $input->publishedEndsAt);
+        return $input->publishedEndsAt === '' ? null : new PublishedEndsAt(value: $this->publicationDateTime->toStorage($input->publishedEndsAt));
     }
 }

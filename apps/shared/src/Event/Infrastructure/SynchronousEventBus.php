@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\Event\Infrastructure;
 
-use App\Shared\Event\Application\EventBusInterface;
-use App\Shared\Event\Application\EventHandlerInterface;
+use App\Shared\Event\Application\IEventBus;
+use App\Shared\Event\Application\IEventHandler;
 
-final readonly class SynchronousEventBus implements EventBusInterface
+final readonly class SynchronousEventBus implements IEventBus
 {
     /**
-     * @param list<EventHandlerInterface> $handlers
+     * @param list<IEventHandler> $handlers
      */
     public function __construct(private array $handlers)
     {

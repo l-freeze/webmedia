@@ -12,7 +12,7 @@ use App\Framework\Security\Csrf;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -93,7 +93,7 @@ final class CsrfSecurityLogMiddlewareTest extends TestCase
     }
 }
 
-final class RecordingCsrfEventBus implements EventBusInterface
+final class RecordingCsrfEventBus implements IEventBus
 {
     /** @var list<object> */
     public array $events = [];

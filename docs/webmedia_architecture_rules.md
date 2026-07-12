@@ -125,6 +125,8 @@ Interface が必要に見える場合は、先に責務分割、UseCase 分割�
 
 Shared に置く Interface も例外ではない。Shared の Interface は、複数アプリから使われる外部境界、または Framework / Kernel 的な基盤の差し込み点を表す場合に限る。
 
+このプロジェクトが定義する Interface は、配置レイヤーや用途にかかわらず短名へ `I` prefix を付け、ファイル名も短名と一致させる。`IArticleQuery`、`IArticleRepository`、`IClock`、`IMiddleware` の形式に統一し、`Clock` や `SecurityLoggerInterface` のような別規則を混在させない。PSR など外部packageが定義する Interface は提供元の名前をそのまま使う。
+
 ## 4. ディレクトリ構造
 
 ### 4.1 ルート
@@ -816,7 +818,7 @@ Mapper
 Renderer adapter
 Filesystem
 Logger implementation
-Clock implementation
+IClock implementation
 ```
 
 Infrastructure は Application と Domain の interface に依存してよい。
@@ -1239,6 +1241,14 @@ namespace App\Cms\WebMedia;
 ```
 
 ## 15. 命名規則
+
+第一者 Interface:
+
+```text
+I<役割名>.php
+```
+
+外部packageの Interface名は変更しない。
 
 ### 15.1 UseCase / Application
 

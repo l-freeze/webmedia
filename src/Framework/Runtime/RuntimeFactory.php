@@ -14,7 +14,7 @@ final readonly class RuntimeFactory
     {
     }
 
-    public static function fromEnvironment(): Runtime
+    public static function fromEnvironment(): IRuntime
     {
         $runtime = $_ENV['APP_RUNTIME'] ?? $_SERVER['APP_RUNTIME'] ?? getenv('APP_RUNTIME') ?: 'classic';
 
@@ -31,7 +31,7 @@ final readonly class RuntimeFactory
         string $runtime,
         bool $frankenAvailable,
         ?callable $frankenHandleRequest = null,
-    ): Runtime {
+    ): IRuntime {
         if ($runtime === self::FRANKEN_WORKER && $frankenAvailable) {
             return new FrankenWorkerRuntime(
                 frankenHandleRequest: $frankenHandleRequest !== null

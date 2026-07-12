@@ -19,13 +19,13 @@ final class InquiryUpdateInteractorTest extends TestCase
 
         $output = (new Interactor(inquiries: $repository))->execute(input: Input::create(
             id: 12,
-            status: InquiryStatus::IN_PROGRESS,
+            status: InquiryStatus::InProgress->value,
             adminNote: '返信準備中',
         ));
 
         self::assertTrue($output->updated);
         self::assertSame(12, $repository->lastId);
-        self::assertSame(InquiryStatus::IN_PROGRESS, $repository->lastStatus);
+        self::assertSame(InquiryStatus::InProgress, $repository->lastStatus);
         self::assertSame('返信準備中', $repository->lastAdminNote);
     }
 
@@ -50,7 +50,7 @@ final class InquiryUpdateInteractorTest extends TestCase
 
         $output = (new Interactor(inquiries: $repository))->execute(input: Input::create(
             id: 12,
-            status: InquiryStatus::CLOSED,
+            status: InquiryStatus::Closed->value,
             adminNote: str_repeat('a', 1001),
         ));
 
@@ -63,7 +63,7 @@ final class InquiryUpdateInteractorTest extends TestCase
 final class RecordingInquiryRepository implements IInquiryRepository
 {
     public ?int $lastId = null;
-    public ?string $lastStatus = null;
+    public ?InquiryStatus $lastStatus = null;
     public ?string $lastAdminNote = null;
 
     public function updateStatus(InquiryStatusUpdate $update): bool

@@ -25,7 +25,7 @@ final readonly class Interactor
         }
 
         $adminCount = $this->users->adminCount();
-        if ($role === CmsRole::ADMIN && $adminCount <= 1) {
+        if ($role === CmsRole::Admin && $adminCount <= 1) {
             return new Output(deleted: false, error: '最後のadminロールは削除できません。');
         }
 

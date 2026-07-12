@@ -7,13 +7,13 @@ namespace App\Cms\Application\Auth\ResetLoginAttempt;
 use App\Cms\Domain\Entity\CmsLoginAttemptReset;
 use App\Cms\Domain\Repository\ICmsLoginAttemptResetRepository;
 use App\Cms\Domain\Value\CmsLoginAttemptResetScope;
-use DateTimeImmutable;
+use App\Shared\Time\Application\IClock;
 
 final readonly class Interactor
 {
     private const REASON_MAX_LENGTH = 200;
 
-    public function __construct(private ICmsLoginAttemptResetRepository $resets)
+    public function __construct(private ICmsLoginAttemptResetRepository $resets, private IClock $clock)
     {
     }
 
@@ -30,7 +30,7 @@ final readonly class Interactor
         }
 
         $reason = mb_substr(trim($input->reason), 0, self::REASON_MAX_LENGTH);
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
 
         if ($scope === CmsLoginAttemptResetScope::EmailIp) {
             $email = trim($input->email);

@@ -14,7 +14,7 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
 {
     /** @var array<string, list<string>> */
     private const PERMISSIONS = [
-        CmsRole::ADMIN => [
+        'admin' => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -41,7 +41,7 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
             PermissionCode::ROLE_VIEW,
             PermissionCode::PERMISSION_VIEW,
         ],
-        CmsRole::EDITOR => [
+        'editor' => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -62,7 +62,7 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
             PermissionCode::INQUIRY_UPDATE,
             PermissionCode::TRASH_VIEW,
         ],
-        CmsRole::WRITER => [
+        'writer' => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_CREATE,
@@ -72,7 +72,7 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
             PermissionCode::MEDIA_LIST,
             PermissionCode::MEDIA_UPLOAD,
         ],
-        CmsRole::VIEWER => [
+        'viewer' => [
             PermissionCode::DASHBOARD_VIEW,
             PermissionCode::ARTICLE_LIST,
             PermissionCode::ARTICLE_PREVIEW,
@@ -92,6 +92,8 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
      */
     public function permissionsForRole(string $role): array
     {
-        return self::PERMISSIONS[$role] ?? [];
+        $cmsRole = CmsRole::tryFrom($role);
+
+        return $cmsRole === null ? [] : self::PERMISSIONS[$cmsRole->value];
     }
 }

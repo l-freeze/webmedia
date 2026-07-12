@@ -6,17 +6,19 @@ namespace App\Front\Presentation\Http\Controller\Article\Show;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Article\Show\Input;
 use App\Front\Application\Article\Show\Interactor;
 use App\Front\Presentation\Seo\CanonicalUrl;
+use App\Front\Presentation\Presenter\ArticleDatePresenter;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
         private CanonicalUrl $canonicalUrl,
+        private ArticleDatePresenter $articleDates,
     )
     {
     }
@@ -34,7 +36,7 @@ final readonly class Controller
             ]), status: Response::HTTP_NOT_FOUND);
         }
 
-        $article = $article->toArray();
+        $article = $this->articleDates->present($article->toArray());
         $slug = is_string($article['slug'] ?? null) ? $article['slug'] : '';
 
         return new Response(body: $this->renderer->render(template: 'article/show.latte', params: [
@@ -42,7 +44,7 @@ final readonly class Controller
             'description' => $article['excerpt'],
             'canonicalUrl' => $this->canonicalUrl->article($slug),
             'article' => $article,
-            'related' => array_map(fn ($item): array => $item->toArray(), $output->related),
+            'related' => array_map(fn ($item): array => $this->articleDates->present($item->toArray()), $output->related),
         ]));
     }
 }

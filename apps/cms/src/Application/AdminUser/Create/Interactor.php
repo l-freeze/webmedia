@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Application\AdminUser\Create;
 
-use App\Cms\Application\AdminUser\Create\Port\PasswordHasher;
+use App\Cms\Application\AdminUser\Create\Port\IPasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Value\CmsRole;
@@ -19,7 +19,7 @@ final readonly class Interactor
 
     public function __construct(
         private IAdminUserRepository $users,
-        private PasswordHasher $passwords,
+        private IPasswordHasher $passwords,
     ) {
     }
 
@@ -35,7 +35,8 @@ final readonly class Interactor
             return new Output(created: false, error: 'パスワードは8文字以上で入力してください。');
         }
 
-        if (!in_array($input->role, CmsRole::all(), true)) {
+        $role = CmsRole::tryFrom($input->role);
+        if ($role === null) {
             return new Output(created: false, error: 'ロールを正しく選択してください。');
         }
 
@@ -48,7 +49,7 @@ final readonly class Interactor
             id: null,
             email: $input->email,
             name: $input->name,
-            role: $input->role,
+            role: $role,
             passwordHash: $this->passwords->hash($input->password),
         );
         $userId = $this->users->create(user: $user);

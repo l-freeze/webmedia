@@ -20,10 +20,10 @@ final readonly class Interactor
         $permissions = [];
         foreach (PermissionCode::all() as $permission) {
             $roles = [];
-            foreach (CmsRole::all() as $role) {
-                $allowed = $this->rolePermissions->hasPermission(role: $role, permission: $permission);
+            foreach (CmsRole::cases() as $role) {
+                $allowed = $this->rolePermissions->hasPermission(role: $role->value, permission: $permission);
                 if ($allowed) {
-                    $roles[] = $role;
+                    $roles[] = $role->value;
                 }
             }
 

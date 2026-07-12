@@ -6,14 +6,14 @@ namespace App\FrontBusiness\Presentation\Http\Controller\Search\Index;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\FrontBusiness\Application\Article\Search\Input;
 use App\FrontBusiness\Application\Article\Search\Interactor;
 use App\FrontBusiness\Application\Layout\Load\Query\ISiteSettingQuery;
 
 final readonly class Controller
 {
-    public function __construct(private TemplateRenderer $renderer, private Interactor $interactor, private ISiteSettingQuery $settings)
+    public function __construct(private ITemplateRenderer $renderer, private Interactor $interactor, private ISiteSettingQuery $settings)
     {
     }
 

@@ -6,17 +6,19 @@ namespace App\Front\Presentation\Http\Controller\Category\Show;
 
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Front\Application\Category\Show\Input;
 use App\Front\Application\Category\Show\Interactor;
 use App\Front\Presentation\Seo\CanonicalUrl;
+use App\Front\Presentation\Presenter\ArticleDatePresenter;
 
 final readonly class Controller
 {
     public function __construct(
-        private TemplateRenderer $renderer,
+        private ITemplateRenderer $renderer,
         private Interactor $interactor,
         private CanonicalUrl $canonicalUrl,
+        private ArticleDatePresenter $articleDates,
     ) {
     }
 
@@ -31,7 +33,7 @@ final readonly class Controller
             'heading' => $category['name'] ?? 'カテゴリ',
             'lead' => $category['description'] ?? '',
             'canonicalUrl' => $category !== null ? $this->canonicalUrl->category($category['slug']) : null,
-            'articles' => array_map(fn ($article): array => $article->toArray(), $output->articles),
+            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
         ]));
     }
 }

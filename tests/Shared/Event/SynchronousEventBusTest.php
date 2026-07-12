@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Shared\Event;
 
-use App\Shared\Audit\Application\AuditLoggerInterface;
+use App\Shared\Audit\Application\IAuditLogger;
 use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Domain\AuditEvent;
-use App\Shared\Event\Application\EventHandlerInterface;
+use App\Shared\Event\Application\IEventHandler;
 use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use App\Shared\SecurityLog\Application\RecordSecurityLogEventHandler;
-use App\Shared\SecurityLog\Application\SecurityLoggerInterface;
+use App\Shared\SecurityLog\Application\ISecurityLogger;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -69,7 +69,7 @@ final class OtherExampleEvent
 {
 }
 
-final class RecordingEventHandler implements EventHandlerInterface
+final class RecordingEventHandler implements IEventHandler
 {
     /** @var list<object> */
     public array $events = [];
@@ -90,7 +90,7 @@ final class RecordingEventHandler implements EventHandlerInterface
     }
 }
 
-final class RecordingEventAuditLogger implements AuditLoggerInterface
+final class RecordingEventAuditLogger implements IAuditLogger
 {
     /** @var list<AuditEvent> */
     public array $events = [];
@@ -101,7 +101,7 @@ final class RecordingEventAuditLogger implements AuditLoggerInterface
     }
 }
 
-final class RecordingEventSecurityLogger implements SecurityLoggerInterface
+final class RecordingEventSecurityLogger implements ISecurityLogger
 {
     /** @var list<SecurityLogEvent> */
     public array $events = [];

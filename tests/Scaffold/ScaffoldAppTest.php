@@ -31,7 +31,7 @@ final class ScaffoldAppTest extends TestCase
             $container = $this->read(path: $root . '/apps/api/config/container.php');
             self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
             self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
-            self::assertStringNotContainsString('TemplateRenderer::class', $container);
+            self::assertStringNotContainsString('ITemplateRenderer::class', $container);
 
             $middleware = $this->read(path: $root . '/apps/api/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
@@ -63,7 +63,7 @@ final class ScaffoldAppTest extends TestCase
             $container = $this->read(path: $root . '/apps/mini-app/config/container.php');
             self::assertStringContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
             self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
-            self::assertStringContainsString('TemplateRenderer::class', $container);
+            self::assertStringContainsString('ITemplateRenderer::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
             self::assertStringNotContainsString('cacheDirectory:', $container);
             self::assertStringNotContainsString('sqlite::memory:', $container);
@@ -77,7 +77,7 @@ final class ScaffoldAppTest extends TestCase
 
             $controller = $this->read(path: $root . '/apps/mini-app/src/Presentation/Http/Controller/Index/Controller.php');
             self::assertStringContainsString('private PDO $pdo', $controller);
-            self::assertStringContainsString('private TemplateRenderer $renderer', $controller);
+            self::assertStringContainsString('private ITemplateRenderer $renderer', $controller);
             self::assertStringContainsString('CREATE TABLE IF NOT EXISTS scaffold_messages', $controller);
             self::assertStringContainsString('INSERT INTO scaffold_messages', $controller);
             self::assertStringContainsString("template: 'index.latte'", $controller);
@@ -117,7 +117,7 @@ final class ScaffoldAppTest extends TestCase
 
             self::assertStringContainsString('Created app scaffold: apps/todo (todo)', $output);
             self::assertStringContainsString('Todo starter:', $output);
-            self::assertFileExists($root . '/apps/todo/src/Application/Todo/TodoRepository.php');
+            self::assertFileExists($root . '/apps/todo/src/Application/Todo/ITodoRepository.php');
             self::assertFileExists($root . '/apps/todo/src/Infrastructure/Persistence/PdoTodoRepository.php');
             self::assertFileExists($root . '/apps/todo/templates/index.latte');
 
@@ -127,7 +127,7 @@ final class ScaffoldAppTest extends TestCase
 
             $container = $this->read(path: $root . '/apps/todo/config/container.php');
             self::assertStringContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
-            self::assertStringContainsString('TodoRepository::class', $container);
+            self::assertStringContainsString('ITodoRepository::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
             self::assertStringNotContainsString('cacheDirectory:', $container);
 

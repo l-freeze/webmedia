@@ -19,7 +19,7 @@ use App\Framework\Security\SessionState;
 use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\Event\Infrastructure\SynchronousEventBus;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -290,7 +290,7 @@ final class AuditMiddlewareTest extends TestCase
         return new CallableRequestHandler(handler: static fn (): Response => $response);
     }
 
-    private function middleware(EventBusInterface $events, ?CmsGuard $guard = null): AuditMiddleware
+    private function middleware(IEventBus $events, ?CmsGuard $guard = null): AuditMiddleware
     {
         return new AuditMiddleware(
             events: $events,
@@ -336,7 +336,7 @@ final readonly class FixedAuditCmsUserQuery implements ICurrentCmsUserQuery
     }
 }
 
-final class RecordingEventBus implements EventBusInterface
+final class RecordingEventBus implements IEventBus
 {
     /** @var list<object> */
     public array $events = [];
@@ -347,7 +347,7 @@ final class RecordingEventBus implements EventBusInterface
     }
 }
 
-final readonly class ThrowingEventBus implements EventBusInterface
+final readonly class ThrowingEventBus implements IEventBus
 {
     public function dispatch(object $event): void
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\ApplicationInterface;
+use App\Framework\Application\IApplication;
 use App\Framework\Bootstrap\ApplicationBootstrap;
 use App\Framework\Bootstrap\ApplicationBootstrapConfig;
 use App\Kernel\Application;
@@ -35,7 +35,7 @@ PHP;
         $application = ApplicationBootstrap::createApplication(
             config: new ApplicationBootstrapConfig(
                 root: $root,
-                applicationFactory: static fn (ApplicationBootstrapConfig $config): ApplicationInterface => new Application(root: $config->root),
+                applicationFactory: static fn (ApplicationBootstrapConfig $config): IApplication => new Application(root: $config->root),
             ),
         );
 

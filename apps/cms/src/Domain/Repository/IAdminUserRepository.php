@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Repository;
 
 use App\Cms\Domain\Entity\AdminUser;
+use App\Cms\Domain\Value\CmsRole;
 
 interface IAdminUserRepository
 {
@@ -16,7 +17,7 @@ interface IAdminUserRepository
 
     public function emailExists(string $email, ?int $exceptId): bool;
 
-    public function roleOf(int $id): ?string;
+    public function roleOf(int $id): ?CmsRole;
 
     public function adminCount(): int;
 }

@@ -6,7 +6,7 @@ namespace App\Shared\Audit\Application;
 
 use App\Shared\Audit\Domain\AuditEvent;
 
-interface AuditLoggerInterface
+interface IAuditLogger
 {
     public function record(AuditEvent $event): void;
 }

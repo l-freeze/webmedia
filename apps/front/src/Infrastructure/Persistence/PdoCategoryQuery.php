@@ -12,7 +12,7 @@ use PDO;
 
 final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery, Category\List\Query\ICategoryQuery, Category\Show\Query\ICategoryQuery, Category\Show\Query\IArticleQuery
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ArticlePublicationCondition $publication)
     {
     }
 
@@ -20,7 +20,9 @@ final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery,
     public function all(): array
     {
         $categories = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publicCondition() . ' GROUP BY c.id ORDER BY c.sort_order, c.name')) as $row) {
+        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publication->sql() . ' GROUP BY c.id ORDER BY c.sort_order, c.name');
+        PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
+        foreach (PdoHelper::fetchAll(statement: $statement) as $row) {
             $categories[] = $this->category(row: $row);
         }
 
@@ -47,8 +49,8 @@ final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery,
     /** @return array<int, Category\Show\Value\Article> */
     public function articles(string $slug): array
     {
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND ' . $this->publicCondition() . ' ORDER BY a.published_at DESC');
-        PdoHelper::execute(statement: $stmt, params: ['slug' => $slug]);
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT a.*, c.name AS category_name, c.slug AS category_slug FROM articles a INNER JOIN categories c ON c.id = a.category_id WHERE c.slug = :slug AND ' . $this->publication->sql() . ' ORDER BY a.published_at DESC');
+        PdoHelper::execute(statement: $stmt, params: [...$this->publication->parameters(), 'slug' => $slug]);
         $articles = [];
         foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
             $pdoRow = PdoRow::from(values: $row);
@@ -60,8 +62,8 @@ final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery,
                 excerpt: $pdoRow->string(key: 'excerpt'),
                 categoryName: $pdoRow->string(key: 'category_name'),
                 eyecatchPath: $pdoRow->string(key: 'eyecatch_path'),
-                publishedAt: $pdoRow->date(key: 'published_at'),
-                updatedAt: $pdoRow->date(key: 'updated_at'),
+                publishedAt: $pdoRow->string(key: 'published_at'),
+                updatedAt: $pdoRow->string(key: 'updated_at'),
             );
         }
 
@@ -82,8 +84,4 @@ final readonly class PdoCategoryQuery implements Home\Show\Query\ICategoryQuery,
         );
     }
 
-    private function publicCondition(): string
-    {
-        return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
-    }
 }

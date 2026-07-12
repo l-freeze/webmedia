@@ -17,10 +17,10 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $roles = [];
-        foreach (CmsRole::all() as $role) {
-            $permissions = $this->rolePermissions->permissionsForRole($role);
+        foreach (CmsRole::cases() as $role) {
+            $permissions = $this->rolePermissions->permissionsForRole($role->value);
             $roles[] = new Role(
-                code: $role,
+                code: $role->value,
                 permissions: $permissions,
             );
         }

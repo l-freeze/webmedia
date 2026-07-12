@@ -8,7 +8,7 @@ final readonly class CmsActor
 {
     public function __construct(
         public int $id,
-        public string $role,
+        public CmsRole $role,
     ) {
     }
 }

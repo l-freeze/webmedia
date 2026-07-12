@@ -12,7 +12,7 @@ use PDO;
 
 final readonly class PdoLayoutCategoryQuery implements ICategoryQuery
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ArticlePublicationCondition $publication)
     {
     }
 
@@ -20,7 +20,9 @@ final readonly class PdoLayoutCategoryQuery implements ICategoryQuery
     public function all(): array
     {
         $categories = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publicCondition() . ' GROUP BY c.id ORDER BY c.sort_order, c.name')) as $row) {
+        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT c.*, COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id AND ' . $this->publication->sql() . ' GROUP BY c.id ORDER BY c.sort_order, c.name');
+        PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
+        foreach (PdoHelper::fetchAll(statement: $statement) as $row) {
             $pdoRow = PdoRow::from(values: $row);
 
             $categories[] = new Category(
@@ -35,8 +37,4 @@ final readonly class PdoLayoutCategoryQuery implements ICategoryQuery
         return $categories;
     }
 
-    private function publicCondition(): string
-    {
-        return "a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW() AND (a.published_ends_at IS NULL OR a.published_ends_at > NOW())";
-    }
 }

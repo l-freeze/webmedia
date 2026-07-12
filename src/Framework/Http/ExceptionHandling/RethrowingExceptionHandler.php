@@ -8,7 +8,7 @@ use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use Throwable;
 
-final readonly class RethrowingExceptionHandler implements ExceptionHandlerInterface
+final readonly class RethrowingExceptionHandler implements IExceptionHandler
 {
     public function handle(Throwable $throwable, Request $request): Response
     {

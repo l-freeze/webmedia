@@ -14,27 +14,7 @@
 
 ## 要判断候補
 
-### 1. Application が現在時刻を直接生成している
-
-対象:
-
-- `apps/cms/src/Application/Auth/Login/Interactor.php`
-- `apps/cms/src/Application/Auth/ResetLoginAttempt/Interactor.php`
-
-ログイン試行制限と解除処理で `new DateTimeImmutable()` を Application 内で直接呼んでいる。
-
-懸念:
-
-- ログイン制限は「現在から10分間」という判断に依存するため、現在時刻が業務入力に近い。
-- テストや再実行時に基準時刻を固定しにくい。
-- `docs/application_ports.md` の Clock port 検討基準に該当する可能性がある。
-
-現時点の判断:
-
-- フレームワーク全体で使う汎用 Clock を先に導入しない。
-- Login / ResetLoginAttempt の時刻境界をテストで固定する必要が出た時点で、CMS Auth 用の最小の Clock port を検討する。
-
-### 2. AuditSummary metadata
+### 1. AuditSummary metadata
 
 対象:
 
@@ -93,7 +73,7 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 - Audit の検索・集計要件により、metadata 内の特定項目に型、index、制約が必要になる。
 - 記録禁止値の混入をテストとレビューで防げなくなる。
 
-### 3. Front Business のカテゴリ slug 固定
+### 2. Front Business のカテゴリ slug 固定
 
 対象:
 
@@ -115,12 +95,11 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 
 ## 次の検証順
 
-1. Login / ResetLoginAttempt のテスト性を確認し、Clock port が必要か判断する。
-2. Audit metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
-3. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
+1. Audit metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
+2. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
 
 ## 現時点の結論
 
 明確な境界違反としてすぐ修正すべき項目は、現在このメモには残っていない。
 
-現在時刻の生成はテスト性の観点から追加判断が必要である。Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。
+Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。

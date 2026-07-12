@@ -6,7 +6,7 @@ namespace Tests\Cms\Auth;
 
 use App\Cms\Application\Auth\Login\Input;
 use App\Cms\Application\Auth\Login\Interactor;
-use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 use App\Cms\Application\Auth\Login\Query\ILoginAttemptQuery;
 use App\Cms\Application\Auth\Login\Value\LoginAttemptFailureCounts;
 use App\Cms\Domain\Entity\LoginAttempt;
@@ -19,11 +19,12 @@ use App\Framework\Security\Csrf;
 use App\Framework\Security\NativeSessionRuntime;
 use App\Framework\Security\Session;
 use App\Framework\Security\SessionState;
-use App\Framework\View\TemplateRenderer;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Framework\View\ITemplateRenderer;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Tests\Shared\Time\FrozenClock;
 
 final class LoginControllerTest extends TestCase
 {
@@ -42,6 +43,7 @@ final class LoginControllerTest extends TestCase
                 passwordVerifier: new NeverCalledPasswordVerifier(),
                 loginAttemptQuery: new ControllerLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 5, byIp: 0)),
                 loginAttempts: new ControllerLoginAttemptRepository(),
+                clock: new FrozenClock(new DateTimeImmutable('2026-07-13 00:00:00 UTC')),
             ),
             events: $events,
         );
@@ -67,7 +69,7 @@ final class LoginControllerTest extends TestCase
     }
 }
 
-final class CapturingLoginRenderer implements TemplateRenderer
+final class CapturingLoginRenderer implements ITemplateRenderer
 {
     public ?string $template = null;
 
@@ -84,7 +86,7 @@ final class CapturingLoginRenderer implements TemplateRenderer
     }
 }
 
-final class RecordingLoginEventBus implements EventBusInterface
+final class RecordingLoginEventBus implements IEventBus
 {
     /** @var list<object> */
     public array $events = [];
@@ -103,7 +105,7 @@ final readonly class EmptyLoginUserRepository implements IUserRepository
     }
 }
 
-final readonly class NeverCalledPasswordVerifier implements PasswordVerifier
+final readonly class NeverCalledPasswordVerifier implements IPasswordVerifier
 {
     public function verify(string $plainPassword, string $passwordHash): bool
     {

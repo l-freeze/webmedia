@@ -18,17 +18,17 @@ middleware が増え、1つのディレクトリに置くとかえって責務�
 
 ## 作り方
 
-`App\Framework\Http\Middleware\MiddlewareInterface` を実装します。
+`App\Framework\Http\Middleware\IMiddleware` を実装します。
 
 ```php
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 
-final readonly class ExampleMiddleware implements MiddlewareInterface
+final readonly class ExampleMiddleware implements IMiddleware
 {
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         if ($this->shouldStop($request)) {
             return Response::redirect('/admin/login');

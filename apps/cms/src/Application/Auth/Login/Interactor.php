@@ -8,8 +8,9 @@ use App\Cms\Application\Auth\Login\Query\ILoginAttemptQuery;
 use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
-use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 use App\Cms\Domain\Repository\IUserRepository;
+use App\Shared\Time\Application\IClock;
 use DateTimeImmutable;
 
 final readonly class Interactor
@@ -20,15 +21,16 @@ final readonly class Interactor
 
     public function __construct(
         private IUserRepository $users,
-        private PasswordVerifier $passwordVerifier,
+        private IPasswordVerifier $passwordVerifier,
         private ILoginAttemptQuery $loginAttemptQuery,
         private ILoginAttemptRepository $loginAttempts,
+        private IClock $clock,
     ) {
     }
 
     public function execute(Input $input): Output
     {
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
         $blockedByRateLimit = $this->hasTooManyFailedLoginAttempts($input, $now);
         if ($blockedByRateLimit) {
             $loginAttempt = LoginAttempt::blocked(
@@ -60,7 +62,7 @@ final readonly class Interactor
         );
         $this->loginAttempts->save($loginAttempt);
 
-        return Output::authenticated(userId: $user->id, role: $user->role);
+        return Output::authenticated(userId: $user->id, role: $user->role->value);
     }
 
     private function findUserByValidCredentials(Input $input): ?User

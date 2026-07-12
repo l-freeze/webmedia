@@ -67,9 +67,9 @@ use App\Cms\Presentation\Http\Middleware\CsrfSecurityLogMiddleware;
 use App\Framework\Container\Container;
 use App\Framework\Security\Csrf;
 use App\Framework\Security\CsrfMiddleware;
-use App\Framework\View\TemplateRenderer;
+use App\Framework\View\ITemplateRenderer;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -113,8 +113,8 @@ $container->singleton(id: CsrfMiddleware::class, factory: function (Container $c
     if (!$csrf instanceof Csrf) {
         throw new \RuntimeException('CSRF service is not registered.');
     }
-    $events = $container->get(id: EventBusInterface::class);
-    if (!$events instanceof EventBusInterface) {
+    $events = $container->get(id: IEventBus::class);
+    if (!$events instanceof IEventBus) {
         throw new \RuntimeException('Event bus service is not registered.');
     }
 
@@ -128,7 +128,7 @@ $container->singleton(id: CsrfMiddleware::class, factory: function (Container $c
     );
 });
 
-$container->singleton(id: TemplateRenderer::class, factory: function () use (&$container, $root): TemplateRenderer {
+$container->singleton(id: ITemplateRenderer::class, factory: function () use (&$container, $root): ITemplateRenderer {
     $renderer = new LatteTemplateRenderer(
         templateDirectory: $root . '/apps/cms/templates',
     );
@@ -145,15 +145,15 @@ $container->singleton(id: TemplateRenderer::class, factory: function () use (&$c
 });
 
 $container->bind(abstract: IUserRepository::class, concrete: PdoUserRepository::class);
-$container->bind(abstract: Auth\Login\Port\PasswordVerifier::class, concrete: NativePasswordVerifier::class);
+$container->bind(abstract: Auth\Login\Port\IPasswordVerifier::class, concrete: NativePasswordVerifier::class);
 $container->singleton(id: LoginAttemptEmailHash::class, factory: static fn (): LoginAttemptEmailHash => new LoginAttemptEmailHash(
     key: $envString('CMS_LOGIN_ATTEMPT_HASH_KEY', $envString('APP_URL', 'webmedia')),
 ));
 $container->bind(abstract: Auth\Login\Query\ILoginAttemptQuery::class, concrete: PdoLoginAttemptQuery::class);
 $container->bind(abstract: ILoginAttemptRepository::class, concrete: PdoLoginAttemptRepository::class);
 $container->bind(abstract: ICmsLoginAttemptResetRepository::class, concrete: PdoCmsLoginAttemptResetRepository::class);
-$container->bind(abstract: AdminUser\Create\Port\PasswordHasher::class, concrete: NativePasswordHasher::class);
-$container->bind(abstract: AdminUser\Update\Port\PasswordHasher::class, concrete: NativePasswordHasher::class);
+$container->bind(abstract: AdminUser\Create\Port\IPasswordHasher::class, concrete: NativePasswordHasher::class);
+$container->bind(abstract: AdminUser\Update\Port\IPasswordHasher::class, concrete: NativePasswordHasher::class);
 $container->bind(abstract: Auth\AuthorizeRoute\Query\IRolePermissionQuery::class, concrete: CodeDefinedRolePermissionQuery::class);
 $container->bind(abstract: Auth\GetCurrentUser\Query\ICurrentCmsUserQuery::class, concrete: PdoCurrentCmsUserQuery::class);
 $container->bind(abstract: IArticleRepository::class, concrete: PdoArticleRepository::class);

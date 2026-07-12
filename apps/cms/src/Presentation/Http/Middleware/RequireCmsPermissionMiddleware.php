@@ -7,24 +7,24 @@ namespace App\Cms\Presentation\Http\Middleware;
 use App\Cms\Application\Auth\AuthorizeRoute\Input;
 use App\Cms\Application\Auth\AuthorizeRoute\Interactor;
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Framework\Http\Middleware\MiddlewareInterface;
-use App\Framework\Http\Middleware\RequestHandlerInterface;
+use App\Framework\Http\Middleware\IMiddleware;
+use App\Framework\Http\Middleware\IRequestHandler;
 use App\Framework\Http\Request;
 use App\Framework\Http\Response;
 use App\Framework\Routing\Router;
-use App\Shared\Event\Application\EventBusInterface;
+use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 
-final readonly class RequireCmsPermissionMiddleware implements MiddlewareInterface
+final readonly class RequireCmsPermissionMiddleware implements IMiddleware
 {
     public function __construct(
         private CmsGuard $guard,
         private Interactor $authorizeRoute,
-        private EventBusInterface $events,
+        private IEventBus $events,
     ) {
     }
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
+    public function process(Request $request, IRequestHandler $handler): Response
     {
         $permission = $this->requiredPermission($request);
         if ($permission === null) {

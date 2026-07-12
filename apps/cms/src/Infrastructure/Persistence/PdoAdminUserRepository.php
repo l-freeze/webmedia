@@ -8,6 +8,7 @@ use App\Cms\Application\AdminUser\List\Query\IAdminUserQuery;
 use App\Cms\Application\AdminUser\List\Value\AdminUser;
 use App\Cms\Domain\Entity\AdminUser as AdminUserEntity;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\CmsRole;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -53,7 +54,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
             'email' => $user->email,
             'password_hash' => $user->passwordHash,
             'name' => $user->name,
-            'role' => $user->role,
+            'role' => $user->role->value,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -71,7 +72,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
             'id' => $user->id,
             'email' => $user->email,
             'name' => $user->name,
-            'role' => $user->role,
+            'role' => $user->role->value,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
         $passwordSql = '';
@@ -113,19 +114,19 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }
 
-    public function roleOf(int $id): ?string
+    public function roleOf(int $id): ?CmsRole
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT role FROM users WHERE id = :id LIMIT 1');
         PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
         $role = PdoHelper::fetchColumn(statement: $stmt);
 
-        return is_scalar($role) ? (string) $role : null;
+        return is_scalar($role) ? CmsRole::from((string) $role) : null;
     }
 
     public function adminCount(): int
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM users WHERE role = :role');
-        PdoHelper::execute(statement: $stmt, params: ['role' => 'admin']);
+        PdoHelper::execute(statement: $stmt, params: ['role' => CmsRole::Admin->value]);
 
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count');
     }

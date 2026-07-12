@@ -47,11 +47,11 @@ final class ContainerTest extends TestCase
         $container = new Container();
         $container->set(id: 'factory', factory: fn (): Dependency => new Dependency());
         $container->singleton(id: 'singleton', factory: fn (): Dependency => new Dependency());
-        $container->bind(abstract: Contract::class, concrete: Implementation::class);
+        $container->bind(abstract: IContract::class, concrete: Implementation::class);
 
         self::assertTrue($container->has(id: 'factory'));
         self::assertTrue($container->has(id: 'singleton'));
-        self::assertTrue($container->has(id: Contract::class));
+        self::assertTrue($container->has(id: IContract::class));
         self::assertFalse($container->has(id: 'missing'));
     }
 
@@ -166,10 +166,10 @@ final readonly class NeedsScalar
     }
 }
 
-interface Contract
+interface IContract
 {
 }
 
-final readonly class Implementation implements Contract
+final readonly class Implementation implements IContract
 {
 }

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Value;
 
-final readonly class PageStatus
+enum PageStatus: string
 {
-    public string $value;
-
-    public function __construct(string $value)
-    {
-        $this->value = in_array($value, ['draft', 'published', 'private', 'trashed'], true) ? $value : 'draft';
-    }
+    case Draft = 'draft';
+    case Published = 'published';
+    case Private = 'private';
+    case Trashed = 'trashed';
 }

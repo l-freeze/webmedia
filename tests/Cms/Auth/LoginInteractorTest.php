@@ -6,17 +6,19 @@ namespace Tests\Cms\Auth;
 
 use App\Cms\Application\Auth\Login\Input;
 use App\Cms\Application\Auth\Login\Interactor;
-use App\Cms\Application\Auth\Login\Port\PasswordVerifier;
+use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 use App\Cms\Application\Auth\Login\Query\ILoginAttemptQuery;
 use App\Cms\Application\Auth\Login\Value\LoginAttemptFailureCounts;
 use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Domain\Entity\User;
+use App\Cms\Domain\Value\CmsRole;
 use App\Cms\Domain\Repository\IUserRepository;
 use App\Cms\Domain\Value\LoginAttemptResult;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Tests\Shared\Time\FrozenClock;
 
 final class LoginInteractorTest extends TestCase
 {
@@ -28,6 +30,7 @@ final class LoginInteractorTest extends TestCase
             passwordVerifier: new FixedPasswordVerifier(matches: true),
             loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
+            clock: $this->clock(),
         );
 
         $output = $interactor->execute(input: Input::create(
@@ -40,6 +43,7 @@ final class LoginInteractorTest extends TestCase
         self::assertSame(10, $output->userId);
         self::assertSame('admin', $output->role);
         self::assertSame(LoginAttemptResult::Success, $attempts->lastAttempt?->result);
+        self::assertEquals($this->clock()->now(), $attempts->lastAttempt->attemptedAt);
     }
 
     public function testRejectsWhenPasswordVerifierRejectsPassword(): void
@@ -50,6 +54,7 @@ final class LoginInteractorTest extends TestCase
             passwordVerifier: new FixedPasswordVerifier(matches: false),
             loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
+            clock: $this->clock(),
         );
 
         $output = $interactor->execute(input: Input::create(
@@ -73,6 +78,7 @@ final class LoginInteractorTest extends TestCase
             passwordVerifier: new FixedPasswordVerifier(matches: true),
             loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 0)),
             loginAttempts: $attempts,
+            clock: $this->clock(),
         );
 
         $output = $interactor->execute(input: Input::create(
@@ -94,6 +100,7 @@ final class LoginInteractorTest extends TestCase
             passwordVerifier: $passwordVerifier,
             loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 5, byIp: 0)),
             loginAttempts: $attempts,
+            clock: $this->clock(),
         );
 
         $output = $interactor->execute(input: Input::create(
@@ -116,6 +123,7 @@ final class LoginInteractorTest extends TestCase
             passwordVerifier: new FixedPasswordVerifier(matches: true),
             loginAttemptQuery: new FixedLoginAttemptQuery(new LoginAttemptFailureCounts(byEmailAndIp: 0, byIp: 20)),
             loginAttempts: $attempts,
+            clock: $this->clock(),
         );
 
         $output = $interactor->execute(input: Input::create(
@@ -145,8 +153,13 @@ final class LoginInteractorTest extends TestCase
             email: 'admin@example.test',
             passwordHash: 'hash-from-storage',
             name: 'Admin',
-            role: 'admin',
+            role: CmsRole::Admin,
         );
+    }
+
+    private function clock(): FrozenClock
+    {
+        return new FrozenClock(new DateTimeImmutable('2026-07-13 00:00:00 UTC'));
     }
 }
 
@@ -166,7 +179,7 @@ final readonly class InMemoryUserRepository implements IUserRepository
     }
 }
 
-final readonly class FixedPasswordVerifier implements PasswordVerifier
+final readonly class FixedPasswordVerifier implements IPasswordVerifier
 {
     public function __construct(private bool $matches)
     {
@@ -178,7 +191,7 @@ final readonly class FixedPasswordVerifier implements PasswordVerifier
     }
 }
 
-final class CountingPasswordVerifier implements PasswordVerifier
+final class CountingPasswordVerifier implements IPasswordVerifier
 {
     public int $calls = 0;
 
