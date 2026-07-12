@@ -6,6 +6,12 @@ namespace Tests\Architecture;
 
 use PHPUnit\Framework\TestCase;
 use DirectoryIterator;
+use ReflectionClass;
+use ReflectionIntersectionType;
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionType;
+use ReflectionUnionType;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -108,6 +114,43 @@ final class DependencyRuleTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testDomainEntitiesDoNotAcceptGenericInputOrRowShapes(): void
+    {
+        $violations = [];
+        $entityRoots = [
+            self::root() . '/apps/front/src/Domain/Entity' => 'App\\Front\\Domain\\Entity\\',
+            self::root() . '/apps/cms/src/Domain/Entity' => 'App\\Cms\\Domain\\Entity\\',
+        ];
+        $forbiddenFactoryNames = ['frominput', 'fromrow', 'fromarray', 'hydrate'];
+
+        foreach ($entityRoots as $root => $namespace) {
+            foreach ($this->phpFiles(root: $root) as $file) {
+                $className = $namespace . $file->getBasename('.php');
+                self::assertTrue(class_exists($className), $className . ' could not be loaded');
+
+                $entity = new ReflectionClass($className);
+                foreach ($entity->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                    if (in_array(strtolower($method->getName()), $forbiddenFactoryNames, true)) {
+                        $violations[] = $className . '::' . $method->getName() . '() is an input or row shape factory';
+                    }
+
+                    foreach ($method->getParameters() as $parameter) {
+                        if ($this->typeIncludesArray($parameter->getType())) {
+                            $violations[] = sprintf(
+                                '%s::%s($%s) accepts a generic array',
+                                $className,
+                                $method->getName(),
+                                $parameter->getName(),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     /**
      * @param list<string> $roots
      * @param list<string> $forbiddenNeedles
@@ -136,6 +179,23 @@ final class DependencyRuleTest extends TestCase
         }
 
         self::assertSame([], $violations);
+    }
+
+    private function typeIncludesArray(?ReflectionType $type): bool
+    {
+        if ($type instanceof ReflectionNamedType) {
+            return $type->getName() === 'array';
+        }
+
+        if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
+            foreach ($type->getTypes() as $nestedType) {
+                if ($this->typeIncludesArray($nestedType)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** @return list<SplFileInfo> */
