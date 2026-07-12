@@ -123,6 +123,7 @@ final class CreateInitialSchema extends AbstractMigration
             ->addColumn('meta_description', 'text', ['null' => true])
             ->addColumn('created_by', 'string', ['limit' => 120])
             ->addColumn('created_at', 'datetime')
+            ->addIndex(['page_id', 'version_no'], ['unique' => true])
             ->create();
 
         $this->table('media_files')
@@ -161,6 +162,26 @@ final class CreateInitialSchema extends AbstractMigration
             ->addColumn('hero_description', 'text', ['null' => true])
             ->addColumn('created_at', 'datetime', ['null' => false])
             ->addColumn('updated_at', 'datetime', ['null' => false])
+            ->create();
+
+        $this->table('cms_login_attempts')
+            ->addColumn('email_hash', 'string', ['limit' => 64])
+            ->addColumn('ip_address', 'string', ['limit' => 45])
+            ->addColumn('result', 'string', ['limit' => 20])
+            ->addColumn('attempted_at', 'datetime')
+            ->addIndex(['email_hash', 'ip_address', 'attempted_at'])
+            ->addIndex(['ip_address', 'attempted_at'])
+            ->create();
+
+        $this->table('cms_login_attempt_resets')
+            ->addColumn('scope', 'string', ['limit' => 20])
+            ->addColumn('email_hash', 'string', ['limit' => 64, 'null' => true])
+            ->addColumn('ip_address', 'string', ['limit' => 45])
+            ->addColumn('reset_at', 'datetime')
+            ->addColumn('reset_by_user_id', 'integer')
+            ->addColumn('reason', 'string', ['limit' => 200, 'default' => ''])
+            ->addIndex(['scope', 'email_hash', 'ip_address', 'reset_at'])
+            ->addIndex(['scope', 'ip_address', 'reset_at'])
             ->create();
 
     }

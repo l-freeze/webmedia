@@ -64,6 +64,7 @@
     - Domain Entity から `fromInput(array)` と `stringValue` / `intValue` / `boolValue` などの入力 shape helper を削除した。Article / Page / SiteSettings の入力変換は UseCase、DB row 復元は Repository に閉じ、Entity は constructor、明示的な ValueObject、業務操作だけを扱う形にした。
     - `apps/front` / `apps/front-business` / `apps/cms` の UseCase `Input` を private constructor + `Input::create()` に統一した。`Input` は public readonly property を持つ DTO とし、constructor は constructor property promotion で保持だけを行う。HTTP body 由来の値は `create()` で項目ごとに trim 方針を明示し、本文 / password / upload file 配列などを一律 trim しない。Application から `ValidationInput` / `FormValidator` / `ValidatedInput` / `ValidationResult` は外した。
     - Interactor の `execute()` では、Entity / ValueObject 生成、Repository / Query 呼び出し、Output 生成を戻り値式へまとめず、意味のある local 変数に分けて処理順が読める形へ寄せた。
+    - `cms_login_attempts` / `cms_login_attempt_resets` と `page_versions` unique index を初期 schema へ畳み、途中概念の `login_attempts` 作成 / rename migration と後追い index migration を削除した。
 - CMS:
   - route-level permission と resource-level permission を分離した。
     - route-level permission は `Application/Auth/AuthorizeRoute` UseCase と `RequireCmsPermissionMiddleware` で扱う。

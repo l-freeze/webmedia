@@ -49,27 +49,27 @@
 
 ### 2. migration に現行 schema ではない履歴が残っている
 
+状態: 対応済み。
+
 対象:
 
-- `database/migrations/20260703000100_create_login_attempts.php`
-- `database/migrations/20260704000100_create_cms_login_attempt_resets.php`
-- `database/migrations/20260524000300_add_unique_index_to_page_versions.php`
+- `database/migrations/20260523000100_create_initial_schema.php`
 
-現行概念は `cms_login_attempts` だが、migration では一度 `login_attempts` を作成し、後続 migration で `cms_login_attempts` に rename している。
+対応前は、現行概念が `cms_login_attempts` であるにもかかわらず、migration では一度 `login_attempts` を作成し、後続 migration で `cms_login_attempts` に rename していた。
 
-また、`page_versions` の unique index も初期 schema ではなく後続 migration で追加されている。
+また、`page_versions` の unique index も初期 schema ではなく後続 migration で追加されていた。
 
-懸念:
+問題だった点:
 
 - fresh migrate 時に、現行として正しくない途中概念が migration 履歴に残る。
 - 初期 schema が「現在の正しい schema」を表すという方針とズレる。
 - まだ開発段階であれば、不要な schema 進化履歴を残す理由が弱い。
 
-検証方針:
+対応:
 
-- `cms_login_attempts` と `cms_login_attempt_resets` を現行 schema として直接作る。
-- `page_versions` の unique index を初期 schema に畳む。
-- 既存データ移行を重視する段階か、fresh schema の正しさを優先する段階かを確認する。
+- 初期 schema で `cms_login_attempts` と `cms_login_attempt_resets` を現行 schema として直接作るようにした。
+- 初期 schema の `page_versions` に `page_id, version_no` の unique index を直接定義した。
+- 途中概念を作るだけの login attempt rename migration と、page version index の追加 migration を削除した。
 
 ### 3. Application が現在時刻を直接生成している
 
