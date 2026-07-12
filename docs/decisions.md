@@ -85,6 +85,7 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 - Framework の Router は route metadata を解釈せず、`array<string, mixed>` のまま Request へ渡す。
 - アプリケーション側の middleware 設定は、その設定を消費する middleware の FQCN を top-level key にする。値の型と意味は各 middleware が所有する。
+- CMS routes は login の GET / POST と logout だけを認証用の例外とし、それ以外は表示用 GET を含めて route-level Permission を必須にする。
 - 現時点では `RouteMetadataReader` や `MatchedRoute` value は作らない。
 
 ### 理由

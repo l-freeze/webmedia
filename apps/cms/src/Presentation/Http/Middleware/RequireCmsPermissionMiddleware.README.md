@@ -55,7 +55,7 @@ return [
 ];
 ```
 
-`RequireCmsPermissionMiddleware::class` が未設定の route は、この middleware では止めません。FQCNをkeyにすることで、文字列keyの衝突を避け、設定の所有者をroute定義上で明示します。
+`RequireCmsPermissionMiddleware::class` が未設定の route は、この middleware では止めません。CMS routes では login の GET / POST と logout だけを例外とし、それ以外は表示用 GET を含めて Permission 設定を必須にします。FQCNをkeyにすることで、文字列keyの衝突を避け、設定の所有者をroute定義上で明示します。
 
 ## 拒否時の挙動
 
@@ -82,9 +82,9 @@ return [
 
 対象リソースの状態を見る判定は UseCase / Policy 側で行います。たとえば記事更新では、route-level で `article.update` を通した後、`ArticlePolicy` が `author_id` と role hierarchy を見て、writer は自分の記事だけ更新できるようにします。
 
-## 書き込み Route 追加時の確認
+## Route 追加時の確認
 
-- route に `RequireCmsPermissionMiddleware::class` の設定が必要か。
+- login / logout 以外の route に `RequireCmsPermissionMiddleware::class` を設定したか。
 - 既存 Permission で表現できるか。
 - 新しい Permission を追加するなら `PermissionCode`、`CodeDefinedRolePermissionQuery`、テストを同じ変更単位で更新したか。
 - route-level check だけで足りないリソース状態判定があるなら、UseCase / Policy へ追加したか。

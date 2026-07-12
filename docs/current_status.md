@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-12
+- 2026-07-13
 
 ## 現在地
 
@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- CMS routes は、login の GET / POST と logout だけを認証用の例外とし、それ以外の全routeでPermission metadataを必須にした。作成・編集フォーム、一覧、preview、履歴、設定、ゴミ箱などのGETにも既存Permissionを割り当て、`CmsConfigTest` が未設定、空文字、未定義PermissionをHTTP methodに関係なく検出する。
 - CMS route metadata の Permission 設定を、暗黙の文字列 key `requires_permission` から、設定を消費する `RequireCmsPermissionMiddleware::class` を key とする形式へ変更した。Framework の Router は metadata を解釈せず、CMS routes では middleware FQCN が設定の所有者を表す。将来用の入れ子設定は先に導入せず、現在は Permission 文字列を直接 value にする。
 - `docs/architecture_boundary_review.md` から対応済み項目を削除し、今後も判断が必要な Clock、Audit metadata、Front Business の固定 category scope だけに整理した。Audit metadata は、実際のデータ例、処理経路、現状維持の理由、見直し条件を追記した。
 - front-business の固定 site setting Query を、DB 実装と誤認させる `PdoSiteSettingQuery` から `Infrastructure/Configuration/FixedSiteSettingQuery` へ改名・移動した。POC 用固定値という現状の責務に名称と配置を合わせた。

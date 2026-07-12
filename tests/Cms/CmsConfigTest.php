@@ -20,6 +20,13 @@ final class CmsConfigTest extends TestCase
         '/admin/logout',
     ];
 
+    /** @var list<string> */
+    private const AUTHENTICATION_ROUTES = [
+        'GET /admin/login',
+        'POST /admin/login',
+        'POST /admin/logout',
+    ];
+
     public function testCmsMiddlewareConfigIncludesAuditAfterSessionRequirement(): void
     {
         $middleware = require dirname(__DIR__, 2) . '/apps/cms/config/middleware.php';
@@ -37,16 +44,32 @@ final class CmsConfigTest extends TestCase
         self::assertGreaterThan($permissionIndex, $auditIndex);
     }
 
-    public function testCmsWriteRoutesDeclareRequiredPermissionMetadata(): void
+    public function testCmsRoutesUseExpectedPermissionMetadata(): void
     {
         $routes = require dirname(__DIR__, 2) . '/apps/cms/config/routes.php';
         self::assertIsArray($routes);
 
         /** @var array<int, array{0:string,1:string,2:mixed,3?:array<string, mixed>}> $routes */
+        self::assertSame(PermissionCode::DASHBOARD_VIEW, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin'));
+        self::assertSame(PermissionCode::ARTICLE_LIST, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles'));
+        self::assertSame(PermissionCode::ARTICLE_CREATE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles/create'));
+        self::assertSame(PermissionCode::ARTICLE_UPDATE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles/{id:\d+}'));
+        self::assertSame(PermissionCode::ARTICLE_PREVIEW, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles/{id:\d+}/preview'));
+        self::assertSame(PermissionCode::ARTICLE_HISTORY, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles/{id:\d+}/history'));
+        self::assertSame(PermissionCode::ARTICLE_HISTORY, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/articles/{id:\d+}/history/{version:\d+}/preview'));
         self::assertSame(PermissionCode::ARTICLE_CREATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles'));
         self::assertSame(PermissionCode::ARTICLE_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}'));
         self::assertSame(PermissionCode::ARTICLE_DELETE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/articles/{id:\d+}/delete'));
+        self::assertSame(PermissionCode::PAGE_LIST, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/pages'));
+        self::assertSame(PermissionCode::PAGE_CREATE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/pages/create'));
+        self::assertSame(PermissionCode::PAGE_UPDATE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/pages/{id:\d+}'));
+        self::assertSame(PermissionCode::TAXONOMY_MANAGE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/categories'));
+        self::assertSame(PermissionCode::TAXONOMY_MANAGE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/tags'));
+        self::assertSame(PermissionCode::MEDIA_LIST, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/media'));
+        self::assertSame(PermissionCode::INQUIRY_READ, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/inquiries'));
         self::assertSame(PermissionCode::SETTING_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/settings'));
+        self::assertSame(PermissionCode::SETTING_UPDATE, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/settings'));
+        self::assertSame(PermissionCode::TRASH_VIEW, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/trash'));
         self::assertSame(PermissionCode::AUDIT_VIEW, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/audit-logs'));
         self::assertSame(PermissionCode::INQUIRY_READ, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/inquiries/{id:\d+}'));
         self::assertSame(PermissionCode::INQUIRY_UPDATE, $this->permissionFor(routes: $routes, method: 'POST', path: '/admin/inquiries/{id:\d+}'));
@@ -59,7 +82,7 @@ final class CmsConfigTest extends TestCase
         self::assertSame(PermissionCode::PERMISSION_VIEW, $this->permissionFor(routes: $routes, method: 'GET', path: '/admin/permissions'));
     }
 
-    public function testCmsStateChangingRoutesDeclareRequiredPermissionMetadataExceptAuthSecurityRoutes(): void
+    public function testCmsRoutesDeclareValidPermissionMetadataExceptAuthenticationRoutes(): void
     {
         $routes = require dirname(__DIR__, 2) . '/apps/cms/config/routes.php';
         self::assertIsArray($routes);
@@ -67,15 +90,12 @@ final class CmsConfigTest extends TestCase
         /** @var array<int, array{0:string,1:string,2:mixed,3?:array<string, mixed>}> $routes */
         foreach ($routes as $route) {
             [$method, $path] = $route;
-            if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-                continue;
-            }
-
-            if (in_array($path, ['/admin/login', '/admin/logout'], true)) {
-                continue;
-            }
-
             $metadata = $route[3] ?? [];
+            if (in_array("{$method} {$path}", self::AUTHENTICATION_ROUTES, true)) {
+                self::assertArrayNotHasKey(RequireCmsPermissionMiddleware::class, $metadata);
+                continue;
+            }
+
             self::assertArrayHasKey(
                 RequireCmsPermissionMiddleware::class,
                 $metadata,
@@ -83,6 +103,7 @@ final class CmsConfigTest extends TestCase
             );
             self::assertIsString($metadata[RequireCmsPermissionMiddleware::class]);
             self::assertNotSame('', $metadata[RequireCmsPermissionMiddleware::class]);
+            self::assertContains($metadata[RequireCmsPermissionMiddleware::class], PermissionCode::all());
         }
     }
 
