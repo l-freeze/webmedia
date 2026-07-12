@@ -200,22 +200,21 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 - CMS 側でカテゴリ slug を変えると壊れる。
 - site model / article publication / site scope を導入するなら、この固定 slug scope は消える候補になる。
 
-### 9. DB を読まない PdoSiteSettingQuery
+### 9. DB を読まない PdoSiteSettingQuery（対応済み）
 
 対象:
 
-- `apps/front-business/src/Infrastructure/Persistence/PdoSiteSettingQuery.php`
+- `apps/front-business/src/Infrastructure/Configuration/FixedSiteSettingQuery.php`
 
-`PdoSiteSettingQuery` という名前だが、実際には DB を読まず固定値を返している。
+DB を読まず固定値を返す実装を、`PdoSiteSettingQuery` から `FixedSiteSettingQuery` へ改名した。`Persistence` 配下からも外し、固定設定の Infrastructure 実装であることを示す `Infrastructure/Configuration` へ移した。
 
 現時点の判断:
 
-- CMS の `site_settings` に business front を依存させないという意味では、境界としては悪くない。
-- ただし `Pdo` という名前は実装事実とズレている。
+- CMS の `site_settings` に business front を依存せず、POC 用の固定設定として front-business 内に閉じる。
+- 実装名と配置は、DB 永続化を行わない現状に合わせる。
 
 検証時の注意:
 
-- 修正するなら `FixedSiteSettingQuery` や `BusinessSiteSettingQuery` のように、実装内容に合う名前へ変える。
 - business front の設定を DB 管理したくなった時は、site model と合わせて再設計する。
 
 ## 次の検証順

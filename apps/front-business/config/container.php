@@ -12,13 +12,13 @@ use App\FrontBusiness\Application\Page;
 use App\FrontBusiness\Application\Sitemap;
 use App\FrontBusiness\Application\Tag;
 use App\FrontBusiness\Domain\Repository\IInquiryRepository;
+use App\FrontBusiness\Infrastructure\Configuration\FixedSiteSettingQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoArticleQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoCategoryQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoInquiryRepository;
 use App\FrontBusiness\Infrastructure\Persistence\PdoLayoutCategoryQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoPageLinkQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoPageQuery;
-use App\FrontBusiness\Infrastructure\Persistence\PdoSiteSettingQuery;
 use App\FrontBusiness\Infrastructure\Persistence\PdoTagQuery;
 use App\FrontBusiness\Infrastructure\Persistence\Sitemap\PdoSitemapEntryQuery;
 use App\FrontBusiness\Presentation\Seo\CanonicalUrl;
@@ -129,7 +129,7 @@ $container->bind(abstract: Tag\Show\Query\IArticleQuery::class, concrete: PdoTag
 $container->bind(abstract: Page\Show\Query\IPageQuery::class, concrete: PdoPageQuery::class);
 $container->bind(abstract: Sitemap\Build\Query\ISitemapEntryQuery::class, concrete: PdoSitemapEntryQuery::class);
 $container->bind(abstract: Layout\Load\Query\IPageLinkQuery::class, concrete: PdoPageLinkQuery::class);
-$container->bind(abstract: Layout\Load\Query\ISiteSettingQuery::class, concrete: PdoSiteSettingQuery::class);
+$container->bind(abstract: Layout\Load\Query\ISiteSettingQuery::class, concrete: FixedSiteSettingQuery::class);
 $container->bind(abstract: Layout\Load\Query\ICategoryQuery::class, concrete: PdoLayoutCategoryQuery::class);
 $container->bind(abstract: IInquiryRepository::class, concrete: PdoInquiryRepository::class);
 

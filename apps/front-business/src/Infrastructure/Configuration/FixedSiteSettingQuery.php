@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\FrontBusiness\Infrastructure\Persistence;
+namespace App\FrontBusiness\Infrastructure\Configuration;
 
 use App\FrontBusiness\Application\Layout\Load\Query\ISiteSettingQuery;
 use App\FrontBusiness\Application\Layout\Load\Value\SiteSettings;
 
-final readonly class PdoSiteSettingQuery implements ISiteSettingQuery
+final readonly class FixedSiteSettingQuery implements ISiteSettingQuery
 {
     private const DEFAULT_SITE_NAME = '業務システム設計室';
     private const DEFAULT_SITE_DESCRIPTION = '管理画面、権限、監査ログ、履歴、状態変更を整理し、後から説明できる業務システムを設計します。';
