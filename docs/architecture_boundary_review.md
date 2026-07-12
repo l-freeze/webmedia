@@ -2,76 +2,19 @@
 
 ## 目的
 
-この文書は、責務、境界、構造を無視する作りが残っていないかを全体精査した結果を、後から忘れず処理するための抽出メモである。
+この文書は、責務、境界、構造を無視する作りが残っていないかを精査し、今後も判断が必要な項目だけを残すメモである。対応済みの項目はこの文書から削除し、対応履歴は Git 履歴と `docs/current_status.md` に任せる。
 
-今回の精査は、単なるコードスタイル確認ではない。以下のような作りは、短期的には動いても、システムの理解、変更、安全性を壊すため、重点的に探した。
+主に次のような作りを検査対象とする。
 
 - 別アプリケーションの都合を直接知る依存。
 - Application / Domain が Infrastructure、HTTP、DB、実行環境など外側の詳細を知る依存。
 - Repository や Entity がフォーム入力 shape、DB row shape、汎用配列を吸収する作り。
 - typed table にするべきデータを key-value / metadata / EAV 風の何でも箱に逃がす作り。
 - Framework / Kernel にアプリケーション固有の知識が混ざる作り。
-- 現行 schema として不要な履歴や将来用テーブルが残り、構造の正しさを曖昧にする作り。
 
-抽出した候補は、すぐ直すべき問題と、合理的な妥協として成立している可能性が高いものに分ける。次のステップでは、各候補が本当に修正対象か、現在の規模と目的に対して妥協として成立しているかを検証する。
+## 要判断候補
 
-## 強めの候補
-
-### 1. Domain Entity が input / row shape を吸収している
-
-状態: 対応済み。
-
-対象:
-
-- `apps/cms/src/Domain/Entity/Article.php`
-- `apps/cms/src/Domain/Entity/Page.php`
-- `apps/cms/src/Infrastructure/Persistence/PdoArticleRepository.php`
-- `apps/cms/src/Infrastructure/Persistence/PdoPageRepository.php`
-
-対応前は `Article::fromInput()` と `Page::fromInput()` が `array<string, mixed>` を受け取り、`title`、`body_format`、`published_ends_at` などの配列キーを Domain Entity 内で読んでいた。
-
-さらに Repository 側の DB row 復元でも `fromInput()` が使われていた。これは、Repository interface が Domain 型を受け取るようになった後も、shape 変換責務が Domain Entity に残っている状態だった。
-
-問題だった点:
-
-- Domain Entity がフォーム入力項目名を知っている。
-- DB row 復元と HTTP input からの生成が同じ入口に混ざっている。
-- `fromInput` という名前なのに、Repository の row 復元にも使われている。
-- 今後項目が増えた時に、どの層が変換責務を持つべきか曖昧になる。
-
-対応:
-
-- Domain Entity から `fromInput(array)` を削除した。
-- Entity 内の `stringValue` / `intValue` / `boolValue` / `nullablePositiveInt` のような shape helper を削除した。
-- UseCase 側は validation 済み input から ValueObject を明示的に作る。
-- Repository 側は DB row から ValueObject を明示的に作って `new Article(...)` / `new Page(...)` で復元する。
-- 薄い `restore` / `reconstruct` wrapper は増やさず、DB 復元であることは Repository 内の private method 名と処理位置で表現する。
-
-### 2. migration に現行 schema ではない履歴が残っている
-
-状態: 対応済み。
-
-対象:
-
-- `database/migrations/20260523000100_create_initial_schema.php`
-
-対応前は、現行概念が `cms_login_attempts` であるにもかかわらず、migration では一度 `login_attempts` を作成し、後続 migration で `cms_login_attempts` に rename していた。
-
-また、`page_versions` の unique index も初期 schema ではなく後続 migration で追加されていた。
-
-問題だった点:
-
-- fresh migrate 時に、現行として正しくない途中概念が migration 履歴に残る。
-- 初期 schema が「現在の正しい schema」を表すという方針とズレる。
-- まだ開発段階であれば、不要な schema 進化履歴を残す理由が弱い。
-
-対応:
-
-- 初期 schema で `cms_login_attempts` と `cms_login_attempt_resets` を現行 schema として直接作るようにした。
-- 初期 schema の `page_versions` に `page_id, version_no` の unique index を直接定義した。
-- 途中概念を作るだけの login attempt rename migration と、page version index の追加 migration を削除した。
-
-### 3. Application が現在時刻を直接生成している
+### 1. Application が現在時刻を直接生成している
 
 対象:
 
@@ -82,107 +25,125 @@
 
 懸念:
 
-- `docs/application_ports.md` では、Application が現在時刻を業務判断に使う場合は Clock port 候補としている。
-- ログイン試行制限は時刻 window に依存するため、テストや再実行時の基準時刻が固定しづらい。
+- ログイン制限は「現在から10分間」という判断に依存するため、現在時刻が業務入力に近い。
+- テストや再実行時に基準時刻を固定しにくい。
+- `docs/application_ports.md` の Clock port 検討基準に該当する可能性がある。
 
-検証方針:
+現時点の判断:
 
-- Login / ResetLoginAttempt の時刻が業務判断として十分重要か確認する。
-- Clock port を入れる価値があるか、現状の小ささを理由に妥協するか判断する。
-- 広域 Clock を安易に入れず、必要なら CMS Auth 用の時刻境界として最小化する。
+- フレームワーク全体で使う汎用 Clock を先に導入しない。
+- Login / ResetLoginAttempt の時刻境界をテストで固定する必要が出た時点で、CMS Auth 用の最小の Clock port を検討する。
 
-### 4. 記事 status label が Infrastructure の static helper にある
-
-状態: 対応済み。
-
-対象:
-
-- `apps/cms/src/Infrastructure/Persistence/PdoArticleRepository.php`
-- `apps/cms/src/Infrastructure/Persistence/PdoArticleQuery.php`
-- `apps/cms/src/Infrastructure/Persistence/PdoArticlePreviewQuery.php`
-- `apps/cms/src/Infrastructure/Persistence/PdoArticleVersionPreviewQuery.php`
-
-対応前は、記事の表示用 status label が `PdoArticleRepository::statusLabel()` に置かれ、複数の Query 実装から参照されていた。
-
-問題だった点:
-
-- Repository 実装に表示ラベル判断が置かれている。
-- `InquiryStatus::label()` は Domain 側にあるため、配置の一貫性が弱い。
-- status、published_at、published_ends_at から表示状態を読む判断が Infrastructure static helper に集まっている。
-
-対応:
-
-- DB に保存する `status` は変えず、「公開予約」「公開終了」は現在時刻と公開期間から導く CMS の表示上の派生状態と判断した。
-- Query 実装は Application Value へ `status`、`publishedAt`、`publishedEndsAt` の生値だけを詰める。
-- 日本語ラベルへの変換は `Presentation/Presenter/Article/ArticleStatusPresenter` に置き、Controller が template params の `status_label` を組み立てる。
-- `PdoArticleRepository::statusLabel()` と Application Value の `statusLabel` を削除した。
-- CMS Infrastructure から Presentation への依存と、Presentation から CMS Persistence 実装への直接依存を Architecture Test で禁止した。
-
-## 妥協として成立しそうな候補
-
-### 5. AuditSummary metadata
+### 2. AuditSummary metadata
 
 対象:
 
 - `apps/cms/src/Presentation/Audit/AuditSummary.php`
 - `apps/cms/src/Presentation/Audit/AuditReporter.php`
+- `apps/cms/src/Presentation/Http/Middleware/AuditMiddleware.php`
+- `apps/shared/src/Audit/Domain/AuditEvent.php`
 
-`AuditSummary::$metadata` は `array<string, mixed>` であり、EAV 風に見える。
+#### metadata が何を表すか
+
+Audit の `metadata` は、テーブルの任意属性を保存する EAV ではなく、監査イベントごとに異なる補足情報を持つ JSON 相当の payload である。`action`、`resourceType`、`resourceId`、`result`、actor などの共通項目は metadata の外に typed property として持っている。
+
+例えば記事更新では、概ね次のようなイベントになる。
+
+```php
+[
+    'action' => 'article.updated',
+    'resource_type' => 'article',
+    'resource_id' => '42',
+    'result' => 'success',
+    'metadata' => [
+        'method' => 'POST',
+        'path' => '/admin/articles/42',
+        'status_code' => 302,
+        'title' => '更新後のタイトル',
+        'slug' => 'updated-slug',
+        'status' => 'published',
+        'body_format' => 'rich_text',
+    ],
+]
+```
+
+問い合わせ更新では管理メモ本文を保存せず、`admin_note_present`、`admin_note_length`、`admin_note_hash` だけを残す。管理者 password も値そのものではなく `password_changed` という bool だけを残す。
+
+#### 処理経路
+
+1. Controller が状態変更成功後に `AuditReporter::articleSaved()` などの用途別 method を呼ぶ。
+2. `AuditReporter` が用途ごとに許可された項目だけを `AuditSummary` に入れる。
+3. `AuditMiddleware` が HTTP method、path、status code、actor、IP address などと結合し、最終的な `AuditEvent` を一度だけ dispatch する。
+
+#### なぜ汎用配列を許容しているか
+
+- `article.updated`、`media.uploaded`、`security.login_attempt_reset` で必要な補足項目が異なる。
+- 全 action の全項目を nullable property として持つ巨大 DTO や typed table にすると、監査対象を追加するたびに構造が膨らむ。
+- 現在は `AuditReporter` の用途別 method に記録項目を閉じており、任意の request body 全体を保存する作りにはなっていない。
 
 現時点の判断:
 
-- Audit は action ごとに補足項目が異なる。
-- 完全に typed table 化すると、監査対象が増えるたびに schema と UI が重くなる。
-- 現状は `AuditReporter` がメソッドごとに項目を絞っているため、妥協として成立している。
+- metadata の存在自体は問題としない。監査ログの可変 payload として現状維持する。
+- password、token、cookie、session id、CSRF token、本文全文、過度な個人情報は入れない。
 
-検証時の注意:
+見直し条件:
 
-- 問題にすべきなのは metadata の存在そのものではない。
-- `AuditReporter` を経由せず、何でも metadata に入れられる経路が増えた場合に問題化する。
-- password、token、本文全文、過度な個人情報を入れない境界を維持する。
+- Controller が用途別 method ではなく、public `describe()` に任意配列を渡す例が増える。
+- 同じ action の metadata shape が出力箇所ごとに異なる。
+- Audit の検索・集計要件により、metadata 内の特定項目に型、index、制約が必要になる。
+- 記録禁止値の混入をテストとレビューで防げなくなる。
 
-### 6. Route metadata
+### 3. Route metadata
 
 対象:
 
-- `src/Framework/Routing/Router.php`
 - `apps/cms/config/routes.php`
+- `src/Framework/Routing/Router.php`
+- `apps/cms/src/Presentation/Http/Middleware/RequireCmsPermissionMiddleware.php`
 
-route metadata は `array<string, mixed>` で、CMS では `requires_permission` を使っている。
+#### metadata が何を表すか
+
+Route metadata は監査ログとは別物で、各 route の実行前に middleware が使う設定値である。現在の CMS では `requires_permission` 一つだけを使っている。
+
+例えば記事更新 route は次のように定義される。
+
+```php
+[
+    'POST',
+    '/admin/articles/{id:\d+}',
+    ArticleUpdateController::class,
+    ['requires_permission' => PermissionCode::ARTICLE_UPDATE],
+]
+```
+
+#### 処理経路
+
+1. `Router` が route 配列の4番目を `array<string, mixed>` の metadata として保持する。
+2. route match 後、`Router::withRouteMetadata()` が metadata を Request attribute `route.metadata` に入れる。
+3. `RequireCmsPermissionMiddleware` が `requires_permission` を読み、ログイン中ユーザーがその Permission を持つか確認する。
+4. metadata がない route は、この middleware では追加の permission 判定を行わない。
+
+`requires_permission` は route に入るための粗い権限だけを表す。例えば「writer がこの記事を編集できるか」のように対象記事を読まないと判断できないルールは、metadata / middleware ではなく UseCase / Policy が扱う。
+
+#### なぜ typed object にしていないか
+
+- `Router` は CMS 専用ではなく、各アプリケーションが任意の route 補足情報を渡せる Framework 拡張点である。Framework が `requires_permission` という CMS 固有のキーを typed property として知るべきではない。
+- 読み取り側は現在 `RequireCmsPermissionMiddleware` のみで、CMS routes の PHPDoc は `requires_permission?: non-empty-string` まで shape を絞っている。
+- この規模で `RouteMetadataReader` や `MatchedRoute` DTO を追加すると、実際の用途より抽象が大きくなる。
 
 現時点の判断:
 
-- Framework の route 拡張点としては許容できる。
-- CMS 側の用途は `requires_permission` に限定されている。
-- `docs/decisions.md` にも、現時点では `RouteMetadataReader` や `MatchedRoute` value を作らない判断がある。
+- Framework の汎用 route metadata と、CMS の `requires_permission` 利用は現状維持する。
+- CMS の状態変更 route に `requires_permission` が必要なことと、値が空文字でないことは `tests/Cms/CmsConfigTest.php` で検査する。
 
-検証時の注意:
+見直し条件:
 
-- metadata を読む middleware が増えた場合は typed metadata / route definition を検討する。
-- `Router::ROUTE_METADATA_ATTRIBUTE` 参照が広がった場合は見直す。
+- `requires_permission` 以外に、rate limit、cache、content negotiation などのキーが増える。
+- route metadata を読む middleware や Controller が増え、`Router::ROUTE_METADATA_ATTRIBUTE` 参照が複数箇所へ広がる。
+- route name、vars、metadata、controller を一つの match result として渡す必要が出る。
+- キーの typo や不正な型が実際の障害原因になる。
 
-### 7. Tiptap JSON validation の重複
-
-対象:
-
-- `apps/cms/src/Application/Article/Save/Interactor.php`
-- `apps/cms/src/Application/Page/Save/Interactor.php`
-
-Article / Page の Save UseCase に、rich_text body の JSON decode と空判定が重複している。
-
-現時点の判断:
-
-- rich_text の正本が Tiptap / ProseMirror JSON であることは `docs/decisions.md` と整合している。
-- 重複はあるが、薄い ValueObject で包むだけなら見通しが悪化する。
-- 現状の規模では、UseCase 内の小さな validation として妥協できる可能性が高い。
-
-検証時の注意:
-
-- 抽象化するなら「本文が空かどうかを判定する validator / inspector」として意味を持たせる。
-- Domain Entity に外部 editor schema を持ち込みすぎない。
-- renderer と validation の責務を混ぜない。
-
-### 8. Front Business のカテゴリ slug 固定
+### 4. Front Business のカテゴリ slug 固定
 
 対象:
 
@@ -192,44 +153,24 @@ Article / Page の Save UseCase に、rich_text body の JSON decode と空判�
 
 現時点の判断:
 
-- site model 未導入の段階で、business front の表示範囲を絞る手段としては妥協可能。
-- `apps/front-business` 内に閉じており、Kernel や CMS へ混入していない。
+- front-business は POC であり、site model 未導入の段階で表示範囲を絞る方法として許容する。
+- `apps/front-business` 内に閉じており、Kernel、CMS、通常 Front の責務には混ぜない。
+- 現在は修正対象にしない。
 
-検証時の注意:
+見直し条件:
 
-- CMS 側でカテゴリ slug を変えると壊れる。
-- site model / article publication / site scope を導入するなら、この固定 slug scope は消える候補になる。
-
-### 9. DB を読まない PdoSiteSettingQuery（対応済み）
-
-対象:
-
-- `apps/front-business/src/Infrastructure/Configuration/FixedSiteSettingQuery.php`
-
-DB を読まず固定値を返す実装を、`PdoSiteSettingQuery` から `FixedSiteSettingQuery` へ改名した。`Persistence` 配下からも外し、固定設定の Infrastructure 実装であることを示す `Infrastructure/Configuration` へ移した。
-
-現時点の判断:
-
-- CMS の `site_settings` に business front を依存せず、POC 用の固定設定として front-business 内に閉じる。
-- 実装名と配置は、DB 永続化を行わない現状に合わせる。
-
-検証時の注意:
-
-- business front の設定を DB 管理したくなった時は、site model と合わせて再設計する。
+- CMS 側で対象カテゴリ slug を変更する必要が出る。
+- front-business を POC ではなく継続運用する。
+- site model / article publication / site scope を導入する。
 
 ## 次の検証順
 
-優先順は次の通り。
+1. Login / ResetLoginAttempt のテスト性を確認し、Clock port が必要か判断する。
+2. Audit metadata と Route metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
+3. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
 
-1. migration を現行 schema に畳めるか。
-2. 未使用 schema を削除できるか。
-3. Login / ResetLoginAttempt に Clock 境界を入れるべきか。
-4. 妥協候補 6-10 は、現時点維持でよいかを確認し、必要なら `docs/decisions.md` に判断だけ残す。
+## 現時点の結論
 
-## 精査時点の結論
+明確な境界違反としてすぐ修正すべき項目は、現在このメモには残っていない。
 
-前回までに修正した `site_settings`、Repository interface、cross-app cache key まわりの明確な境界違反はかなり減っている。
-
-Domain Entity に残っていた配列 shape の吸収口は解消した。一方で、migration に現行 schema ではない履歴が残っている点は、まだ構造上の弱さとして目立つ。
-
-Audit metadata、route metadata、Tiptap JSON、BusinessCategoryScope は違和感はあるが、現時点では目的に対する妥協として説明可能である。無理に抽象化すると、かえって責務がぼやける可能性がある。
+現在時刻の生成はテスト性の観点から追加判断が必要である。Audit metadata と Route metadata は、同じ metadata という名称でも目的とライフサイクルが異なる。どちらも現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。

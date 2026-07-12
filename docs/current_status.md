@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- `docs/architecture_boundary_review.md` から対応済み項目を削除し、今後も判断が必要な Clock、Audit metadata、Route metadata、Front Business の固定 category scope だけに整理した。Audit metadata と Route metadata は、実際のデータ例、処理経路、現状維持の理由、見直し条件を追記した。
 - front-business の固定 site setting Query を、DB 実装と誤認させる `PdoSiteSettingQuery` から `Infrastructure/Configuration/FixedSiteSettingQuery` へ改名・移動した。POC 用固定値という現状の責務に名称と配置を合わせた。
 - CMS 記事の日本語 status label を `PdoArticleRepository` から `Presentation/Presenter/Article/ArticleStatusPresenter` へ移した。Infrastructure Query は `status` と公開開始・終了日時の生値だけを Application Value へ返し、Controller が template 用ラベルを作る。CMS Infrastructure -> Presentation と Presentation -> CMS Persistence 実装の直接依存も Architecture Test で禁止した。
 - `tests/Architecture` に集約していた設計規約テストを、規約の所有先へ再配置した。CMS / Front の依存規約は各アプリの `Architecture`、UseCase 構造規約は各 `Application`、Article permission 発行規約と Entity の generic shape 禁止規約は各 `Domain`、Shared の依存規約は `tests/Shared/Architecture` で検査する。所有先のない root-level Architecture Test は残さない形にした。
