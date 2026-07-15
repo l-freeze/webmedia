@@ -39,8 +39,7 @@ storage/logs/security.log
 `apps/shared/config/container.php` で以下を登録します。
 
 ```php
-IApplicationLogger::class => JsonFileApplicationLogger(storage/logs/application.log)
-LoggerInterface::class => IApplicationLogger::class と同じ instance
+LoggerInterface::class => JsonFileApplicationLogger(storage/logs/application.log)
 IAuditLogger::class => JsonFileAuditLogger(storage/logs/audit.log)
 ISecurityLogger::class => JsonFileSecurityLogger(storage/logs/security.log)
 IEventBus::class => SynchronousEventBus([Audit handler, SecurityLog handler])

@@ -7,7 +7,6 @@ namespace Tests\Shared;
 use App\Framework\Container\Container;
 use App\Framework\Security\CsrfMiddleware;
 use App\Shared\Audit\Application\IAuditLogger;
-use App\Shared\ApplicationLog\Application\IApplicationLogger;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Cache\Infrastructure\FileSimpleCache;
@@ -33,7 +32,6 @@ final class SharedConfigTest extends TestCase
         $sharedContainer($container, $root);
 
         self::assertInstanceOf(Markdown::class, $container->get(id: Markdown::class));
-        self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: IApplicationLogger::class));
         self::assertInstanceOf(JsonFileApplicationLogger::class, $container->get(id: LoggerInterface::class));
         self::assertInstanceOf(JsonFileAuditLogger::class, $container->get(id: IAuditLogger::class));
         self::assertInstanceOf(JsonFileSecurityLogger::class, $container->get(id: ISecurityLogger::class));
