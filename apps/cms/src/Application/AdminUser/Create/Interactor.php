@@ -54,7 +54,7 @@ final readonly class Interactor
         );
         $userId = $this->users->create(user: $user);
 
-        return new Output(created: true, userId: $userId);
+        return new Output(created: true, userId: $userId->value);
     }
 
     private function validate(Input $input): ValidationOutput

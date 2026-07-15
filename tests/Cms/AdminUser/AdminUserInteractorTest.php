@@ -16,6 +16,7 @@ use App\Cms\Application\AdminUser\Create\Port\IPasswordHasher as CreatePasswordH
 use App\Cms\Application\AdminUser\Update\Port\IPasswordHasher as UpdatePasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\AdminUserId;
 use PHPUnit\Framework\TestCase;
 
 final class AdminUserInteractorTest extends TestCase
@@ -108,7 +109,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         ],
     ];
 
-    public function create(AdminUser $user): int
+    public function create(AdminUser $user): AdminUserId
     {
         $ids = array_keys($this->records);
         $id = ($ids === [] ? 0 : max($ids)) + 1;
@@ -119,7 +120,7 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
             'password_hash' => $user->passwordHash,
         ];
 
-        return $id;
+        return new AdminUserId(value: $id);
     }
 
     public function update(AdminUser $user): bool

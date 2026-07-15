@@ -8,6 +8,7 @@ use App\Cms\Application\AdminUser\List\Query\IAdminUserQuery;
 use App\Cms\Application\AdminUser\List\Value\AdminUser;
 use App\Cms\Domain\Entity\AdminUser as AdminUserEntity;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\CmsRole;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
@@ -43,7 +44,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
         return $users;
     }
 
-    public function create(AdminUserEntity $user): int
+    public function create(AdminUserEntity $user): AdminUserId
     {
         $now = date('Y-m-d H:i:s');
         $stmt = PdoHelper::prepare(
@@ -59,7 +60,7 @@ final readonly class PdoAdminUserRepository implements IAdminUserRepository, IAd
             'updated_at' => $now,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return new AdminUserId(value: (int) $this->pdo->lastInsertId());
     }
 
     public function update(AdminUserEntity $user): bool

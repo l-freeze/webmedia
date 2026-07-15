@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Repository;
 
 use App\Cms\Domain\Entity\AdminUser;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\CmsRole;
 
 interface IAdminUserRepository
 {
-    public function create(AdminUser $user): int;
+    public function create(AdminUser $user): AdminUserId;
 
     public function update(AdminUser $user): bool;
 
