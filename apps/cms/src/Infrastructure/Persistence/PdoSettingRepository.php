@@ -8,6 +8,9 @@ use App\Cms\Application\Setting\Edit\Query\ISettingQuery;
 use App\Cms\Application\Setting\Edit\Value\Settings;
 use App\Cms\Domain\Entity\SiteSettings;
 use App\Cms\Domain\Repository\ISettingRepository;
+use App\Cms\Domain\Value\FrontTheme;
+use App\Cms\Domain\Value\HeroDescription;
+use App\Cms\Domain\Value\HeroTitle;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -26,29 +29,27 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
                 siteName: '',
                 siteDescription: '',
                 contactEmail: '',
-                frontTheme: SiteSettings::DEFAULT_FRONT_THEME,
+                frontTheme: FrontTheme::CafeClean->value,
                 searchEnabled: true,
                 heroImage: '',
-                heroTitle: SiteSettings::DEFAULT_HERO_TITLE,
-                heroDescription: SiteSettings::DEFAULT_HERO_DESCRIPTION,
+                heroTitle: HeroTitle::DEFAULT,
+                heroDescription: HeroDescription::DEFAULT,
             );
         }
         $settings = PdoRow::from(values: $row);
 
-        $frontTheme = $settings->string(key: 'front_theme', default: SiteSettings::DEFAULT_FRONT_THEME);
-        if (!in_array($frontTheme, SiteSettings::FRONT_THEMES, true)) {
-            $frontTheme = SiteSettings::DEFAULT_FRONT_THEME;
-        }
+        $storedFrontTheme = $settings->string(key: 'front_theme', default: FrontTheme::CafeClean->value);
+        $frontTheme = FrontTheme::tryFrom($storedFrontTheme) ?? FrontTheme::CafeClean;
 
         return new Settings(
             siteName: $settings->string(key: 'site_name'),
             siteDescription: $settings->string(key: 'site_description'),
             contactEmail: $settings->string(key: 'contact_email'),
-            frontTheme: $frontTheme,
+            frontTheme: $frontTheme->value,
             searchEnabled: self::boolValue(value: $row['search_enabled'] ?? null, default: true),
             heroImage: $settings->string(key: 'hero_image'),
-            heroTitle: self::settingOrDefault(value: $settings->nullableString(key: 'hero_title'), default: SiteSettings::DEFAULT_HERO_TITLE),
-            heroDescription: self::settingOrDefault(value: $settings->nullableString(key: 'hero_description'), default: SiteSettings::DEFAULT_HERO_DESCRIPTION),
+            heroTitle: self::settingOrDefault(value: $settings->nullableString(key: 'hero_title'), default: HeroTitle::DEFAULT),
+            heroDescription: self::settingOrDefault(value: $settings->nullableString(key: 'hero_description'), default: HeroDescription::DEFAULT),
         );
     }
 
@@ -57,14 +58,14 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
         $now = date('Y-m-d H:i:s');
 
         $params = [
-            'site_name' => $settings->siteName,
-            'site_description' => $settings->siteDescription,
-            'contact_email' => $settings->contactEmail,
-            'front_theme' => $settings->frontTheme,
-            'search_enabled' => $settings->searchEnabled,
-            'hero_image' => $settings->heroImage,
-            'hero_title' => $settings->heroTitle,
-            'hero_description' => $settings->heroDescription,
+            'site_name' => $settings->siteName->value,
+            'site_description' => $settings->siteDescription->value,
+            'contact_email' => $settings->contactEmail->value,
+            'front_theme' => $settings->frontTheme->value,
+            'search_enabled' => $settings->searchEnabled->value,
+            'hero_image' => $settings->heroImage->value,
+            'hero_title' => $settings->heroTitle->value,
+            'hero_description' => $settings->heroDescription->value,
             'created_at' => $now,
             'updated_at' => $now,
         ];
