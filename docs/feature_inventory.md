@@ -92,7 +92,7 @@
 | 文書 | 扱い |
 |---|---|
 | `docs/README.md` | docs の入口。参照先の索引として維持 |
-| `docs/plan.md` | 作業計画と公開前評価。完了済み計画が混ざるため、今後はこの棚卸しと `current_status` へ寄せて肥大化を避ける |
+| `docs/plan.md` | 直近の作業順序と公開前確認を記録する資料として維持 |
 | `docs/current_status.md` | 作業ログと再開地点。履歴が長いが、現状把握には必要 |
 | `docs/webmedia_technical_stack.md` | 技術選定の一次資料として維持 |
 | `docs/webmedia_architecture_rules.md` | アーキテクチャ規約の一次資料として維持 |
@@ -104,16 +104,18 @@
 | 文書 | 扱い |
 |---|---|
 | `docs/application_ports.md` | Port 判断基準。現行規約として維持 |
+| `docs/architecture_boundary_review.md` | 現在も判断が必要な境界候補だけを記録する資料として維持 |
 | `docs/decisions.md` | なぜやる / やらないの設計判断記録として維持 |
+| `docs/site_model_plan.md` | site model導入に向けた現行方針と判断保留事項として維持 |
 | `docs/webmedia_architecture_rules.md` | 依存方向、配置、命名、middleware 境界の現行規約として維持 |
 
 ### 整理対象
 
 | 対象 | 判断 |
 |---|---|
-| `docs/webmedia_architecture_rules.md:Zone.Identifier` | Windows の ZoneTransfer メタ情報であり、設計資料ではないため削除 |
-| `docs/webmedia_technical_stack.md:Zone.Identifier` | Windows の ZoneTransfer メタ情報であり、設計資料ではないため削除 |
 | `docs/php85-optimize.md` | 未追跡ファイル。ユーザー作業の可能性があるため今回は触らない |
+| `docs/framework-quality-scoring.md` | 未追跡ファイル。正式な一次資料には含めず、ユーザー作業として触らない |
+| `docs/franken-application-architecture.md` | 未追跡ファイル。正式な一次資料には含めず、ユーザー作業として触らない |
 
 ## 作業順序
 

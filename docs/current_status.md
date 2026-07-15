@@ -8,8 +8,8 @@
 
 - 機能棚卸しは `docs/feature_inventory.md` に集約済み。
 - 作業順序は `docs/plan.md` に集約済み。
-- docs は、現行判断に必要な資料だけを残す方針へ変更中。
-- 過去レビュー、学習メモ、完了済みの詳細計画、将来構想だけの文書は削除し、Git 履歴に任せる。
+- tracked docs は、現行判断に必要な資料だけを残す形に整理済み。
+- 過去レビュー、学習メモ、完了済みの詳細計画は削除し、Git 履歴に任せる。
 - Front / CMS の主要 GET と、CMS / Front の主要更新系を HTTP 経由で確認済み。
 
 ## 直近作業
@@ -34,7 +34,7 @@
 - `docs/current_status.md` を現在地と再開地点だけに整理。
 - `docs/feature_inventory.md` の docs 棚卸しを、残す資料と削除済み資料が分かる形に整理。
 - 古い・重複した・実装済み計画系 docs を削除。
-- `docs/resource-operation-policy-plan.md` を CQRS の C / Q 分離に合わせて修正した。`Article/Save`、`Article/Delete`、`Article/Restore` は C 側なので Application Query port を追加せず、コマンド側のモデルと永続化境界は Domain の Entity / Repository / Policy / Value に置く方針にした。SELECT だけで完結して状態変更を伴わない処理は Query port、後続で状態変更する aggregate/entity の復元は Repository 責務として分ける。
+- route-level permission と resource-level permission をCQRSのC / Q分離に合わせて整理した。状態変更側にApplication Query portを追加せず、コマンド側のモデルと永続化境界はDomainのEntity / Repository / Policy / Valueに置く。SELECTだけで完結する処理はQuery port、後続で状態変更するaggregate / entityの復元はRepository責務として分ける。
 - 削りすぎた判断根拠を補うため、`docs/decisions.md` を追加。
   - View コンパイルキャッシュ
   - Layout Global Provider の cache

@@ -23,7 +23,6 @@
 - `docs/architecture_boundary_review.md`: 責務・境界・構造の全体精査で抽出した検証待ち候補。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。
-- `docs/resource-operation-policy-plan.md`: route-level permission と resource-level operation permission の整理プラン。
 - `docs/webmedia_technical_stack.md`: 技術スタック。
 - `docs/webmedia_ui_requirements_final_markdown/`: Front / CMS の UI 要件。
 - `docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/`: 初期デザイン参照。
