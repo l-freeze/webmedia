@@ -18,10 +18,17 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $validation = ValidationOutput::invalid(...array_values(array_filter([
+        $candidates = [
             self::required(field: 'name', label: '名前', value: $input->name),
             self::required(field: 'slug', label: 'スラッグ', value: $input->slug),
-        ])));
+        ];
+        $errors = [];
+        foreach ($candidates as $error) {
+            if ($error !== null) {
+                $errors[] = $error;
+            }
+        }
+        $validation = ValidationOutput::invalid(...$errors);
         $validation = SlugValidator::validate(slug: $input->slug, validation: $validation);
 
         if (!$validation->isValid()) {

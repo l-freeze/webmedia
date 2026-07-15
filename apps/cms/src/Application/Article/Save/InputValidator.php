@@ -16,7 +16,7 @@ final readonly class InputValidator
 {
     public static function validate(Input $input): ValidationOutput
     {
-        $validation = ValidationOutput::invalid(...array_values(array_filter([
+        $candidates = [
             self::required(field: 'title', label: 'タイトル', value: $input->title),
             self::required(field: 'slug', label: 'スラッグ', value: $input->slug),
             self::required(field: 'body_format', label: '入力種別', value: $input->bodyFormat),
@@ -26,7 +26,14 @@ final readonly class InputValidator
             self::enumValue(field: 'status', label: '状態', value: $input->status, enum: ArticleStatus::class),
             self::publicationDateTime(field: 'published_at', label: '公開日時', value: $input->publishedAt),
             self::publicationDateTime(field: 'published_ends_at', label: '公開終了日時', value: $input->publishedEndsAt),
-        ])));
+        ];
+        $errors = [];
+        foreach ($candidates as $error) {
+            if ($error !== null) {
+                $errors[] = $error;
+            }
+        }
+        $validation = ValidationOutput::invalid(...$errors);
         $validation = SlugValidator::validate(slug: $input->slug, validation: $validation);
 
         if (!$validation->isValid()) {

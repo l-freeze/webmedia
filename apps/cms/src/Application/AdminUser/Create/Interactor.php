@@ -59,14 +59,22 @@ final readonly class Interactor
 
     private function validate(Input $input): ValidationOutput
     {
-        return ValidationOutput::invalid(...array_values(array_filter([
+        $candidates = [
             self::required(field: 'email', label: 'メールアドレス', value: $input->email),
             self::email(field: 'email', label: 'メールアドレス', value: $input->email),
             self::maxLength(field: 'email', label: 'メールアドレス', value: $input->email, max: self::EMAIL_MAX_LENGTH),
             self::required(field: 'name', label: '名前', value: $input->name),
             self::maxLength(field: 'name', label: '名前', value: $input->name, max: self::NAME_MAX_LENGTH),
             self::required(field: 'password', label: 'パスワード', value: $input->password),
-        ])));
+        ];
+        $errors = [];
+        foreach ($candidates as $error) {
+            if ($error !== null) {
+                $errors[] = $error;
+            }
+        }
+
+        return ValidationOutput::invalid(...$errors);
     }
 
     private static function required(string $field, string $label, string $value): ?ValidationError
