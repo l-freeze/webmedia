@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Entity;
 
+use App\Cms\Domain\Value\MediaAltText;
+use App\Cms\Domain\Value\MediaCaption;
+use App\Cms\Domain\Value\MediaUploadFile;
+
 final readonly class MediaUpload
 {
     public function __construct(
-        public string $originalName,
-        public string $tmpName,
-        public int $error,
-        public int $size,
-        public string $altText,
-        public string $caption,
+        public MediaUploadFile $file,
+        public MediaAltText $altText,
+        public MediaCaption $caption,
     ) {
     }
 }

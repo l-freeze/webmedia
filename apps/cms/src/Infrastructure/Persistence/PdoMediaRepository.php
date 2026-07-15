@@ -7,6 +7,7 @@ namespace App\Cms\Infrastructure\Persistence;
 use App\Cms\Domain\Entity\MediaUpload;
 use App\Cms\Domain\Repository\IMediaRepository;
 use App\Cms\Domain\Value\MediaDeleteResult;
+use App\Cms\Domain\Value\MediaId;
 use App\Cms\Domain\Value\MediaUploadResult;
 use App\Cms\Infrastructure\Media\VipsImageVariantGenerator;
 use App\Shared\Database\PdoHelper;
@@ -47,11 +48,11 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
     public function storeUploadedMedia(MediaUpload $upload): MediaUploadResult
     {
-        if ($upload->error !== UPLOAD_ERR_OK) {
-            return new MediaUploadResult(uploaded: false, error: $this->uploadErrorMessage(error: $upload->error));
+        if ($upload->file->uploadError !== UPLOAD_ERR_OK) {
+            return new MediaUploadResult(uploaded: false, error: $this->uploadErrorMessage(error: $upload->file->uploadError));
         }
 
-        $tmpName = $upload->tmpName;
+        $tmpName = $upload->file->temporaryPath;
         if ($tmpName === '' || !is_file($tmpName)) {
             return new MediaUploadResult(uploaded: false, error: 'アップロードされたファイルを確認できません。');
         }
@@ -61,7 +62,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
             return new MediaUploadResult(uploaded: false, error: 'アップロードできるメディアは JPEG / PNG / WebP / GIF / MP4 / WebM / Ogg / MOV / AVI です。');
         }
 
-        $fileSize = $upload->size;
+        $fileSize = $upload->file->sizeInBytes;
         if ($fileSize <= 0 || $fileSize > $this->maxFileSize(mimeType: $mimeType)) {
             return new MediaUploadResult(uploaded: false, error: $this->fileSizeMessage(mimeType: $mimeType));
         }
@@ -92,7 +93,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO media_files (file_name, path, mime_type, file_size, width, height, thumbnail_path, optimized_path, alt_text, caption, created_at) VALUES (:file_name, :path, :mime_type, :file_size, :width, :height, :thumbnail_path, :optimized_path, :alt_text, :caption, :created_at) RETURNING id');
         PdoHelper::execute(statement: $stmt, params: [
-            'file_name' => $this->safeOriginalName(fileName: $upload->originalName === '' ? $storedFileName : $upload->originalName),
+            'file_name' => $this->safeOriginalName(fileName: $upload->file->originalName === '' ? $storedFileName : $upload->file->originalName),
             'path' => $path,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
@@ -100,19 +101,20 @@ final readonly class PdoMediaRepository implements IMediaRepository
             'height' => $height,
             'thumbnail_path' => $variants->thumbnailPath,
             'optimized_path' => $variants->optimizedPath,
-            'alt_text' => $upload->altText === '' ? null : $upload->altText,
-            'caption' => $upload->caption === '' ? null : $upload->caption,
+            'alt_text' => $upload->altText->value === '' ? null : $upload->altText->value,
+            'caption' => $upload->caption->value === '' ? null : $upload->caption->value,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
         $mediaId = PdoHelper::fetch(statement: $stmt);
 
-        return new MediaUploadResult(uploaded: true, mediaId: $mediaId === null ? null : PdoRow::from(values: $mediaId)->int(key: 'id'));
+        $storedMediaId = $mediaId === null ? null : new MediaId(value: PdoRow::from(values: $mediaId)->int(key: 'id'));
+        return new MediaUploadResult(uploaded: true, mediaId: $storedMediaId);
     }
 
-    public function delete(int $id): MediaDeleteResult
+    public function delete(MediaId $id): MediaDeleteResult
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT path, thumbnail_path, optimized_path FROM media_files WHERE id = :id LIMIT 1');
-        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id->value]);
         $row = PdoHelper::fetch(statement: $stmt);
         if ($row === null) {
             return new MediaDeleteResult(deleted: false, error: '削除対象のメディアが見つかりません。');
@@ -124,7 +126,7 @@ final readonly class PdoMediaRepository implements IMediaRepository
         try {
             $this->clearEyecatchReferences(path: $path);
             $delete = PdoHelper::prepare(pdo: $this->pdo, sql: 'DELETE FROM media_files WHERE id = :id');
-            PdoHelper::execute(statement: $delete, params: ['id' => $id]);
+            PdoHelper::execute(statement: $delete, params: ['id' => $id->value]);
             $this->pdo->commit();
         } catch (Throwable $exception) {
             $this->pdo->rollBack();

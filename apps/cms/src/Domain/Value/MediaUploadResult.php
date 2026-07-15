@@ -6,7 +6,7 @@ namespace App\Cms\Domain\Value;
 
 final readonly class MediaUploadResult
 {
-    public function __construct(public bool $uploaded, public ?string $error = null, public ?int $mediaId = null)
+    public function __construct(public bool $uploaded, public ?string $error = null, public ?MediaId $mediaId = null)
     {
     }
 }

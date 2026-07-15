@@ -6,6 +6,9 @@ namespace App\Cms\Application\Media\Upload;
 
 use App\Cms\Domain\Entity\MediaUpload;
 use App\Cms\Domain\Repository\IMediaRepository;
+use App\Cms\Domain\Value\MediaAltText;
+use App\Cms\Domain\Value\MediaCaption;
+use App\Cms\Domain\Value\MediaUploadFile;
 
 final readonly class Interactor
 {
@@ -19,17 +22,20 @@ final readonly class Interactor
         $tmpName = $this->stringValue(data: $input->file, key: 'tmp_name');
         $error = $this->intValue(data: $input->file, key: 'error', default: UPLOAD_ERR_NO_FILE);
         $size = $this->intValue(data: $input->file, key: 'size');
-        $mediaUpload = new MediaUpload(
+        $file = new MediaUploadFile(
             originalName: $originalName,
-            tmpName: $tmpName,
-            error: $error,
-            size: $size,
-            altText: $input->altText,
-            caption: $input->caption,
+            temporaryPath: $tmpName,
+            uploadError: $error,
+            sizeInBytes: $size,
+        );
+        $mediaUpload = new MediaUpload(
+            file: $file,
+            altText: new MediaAltText(value: $input->altText),
+            caption: new MediaCaption(value: $input->caption),
         );
         $result = $this->media->storeUploadedMedia($mediaUpload);
 
-        return new Output(uploaded: $result->uploaded, error: $result->error, mediaId: $result->mediaId);
+        return new Output(uploaded: $result->uploaded, error: $result->error, mediaId: $result->mediaId?->value);
     }
 
     /** @param array<string, mixed> $data */
