@@ -19,9 +19,9 @@ final readonly class PdoInquiryRepository implements IInquiryRepository
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE inquiries SET status = :status, admin_note = :admin_note, updated_at = :updated_at WHERE id = :id');
         PdoHelper::execute(statement: $stmt, params: [
-            'id' => $update->id,
+            'id' => $update->id->value,
             'status' => $update->status->value,
-            'admin_note' => $update->adminNote,
+            'admin_note' => $update->adminNote->value,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 

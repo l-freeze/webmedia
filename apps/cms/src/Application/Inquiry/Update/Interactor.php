@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Cms\Application\Inquiry\Update;
 
 use App\Cms\Domain\Entity\InquiryStatusUpdate;
+use App\Cms\Domain\Value\InquiryAdminNote;
+use App\Cms\Domain\Value\InquiryId;
 use App\Cms\Domain\Value\InquiryStatus;
 use App\Cms\Domain\Repository\IInquiryRepository;
 use App\Shared\Validation\ValidationError;
@@ -33,9 +35,9 @@ final readonly class Interactor
         }
 
         $statusUpdate = new InquiryStatusUpdate(
-            id: $input->id,
+            id: new InquiryId(value: $input->id),
             status: $status,
-            adminNote: $input->adminNote,
+            adminNote: new InquiryAdminNote(value: $input->adminNote),
         );
         $updated = $this->inquiries->updateStatus($statusUpdate);
 

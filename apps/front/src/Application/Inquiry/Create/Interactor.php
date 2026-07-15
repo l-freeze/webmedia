@@ -6,6 +6,10 @@ namespace App\Front\Application\Inquiry\Create;
 
 use App\Front\Domain\Entity\Inquiry;
 use App\Front\Domain\Repository\IInquiryRepository;
+use App\Front\Domain\Value\InquiryEmail;
+use App\Front\Domain\Value\InquiryMessage;
+use App\Front\Domain\Value\InquiryName;
+use App\Front\Domain\Value\InquirySubject;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -24,12 +28,13 @@ final readonly class Interactor
         }
 
         $inquiry = new Inquiry(
-            name: $input->name,
-            email: $input->email,
-            subject: $input->subject,
-            message: $input->message,
+            id: null,
+            name: new InquiryName(value: $input->name),
+            email: new InquiryEmail(value: $input->email),
+            subject: new InquirySubject(value: $input->subject),
+            message: new InquiryMessage(value: $input->message),
         );
-        $this->inquiries->create($inquiry);
+        $this->inquiries->save($inquiry);
 
         return new Output(created: true);
     }

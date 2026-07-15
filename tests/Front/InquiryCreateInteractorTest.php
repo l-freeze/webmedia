@@ -8,6 +8,7 @@ use App\Front\Application\Inquiry\Create\Input;
 use App\Front\Application\Inquiry\Create\Interactor;
 use App\Front\Domain\Entity\Inquiry;
 use App\Front\Domain\Repository\IInquiryRepository;
+use App\Front\Domain\Value\InquiryId;
 use PHPUnit\Framework\TestCase;
 
 final class InquiryCreateInteractorTest extends TestCase
@@ -54,7 +55,8 @@ final class InquiryCreateInteractorTest extends TestCase
 
 final class RecordingInquiryRepository implements IInquiryRepository
 {
-    public function create(Inquiry $inquiry): void
+    public function save(Inquiry $inquiry): InquiryId
     {
+        return new InquiryId(value: 1);
     }
 }

@@ -68,9 +68,9 @@ final class RecordingInquiryRepository implements IInquiryRepository
 
     public function updateStatus(InquiryStatusUpdate $update): bool
     {
-        $this->lastId = $update->id;
+        $this->lastId = $update->id->value;
         $this->lastStatus = $update->status;
-        $this->lastAdminNote = $update->adminNote;
+        $this->lastAdminNote = $update->adminNote->value;
 
         return true;
     }
