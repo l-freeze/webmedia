@@ -22,7 +22,6 @@
 ## 後で忘れず判断すること
 
 - 問い合わせフォームの最低限の rate limit / spam 対策 / プライバシー同意文言。積極運用しない前提なので直近優先にはしないが、公開フォームとして外部入力口になるため公開前には判断する。
-- 既存 UseCase Input を確認し、事前処理がないものは public constructor + `new Input(...)`、事前処理があるものは private constructor + `Input::create(...)` に揃える。
 - `docs/architecture_boundary_review.md` に列挙した `array_map` / `array_filter` を用途別に検証し、`foreach` へ変更する箇所と規約上許容する箇所を決める。
 
 ## 完了済みの大枠

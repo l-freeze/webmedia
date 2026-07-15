@@ -161,14 +161,53 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 
 現時点では一覧化だけを行い、各使用箇所を `foreach` へ変更するか、配列処理ルール側に例外を設けるかは判断しない。
 
+### 4. Query / Repository の戻り値境界
+
+2026-07-15 時点で、POC の `apps/front-business`、未追跡の `apps/minimal`、tests、vendor を除き、Query interface 41個・45 method、Repository interface 12個・29 method とその実装を確認した。
+
+件数の `int`、真偽判定の `bool`、戻り値を持たない `void` は規約どおり対象外とする。Query の UseCase Value、UseCase Value の型付き配列、Repository の Domain Entity / Value は適合として扱う。
+
+変更対象は次の2件である。
+
+#### AdminUser Repository の生成 ID
+
+- `apps/cms/src/Domain/Repository/IAdminUserRepository.php:12`
+  - `create(AdminUser $user): int` が生成 ID を primitive のまま返している。
+- `apps/cms/src/Infrastructure/Persistence/PdoAdminUserRepository.php:46`
+  - `lastInsertId()` を `int` へ変換して返している。
+- `apps/cms/src/Application/AdminUser/Create/Interactor.php:55`
+  - Repository から返された `int` をそのまま Output へ渡している。
+- `tests/Cms/AdminUser/AdminUserInteractorTest.php:99`
+  - in-memory Repository も `int` を返している。
+
+Domain Value の `AdminUserId` を導入し、Repository interface と実装の戻り値を揃える。Application Output / Presentation では、必要な外側の境界で scalar へ変換する。
+
+#### Role List Query の permission code 配列
+
+- `apps/cms/src/Application/Role/List/Query/IRolePermissionQuery.php:10`
+  - `permissionsForRole()` が `list<string>` を返している。
+- `apps/cms/src/Infrastructure/Auth/Authorization/CodeDefinedRolePermissionQuery.php:93`
+  - 定義済み permission code の primitive 配列を返している。
+- `apps/cms/src/Application/Role/List/Interactor.php:21`
+  - primitive 配列を受け取り、`Role` Value へ渡している。
+- `apps/cms/src/Application/Role/List/Value/Role.php:9`
+  - Query 由来の permission code を `list<string>` として保持している。
+- `tests/Cms/Role/RoleListInteractorTest.php:15`
+  - Query の戻り値と `Role` Value の型変更に合わせた検証が必要になる。
+
+Role List UseCase 配下に permission code を表す Value を置き、Query はその Value の型付き配列を返す。認可判定用の `hasPermission(): bool` は真偽判定の例外なので変更対象にしない。
+
+上記以外の Query / Repository 戻り値に、今回の規約に反する scalar、DB row、連想配列は確認されなかった。
+
 ## 次の検証順
 
 1. Audit metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
 2. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
 3. `array_map` / `array_filter` は上記一覧を用途別に確認し、副作用、可読性、型の崩れ、処理量を見て個別に判断する。
+4. Query / Repository の戻り値境界は、AdminUser Repository、Role List Query の順に修正する。
 
 ## 現時点の結論
 
-明確な境界違反としてすぐ修正すべき項目は、現在このメモには残っていない。
+明確な戻り値境界の修正対象として、AdminUser Repository の生成 ID と Role List Query の permission code 配列が残っている。
 
 Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。`array_map` / `array_filter` は未検証項目として使用箇所を記録済みである。

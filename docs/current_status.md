@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- Query interface 41個・45 method、Repository interface 12個・29 method と実装を確認し、戻り値境界の修正対象を2件に絞った。AdminUser Repository の生成 ID `int` は Domain Value、Role List Query の `list<string>` は UseCase Value の型付き配列へ変更する。件数の `int`、真偽判定の `bool`、`void` は対象外とする。詳細は `docs/architecture_boundary_review.md` に記録した。
 - アーキテクチャレビューの判断を docs へ反映した。UseCase Input は「加工不要なら public constructor + `new`、事前処理が必要なら private constructor + `Input::create()`」の2方式とし、Query / Repository の scalar 戻り値は件数の `int` と真偽判定の `bool` だけを例外として許容する。`array_map` / `array_filter` の使用箇所は `docs/architecture_boundary_review.md` に一覧化し、Article / Page と同じ Domain Entity 方針へ他機能を揃える作業は `docs/plan.md` に追加した。Application Port の差異は後続確認まで保留し、POC と `apps/minimal` は今回の対象外とした。
 - CMS Domainの有限集合をstring backed enumへ変更した。`ArticleStatus` / `PageStatus` / `ArticleBodyFormat` / `PageBodyFormat` / `CmsRole` / `InquiryStatus`の6種類を対象とし、Domain内部はcase比較、HTTP入力は`tryFrom()`によるvalidation、DB復元は`from()`による厳格な復元、永続化・session・template境界は`->value`への変換に揃えた。記事と固定ページの状態・本文形式は、現時点ではコンテキストごとに別enumとして維持する。
 - 第一者Interfaceの命名を`I` prefixへ統一した。Frameworkの`IApplication` / `IMiddleware` / `IRuntime` / `ITemplateRenderer`、Sharedの`IApplicationLogger` / `IAuditLogger` / `IEventBus` / `ISecurityLogger` / `IClock`、CMS Portの`IPasswordVerifier` / `IPasswordHasher`を含む。PSRなど外部Interfaceは提供元の名前を維持し、所有レイヤー別のArchitecture Testでprefixとファイル名一致を検査する。scaffoldも同じ規則で生成する。
@@ -72,7 +73,7 @@
     - CMS の設定保存 UseCase から Front の layout cache key 直接削除を外した。別アプリケーションの cache key を CMS が知る形にはせず、必要になった場合はアプリケーション横断の invalidation 境界として別途設計する。
     - Repository interface は保存対象の Domain 型を受け取る方針へ戻した。カテゴリ / タグ / サイト設定 / 問い合わせ / メディアアップロードは Domain 型を Repository に渡し、Repository がフォーム配列 shape や入力項目列の知識を持たないようにした。
     - Domain Entity から `fromInput(array)` と `stringValue` / `intValue` / `boolValue` などの入力 shape helper を削除した。Article / Page / SiteSettings の入力変換は UseCase、DB row 復元は Repository に閉じ、Entity は constructor、明示的な ValueObject、業務操作だけを扱う形にした。
-    - `apps/front` / `apps/front-business` / `apps/cms` の UseCase `Input` は一度 private constructor + `Input::create()` に統一した。その後、規約を「加工不要なら public constructor + `new`、事前処理が必要なら private constructor + `Input::create()`」の2方式へ整理したため、既存 Input の使い分けは後続で確認する。`Input` は public readonly property を持つ DTO とし、本文 / password / upload file 配列などを一律 trim しない。Application から `ValidationInput` / `FormValidator` / `ValidatedInput` / `ValidationResult` は外した。
+    - `apps/front` / `apps/front-business` / `apps/cms` の UseCase `Input` は private constructor + `Input::create()` に統一している。規約上は加工不要な場合の public constructor + `new` も許容するが、現行ソースは factory method 方式を維持する。`Input` は public readonly property を持つ DTO とし、本文 / password / upload file 配列などを一律 trim しない。Application から `ValidationInput` / `FormValidator` / `ValidatedInput` / `ValidationResult` は外した。
     - Interactor の `execute()` では、Entity / ValueObject 生成、Repository / Query 呼び出し、Output 生成を戻り値式へまとめず、意味のある local 変数に分けて処理順が読める形へ寄せた。
     - `cms_login_attempts` / `cms_login_attempt_resets` と `page_versions` unique index を初期 schema へ畳み、途中概念の `login_attempts` 作成 / rename migration と後追い index migration を削除した。
 - CMS:
