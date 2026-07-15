@@ -19,7 +19,11 @@ final class RoleListInteractorTest extends TestCase
 
         $roles = [];
         foreach ($output->roles as $role) {
-            $roles[$role->code] = $role->permissions;
+            $permissions = [];
+            foreach ($role->permissions as $permission) {
+                $permissions[] = $permission->code;
+            }
+            $roles[$role->code] = $permissions;
         }
 
         self::assertSame(array_map(static fn (CmsRole $role): string => $role->value, CmsRole::cases()), array_keys($roles));

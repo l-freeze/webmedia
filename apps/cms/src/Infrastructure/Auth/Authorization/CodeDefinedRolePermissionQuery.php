@@ -8,6 +8,7 @@ use App\Cms\Application\Auth\AuthorizeRoute\Query\IRolePermissionQuery as IAutho
 use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
 use App\Cms\Application\Permission\List\Query\IRolePermissionQuery as IPermissionListRolePermissionQuery;
 use App\Cms\Application\Role\List\Query\IRolePermissionQuery as IRoleListRolePermissionQuery;
+use App\Cms\Application\Role\List\Value\Permission as RolePermission;
 use App\Cms\Domain\Value\CmsRole;
 
 final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermissionQuery, IPermissionListRolePermissionQuery, IRoleListRolePermissionQuery
@@ -84,13 +85,22 @@ final class CodeDefinedRolePermissionQuery implements IAuthorizeRouteRolePermiss
 
     public function hasPermission(string $role, string $permission): bool
     {
-        return in_array($permission, $this->permissionsForRole(role: $role), true);
+        return in_array($permission, $this->permissionCodesForRole(role: $role), true);
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<RolePermission> */
     public function permissionsForRole(string $role): array
+    {
+        $permissions = [];
+        foreach ($this->permissionCodesForRole(role: $role) as $permission) {
+            $permissions[] = new RolePermission(code: $permission);
+        }
+
+        return $permissions;
+    }
+
+    /** @return list<string> */
+    private function permissionCodesForRole(string $role): array
     {
         $cmsRole = CmsRole::tryFrom($role);
 
