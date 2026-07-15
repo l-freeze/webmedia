@@ -4,22 +4,32 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Entity;
 
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\CmsLoginAttemptResetScope;
-use DateTimeImmutable;
+use App\Cms\Domain\Value\IpAddress;
+use App\Cms\Domain\Value\LoginAttemptEmail;
+use App\Cms\Domain\Value\LoginAttemptResetAt;
+use App\Cms\Domain\Value\LoginAttemptResetReason;
 
 final readonly class CmsLoginAttemptReset
 {
     private function __construct(
         public CmsLoginAttemptResetScope $scope,
-        public ?string $email,
-        public string $ipAddress,
-        public DateTimeImmutable $resetAt,
-        public int $resetByUserId,
-        public string $reason,
+        public ?LoginAttemptEmail $email,
+        public IpAddress $ipAddress,
+        public LoginAttemptResetAt $resetAt,
+        public AdminUserId $resetByUserId,
+        public LoginAttemptResetReason $reason,
     ) {
     }
 
-    public static function emailIp(string $email, string $ipAddress, DateTimeImmutable $resetAt, int $resetByUserId, string $reason): self
+    public static function emailIp(
+        LoginAttemptEmail $email,
+        IpAddress $ipAddress,
+        LoginAttemptResetAt $resetAt,
+        AdminUserId $resetByUserId,
+        LoginAttemptResetReason $reason,
+    ): self
     {
         return new self(
             scope: CmsLoginAttemptResetScope::EmailIp,
@@ -31,7 +41,12 @@ final readonly class CmsLoginAttemptReset
         );
     }
 
-    public static function ip(string $ipAddress, DateTimeImmutable $resetAt, int $resetByUserId, string $reason): self
+    public static function ip(
+        IpAddress $ipAddress,
+        LoginAttemptResetAt $resetAt,
+        AdminUserId $resetByUserId,
+        LoginAttemptResetReason $reason,
+    ): self
     {
         return new self(
             scope: CmsLoginAttemptResetScope::Ip,

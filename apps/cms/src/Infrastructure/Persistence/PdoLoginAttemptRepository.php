@@ -34,10 +34,10 @@ INSERT INTO cms_login_attempts (
 SQL,
         );
         PdoHelper::execute(statement: $stmt, params: [
-            'email_hash' => $this->emailHash->hash(email: $attempt->email),
-            'ip_address' => $attempt->ipAddress,
+            'email_hash' => $this->emailHash->hash(email: $attempt->email->value),
+            'ip_address' => $attempt->ipAddress->value,
             'result' => $attempt->result->value,
-            'attempted_at' => $attempt->attemptedAt->format('Y-m-d H:i:s'),
+            'attempted_at' => $attempt->attemptedAt->value->format('Y-m-d H:i:s'),
         ]);
     }
 }

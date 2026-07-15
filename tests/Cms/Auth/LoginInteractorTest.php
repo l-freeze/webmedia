@@ -47,7 +47,7 @@ final class LoginInteractorTest extends TestCase
         self::assertSame(10, $output->userId);
         self::assertSame('admin', $output->role);
         self::assertSame(LoginAttemptResult::Success, $attempts->lastAttempt?->result);
-        self::assertEquals($this->clock()->now(), $attempts->lastAttempt->attemptedAt);
+        self::assertEquals($this->clock()->now(), $attempts->lastAttempt->attemptedAt->value);
     }
 
     public function testRejectsWhenPasswordVerifierRejectsPassword(): void

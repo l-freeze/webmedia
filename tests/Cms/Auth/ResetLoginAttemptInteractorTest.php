@@ -29,7 +29,7 @@ final class ResetLoginAttemptInteractorTest extends TestCase
         ));
 
         self::assertTrue($output->reset);
-        self::assertSame($now, $resets->lastReset?->resetAt);
+        self::assertSame($now, $resets->lastReset?->resetAt->value);
     }
 }
 

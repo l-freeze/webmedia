@@ -7,6 +7,11 @@ namespace App\Cms\Application\Auth\ResetLoginAttempt;
 use App\Cms\Domain\Entity\CmsLoginAttemptReset;
 use App\Cms\Domain\Repository\ICmsLoginAttemptResetRepository;
 use App\Cms\Domain\Value\CmsLoginAttemptResetScope;
+use App\Cms\Domain\Value\AdminUserId;
+use App\Cms\Domain\Value\IpAddress;
+use App\Cms\Domain\Value\LoginAttemptEmail;
+use App\Cms\Domain\Value\LoginAttemptResetAt;
+use App\Cms\Domain\Value\LoginAttemptResetReason;
 use App\Shared\Time\Application\IClock;
 
 final readonly class Interactor
@@ -31,6 +36,10 @@ final readonly class Interactor
 
         $reason = mb_substr(trim($input->reason), 0, self::REASON_MAX_LENGTH);
         $now = $this->clock->now();
+        $resetIpAddress = new IpAddress(value: $ipAddress);
+        $resetAt = new LoginAttemptResetAt(value: $now);
+        $resetByUserId = new AdminUserId(value: $input->resetByUserId);
+        $resetReason = new LoginAttemptResetReason(value: $reason);
 
         if ($scope === CmsLoginAttemptResetScope::EmailIp) {
             $email = trim($input->email);
@@ -39,11 +48,11 @@ final readonly class Interactor
             }
 
             $reset = CmsLoginAttemptReset::emailIp(
-                email: $email,
-                ipAddress: $ipAddress,
-                resetAt: $now,
-                resetByUserId: $input->resetByUserId,
-                reason: $reason,
+                email: new LoginAttemptEmail(value: $email),
+                ipAddress: $resetIpAddress,
+                resetAt: $resetAt,
+                resetByUserId: $resetByUserId,
+                reason: $resetReason,
             );
             $this->resets->save($reset);
 
@@ -51,10 +60,10 @@ final readonly class Interactor
         }
 
         $reset = CmsLoginAttemptReset::ip(
-            ipAddress: $ipAddress,
-            resetAt: $now,
-            resetByUserId: $input->resetByUserId,
-            reason: $reason,
+            ipAddress: $resetIpAddress,
+            resetAt: $resetAt,
+            resetByUserId: $resetByUserId,
+            reason: $resetReason,
         );
         $this->resets->save($reset);
 

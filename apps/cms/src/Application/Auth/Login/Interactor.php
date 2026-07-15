@@ -11,6 +11,9 @@ use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 use App\Cms\Domain\Repository\IUserRepository;
 use App\Cms\Domain\Value\AdminUserEmail;
+use App\Cms\Domain\Value\IpAddress;
+use App\Cms\Domain\Value\LoginAttemptedAt;
+use App\Cms\Domain\Value\LoginAttemptEmail;
 use App\Shared\Time\Application\IClock;
 use DateTimeImmutable;
 
@@ -32,12 +35,15 @@ final readonly class Interactor
     public function execute(Input $input): Output
     {
         $now = $this->clock->now();
+        $attemptEmail = new LoginAttemptEmail(value: $input->email);
+        $ipAddress = new IpAddress(value: $input->ipAddress);
+        $attemptedAt = new LoginAttemptedAt(value: $now);
         $blockedByRateLimit = $this->hasTooManyFailedLoginAttempts($input, $now);
         if ($blockedByRateLimit) {
             $loginAttempt = LoginAttempt::blocked(
-                email: $input->email,
-                ipAddress: $input->ipAddress,
-                attemptedAt: $now,
+                email: $attemptEmail,
+                ipAddress: $ipAddress,
+                attemptedAt: $attemptedAt,
             );
             $this->loginAttempts->save($loginAttempt);
 
@@ -47,9 +53,9 @@ final readonly class Interactor
         $user = $this->findUserByValidCredentials($input);
         if ($user === null) {
             $loginAttempt = LoginAttempt::failure(
-                email: $input->email,
-                ipAddress: $input->ipAddress,
-                attemptedAt: $now,
+                email: $attemptEmail,
+                ipAddress: $ipAddress,
+                attemptedAt: $attemptedAt,
             );
             $this->loginAttempts->save($loginAttempt);
 
@@ -57,9 +63,9 @@ final readonly class Interactor
         }
 
         $loginAttempt = LoginAttempt::success(
-            email: $input->email,
-            ipAddress: $input->ipAddress,
-            attemptedAt: $now,
+            email: $attemptEmail,
+            ipAddress: $ipAddress,
+            attemptedAt: $attemptedAt,
         );
         $this->loginAttempts->save($loginAttempt);
 

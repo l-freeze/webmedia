@@ -41,10 +41,10 @@ SQL,
         PdoHelper::execute(statement: $stmt, params: [
             'scope' => $reset->scope->value,
             'email_hash' => $this->emailHash(reset: $reset),
-            'ip_address' => $reset->ipAddress,
-            'reset_at' => $reset->resetAt->format('Y-m-d H:i:s'),
-            'reset_by_user_id' => (string) $reset->resetByUserId,
-            'reason' => $reset->reason,
+            'ip_address' => $reset->ipAddress->value,
+            'reset_at' => $reset->resetAt->value->format('Y-m-d H:i:s'),
+            'reset_by_user_id' => $reset->resetByUserId->value,
+            'reason' => $reset->reason->value,
         ]);
     }
 
@@ -54,6 +54,6 @@ SQL,
             return null;
         }
 
-        return $this->emailHash->hash(email: $reset->email);
+        return $this->emailHash->hash(email: $reset->email->value);
     }
 }

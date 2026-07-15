@@ -6,6 +6,12 @@ namespace Tests\Cms\Auth;
 
 use App\Cms\Domain\Entity\CmsLoginAttemptReset;
 use App\Cms\Domain\Entity\LoginAttempt;
+use App\Cms\Domain\Value\AdminUserId;
+use App\Cms\Domain\Value\IpAddress;
+use App\Cms\Domain\Value\LoginAttemptedAt;
+use App\Cms\Domain\Value\LoginAttemptEmail;
+use App\Cms\Domain\Value\LoginAttemptResetAt;
+use App\Cms\Domain\Value\LoginAttemptResetReason;
 use App\Cms\Infrastructure\Persistence\LoginAttemptEmailHash;
 use App\Cms\Infrastructure\Persistence\PdoCmsLoginAttemptResetRepository;
 use App\Cms\Infrastructure\Persistence\PdoLoginAttemptQuery;
@@ -34,34 +40,34 @@ final class LoginAttemptPersistenceTest extends TestCase
         $query = new PdoLoginAttemptQuery(pdo: $pdo, emailHash: $hash);
 
         $repository->save(attempt: LoginAttempt::failure(
-            email: 'Admin@Example.Test',
-            ipAddress: '192.0.2.10',
-            attemptedAt: new DateTimeImmutable('2026-07-03 10:00:00'),
+            email: new LoginAttemptEmail(value: 'Admin@Example.Test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 10:00:00')),
         ));
         $repository->save(attempt: LoginAttempt::success(
-            email: 'admin@example.test',
-            ipAddress: '192.0.2.10',
-            attemptedAt: new DateTimeImmutable('2026-07-03 10:01:00'),
+            email: new LoginAttemptEmail(value: 'admin@example.test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 10:01:00')),
         ));
         $repository->save(attempt: LoginAttempt::blocked(
-            email: 'admin@example.test',
-            ipAddress: '192.0.2.10',
-            attemptedAt: new DateTimeImmutable('2026-07-03 10:02:00'),
+            email: new LoginAttemptEmail(value: 'admin@example.test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 10:02:00')),
         ));
         $repository->save(attempt: LoginAttempt::failure(
-            email: 'other@example.test',
-            ipAddress: '192.0.2.10',
-            attemptedAt: new DateTimeImmutable('2026-07-03 10:03:00'),
+            email: new LoginAttemptEmail(value: 'other@example.test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 10:03:00')),
         ));
         $repository->save(attempt: LoginAttempt::failure(
-            email: 'admin@example.test',
-            ipAddress: '198.51.100.20',
-            attemptedAt: new DateTimeImmutable('2026-07-03 10:04:00'),
+            email: new LoginAttemptEmail(value: 'admin@example.test'),
+            ipAddress: new IpAddress(value: '198.51.100.20'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 10:04:00')),
         ));
         $repository->save(attempt: LoginAttempt::failure(
-            email: 'admin@example.test',
-            ipAddress: '192.0.2.10',
-            attemptedAt: new DateTimeImmutable('2026-07-03 09:00:00'),
+            email: new LoginAttemptEmail(value: 'admin@example.test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            attemptedAt: new LoginAttemptedAt(value: new DateTimeImmutable('2026-07-03 09:00:00')),
         ));
 
         $counts = $query->countFailures(
@@ -74,11 +80,11 @@ final class LoginAttemptPersistenceTest extends TestCase
         self::assertSame(2, $counts->byIp);
 
         $resetRepository->save(reset: CmsLoginAttemptReset::emailIp(
-            email: 'admin@example.test',
-            ipAddress: '192.0.2.10',
-            resetAt: new DateTimeImmutable('2026-07-03 10:02:30'),
-            resetByUserId: 1,
-            reason: 'unlock',
+            email: new LoginAttemptEmail(value: 'admin@example.test'),
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            resetAt: new LoginAttemptResetAt(value: new DateTimeImmutable('2026-07-03 10:02:30')),
+            resetByUserId: new AdminUserId(value: 1),
+            reason: new LoginAttemptResetReason(value: 'unlock'),
         ));
 
         $countsAfterEmailIpReset = $query->countFailures(
@@ -91,10 +97,10 @@ final class LoginAttemptPersistenceTest extends TestCase
         self::assertSame(2, $countsAfterEmailIpReset->byIp);
 
         $resetRepository->save(reset: CmsLoginAttemptReset::ip(
-            ipAddress: '192.0.2.10',
-            resetAt: new DateTimeImmutable('2026-07-03 10:03:30'),
-            resetByUserId: 1,
-            reason: 'unlock ip',
+            ipAddress: new IpAddress(value: '192.0.2.10'),
+            resetAt: new LoginAttemptResetAt(value: new DateTimeImmutable('2026-07-03 10:03:30')),
+            resetByUserId: new AdminUserId(value: 1),
+            reason: new LoginAttemptResetReason(value: 'unlock ip'),
         ));
 
         $countsAfterIpReset = $query->countFailures(

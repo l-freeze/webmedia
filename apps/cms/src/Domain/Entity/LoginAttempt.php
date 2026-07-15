@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace App\Cms\Domain\Entity;
 
+use App\Cms\Domain\Value\IpAddress;
+use App\Cms\Domain\Value\LoginAttemptedAt;
+use App\Cms\Domain\Value\LoginAttemptEmail;
 use App\Cms\Domain\Value\LoginAttemptResult;
-use DateTimeImmutable;
 
 final readonly class LoginAttempt
 {
     private function __construct(
-        public string $email,
-        public string $ipAddress,
+        public LoginAttemptEmail $email,
+        public IpAddress $ipAddress,
         public LoginAttemptResult $result,
-        public DateTimeImmutable $attemptedAt,
+        public LoginAttemptedAt $attemptedAt,
     ) {
     }
 
-    public static function success(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self
+    public static function success(LoginAttemptEmail $email, IpAddress $ipAddress, LoginAttemptedAt $attemptedAt): self
     {
         return new self(
             email: $email,
@@ -27,7 +29,7 @@ final readonly class LoginAttempt
         );
     }
 
-    public static function failure(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self
+    public static function failure(LoginAttemptEmail $email, IpAddress $ipAddress, LoginAttemptedAt $attemptedAt): self
     {
         return new self(
             email: $email,
@@ -37,7 +39,7 @@ final readonly class LoginAttempt
         );
     }
 
-    public static function blocked(string $email, string $ipAddress, DateTimeImmutable $attemptedAt): self
+    public static function blocked(LoginAttemptEmail $email, IpAddress $ipAddress, LoginAttemptedAt $attemptedAt): self
     {
         return new self(
             email: $email,
