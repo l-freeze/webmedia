@@ -59,10 +59,12 @@ $envString = static function (string $key, string $default = ''): string {
 };
 
 $csv = static function (string $value): array {
-    return array_values(array_filter(array_map(
-        static fn (string $item): string => trim($item),
-        explode(',', $value),
-    ), static fn (string $item): bool => $item !== ''));
+    $items = [];
+    foreach (explode(',', $value) as $item) {
+        $items[] = trim($item);
+    }
+
+    return array_values(array_filter($items, static fn (string $item): bool => $item !== ''));
 };
 
 $container->singleton(id: CorsMiddleware::class, factory: static fn (): CorsMiddleware => new CorsMiddleware(

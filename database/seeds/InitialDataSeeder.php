@@ -64,10 +64,12 @@ final class InitialDataSeeder extends AbstractSeed
             ['id' => 15, 'name' => '家事', 'slug' => 'housework'],
         ];
 
-        $this->table('tags')->insert(array_map(
-            fn (array $tag): array => $tag + ['created_at' => $now, 'updated_at' => $now],
-            $tags,
-        ))->saveData();
+        $tagRows = [];
+        foreach ($tags as $tag) {
+            $tagRows[] = $tag + ['created_at' => $now, 'updated_at' => $now];
+        }
+
+        $this->table('tags')->insert($tagRows)->saveData();
 
         $articles = [
             [

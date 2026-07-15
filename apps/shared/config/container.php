@@ -41,10 +41,12 @@ return static function (Container $container, string $root): void {
     };
 
     $csv = static function (string $value): array {
-        return array_values(array_filter(array_map(
-            static fn (string $item): string => trim($item),
-            explode(',', $value),
-        ), static fn (string $item): bool => $item !== ''));
+        $items = [];
+        foreach (explode(',', $value) as $item) {
+            $items[] = trim($item);
+        }
+
+        return array_values(array_filter($items, static fn (string $item): bool => $item !== ''));
     };
 
     $container->singleton(id: Csrf::class, factory: function (Container $container): Csrf {

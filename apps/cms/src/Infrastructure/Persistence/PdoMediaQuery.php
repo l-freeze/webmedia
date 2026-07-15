@@ -73,10 +73,13 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title FROM articles WHERE eyecatch_path = :path ORDER BY id DESC LIMIT 5');
         PdoHelper::execute(statement: $stmt, params: ['path' => $path]);
 
-        return array_map(
-            fn (array $row): string => '記事アイキャッチ #' . PdoRow::from(values: $row)->int(key: 'id') . ' ' . PdoRow::from(values: $row)->string(key: 'title'),
-            PdoHelper::fetchAll(statement: $stmt),
-        );
+        $labels = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $pdoRow = PdoRow::from(values: $row);
+            $labels[] = '記事アイキャッチ #' . $pdoRow->int(key: 'id') . ' ' . $pdoRow->string(key: 'title');
+        }
+
+        return $labels;
     }
 
     /** @return array<int, string> */
@@ -85,10 +88,13 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title FROM articles WHERE body LIKE :needle OR rendered_body_html LIKE :needle ORDER BY id DESC LIMIT 5');
         PdoHelper::execute(statement: $stmt, params: ['needle' => '%' . $path . '%']);
 
-        return array_map(
-            fn (array $row): string => '記事本文 #' . PdoRow::from(values: $row)->int(key: 'id') . ' ' . PdoRow::from(values: $row)->string(key: 'title'),
-            PdoHelper::fetchAll(statement: $stmt),
-        );
+        $labels = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $pdoRow = PdoRow::from(values: $row);
+            $labels[] = '記事本文 #' . $pdoRow->int(key: 'id') . ' ' . $pdoRow->string(key: 'title');
+        }
+
+        return $labels;
     }
 
     /** @return array<int, string> */
@@ -97,10 +103,13 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT id, title FROM pages WHERE body LIKE :needle OR rendered_body_html LIKE :needle ORDER BY id DESC LIMIT 5');
         PdoHelper::execute(statement: $stmt, params: ['needle' => '%' . $path . '%']);
 
-        return array_map(
-            fn (array $row): string => '固定ページ本文 #' . PdoRow::from(values: $row)->int(key: 'id') . ' ' . PdoRow::from(values: $row)->string(key: 'title'),
-            PdoHelper::fetchAll(statement: $stmt),
-        );
+        $labels = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $pdoRow = PdoRow::from(values: $row);
+            $labels[] = '固定ページ本文 #' . $pdoRow->int(key: 'id') . ' ' . $pdoRow->string(key: 'title');
+        }
+
+        return $labels;
     }
 
     /** @return array<int, string> */
@@ -109,9 +118,11 @@ final readonly class PdoMediaQuery implements Media\List\Query\IMediaQuery
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT hero_image FROM site_settings WHERE hero_image = :path OR hero_image LIKE :needle LIMIT 5');
         PdoHelper::execute(statement: $stmt, params: ['path' => $path, 'needle' => '%' . $path . '%']);
 
-        return array_map(
-            fn (array $row): string => 'サイト設定 hero_image',
-            PdoHelper::fetchAll(statement: $stmt),
-        );
+        $labels = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $_row) {
+            $labels[] = 'サイト設定 hero_image';
+        }
+
+        return $labels;
     }
 }
