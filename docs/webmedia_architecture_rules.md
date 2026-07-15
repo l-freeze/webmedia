@@ -472,10 +472,11 @@ Application/
 - フレームワーク型を持たない
 - `Request`、`Response`、`PDO`、`Container`、`Latte` を持たない
 - scalar、array、ValueObject は持ってよい
-- 値の加工が不要なら、public constructor を Controller から `new` する
-- trim、空値補正、下限補正など、UseCase 入力として保持する前の処理が必要なら、constructor を private にして `Input::create()` を factory method として用意する
+- public constructor を Controller から `new` する方式と、private constructor + `Input::create()` のfactory method方式のどちらも使ってよい
+- 事前処理が不要なInputで `Input::create()` を使ってはいけないわけではない。UseCaseの生成APIを明示する目的や、同じアプリケーション内の一貫性を優先してfactory methodを選んでよい
+- trim、空値補正、下限補正など、UseCase入力として保持する前の処理がある場合は `Input::create()` に閉じる
 - `Input::create()` を使う場合、事前処理は factory method に閉じ、constructor は値の保持だけを行う
-- 事前処理がない Input に `create()` を機械的に追加しない
+- factory methodを使う理由を作るために、不要な事前処理や抽象化を追加しない
 - singleton service の property に保持しない
 - request 固有の状態を static property、global、shared service に退避しない
 
@@ -580,20 +581,20 @@ final readonly class Interactor
 Application/<Feature>/<Action>/Value/<Name>.php
 ```
 
-Query が単一の値を返す場合、PHP 組み込みの `array`、DB row、scalar を直接返してはならない。必ず UseCase 配下の `Value` DTO を返す。
+Query の戻り値はApplication Value、または要素型を明示したApplication Valueの配列を基本とする。DB rowや型不明の連想配列を直接返してはならない。
 
-ただし、次の scalar は例外として直接返してよい。
+primitiveを直接返してよいのは、次の場合に限る。
 
 - 件数を返す `count...(): int`
 - 存在、許可、該当有無などの真偽判定を返す `exists...(): bool` / `has...(): bool` / `is...(): bool`
 
-この例外は、件数と真偽値を DTO に包んでも業務上の意味や不変条件が増えない場合に限る。生成された ID、金額、状態、日時、識別子、複数項目の結果を `int` / `string` / `array` で返すための例外にはしない。
+件数や真偽値をValueで表現することも禁止しない。独自の意味や不変条件がなく、method名と型だけで意味が十分に限定できる場合は、primitiveを直接返してよいという許容規則である。
 
-1つの Query interface に対して、用意してよい Value DTO は最大1つとする。
+件数と真偽値以外は、ID、金額、状態、日時、識別子、複数項目の結果を含め、Application Valueで表現する。
 
 一覧を返す場合は `...List` という Value DTO を作らない。`array<Article>` のように、要素の型を phpdoc で明示した配列を返す。
 
-1つの UseCase が複数種類の projection を必要とする場合は、1つの Query interface に複数 DTO を混在させず、`IArticleQuery` と `ICategoryQuery` のように Query interface を分ける。
+1つのQuery interfaceが複数のApplication Valueを利用してもよい。分割の要否はValueの個数ではなく、UseCaseが要求する読み取り能力として責務が一つにまとまっているかで判断する。
 
 例:
 
@@ -664,7 +665,7 @@ Application/Article/Show/Query/IArticleQuery.php
 Infrastructure/Persistence/PdoArticleQuery.php
 ```
 
-Query は UseCase 配下の `Value` DTO、または `array<Article>` のように要素型を明示した Value DTO の配列を返す。DB row、連想配列、scalar を直接返してはならない。ただし、件数の `int` と真偽判定の `bool` は 5.4 の例外条件に従って直接返してよい。
+Query はUseCase配下のApplication Value、または要素型を明示したApplication Valueの配列を返す。件数の `int` と真偽判定の `bool` だけは5.4の条件に従ってprimitiveを直接返してよい。DB row、型不明の連想配列、それ以外のprimitiveを直接返してはならない。
 
 画面表示用 projection のために mutable な Domain Entity を返してはならない。
 
@@ -702,14 +703,16 @@ Infrastructure/Persistence/PdoInquiryRepository.php
 
 Repository は画面一覧、検索結果、ダッシュボード、読み取り専用 projection のために作らない。それらは Application Query として扱う。
 
-Repository が値を返す場合、返してよいものは Domain `Entity` または Domain `Value` のみである。PHP 組み込みの `array`、DB row、scalar を直接返してはならない。
+Repository が値を返す場合、Domain EntityまたはDomain Valueを基本とする。DB rowや型不明の連想配列を直接返してはならない。
 
-ただし、次の scalar は例外として直接返してよい。
+primitiveを直接返してよいのは、次の場合に限る。
 
 - Aggregate / Entity の件数を返す `count...(): int`
 - 存在、重複、操作成否などの真偽判定を返す `exists...(): bool` / `has...(): bool` / `is...(): bool`、または明確な操作結果の `bool`
 
-生成された ID、業務値、状態、日時などはこの例外に含めず、Domain Value を返す。
+件数や真偽値をDomain Valueで表現することも禁止しない。独自の意味や不変条件がなければprimitiveを直接返してよいという許容規則である。
+
+件数と真偽値以外は、生成されたID、業務値、状態、日時、識別子などを含め、Domain EntityまたはDomain Valueを返す。書き込みだけを行い戻り値を必要としない操作は `void` でよい。
 
 Repository は Aggregate または明確な業務単位で作る。テーブル単位で作ってはならない。
 
@@ -1600,7 +1603,6 @@ PDO test では test database を使ってよい。
 [ ] Service ディレクトリを作る場合は、他に置けない理由を明確にしている
 [ ] Query interface は I prefix を使っている
 [ ] Query は Application Value DTO または型を明示した DTO 配列を返し、例外は件数の int と真偽判定の bool だけである
-[ ] 1つの Query interface に対して Value DTO は最大1つである
 [ ] Query implementation は Infrastructure/Persistence 配下にある
 [ ] Domain Repository interface は Domain/Repository 配下にある
 [ ] Repository interface は I prefix を使っている
@@ -1608,7 +1610,7 @@ PDO test では test database を使ってよい。
 [ ] Repository implementation は Infrastructure/Persistence 配下にある
 [ ] Application use case は Input、Interactor、Output を持つ
 [ ] Application Input は UseCase 専用型であり、共通 Input DTO を使っていない
-[ ] 加工不要な UseCase Input は public constructor、事前処理が必要な Input は private constructor + create() を使っている
+[ ] UseCase Input は public constructor + new または private constructor + create() のどちらかで生成し、事前処理がある場合は create() に閉じている
 [ ] UseCase Input の constructor / factory method 呼び出しは引数数に関わらず named arguments を使っている
 [ ] Application は Infrastructure に依存していない
 [ ] Domain は Application / Infrastructure に依存していない
