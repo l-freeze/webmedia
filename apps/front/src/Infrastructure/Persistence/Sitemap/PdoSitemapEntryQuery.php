@@ -95,7 +95,12 @@ final readonly class PdoSitemapEntryQuery implements ISitemapEntryQuery
         PdoHelper::execute(statement: $statement, params: $this->publication->parameters());
         $articles = PdoRow::from(values: ['lastmod' => PdoHelper::fetchColumn(statement: $statement)])->nullableString(key: 'lastmod');
         $pages = PdoRow::from(values: ['lastmod' => PdoHelper::fetchColumn(statement: PdoHelper::query(pdo: $this->pdo, sql: "SELECT MAX(updated_at) FROM pages WHERE status = 'published'"))])->nullableString(key: 'lastmod');
-        $candidates = array_filter([$articles, $pages], static fn (?string $value): bool => $value !== null && $value !== '');
+        $candidates = [];
+        foreach ([$articles, $pages] as $candidate) {
+            if ($candidate !== null && $candidate !== '') {
+                $candidates[] = $candidate;
+            }
+        }
         if ($candidates === []) {
             return null;
         }

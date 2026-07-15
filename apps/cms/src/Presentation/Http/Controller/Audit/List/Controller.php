@@ -54,13 +54,17 @@ final readonly class Controller
             ),
         ));
 
-        $baseQuery = array_filter(
-            array_merge($filters, [
-                'limit' => (string) $output->perPage,
-                'sort' => $sort,
-            ]),
-            static fn (string $value): bool => $value !== '',
-        );
+        $baseQueryCandidates = [
+            ...$filters,
+            'limit' => (string) $output->perPage,
+            'sort' => $sort,
+        ];
+        $baseQuery = [];
+        foreach ($baseQueryCandidates as $key => $value) {
+            if ($value !== '') {
+                $baseQuery[$key] = $value;
+            }
+        }
 
         return new Response(body: $this->renderer->render(template: 'audit/index.latte', params: [
             'title' => '監査ログ',

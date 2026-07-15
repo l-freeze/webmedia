@@ -170,7 +170,12 @@ final readonly class AuditReporter
 
     public function settingsUpdated(Request $request): void
     {
-        $keys = array_values(array_filter(array_keys($request->body), static fn (string $key): bool => $key !== '_csrf'));
+        $keys = [];
+        foreach ($request->body as $key => $_value) {
+            if ($key !== '_csrf') {
+                $keys[] = $key;
+            }
+        }
         sort($keys);
         $this->describe(request: $request, action: 'settings.updated', resourceType: 'settings', metadata: ['keys' => $keys]);
     }

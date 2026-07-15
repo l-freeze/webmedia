@@ -27,14 +27,13 @@ final readonly class Controller
     {
         $settings = $this->edit->execute(Input::create())->settings;
         $media = $this->media->execute(List\Input::create())->rows;
-        $mediaItems = [];
+        $imageMedia = [];
         foreach ($media as $item) {
-            $mediaItems[] = $item->toArray();
+            $mediaItem = $item->toArray();
+            if (($mediaItem['is_image'] ?? false) === true) {
+                $imageMedia[] = $mediaItem;
+            }
         }
-        $imageMedia = array_values(array_filter(
-            $mediaItems,
-            static fn (array $item): bool => ($item['is_image'] ?? false) === true,
-        ));
 
         return new Response(body: $this->renderer->render(template: 'setting/edit.latte', params: [
             'title' => 'サイト設定',

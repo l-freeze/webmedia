@@ -170,9 +170,13 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
 
     public function adminCount(): int
     {
-        return count(array_filter(
-            $this->records,
-            static fn (array $record): bool => $record['role'] === CmsRole::Admin->value,
-        ));
+        $count = 0;
+        foreach ($this->records as $record) {
+            if ($record['role'] === CmsRole::Admin->value) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 }
