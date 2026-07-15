@@ -6,6 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\Tag;
 use App\Cms\Domain\Repository\ITagRepository;
+use App\Cms\Domain\Value\TagId;
+use App\Cms\Domain\Value\TagSlug;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -17,45 +19,42 @@ final readonly class PdoTagRepository implements ITagRepository
     {
     }
 
-    public function create(Tag $tag): void
+    public function save(Tag $tag): ?TagId
     {
         $now = date('Y-m-d H:i:s');
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO tags (name, slug, created_at, updated_at) VALUES (:name, :slug, :created_at, :updated_at)');
-        PdoHelper::execute(statement: $stmt, params: [
-            'name' => $tag->name,
-            'slug' => $tag->slug,
-            'created_at' => $now,
+        $params = [
+            'name' => $tag->name->value,
+            'slug' => $tag->slug->value,
             'updated_at' => $now,
-        ]);
-    }
+        ];
 
-    public function update(int $id, Tag $tag): bool
-    {
-        if ($this->slugExists(slug: $tag->slug, exceptId: $id)) {
-            return false;
+        if ($tag->id === null) {
+            $params['created_at'] = $now;
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO tags (name, slug, created_at, updated_at) VALUES (:name, :slug, :created_at, :updated_at) RETURNING id');
+            PdoHelper::execute(statement: $stmt, params: $params);
+            $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
+
+            return new TagId(value: $id);
         }
 
+        $params['id'] = $tag->id->value;
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE tags SET name = :name, slug = :slug, updated_at = :updated_at WHERE id = :id');
-        PdoHelper::execute(statement: $stmt, params: [
-            'id' => $id,
-            'name' => $tag->name,
-            'slug' => $tag->slug,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        PdoHelper::execute(statement: $stmt, params: $params);
 
-        return $stmt->rowCount() > 0 || $this->exists(id: $id);
+        $stored = $stmt->rowCount() > 0 || $this->exists(id: $tag->id);
+        return $stored ? $tag->id : null;
     }
 
-    public function delete(int $id): bool
+    public function delete(TagId $id): bool
     {
         $this->pdo->beginTransaction();
 
         try {
             $links = PdoHelper::prepare(pdo: $this->pdo, sql: 'DELETE FROM article_tags WHERE tag_id = :id');
-            PdoHelper::execute(statement: $links, params: ['id' => $id]);
+            PdoHelper::execute(statement: $links, params: ['id' => $id->value]);
 
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'DELETE FROM tags WHERE id = :id');
-            PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+            PdoHelper::execute(statement: $stmt, params: ['id' => $id->value]);
             $deleted = $stmt->rowCount() > 0;
 
             $this->pdo->commit();
@@ -66,13 +65,13 @@ final readonly class PdoTagRepository implements ITagRepository
         }
     }
 
-    public function slugExists(string $slug, ?int $exceptId): bool
+    public function slugExists(TagSlug $slug, ?TagId $exceptId): bool
     {
         $sql = 'SELECT COUNT(*) FROM tags WHERE slug = :slug';
-        $params = ['slug' => $slug];
+        $params = ['slug' => $slug->value];
         if ($exceptId !== null) {
             $sql .= ' AND id <> :id';
-            $params['id'] = $exceptId;
+            $params['id'] = $exceptId->value;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
@@ -81,10 +80,10 @@ final readonly class PdoTagRepository implements ITagRepository
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }
 
-    private function exists(int $id): bool
+    private function exists(TagId $id): bool
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM tags WHERE id = :id');
-        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id->value]);
 
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }

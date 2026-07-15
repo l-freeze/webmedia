@@ -9,6 +9,7 @@ use App\Cms\Application\Page\Restore\Interactor;
 use App\Cms\Domain\Entity\Page;
 use App\Cms\Domain\Repository\IPageRepository;
 use App\Cms\Domain\Value\PageId;
+use App\Cms\Domain\Value\PageSlug;
 use App\Cms\Domain\Value\PageVersionNo;
 use PHPUnit\Framework\TestCase;
 
@@ -36,7 +37,7 @@ final class RecordingPageRepository implements IPageRepository
         return new PageId(value: 1);
     }
 
-    public function slugExists(string $slug, ?int $exceptId): bool
+    public function slugExists(PageSlug $slug, ?PageId $exceptId): bool
     {
         return false;
     }

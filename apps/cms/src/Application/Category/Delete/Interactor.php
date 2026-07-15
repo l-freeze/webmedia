@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cms\Application\Category\Delete;
 
 use App\Cms\Domain\Repository\ICategoryRepository;
+use App\Cms\Domain\Value\CategoryId;
 
 final readonly class Interactor
 {
@@ -14,7 +15,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $deleted = $this->categories->delete($input->id);
+        $categoryId = new CategoryId(value: $input->id);
+        $deleted = $this->categories->delete($categoryId);
         if (!$deleted) {
             return new Output(deleted: false, error: '対象が見つからないか、すでに削除されています。');
         }

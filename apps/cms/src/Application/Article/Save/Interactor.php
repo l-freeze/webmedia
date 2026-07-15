@@ -63,7 +63,9 @@ final readonly class Interactor
 
     private function validateSlugUniqueness(Input $input): ValidationOutput
     {
-        $slugExists = $this->articles->slugExists(slug: $input->slug, exceptId: $input->id);
+        $slug = new ArticleSlug(value: $input->slug);
+        $exceptId = $input->id === null ? null : new ArticleId(value: $input->id);
+        $slugExists = $this->articles->slugExists(slug: $slug, exceptId: $exceptId);
         if ($slugExists) {
             return ValidationOutput::invalid(
                 new ValidationError(field: 'slug', message: 'このスラッグは既に使われています。'),

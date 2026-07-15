@@ -7,6 +7,9 @@ namespace App\Cms\Application\Category\Save;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Category;
 use App\Cms\Domain\Repository\ICategoryRepository;
+use App\Cms\Domain\Value\CategoryDescription;
+use App\Cms\Domain\Value\CategoryName;
+use App\Cms\Domain\Value\CategorySlug;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -35,17 +38,19 @@ final readonly class Interactor
             return new Output(saved: false, error: $validation->firstMessage());
         }
 
-        $slugExists = $this->categories->slugExists(slug: $input->slug, exceptId: null);
+        $slug = new CategorySlug(value: $input->slug);
+        $slugExists = $this->categories->slugExists(slug: $slug, exceptId: null);
         if ($slugExists) {
             return new Output(saved: false, error: 'このスラッグは既に使われています。');
         }
 
         $category = new Category(
-            name: $input->name,
-            slug: $input->slug,
-            description: $input->description,
+            id: null,
+            name: new CategoryName(value: $input->name),
+            slug: $slug,
+            description: new CategoryDescription(value: $input->description),
         );
-        $this->categories->create($category);
+        $this->categories->save($category);
 
         return new Output(saved: true);
     }

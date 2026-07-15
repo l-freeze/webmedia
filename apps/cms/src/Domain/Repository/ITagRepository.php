@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Repository;
 
 use App\Cms\Domain\Entity\Tag;
+use App\Cms\Domain\Value\TagId;
+use App\Cms\Domain\Value\TagSlug;
 
 interface ITagRepository
 {
-    public function create(Tag $tag): void;
+    public function save(Tag $tag): ?TagId;
 
-    public function update(int $id, Tag $tag): bool;
+    public function delete(TagId $id): bool;
 
-    public function delete(int $id): bool;
-
-    public function slugExists(string $slug, ?int $exceptId): bool;
+    public function slugExists(TagSlug $slug, ?TagId $exceptId): bool;
 }

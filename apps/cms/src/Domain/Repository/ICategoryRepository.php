@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Cms\Domain\Repository;
 
 use App\Cms\Domain\Entity\Category;
+use App\Cms\Domain\Value\CategoryId;
+use App\Cms\Domain\Value\CategorySlug;
 
 interface ICategoryRepository
 {
-    public function create(Category $category): void;
+    public function save(Category $category): ?CategoryId;
 
-    public function update(int $id, Category $category): bool;
+    public function delete(CategoryId $id): bool;
 
-    public function delete(int $id): bool;
-
-    public function slugExists(string $slug, ?int $exceptId): bool;
+    public function slugExists(CategorySlug $slug, ?CategoryId $exceptId): bool;
 }

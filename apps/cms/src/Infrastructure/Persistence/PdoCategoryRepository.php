@@ -6,6 +6,8 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\Category;
 use App\Cms\Domain\Repository\ICategoryRepository;
+use App\Cms\Domain\Value\CategoryId;
+use App\Cms\Domain\Value\CategorySlug;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
@@ -17,51 +19,47 @@ final readonly class PdoCategoryRepository implements ICategoryRepository
     {
     }
 
-    public function create(Category $category): void
+    public function save(Category $category): ?CategoryId
     {
         $now = date('Y-m-d H:i:s');
-        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO categories (name, slug, description, created_at, updated_at) VALUES (:name, :slug, :description, :created_at, :updated_at)');
-        PdoHelper::execute(statement: $stmt, params: [
-            'name' => $category->name,
-            'slug' => $category->slug,
-            'description' => $category->description,
-            'created_at' => $now,
+        $params = [
+            'name' => $category->name->value,
+            'slug' => $category->slug->value,
+            'description' => $category->description->value,
             'updated_at' => $now,
-        ]);
-    }
+        ];
 
-    public function update(int $id, Category $category): bool
-    {
-        if ($this->slugExists(slug: $category->slug, exceptId: $id)) {
-            return false;
+        if ($category->id === null) {
+            $params['created_at'] = $now;
+            $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO categories (name, slug, description, created_at, updated_at) VALUES (:name, :slug, :description, :created_at, :updated_at) RETURNING id');
+            PdoHelper::execute(statement: $stmt, params: $params);
+            $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
+
+            return new CategoryId(value: $id);
         }
 
+        $params['id'] = $category->id->value;
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE categories SET name = :name, slug = :slug, description = :description, updated_at = :updated_at WHERE id = :id');
-        PdoHelper::execute(statement: $stmt, params: [
-            'id' => $id,
-            'name' => $category->name,
-            'slug' => $category->slug,
-            'description' => $category->description,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        PdoHelper::execute(statement: $stmt, params: $params);
 
-        return $stmt->rowCount() > 0 || $this->exists(id: $id);
+        $stored = $stmt->rowCount() > 0 || $this->exists(id: $category->id);
+        return $stored ? $category->id : null;
     }
 
-    public function delete(int $id): bool
+    public function delete(CategoryId $id): bool
     {
         $this->pdo->beginTransaction();
 
         try {
             $now = date('Y-m-d H:i:s');
             $articles = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE articles SET category_id = NULL, updated_at = :updated_at WHERE category_id = :id');
-            PdoHelper::execute(statement: $articles, params: ['id' => $id, 'updated_at' => $now]);
+            PdoHelper::execute(statement: $articles, params: ['id' => $id->value, 'updated_at' => $now]);
 
             $versions = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE article_versions SET category_id = NULL WHERE category_id = :id');
-            PdoHelper::execute(statement: $versions, params: ['id' => $id]);
+            PdoHelper::execute(statement: $versions, params: ['id' => $id->value]);
 
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'DELETE FROM categories WHERE id = :id');
-            PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+            PdoHelper::execute(statement: $stmt, params: ['id' => $id->value]);
             $deleted = $stmt->rowCount() > 0;
 
             $this->pdo->commit();
@@ -72,13 +70,13 @@ final readonly class PdoCategoryRepository implements ICategoryRepository
         }
     }
 
-    public function slugExists(string $slug, ?int $exceptId): bool
+    public function slugExists(CategorySlug $slug, ?CategoryId $exceptId): bool
     {
         $sql = 'SELECT COUNT(*) FROM categories WHERE slug = :slug';
-        $params = ['slug' => $slug];
+        $params = ['slug' => $slug->value];
         if ($exceptId !== null) {
             $sql .= ' AND id <> :id';
-            $params['id'] = $exceptId;
+            $params['id'] = $exceptId->value;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
@@ -87,10 +85,10 @@ final readonly class PdoCategoryRepository implements ICategoryRepository
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }
 
-    private function exists(int $id): bool
+    private function exists(CategoryId $id): bool
     {
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'SELECT COUNT(*) FROM categories WHERE id = :id');
-        PdoHelper::execute(statement: $stmt, params: ['id' => $id]);
+        PdoHelper::execute(statement: $stmt, params: ['id' => $id->value]);
 
         return PdoRow::from(values: ['count' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'count') > 0;
     }

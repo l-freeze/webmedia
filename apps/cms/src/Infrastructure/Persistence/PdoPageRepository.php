@@ -42,13 +42,13 @@ final readonly class PdoPageRepository implements IPageRepository
         }
     }
 
-    public function slugExists(string $slug, ?int $exceptId): bool
+    public function slugExists(PageSlug $slug, ?PageId $exceptId): bool
     {
         $sql = 'SELECT COUNT(*) FROM pages WHERE slug = :slug';
-        $params = ['slug' => $slug];
+        $params = ['slug' => $slug->value];
         if ($exceptId !== null) {
             $sql .= ' AND id <> :id';
-            $params['id'] = $exceptId;
+            $params['id'] = $exceptId->value;
         }
 
         $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);

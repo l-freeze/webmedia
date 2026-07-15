@@ -7,6 +7,10 @@ namespace App\Cms\Application\Category\Update;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Category;
 use App\Cms\Domain\Repository\ICategoryRepository;
+use App\Cms\Domain\Value\CategoryDescription;
+use App\Cms\Domain\Value\CategoryId;
+use App\Cms\Domain\Value\CategoryName;
+use App\Cms\Domain\Value\CategorySlug;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -35,14 +39,22 @@ final readonly class Interactor
             return new Output(updated: false, error: $validation->firstMessage());
         }
 
+        $categoryId = new CategoryId(value: $input->id);
+        $slug = new CategorySlug(value: $input->slug);
+        $slugExists = $this->categories->slugExists(slug: $slug, exceptId: $categoryId);
+        if ($slugExists) {
+            return new Output(updated: false, error: '対象が見つからないか、同じスラッグがすでに使われています。');
+        }
+
         $category = new Category(
-            name: $input->name,
-            slug: $input->slug,
-            description: $input->description,
+            id: $categoryId,
+            name: new CategoryName(value: $input->name),
+            slug: $slug,
+            description: new CategoryDescription(value: $input->description),
         );
 
-        $updated = $this->categories->update(id: $input->id, category: $category);
-        if (!$updated) {
+        $savedId = $this->categories->save($category);
+        if ($savedId === null) {
             return new Output(updated: false, error: '対象が見つからないか、同じスラッグがすでに使われています。');
         }
 

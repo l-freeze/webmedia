@@ -7,6 +7,9 @@ namespace App\Cms\Application\Tag\Update;
 use App\Cms\Application\Validation\SlugValidator;
 use App\Cms\Domain\Entity\Tag;
 use App\Cms\Domain\Repository\ITagRepository;
+use App\Cms\Domain\Value\TagId;
+use App\Cms\Domain\Value\TagName;
+use App\Cms\Domain\Value\TagSlug;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -35,13 +38,21 @@ final readonly class Interactor
             return new Output(updated: false, error: $validation->firstMessage());
         }
 
+        $tagId = new TagId(value: $input->id);
+        $slug = new TagSlug(value: $input->slug);
+        $slugExists = $this->tags->slugExists(slug: $slug, exceptId: $tagId);
+        if ($slugExists) {
+            return new Output(updated: false, error: '対象が見つからないか、同じスラッグがすでに使われています。');
+        }
+
         $tag = new Tag(
-            name: $input->name,
-            slug: $input->slug,
+            id: $tagId,
+            name: new TagName(value: $input->name),
+            slug: $slug,
         );
 
-        $updated = $this->tags->update(id: $input->id, tag: $tag);
-        if (!$updated) {
+        $savedId = $this->tags->save($tag);
+        if ($savedId === null) {
             return new Output(updated: false, error: '対象が見つからないか、同じスラッグがすでに使われています。');
         }
 

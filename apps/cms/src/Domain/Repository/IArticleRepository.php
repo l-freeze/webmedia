@@ -6,6 +6,7 @@ namespace App\Cms\Domain\Repository;
 
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Value\ArticleId;
+use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleVersionNo;
 
 interface IArticleRepository
@@ -16,5 +17,5 @@ interface IArticleRepository
 
     public function save(Article $article): ArticleId;
 
-    public function slugExists(string $slug, ?int $exceptId): bool;
+    public function slugExists(ArticleSlug $slug, ?ArticleId $exceptId): bool;
 }
