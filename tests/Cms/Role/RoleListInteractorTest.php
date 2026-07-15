@@ -25,8 +25,12 @@ final class RoleListInteractorTest extends TestCase
             }
             $roles[$role->code] = $permissions;
         }
+        $roleCodes = [];
+        foreach (CmsRole::cases() as $role) {
+            $roleCodes[] = $role->value;
+        }
 
-        self::assertSame(array_map(static fn (CmsRole $role): string => $role->value, CmsRole::cases()), array_keys($roles));
+        self::assertSame($roleCodes, array_keys($roles));
         self::assertContains(PermissionCode::ADMIN_USER_MANAGE, $roles[CmsRole::Admin->value]);
         self::assertNotContains(PermissionCode::ADMIN_USER_MANAGE, $roles[CmsRole::Editor->value]);
     }

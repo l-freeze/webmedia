@@ -1154,7 +1154,7 @@ UseCase `Input` の constructor / factory method 呼び出しでは、引数数�
 
 ### 13.2 配列処理
 
-本プロジェクトでは、callback を受け取る配列処理関数を原則として使わない。
+本プロジェクトでは、callback を受け取る配列処理関数を使わない。
 
 対象:
 

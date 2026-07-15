@@ -51,10 +51,12 @@ final class PublicationClockTest extends TestCase
             ),
         );
 
+        $slugs = [];
+        foreach ($query->latest(limit: 10, offset: 0) as $article) {
+            $slugs[] = $article->slug;
+        }
+
         self::assertSame(2, $query->countPublished()->value);
-        self::assertSame(['starts-now', 'already-public'], array_map(
-            static fn ($article): string => $article->slug,
-            $query->latest(limit: 10, offset: 0),
-        ));
+        self::assertSame(['starts-now', 'already-public'], $slugs);
     }
 }

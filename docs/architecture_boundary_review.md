@@ -93,56 +93,19 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 - front-business を POC ではなく継続運用する。
 - site model / article publication / site scope を導入する。
 
-### 3. array_map / array_filter 使用箇所
+### 3. array_filter 使用箇所
 
 `docs/webmedia_architecture_rules.md` の配列処理ルールに対し、既存実装を後から用途別に検証するための一覧である。2026-07-15 時点の PHP 実装を対象とし、POC の `apps/front-business`、未追跡の `apps/minimal`、tests、vendor は対象外とする。
 
 件数:
 
-- `array_map`: 33 呼び出し、24 ファイル。
 - `array_filter`: 16 呼び出し、16 ファイル。
 - `array_reduce`: 0 呼び出し。
 - `array_walk`: 0 呼び出し。
 
-#### array_map
-
-- `database/seeds/InitialDataSeeder.php:67`
-- `apps/cms/config/container.php:97`
-- `apps/cms/src/Infrastructure/Persistence/PdoMediaQuery.php:76`
-- `apps/cms/src/Infrastructure/Persistence/PdoMediaQuery.php:88`
-- `apps/cms/src/Infrastructure/Persistence/PdoMediaQuery.php:100`
-- `apps/cms/src/Infrastructure/Persistence/PdoMediaQuery.php:112`
-- `apps/cms/src/Presentation/Http/Controller/AdminUser/List/Controller.php:40`
-- `apps/cms/src/Presentation/Http/Controller/Article/Create/Controller.php:53`
-- `apps/cms/src/Presentation/Http/Controller/Article/Create/Controller.php:54`
-- `apps/cms/src/Presentation/Http/Controller/Article/Edit/Controller.php:52`
-- `apps/cms/src/Presentation/Http/Controller/Article/Edit/Controller.php:62`
-- `apps/cms/src/Presentation/Http/Controller/Article/Edit/Controller.php:63`
-- `apps/cms/src/Presentation/Http/Controller/Article/History/Controller.php:29`
-- `apps/cms/src/Presentation/Http/Controller/Article/List/Controller.php:35`
-- `apps/cms/src/Presentation/Http/Controller/Media/List/Controller.php:33`
-- `apps/cms/src/Presentation/Http/Controller/Page/Create/Controller.php:53`
-- `apps/cms/src/Presentation/Http/Controller/Page/Edit/Controller.php:50`
-- `apps/cms/src/Presentation/Http/Controller/Page/Edit/Controller.php:60`
-- `apps/cms/src/Presentation/Http/Controller/Page/List/Controller.php:30`
-- `apps/cms/src/Presentation/Http/Controller/Setting/Edit/Controller.php:44`
-- `apps/cms/src/Presentation/Http/Controller/Trash/List/Controller.php:30`
-- `apps/front/config/container.php:62`
-- `apps/front/src/Presentation/Http/Controller/Article/Show/Controller.php:47`
-- `apps/front/src/Presentation/Http/Controller/Category/List/Controller.php:30`
-- `apps/front/src/Presentation/Http/Controller/Category/Show/Controller.php:36`
-- `apps/front/src/Presentation/Http/Controller/Home/Show/Controller.php:27`
-- `apps/front/src/Presentation/Http/Controller/Home/Show/Controller.php:28`
-- `apps/front/src/Presentation/Http/Controller/Search/Index/Controller.php:38`
-- `apps/front/src/Presentation/Http/Controller/Tag/List/Controller.php:30`
-- `apps/front/src/Presentation/Http/Controller/Tag/Show/Controller.php:35`
-- `apps/front/src/Presentation/View/LayoutGlobalProvider.php:56`
-- `apps/front/src/Presentation/View/LayoutGlobalProvider.php:60`
-- `apps/shared/config/container.php:44`
-
 #### array_filter
 
-- `apps/cms/config/container.php:97`
+- `apps/cms/config/container.php:102`
 - `apps/cms/src/Application/AdminUser/Create/Interactor.php:62`
 - `apps/cms/src/Application/AdminUser/Update/Interactor.php:76`
 - `apps/cms/src/Application/Article/Save/InputValidator.php:19`
@@ -153,22 +116,22 @@ Audit の `metadata` は、テーブルの任意属性を保存する EAV では
 - `apps/cms/src/Application/Tag/Update/Interactor.php:21`
 - `apps/cms/src/Presentation/Audit/AuditReporter.php:173`
 - `apps/cms/src/Presentation/Http/Controller/Audit/List/Controller.php:57`
-- `apps/cms/src/Presentation/Http/Controller/Setting/Edit/Controller.php:43`
-- `apps/front/config/container.php:62`
+- `apps/cms/src/Presentation/Http/Controller/Setting/Edit/Controller.php:34`
+- `apps/front/config/container.php:67`
 - `apps/front/src/Application/Inquiry/Create/Interactor.php:39`
 - `apps/front/src/Infrastructure/Persistence/Sitemap/PdoSitemapEntryQuery.php:98`
-- `apps/shared/config/container.php:44`
+- `apps/shared/config/container.php:49`
 
-現時点では一覧化だけを行い、各使用箇所を `foreach` へ変更するか、配列処理ルール側に例外を設けるかは判断しない。
+`array_filter` も条件付き `foreach` へ変更し、使用箇所を残さない。
 
 ## 次の検証順
 
 1. Audit metadata は現状維持し、上記の見直し条件に該当する変更が出た時に再検討する。
 2. Front Business のカテゴリ scope は、POC から継続運用へ進めるか、site model を導入する時点で再設計する。
-3. `array_map` / `array_filter` は上記一覧を用途別に確認し、副作用、可読性、型の崩れ、処理量を見て個別に判断する。
+3. `array_filter` は上記一覧を順に条件付き `foreach` へ変更する。
 
 ## 現時点の結論
 
 明確な境界違反としてすぐ修正すべき項目は、現在このメモには残っていない。
 
-Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。`array_map` / `array_filter` は未検証項目として使用箇所を記録済みである。
+Audit metadata は現状の用途と管理範囲では汎用配列を許容できるが、入力経路や読み取り箇所が増えた場合は typed な境界を再検討する。`array_filter` は修正待ち項目として使用箇所を記録済みである。
