@@ -165,13 +165,19 @@ Middleware に対象リソース依存の判定を置くと、同じ UseCase を
 
 UseCase では、HTTP request body の配列 shape を `Interactor` / Domain / Repository へ持ち込まない。
 
-`apps/front`、`apps/front-business`、`apps/cms` の UseCase 固有 `Input` は public readonly property を持つ DTO とし、constructor は private にして constructor property promotion で保持だけを行う。HTTP body からの生成は `Input::create()` に寄せ、trim してよい項目だけを項目単位で明示する。本文や password、upload file 配列など、入力そのものを保持すべき項目は一律 trim の対象にしない。
+`apps/front`、`apps/front-business`、`apps/cms` の UseCase 固有 `Input` は public readonly property を持つ DTO とする。
+
+値の加工が不要な Input は public constructor を使い、Controller から `new Input(...)` する。trim、空値補正、下限補正など、UseCase 入力として保持する前の処理が必要な Input は constructor を private にし、`Input::create()` を factory method として用意する。factory method を使う場合も constructor は値の保持だけを行い、必要な事前処理は `create()` に閉じる。
+
+HTTP body 由来の値は、trim してよい項目だけを項目単位で明示する。本文や password、upload file 配列など、入力そのものを保持すべき項目は一律 trim の対象にしない。
 
 入力検証の結果は Shared の `ValidationOutput` に寄せる。Article / Page のように入力項目が多く、required / slug / rich_text 形式確認などが膨らむ場合は `Application/<Feature>/<Action>/InputValidator` を置く。`Interactor` は `ValidationOutput` を確認し、valid な場合だけ Policy / Repository / Entity 操作へ進む。
 
 ### 理由
 
 - Controller に validation を置くと、HTTP 以外から同じ UseCase を呼ぶ入口で検証が抜ける。
+- 加工不要な Input まで factory method に統一すると、どの `create()` が意味のある生成処理を持つのか分からなくなる。
+- 事前処理がある Input だけ factory method に閉じることで、public constructor が単なる保持なのか、生成前に補正が必要なのかを API から判別できる。
 - Laravel の `FormRequest` 的な HTTP lifecycle hook は分かりやすい反面、UseCase 直前の境界が見えにくくなる。
 - Interactor は UseCase の手順を読む場所であり、HTTP body 配列の key 解釈や scalar fallback を抱える場所ではない。
 - `Form` は HTTP / 画面入力の語彙なので Application の概念名にはしない。Application では UseCase の入口入力を検証する `InputValidator` として扱う。
@@ -183,11 +189,32 @@ UseCase では、HTTP request body の配列 shape を `Interactor` / Domain / R
 
 - Entity に `fromInput(array)` や `stringValue()` / `intValue()` のような入力 helper を置かない。
 - UseCase `Input` に `array $data` を持たせない。
-- UseCase `Input` の public constructor 内で値を加工しない。
+- UseCase `Input` の constructor 内で値を加工しない。
+- 事前処理がない UseCase `Input` に `create()` を機械的に追加しない。
 - request body 全体を一律 trim する middleware は置かない。
 - `ValidatedInput` や `ValidationResult` のような PHP 版 Result 型を作らない。
 - Controller / middleware / lifecycle hook で UseCase 固有 validation を完結させない。
 - `InputValidator` を複数 UseCase で共有する汎用 DTO にしない。必要な UseCase 配下に置く。
+
+## Query / Repository の scalar 戻り値
+
+### 判断
+
+Query の戻り値は Application Value、Repository の戻り値は Domain Entity / Value を基本とする。ただし、件数を表す `int` と、存在・許可・重複・該当有無・操作成否などの真偽判定を表す `bool` は直接返してよい。
+
+生成された ID、金額、状態、日時、識別子、複数項目を持つ結果は例外に含めず、所属するレイヤーの Value で表現する。
+
+### 理由
+
+- 件数だけを持つ DTO や真偽値だけを持つ DTO は、型を増やしても業務上の意味や不変条件をほとんど追加しない。
+- `count...(): int`、`exists...(): bool`、`has...(): bool` のように method 名と型だけで意味を限定できる。
+- scalar を全面許可すると、ID、状態、DB row、複数項目の結果まで primitive に逃がせるため、例外を件数と真偽判定に限定する。
+
+### 採用しないこと
+
+- 全 scalar 戻り値を一律に DTO で包まない。
+- 生成 ID を `int` のまま返すために count の例外を流用しない。
+- 複数項目を連想配列で返すために bool / int の例外を拡張しない。
 
 ## Audit / SecurityLog
 

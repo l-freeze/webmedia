@@ -472,17 +472,40 @@ Application/
 - フレームワーク型を持たない
 - `Request`、`Response`、`PDO`、`Container`、`Latte` を持たない
 - scalar、array、ValueObject は持ってよい
-- Controller でリクエストごとに `new` する
+- 値の加工が不要なら、public constructor を Controller から `new` する
+- trim、空値補正、下限補正など、UseCase 入力として保持する前の処理が必要なら、constructor を private にして `Input::create()` を factory method として用意する
+- `Input::create()` を使う場合、事前処理は factory method に閉じ、constructor は値の保持だけを行う
+- 事前処理がない Input に `create()` を機械的に追加しない
 - singleton service の property に保持しない
 - request 固有の状態を static property、global、shared service に退避しない
 
-`Input` の constructor 呼び出しでは named arguments を使う。
+`Input` の constructor / factory method 呼び出しでは named arguments を使う。
 
 ```php
 new Input(
     id: $id,
     title: $request->input('title'),
     body: $request->input('body'),
+);
+```
+
+事前処理が必要な場合:
+
+```php
+final readonly class Input
+{
+    private function __construct(public int $page)
+    {
+    }
+
+    public static function create(int $page): self
+    {
+        return new self(page: max(1, $page));
+    }
+}
+
+$input = Input::create(
+    page: (int) $request->input(key: 'page', default: '1'),
 );
 ```
 
@@ -559,6 +582,13 @@ Application/<Feature>/<Action>/Value/<Name>.php
 
 Query が単一の値を返す場合、PHP 組み込みの `array`、DB row、scalar を直接返してはならない。必ず UseCase 配下の `Value` DTO を返す。
 
+ただし、次の scalar は例外として直接返してよい。
+
+- 件数を返す `count...(): int`
+- 存在、許可、該当有無などの真偽判定を返す `exists...(): bool` / `has...(): bool` / `is...(): bool`
+
+この例外は、件数と真偽値を DTO に包んでも業務上の意味や不変条件が増えない場合に限る。生成された ID、金額、状態、日時、識別子、複数項目の結果を `int` / `string` / `array` で返すための例外にはしない。
+
 1つの Query interface に対して、用意してよい Value DTO は最大1つとする。
 
 一覧を返す場合は `...List` という Value DTO を作らない。`array<Article>` のように、要素の型を phpdoc で明示した配列を返す。
@@ -634,7 +664,7 @@ Application/Article/Show/Query/IArticleQuery.php
 Infrastructure/Persistence/PdoArticleQuery.php
 ```
 
-Query は UseCase 配下の `Value` DTO、または `array<Article>` のように要素型を明示した Value DTO の配列を返す。DB row、連想配列、scalar を直接返してはならない。
+Query は UseCase 配下の `Value` DTO、または `array<Article>` のように要素型を明示した Value DTO の配列を返す。DB row、連想配列、scalar を直接返してはならない。ただし、件数の `int` と真偽判定の `bool` は 5.4 の例外条件に従って直接返してよい。
 
 画面表示用 projection のために mutable な Domain Entity を返してはならない。
 
@@ -673,6 +703,13 @@ Infrastructure/Persistence/PdoInquiryRepository.php
 Repository は画面一覧、検索結果、ダッシュボード、読み取り専用 projection のために作らない。それらは Application Query として扱う。
 
 Repository が値を返す場合、返してよいものは Domain `Entity` または Domain `Value` のみである。PHP 組み込みの `array`、DB row、scalar を直接返してはならない。
+
+ただし、次の scalar は例外として直接返してよい。
+
+- Aggregate / Entity の件数を返す `count...(): int`
+- 存在、重複、操作成否などの真偽判定を返す `exists...(): bool` / `has...(): bool` / `is...(): bool`、または明確な操作結果の `bool`
+
+生成された ID、業務値、状態、日時などはこの例外に含めず、Domain Value を返す。
 
 Repository は Aggregate または明確な業務単位で作る。テーブル単位で作ってはならない。
 
@@ -1111,7 +1148,7 @@ return $handler->handle(request: $request);
 - `apps/cms`、`apps/front` の Application / Presentation で、引数が1つだけで意味が明白な呼び出し
 - private method の単一引数呼び出し
 
-UseCase `Input` の constructor 呼び出しでは、引数数に関わらず named arguments を使う。ただし `execute(new Input(...))` のように、`Input` object 自体を唯一の引数として渡す呼び出しでは `execute` 側の `input:` は省略してよい。
+UseCase `Input` の constructor / factory method 呼び出しでは、引数数に関わらず named arguments を使う。ただし `execute(new Input(...))` や `execute(Input::create(...))` のように、`Input` object 自体を唯一の引数として渡す呼び出しでは `execute` 側の `input:` は省略してよい。
 
 例外に該当しないプロジェクト内 class の constructor / method では named arguments を優先する。
 
@@ -1562,16 +1599,17 @@ PDO test では test database を使ってよい。
 [ ] Application 配下に Policy ディレクトリを作っていない
 [ ] Service ディレクトリを作る場合は、他に置けない理由を明確にしている
 [ ] Query interface は I prefix を使っている
-[ ] Query は PHP array ではなく Application Value DTO を返している
+[ ] Query は Application Value DTO または型を明示した DTO 配列を返し、例外は件数の int と真偽判定の bool だけである
 [ ] 1つの Query interface に対して Value DTO は最大1つである
 [ ] Query implementation は Infrastructure/Persistence 配下にある
 [ ] Domain Repository interface は Domain/Repository 配下にある
 [ ] Repository interface は I prefix を使っている
-[ ] Repository の戻り値は Domain Entity または Domain Value である
+[ ] Repository の戻り値は Domain Entity / Domain Value を基本とし、例外は件数の int と真偽判定の bool だけである
 [ ] Repository implementation は Infrastructure/Persistence 配下にある
 [ ] Application use case は Input、Interactor、Output を持つ
 [ ] Application Input は UseCase 専用型であり、共通 Input DTO を使っていない
-[ ] UseCase Input の constructor 呼び出しは引数数に関わらず named arguments を使っている
+[ ] 加工不要な UseCase Input は public constructor、事前処理が必要な Input は private constructor + create() を使っている
+[ ] UseCase Input の constructor / factory method 呼び出しは引数数に関わらず named arguments を使っている
 [ ] Application は Infrastructure に依存していない
 [ ] Domain は Application / Infrastructure に依存していない
 [ ] Presentation は Infrastructure/Persistence の具象実装に直接依存していない
@@ -1602,7 +1640,8 @@ Repository が画面 projection を返す
 Domain が Query interface を持つ
 Application が PDO を持つ
 QueryService 命名で port の意図を曖昧にする
-Query / Repository が PHP array を返す
+Query / Repository が DB row や型不明の PHP array を返す
+Query / Repository が、件数の int と真偽判定の bool 以外の scalar を直接返す
 ```
 
 正しい:

@@ -13,10 +13,17 @@
 
 1. OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
 2. CMS / Front の PC/SP 表示を、日本語フォントがある環境または Playwright 環境で再確認する。
+3. Article / Page と同じ Domain Entity 方針へ、他の Entity と Repository 境界を揃える。
+   - `AdminUser`、`User`、`Category`、`Tag`、`SiteSettings`、`MediaUpload`、`InquiryStatusUpdate`、`LoginAttempt`、`CmsLoginAttemptReset`、Front の `Inquiry` を順に確認する。
+   - Entity が直接保持する primitive を、業務上の意味、不変条件、形式制約を持つ `Domain/Value` へ移す。
+   - Repository の ID 引数と生成 ID 戻り値を Domain Value へ揃える。件数の `int` と真偽判定の `bool` だけは規約どおり例外として許容する。
+   - 単に class 数を増やすための ValueObject 化はせず、Article / Page と同様に入力変換、DB row 復元、Domain rule の境界が読める形にする。
 
 ## 後で忘れず判断すること
 
 - 問い合わせフォームの最低限の rate limit / spam 対策 / プライバシー同意文言。積極運用しない前提なので直近優先にはしないが、公開フォームとして外部入力口になるため公開前には判断する。
+- 既存 UseCase Input を確認し、事前処理がないものは public constructor + `new Input(...)`、事前処理があるものは private constructor + `Input::create(...)` に揃える。
+- `docs/architecture_boundary_review.md` に列挙した `array_map` / `array_filter` を用途別に検証し、`foreach` へ変更する箇所と規約上許容する箇所を決める。
 
 ## 完了済みの大枠
 
