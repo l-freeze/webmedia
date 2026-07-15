@@ -44,14 +44,22 @@ final readonly class Controller
     private function editForm(Output $output, string $action, ?array $formArticle = null, ?string $error = null): Response
     {
         $article = $formArticle ?? $output->article?->toArray();
+        $categories = [];
+        foreach ($output->categories as $category) {
+            $categories[] = $category->toArray();
+        }
+        $media = [];
+        foreach ($output->media as $item) {
+            $media[] = $item->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'article/edit.latte', params: [
             'title' => '記事作成',
             'action' => $action,
             'csrf' => $this->csrf->token(),
             'article' => $article ?? ['status' => 'draft'],
-            'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
-            'media' => array_map(fn ($item): array => $item->toArray(), $output->media),
+            'categories' => $categories,
+            'media' => $media,
             'flash' => $this->session->pullFlash(key: 'success'),
             'error' => $error,
             'versions' => [],

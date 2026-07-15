@@ -24,10 +24,14 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->list->execute(Input::create());
+        $pages = [];
+        foreach ($output->rows as $row) {
+            $pages[] = $row->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'page/index.latte', params: [
             'title' => '固定ページ管理',
-            'pages' => array_map(fn ($row): array => $row->toArray(), $output->rows),
+            'pages' => $pages,
             'flash' => $this->session->pullFlash(key: 'success'),
         ]));
     }

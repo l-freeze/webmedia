@@ -22,11 +22,15 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->history->execute(Input::create(articleId: (int) $vars['id']));
+        $versions = [];
+        foreach ($output->versions as $version) {
+            $versions[] = $version->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'article/history.latte', params: [
             'title' => '更新履歴',
             'articleId' => $output->articleId,
-            'versions' => array_map(fn ($version): array => $version->toArray(), $output->versions),
+            'versions' => $versions,
         ]));
     }
 }

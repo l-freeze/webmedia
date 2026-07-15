@@ -33,11 +33,15 @@ final readonly class Controller
         }
 
         $formValues = $this->session->pullFlashValue(key: 'admin_user.form_values');
+        $roles = [];
+        foreach (CmsRole::cases() as $role) {
+            $roles[] = $role->value;
+        }
 
         return new Response(body: $this->renderer->render(template: 'admin-user/index.latte', params: [
             'title' => '管理者',
             'users' => $users,
-            'roles' => array_map(static fn (CmsRole $role): string => $role->value, CmsRole::cases()),
+            'roles' => $roles,
             'formValues' => is_array($formValues) ? $formValues : [],
             'error' => $this->session->pullFlash(key: 'admin_user.form_error'),
             'flash' => $this->session->pullFlash(key: 'success'),

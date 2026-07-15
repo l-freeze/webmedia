@@ -49,18 +49,29 @@ final readonly class Controller
         $article = $formArticle ?? $this->articleForEditor($output->article?->toArray());
         $articleIdValue = $article['id'] ?? null;
         $articleId = is_scalar($articleIdValue) ? (int) $articleIdValue : null;
-        $versions = $articleId === null ? [] : array_map(
-            fn ($version): array => $version->toArray(),
-            $this->history->execute(History\Input::create(articleId: $articleId))->versions,
-        );
+        $versions = [];
+        if ($articleId !== null) {
+            $history = $this->history->execute(History\Input::create(articleId: $articleId));
+            foreach ($history->versions as $version) {
+                $versions[] = $version->toArray();
+            }
+        }
+        $categories = [];
+        foreach ($output->categories as $category) {
+            $categories[] = $category->toArray();
+        }
+        $media = [];
+        foreach ($output->media as $item) {
+            $media[] = $item->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'article/edit.latte', params: [
             'title' => '記事編集',
             'action' => $action,
             'csrf' => $this->csrf->token(),
             'article' => $article ?? ['status' => 'draft'],
-            'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
-            'media' => array_map(fn ($item): array => $item->toArray(), $output->media),
+            'categories' => $categories,
+            'media' => $media,
             'flash' => $this->session->pullFlash(key: 'success'),
             'error' => $error,
             'versions' => $versions,

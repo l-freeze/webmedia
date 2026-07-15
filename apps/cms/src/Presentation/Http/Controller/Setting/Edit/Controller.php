@@ -27,6 +27,14 @@ final readonly class Controller
     {
         $settings = $this->edit->execute(Input::create())->settings;
         $media = $this->media->execute(List\Input::create())->rows;
+        $mediaItems = [];
+        foreach ($media as $item) {
+            $mediaItems[] = $item->toArray();
+        }
+        $imageMedia = array_values(array_filter(
+            $mediaItems,
+            static fn (array $item): bool => ($item['is_image'] ?? false) === true,
+        ));
 
         return new Response(body: $this->renderer->render(template: 'setting/edit.latte', params: [
             'title' => 'サイト設定',
@@ -40,10 +48,7 @@ final readonly class Controller
                 'hero_description' => $settings->heroDescription,
                 'search_enabled' => $settings->searchEnabled ? '1' : '0',
             ],
-            'media' => array_values(array_filter(
-                array_map(fn ($item): array => $item->toArray(), $media),
-                static fn (array $item): bool => ($item['is_image'] ?? false) === true,
-            )),
+            'media' => $imageMedia,
             'flash' => $this->session->pullFlash(key: 'success'),
         ]));
     }

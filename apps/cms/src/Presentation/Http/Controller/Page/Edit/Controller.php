@@ -47,17 +47,24 @@ final readonly class Controller
         $page = $formPage ?? $output->page?->toArray();
         $pageIdValue = $page['id'] ?? null;
         $pageId = is_scalar($pageIdValue) ? (int) $pageIdValue : null;
-        $versions = $pageId === null ? [] : array_map(
-            fn ($version): array => $version->toArray(),
-            $this->history->execute(History\Input::create(pageId: $pageId))->versions,
-        );
+        $versions = [];
+        if ($pageId !== null) {
+            $history = $this->history->execute(History\Input::create(pageId: $pageId));
+            foreach ($history->versions as $version) {
+                $versions[] = $version->toArray();
+            }
+        }
+        $media = [];
+        foreach ($output->media as $item) {
+            $media[] = $item->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'page/edit.latte', params: [
             'title' => '固定ページ編集',
             'action' => $action,
             'csrf' => $this->csrf->token(),
             'page' => $page ?? ['status' => 'draft', 'body_format' => 'markdown'],
-            'media' => array_map(fn ($item): array => $item->toArray(), $output->media),
+            'media' => $media,
             'versions' => $versions,
             'flash' => $this->session->pullFlash(key: 'success'),
             'error' => $error,

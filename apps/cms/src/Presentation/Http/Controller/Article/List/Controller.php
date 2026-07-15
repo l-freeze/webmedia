@@ -28,18 +28,22 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->list->execute(Input::create(keyword: $request->input(key: 'q')));
-
-        return new Response(body: $this->renderer->render(template: 'article/index.latte', params: [
-            'title' => '記事管理',
-            'query' => $output->keyword,
-            'articles' => array_map(fn ($article): array => [
+        $articles = [];
+        foreach ($output->articles as $article) {
+            $articles[] = [
                 ...$article->toArray(),
                 'status_label' => $this->articleStatus->label(
                     status: $article->status,
                     publishedAt: $article->publishedAt,
                     publishedEndsAt: $article->publishedEndsAt,
                 ),
-            ], $output->articles),
+            ];
+        }
+
+        return new Response(body: $this->renderer->render(template: 'article/index.latte', params: [
+            'title' => '記事管理',
+            'query' => $output->keyword,
+            'articles' => $articles,
             'flash' => $this->session->pullFlash(key: 'success'),
             'csrf' => $this->csrf->token(),
         ]));

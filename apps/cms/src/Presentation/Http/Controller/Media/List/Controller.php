@@ -26,11 +26,15 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->interactor->execute(Input::create());
+        $media = [];
+        foreach ($output->rows as $row) {
+            $media[] = $row->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'media/index.latte', params: [
             'title' => 'メディア管理',
             'csrf' => $this->csrf->token(),
-            'media' => array_map(fn ($row): array => $row->toArray(), $output->rows),
+            'media' => $media,
             'flash' => $this->session->pullFlash(key: 'success'),
             'error' => $this->session->pullFlash(key: 'error'),
         ]));

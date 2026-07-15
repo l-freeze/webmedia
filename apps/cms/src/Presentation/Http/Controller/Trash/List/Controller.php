@@ -22,12 +22,16 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->interactor->execute(Input::create());
+        $rows = [];
+        foreach ($output->rows as $row) {
+            $rows[] = $row->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'simple-list.latte', params: [
             'title' => 'ゴミ箱',
             'heading' => 'ゴミ箱',
             'columns' => ['タイトル', 'スラッグ', '削除日'],
-            'rows' => array_map(fn ($row): array => $row->toArray(), $output->rows),
+            'rows' => $rows,
         ]));
     }
 }
