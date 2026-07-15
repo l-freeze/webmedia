@@ -38,13 +38,17 @@ final readonly class Controller
 
         $article = $this->articleDates->present($article->toArray());
         $slug = is_string($article['slug'] ?? null) ? $article['slug'] : '';
+        $related = [];
+        foreach ($output->related as $item) {
+            $related[] = $this->articleDates->present($item->toArray());
+        }
 
         return new Response(body: $this->renderer->render(template: 'article/show.latte', params: [
             'title' => $article['title'],
             'description' => $article['excerpt'],
             'canonicalUrl' => $this->canonicalUrl->article($slug),
             'article' => $article,
-            'related' => array_map(fn ($item): array => $this->articleDates->present($item->toArray()), $output->related),
+            'related' => $related,
         ]));
     }
 }

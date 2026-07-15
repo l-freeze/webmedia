@@ -27,13 +27,17 @@ final readonly class Controller
     {
         $output = $this->interactor->execute(Input::create(slug: $vars['slug'] ?? ''));
         $category = $output->category?->toArray();
+        $articles = [];
+        foreach ($output->articles as $article) {
+            $articles[] = $this->articleDates->present($article->toArray());
+        }
 
         return new Response(body: $this->renderer->render(template: 'list.latte', params: [
             'title' => $category['name'] ?? 'カテゴリ',
             'heading' => $category['name'] ?? 'カテゴリ',
             'lead' => $category['description'] ?? '',
             'canonicalUrl' => $category !== null ? $this->canonicalUrl->category($category['slug']) : null,
-            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
+            'articles' => $articles,
         ]));
     }
 }

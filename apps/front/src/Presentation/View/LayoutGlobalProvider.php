@@ -43,6 +43,14 @@ final readonly class LayoutGlobalProvider
     {
         $output = $this->layout->execute(Input::create());
         $settings = $output->settings;
+        $publishedPages = [];
+        foreach ($output->publishedPages as $page) {
+            $publishedPages[] = $page->toArray();
+        }
+        $publishedCategories = [];
+        foreach ($output->publishedCategories as $category) {
+            $publishedCategories[] = $category->toArray();
+        }
 
         /** @var array<string, mixed> $globals */
         $globals = [
@@ -53,14 +61,8 @@ final readonly class LayoutGlobalProvider
             'heroImage' => $settings->heroImage,
             'heroTitle' => $settings->heroTitle,
             'heroDescription' => $settings->heroDescription,
-            'publishedPages' => array_map(
-                static fn ($page): array => $page->toArray(),
-                $output->publishedPages,
-            ),
-            'publishedCategories' => array_map(
-                static fn ($category): array => $category->toArray(),
-                $output->publishedCategories,
-            ),
+            'publishedPages' => $publishedPages,
+            'publishedCategories' => $publishedCategories,
         ];
 
         return $globals;

@@ -21,11 +21,19 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->interactor->execute(Input::create(page: (int) $request->input(key: 'page', default: '1')));
+        $articles = [];
+        foreach ($output->articles as $article) {
+            $articles[] = $this->articleDates->present($article->toArray());
+        }
+        $categories = [];
+        foreach ($output->categories as $category) {
+            $categories[] = $category->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'index.latte', params: [
             'title' => 'トップ',
-            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
-            'categories' => array_map(fn ($category): array => $category->toArray(), $output->categories),
+            'articles' => $articles,
+            'categories' => $categories,
             'pagination' => $output->pagination->toArray(),
         ]));
     }

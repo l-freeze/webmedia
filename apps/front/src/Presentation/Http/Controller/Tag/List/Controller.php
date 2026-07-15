@@ -22,12 +22,16 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $output = $this->interactor->execute(Input::create());
+        $items = [];
+        foreach ($output->items as $item) {
+            $items[] = $item->toArray();
+        }
 
         return new Response(body: $this->renderer->render(template: 'taxonomy/index.latte', params: [
             'title' => 'タグ一覧',
             'heading' => 'タグ一覧',
             'basePath' => '/tags',
-            'items' => array_map(fn ($item): array => $item->toArray(), $output->items),
+            'items' => $items,
         ]));
     }
 }

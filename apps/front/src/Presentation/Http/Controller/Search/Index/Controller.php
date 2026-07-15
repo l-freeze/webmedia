@@ -30,12 +30,16 @@ final readonly class Controller
         }
 
         $output = $this->interactor->execute(Input::create(keyword: $request->input(key: 'q')));
+        $articles = [];
+        foreach ($output->articles as $article) {
+            $articles[] = $this->articleDates->present($article->toArray());
+        }
 
         return new Response(body: $this->renderer->render(template: 'list.latte', params: [
             'title' => '検索結果',
             'heading' => $output->keyword === '' ? '検索' : "「{$output->keyword}」の検索結果",
             'lead' => count($output->articles) . '件の記事が見つかりました。',
-            'articles' => array_map(fn ($article): array => $this->articleDates->present($article->toArray()), $output->articles),
+            'articles' => $articles,
             'query' => $output->keyword,
         ]));
     }
