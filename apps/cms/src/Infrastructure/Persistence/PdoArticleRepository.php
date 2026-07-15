@@ -6,6 +6,7 @@ namespace App\Cms\Infrastructure\Persistence;
 
 use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Repository\IArticleRepository;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\ArticleBody;
 use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
@@ -117,7 +118,7 @@ final readonly class PdoArticleRepository implements IArticleRepository
         if ($article->id === null) {
             $payload['created_at'] = $now;
             $payload['author_name'] = '編集部';
-            $payload['author_id'] = $article->authorId;
+            $payload['author_id'] = $article->authorId?->value;
             $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO articles (title, slug, body, body_format, rendered_body_html, search_body_text, excerpt, status, category_id, eyecatch_path, published_at, published_ends_at, seo_title, meta_description, author_name, author_id, created_at, updated_at) VALUES (:title, :slug, :body, :body_format, :rendered_body_html, :search_body_text, :excerpt, :status, :category_id, :eyecatch_path, :published_at, :published_ends_at, :seo_title, :meta_description, :author_name, :author_id, :created_at, :updated_at) RETURNING id');
             PdoHelper::execute(statement: $stmt, params: $payload);
             $id = PdoRow::from(values: ['id' => PdoHelper::fetchColumn(statement: $stmt)])->int(key: 'id');
@@ -226,9 +227,9 @@ final readonly class PdoArticleRepository implements IArticleRepository
         return $publishedEndsAt === null || $publishedEndsAt === '' ? null : new PublishedEndsAt(value: $publishedEndsAt);
     }
 
-    private function authorIdFromRow(PdoRow $row): ?int
+    private function authorIdFromRow(PdoRow $row): ?AdminUserId
     {
         $authorId = $row->nullableInt(key: 'author_id');
-        return $authorId === null || $authorId <= 0 ? null : $authorId;
+        return $authorId === null || $authorId <= 0 ? null : new AdminUserId(value: $authorId);
     }
 }

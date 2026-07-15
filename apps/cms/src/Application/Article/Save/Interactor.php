@@ -12,6 +12,7 @@ use App\Cms\Domain\Repository\IArticleRepository;
 use App\Cms\Domain\Value\ArticleId;
 use App\Cms\Domain\Value\ArticlePublishPermission;
 use App\Cms\Domain\Value\ArticleBody;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleSlug;
@@ -74,7 +75,10 @@ final readonly class Interactor
 
     private function createEntity(Input $input): Article
     {
-        $actor = new CmsActor(id: $input->currentUser->id, role: CmsRole::from($input->currentUser->role));
+        $actor = new CmsActor(
+            id: new AdminUserId(value: $input->currentUser->id),
+            role: CmsRole::from($input->currentUser->role),
+        );
         $status = ArticleStatus::from($input->status);
         $publishPermission = $this->publishPermissionIfNeeded(actor: $actor, status: $status);
 
@@ -93,7 +97,7 @@ final readonly class Interactor
                 publishedEndsAt: $this->publishedEndsAt($input),
                 seoTitle: new SeoTitle(value: $input->seoTitle),
                 metaDescription: new MetaDescription(value: $input->metaDescription),
-                authorId: $input->currentUser->id,
+                authorId: new AdminUserId(value: $input->currentUser->id),
                 publishPermission: $publishPermission,
             );
         }

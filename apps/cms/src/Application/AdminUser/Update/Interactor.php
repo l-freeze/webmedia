@@ -7,7 +7,11 @@ namespace App\Cms\Application\AdminUser\Update;
 use App\Cms\Application\AdminUser\Update\Port\IPasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\AdminUserEmail;
+use App\Cms\Domain\Value\AdminUserId;
+use App\Cms\Domain\Value\AdminUserName;
 use App\Cms\Domain\Value\CmsRole;
+use App\Cms\Domain\Value\PasswordHash;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -25,7 +29,8 @@ final readonly class Interactor
 
     public function execute(Input $input): Output
     {
-        $currentRole = $this->users->roleOf($input->id);
+        $userId = new AdminUserId(value: $input->id);
+        $currentRole = $this->users->roleOf($userId);
         if ($currentRole === null) {
             return new Output(updated: false, error: '管理者アカウントが見つかりません。');
         }
@@ -46,23 +51,24 @@ final readonly class Interactor
             return new Output(updated: false, error: '最後のadminロールは変更できません。');
         }
 
-        $emailExists = $this->users->emailExists(email: $input->email, exceptId: $input->id);
+        $email = new AdminUserEmail(value: $input->email);
+        $emailExists = $this->users->emailExists(email: $email, exceptId: $userId);
         if ($emailExists) {
             return new Output(updated: false, error: 'このメールアドレスは既に使われています。');
         }
 
-        $passwordHash = '';
+        $passwordHash = new PasswordHash(value: '');
         if ($input->password !== '') {
             if (strlen($input->password) < self::PASSWORD_MIN_LENGTH) {
                 return new Output(updated: false, error: 'パスワードは8文字以上で入力してください。');
             }
-            $passwordHash = $this->passwords->hash($input->password);
+            $passwordHash = new PasswordHash(value: $this->passwords->hash($input->password));
         }
 
         $user = new AdminUser(
-            id: $input->id,
-            email: $input->email,
-            name: $input->name,
+            id: $userId,
+            email: $email,
+            name: new AdminUserName(value: $input->name),
             role: $role,
             passwordHash: $passwordHash,
         );

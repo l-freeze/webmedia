@@ -7,7 +7,7 @@ namespace App\Cms\Domain\Value;
 final readonly class CmsActor
 {
     public function __construct(
-        public int $id,
+        public AdminUserId $id,
         public CmsRole $role,
     ) {
     }

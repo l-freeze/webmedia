@@ -16,6 +16,7 @@ use App\Cms\Domain\Value\ArticleSlug;
 use App\Cms\Domain\Value\ArticleStatus;
 use App\Cms\Domain\Value\ArticleTitle;
 use App\Cms\Domain\Value\ArticleUpdatePermission;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\CategoryId;
 use App\Cms\Domain\Value\EyecatchPath;
 use App\Cms\Domain\Value\MetaDescription;
@@ -39,7 +40,7 @@ final readonly class Article
         public ?PublishedEndsAt $publishedEndsAt,
         public SeoTitle $seoTitle,
         public MetaDescription $metaDescription,
-        public ?int $authorId,
+        public ?AdminUserId $authorId,
     ) {
     }
 
@@ -57,7 +58,7 @@ final readonly class Article
         ?PublishedEndsAt $publishedEndsAt,
         SeoTitle $seoTitle,
         MetaDescription $metaDescription,
-        ?int $authorId,
+        ?AdminUserId $authorId,
         ?ArticlePublishPermission $publishPermission,
     ): self {
         $article = new self(

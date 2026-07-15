@@ -10,6 +10,7 @@ use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Application\Auth\Login\Port\IPasswordVerifier;
 use App\Cms\Domain\Repository\IUserRepository;
+use App\Cms\Domain\Value\AdminUserEmail;
 use App\Shared\Time\Application\IClock;
 use DateTimeImmutable;
 
@@ -62,19 +63,20 @@ final readonly class Interactor
         );
         $this->loginAttempts->save($loginAttempt);
 
-        return Output::authenticated(userId: $user->id, role: $user->role->value);
+        return Output::authenticated(userId: $user->id->value, role: $user->role->value);
     }
 
     private function findUserByValidCredentials(Input $input): ?User
     {
-        $user = $this->users->findByEmail($input->email);
+        $email = new AdminUserEmail(value: $input->email);
+        $user = $this->users->findByEmail($email);
         if ($user === null) {
             return null;
         }
 
         $validPassword = $this->passwordVerifier->verify(
             plainPassword: $input->password,
-            passwordHash: $user->passwordHash,
+            passwordHash: $user->passwordHash->value,
         );
         if (!$validPassword) {
             return null;

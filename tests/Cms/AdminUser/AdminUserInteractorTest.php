@@ -17,6 +17,7 @@ use App\Cms\Application\AdminUser\Update\Port\IPasswordHasher as UpdatePasswordH
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
 use App\Cms\Domain\Value\AdminUserId;
+use App\Cms\Domain\Value\AdminUserEmail;
 use PHPUnit\Framework\TestCase;
 
 final class AdminUserInteractorTest extends TestCase
@@ -114,10 +115,10 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         $ids = array_keys($this->records);
         $id = ($ids === [] ? 0 : max($ids)) + 1;
         $this->records[$id] = [
-            'email' => $user->email,
-            'name' => $user->name,
+            'email' => $user->email->value,
+            'name' => $user->name->value,
             'role' => $user->role->value,
-            'password_hash' => $user->passwordHash,
+            'password_hash' => $user->passwordHash->value,
         ];
 
         return new AdminUserId(value: $id);
@@ -125,35 +126,35 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
 
     public function update(AdminUser $user): bool
     {
-        if ($user->id === null || !isset($this->records[$user->id])) {
+        if ($user->id === null || !isset($this->records[$user->id->value])) {
             return false;
         }
 
-        $this->records[$user->id]['email'] = $user->email;
-        $this->records[$user->id]['name'] = $user->name;
-        $this->records[$user->id]['role'] = $user->role->value;
-        if ($user->passwordHash !== '') {
-            $this->records[$user->id]['password_hash'] = $user->passwordHash;
+        $this->records[$user->id->value]['email'] = $user->email->value;
+        $this->records[$user->id->value]['name'] = $user->name->value;
+        $this->records[$user->id->value]['role'] = $user->role->value;
+        if ($user->passwordHash->value !== '') {
+            $this->records[$user->id->value]['password_hash'] = $user->passwordHash->value;
         }
 
         return true;
     }
 
-    public function delete(int $id): bool
+    public function delete(AdminUserId $id): bool
     {
-        if (!isset($this->records[$id])) {
+        if (!isset($this->records[$id->value])) {
             return false;
         }
 
-        unset($this->records[$id]);
+        unset($this->records[$id->value]);
 
         return true;
     }
 
-    public function emailExists(string $email, ?int $exceptId): bool
+    public function emailExists(AdminUserEmail $email, ?AdminUserId $exceptId): bool
     {
         foreach ($this->records as $id => $record) {
-            if ($record['email'] === $email && $id !== $exceptId) {
+            if ($record['email'] === $email->value && $id !== $exceptId?->value) {
                 return true;
             }
         }
@@ -161,9 +162,9 @@ final class InMemoryAdminUserRepository implements IAdminUserRepository
         return false;
     }
 
-    public function roleOf(int $id): ?CmsRole
+    public function roleOf(AdminUserId $id): ?CmsRole
     {
-        $role = $this->records[$id]['role'] ?? null;
+        $role = $this->records[$id->value]['role'] ?? null;
 
         return $role === null ? null : CmsRole::from($role);
     }

@@ -13,8 +13,12 @@ use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Value\CmsRole;
+use App\Cms\Domain\Value\AdminUserEmail;
+use App\Cms\Domain\Value\AdminUserId;
+use App\Cms\Domain\Value\AdminUserName;
 use App\Cms\Domain\Repository\IUserRepository;
 use App\Cms\Domain\Value\LoginAttemptResult;
+use App\Cms\Domain\Value\PasswordHash;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -149,10 +153,10 @@ final class LoginInteractorTest extends TestCase
     private function user(): User
     {
         return new User(
-            id: 10,
-            email: 'admin@example.test',
-            passwordHash: 'hash-from-storage',
-            name: 'Admin',
+            id: new AdminUserId(value: 10),
+            email: new AdminUserEmail(value: 'admin@example.test'),
+            passwordHash: new PasswordHash(value: 'hash-from-storage'),
+            name: new AdminUserName(value: 'Admin'),
             role: CmsRole::Admin,
         );
     }
@@ -169,9 +173,9 @@ final readonly class InMemoryUserRepository implements IUserRepository
     {
     }
 
-    public function findByEmail(string $email): ?User
+    public function findByEmail(AdminUserEmail $email): ?User
     {
-        if ($this->user === null || $this->user->email !== $email) {
+        if ($this->user === null || $this->user->email->value !== $email->value) {
             return null;
         }
 

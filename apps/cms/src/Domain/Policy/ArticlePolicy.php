@@ -19,7 +19,7 @@ final readonly class ArticlePolicy
     public function authorizeCreate(CmsActor $actor): ArticleCreatePermission
     {
         if (!$actor->role->isAtLeast(CmsRole::Writer)) {
-            throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.create');
+            throw new ResourceOperationDeniedException(actorId: $actor->id->value, operation: 'article.create');
         }
 
         return new ArticleCreatePermission(actor: $actor);
@@ -31,17 +31,17 @@ final readonly class ArticlePolicy
             return new ArticleUpdatePermission(actor: $actor);
         }
 
-        if ($actor->role === CmsRole::Writer && $article->authorId === $actor->id) {
+        if ($actor->role === CmsRole::Writer && $article->authorId?->value === $actor->id->value) {
             return new ArticleUpdatePermission(actor: $actor);
         }
 
-        throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.update');
+        throw new ResourceOperationDeniedException(actorId: $actor->id->value, operation: 'article.update');
     }
 
     public function authorizePublish(CmsActor $actor): ArticlePublishPermission
     {
         if (!$actor->role->isAtLeast(CmsRole::Editor)) {
-            throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.publish');
+            throw new ResourceOperationDeniedException(actorId: $actor->id->value, operation: 'article.publish');
         }
 
         return new ArticlePublishPermission(actor: $actor);
@@ -50,7 +50,7 @@ final readonly class ArticlePolicy
     public function authorizeDelete(CmsActor $actor): ArticleDeletePermission
     {
         if (!$actor->role->isAtLeast(CmsRole::Editor)) {
-            throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.delete');
+            throw new ResourceOperationDeniedException(actorId: $actor->id->value, operation: 'article.delete');
         }
 
         return new ArticleDeletePermission(actor: $actor);
@@ -59,7 +59,7 @@ final readonly class ArticlePolicy
     public function authorizeRestore(CmsActor $actor): ArticleRestorePermission
     {
         if (!$actor->role->isAtLeast(CmsRole::Editor)) {
-            throw new ResourceOperationDeniedException(actorId: $actor->id, operation: 'article.restore');
+            throw new ResourceOperationDeniedException(actorId: $actor->id->value, operation: 'article.restore');
         }
 
         return new ArticleRestorePermission(actor: $actor);

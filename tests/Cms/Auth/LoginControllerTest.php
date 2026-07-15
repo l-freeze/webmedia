@@ -13,6 +13,7 @@ use App\Cms\Domain\Entity\LoginAttempt;
 use App\Cms\Domain\Entity\User;
 use App\Cms\Domain\Repository\ILoginAttemptRepository;
 use App\Cms\Domain\Repository\IUserRepository;
+use App\Cms\Domain\Value\AdminUserEmail;
 use App\Cms\Presentation\Http\Controller\Auth\Login\Controller;
 use App\Framework\Http\Request;
 use App\Framework\Security\Csrf;
@@ -99,7 +100,7 @@ final class RecordingLoginEventBus implements IEventBus
 
 final readonly class EmptyLoginUserRepository implements IUserRepository
 {
-    public function findByEmail(string $email): ?User
+    public function findByEmail(AdminUserEmail $email): ?User
     {
         return null;
     }

@@ -8,6 +8,7 @@ use App\Cms\Domain\Entity\Article;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Domain\Policy\ArticlePolicy;
 use App\Cms\Domain\Value\ArticleBody;
+use App\Cms\Domain\Value\AdminUserId;
 use App\Cms\Domain\Value\ArticleBodyFormat;
 use App\Cms\Domain\Value\ArticleExcerpt;
 use App\Cms\Domain\Value\ArticleId;
@@ -41,8 +42,8 @@ final class ArticlePolicyTest extends TestCase
         $policy = $this->policy();
         $article = $this->article(authorId: 10);
 
-        self::assertSame(20, $policy->authorizeUpdate(actor: $this->actor(id: 20, role: CmsRole::Editor), article: $article)->actor->id);
-        self::assertSame(30, $policy->authorizeUpdate(actor: $this->actor(id: 30, role: CmsRole::Admin), article: $article)->actor->id);
+        self::assertSame(20, $policy->authorizeUpdate(actor: $this->actor(id: 20, role: CmsRole::Editor), article: $article)->actor->id->value);
+        self::assertSame(30, $policy->authorizeUpdate(actor: $this->actor(id: 30, role: CmsRole::Admin), article: $article)->actor->id->value);
     }
 
     public function testViewerCannotUpdateArticle(): void
@@ -73,7 +74,7 @@ final class ArticlePolicyTest extends TestCase
 
     private function actor(int $id = 1, CmsRole $role = CmsRole::Admin): CmsActor
     {
-        return new CmsActor(id: $id, role: $role);
+        return new CmsActor(id: new AdminUserId(value: $id), role: $role);
     }
 
     private function article(?int $authorId): Article
@@ -92,7 +93,7 @@ final class ArticlePolicyTest extends TestCase
             publishedEndsAt: null,
             seoTitle: new SeoTitle(''),
             metaDescription: new MetaDescription(''),
-            authorId: $authorId,
+            authorId: $authorId === null ? null : new AdminUserId(value: $authorId),
         );
     }
 }

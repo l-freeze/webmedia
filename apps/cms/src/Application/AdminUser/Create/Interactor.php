@@ -7,7 +7,10 @@ namespace App\Cms\Application\AdminUser\Create;
 use App\Cms\Application\AdminUser\Create\Port\IPasswordHasher;
 use App\Cms\Domain\Entity\AdminUser;
 use App\Cms\Domain\Repository\IAdminUserRepository;
+use App\Cms\Domain\Value\AdminUserEmail;
+use App\Cms\Domain\Value\AdminUserName;
 use App\Cms\Domain\Value\CmsRole;
+use App\Cms\Domain\Value\PasswordHash;
 use App\Shared\Validation\ValidationError;
 use App\Shared\Validation\ValidationOutput;
 
@@ -40,17 +43,18 @@ final readonly class Interactor
             return new Output(created: false, error: 'ロールを正しく選択してください。');
         }
 
-        $emailExists = $this->users->emailExists(email: $input->email, exceptId: null);
+        $email = new AdminUserEmail(value: $input->email);
+        $emailExists = $this->users->emailExists(email: $email, exceptId: null);
         if ($emailExists) {
             return new Output(created: false, error: 'このメールアドレスは既に使われています。');
         }
 
         $user = new AdminUser(
             id: null,
-            email: $input->email,
-            name: $input->name,
+            email: $email,
+            name: new AdminUserName(value: $input->name),
             role: $role,
-            passwordHash: $this->passwords->hash($input->password),
+            passwordHash: new PasswordHash(value: $this->passwords->hash($input->password)),
         );
         $userId = $this->users->create(user: $user);
 
