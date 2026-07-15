@@ -47,6 +47,12 @@ The scaffold includes a small form validation set under `App\Shared\Validation`.
 
 The scaffold includes small PDO helpers under `App\Shared\Database`. Framework core does not require PDO, but the default app structure uses PDO-based persistence examples.
 
+## Logging
+
+The generated shared container initially binds `Psr\Log\LoggerInterface` to Framework's `PlaceholderLogger`. This is not a real logger. It throws when a log is written so that missing logger configuration does not silently discard application logs.
+
+Replace this binding with the PSR-3 logger used by the application, such as Monolog or a project-specific implementation. If discarding logs is intentional, bind `Psr\Log\NullLogger` explicitly instead.
+
 ## Middleware
 
 `apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
@@ -87,8 +93,14 @@ MARKDOWN,
 declare(strict_types=1);
 
 use App\Framework\Container\Container;
+use App\Framework\Logging\PlaceholderLogger;
+use Psr\Log\LoggerInterface;
 
 return static function (Container $container, string $root): void {
+    $container->singleton(
+        id: LoggerInterface::class,
+        factory: static fn (): LoggerInterface => new PlaceholderLogger(),
+    );
 };
 PHP,
     "{$sharedRoot}/src/Database/PdoHelper.php" => <<<'PHP'

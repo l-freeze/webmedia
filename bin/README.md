@@ -176,6 +176,8 @@ php bin/scaffold-shared
 
 `SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
 
+`apps/shared/config/container.php` は、初期状態で `Psr\Log\LoggerInterface` を Framework の `PlaceholderLogger` へ bind します。これは実ロガーではなく、ロガー未設定のまま書き込もうとしたときに例外を投げ、ログが黙って捨てられることを防ぐための仮実装です。アプリケーションで使う Monolog などの PSR-3 実装、またはプロジェクト固有の実装へ差し替えてください。ログを意図的に捨てる場合だけ、`Psr\Log\NullLogger` を明示的に bind します。
+
 `PdoHelper` と `PdoRow` は PDO persistence 実装の標準スターターです。Framework 本体は PDO を要求しません。PDO を使う default persistence examples の補助として Shared に生成します。
 
 `LatteTemplateRenderer` は Framework の `ITemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
