@@ -2,13 +2,15 @@
 
 ## 1. 目的
 
-この文書は、WEBメディアサイト本体と管理用CMSを開発するための技術スタックを明確に定義する。  
+この文書は、WEBメディアサイト本体と管理用CMSを開発するための現行技術スタックを明確に定義する。
 AIまたは開発者が実装作業を行う際は、この文書を前提として設計・実装すること。
 
-対象は以下の2つである。
+対象は以下である。
 
 - ユーザーフロント：読者が閲覧するWEBメディア本体
+- 派生フロント：独立した公開面を提供する追加アプリケーション
 - CMS：記事作成・編集・公開予約・更新履歴・バージョン管理を行う管理画面
+- `pera` / Kernel / Shared：HTTP実行基盤とプロジェクト共通基盤
 
 ---
 
@@ -47,19 +49,19 @@ AIまたは開発者が実装作業を行う際は、この文書を前提とし
 |---|---|
 | 言語 | PHP 8.5 |
 | パッケージ管理 | Composer |
-| アプリケーション基盤 | 自前軽量フレームワーク |
+| アプリケーション基盤 | 自前軽量フレームワーク `pera` |
 | DIコンテナ | 自作PSR-11風DIコンテナ |
-| ルーティング | FastRoute または Symfony Routing |
+| ルーティング | FastRoute |
 | テンプレートエンジン | Latte |
 | データベース | PostgreSQL |
 | DBアクセス | PDO |
 | マイグレーション | Phinx |
-| JavaScript | htmx + Stimulus |
-| CSS | Tailwind CSS v4 |
+| JavaScript | Vanilla JavaScript、htmx、Tiptap |
+| CSS | Front用CSS、CMSのTailwind CSS 3.4系 |
 | Markdown変換 | league/commonmark |
-| HTMLサニタイズ | HTMLPurifier または Symfony HtmlSanitizer |
-| メール送信 | Symfony Mailer |
-| 画像処理 | Intervention Image |
+| HTMLサニタイズ | HTMLPurifier |
+| メール送信 | Symfony Mailer、通知機能は未実装 |
+| 画像処理 | libvips CLI、Framework `ProcessRunner` |
 | 環境変数 | vlucas/phpdotenv |
 | Webサーバー / PHP実行環境 | FrankenPHP + Caddy |
 | 開発環境 | Docker Compose |
@@ -111,7 +113,10 @@ Composerを必ず使用する。
   "autoload": {
     "psr-4": {
       "App\\Framework\\": "src/Framework/",
+      "App\\Kernel\\": "apps/kernel/src/",
+      "App\\Shared\\": "apps/shared/src/",
       "App\\Front\\": "apps/front/src/",
+      "App\\FrontBusiness\\": "apps/front-business/src/",
       "App\\Cms\\": "apps/cms/src/"
     }
   }
@@ -129,20 +134,24 @@ Composerを必ず使用する。
 ```text
 project-root/
 ├── apps/
+│   ├── kernel/
+│   ├── shared/
 │   ├── front/
 │   │   ├── config/
 │   │   ├── src/
 │   │   │   ├── Application/
 │   │   │   ├── Domain/
-│   │   │   └── Infrastructure/
+│   │   │   ├── Infrastructure/
+│   │   │   └── Presentation/
 │   │   └── templates/
+│   ├── front-business/
 │   └── cms/
 │       ├── config/
 │       ├── src/
 │       │   ├── Application/
 │       │   ├── Domain/
-│       │   ├── Auth/
-│       │   └── Infrastructure/
+│       │   ├── Infrastructure/
+│       │   └── Presentation/
 │       └── templates/
 ├── src/
 │   └── Framework/
@@ -150,9 +159,8 @@ project-root/
 │       ├── Http/
 │       ├── Routing/
 │       ├── View/
-│       ├── Database/
 │       ├── Security/
-│       └── Content/
+│       └── Process/
 ├── public/
 │   ├── index.php
 │   └── assets/
@@ -199,25 +207,18 @@ Web公開ディレクトリは必ず `public/` に限定する。
 
 ## 7. ルーティング
 
-### 7.1 採用候補
+### 7.1 採用技術
 
-以下のどちらかを使用する。
+FastRouteを使用する。
 
-- FastRoute
-- Symfony Routing
+### 7.2 方針
 
-### 7.2 推奨
-
-初期実装ではFastRouteを推奨する。
-
-### 7.3 方針
-
-- ルート定義は1箇所に集約する
-- ユーザーフロントとCMSのルートは明確に分ける
+- ルート定義はアプリケーションごとの `config/routes.php` に集約する
+- Front、派生Front、CMSのルートは明確に分ける
 - CMS側のURLには `/admin` を使用する
 - ルーティングロジックをコントローラ内に書かない
 
-### 7.4 例
+### 7.3 例
 
 ```text
 /                       トップページ
@@ -444,10 +445,11 @@ Phinxを使用する。
 
 ### 12.1 採用技術
 
-以下を採用する。
+現行実装では以下を使う。
 
+- Vanilla JavaScript
 - htmx
-- Stimulus
+- Tiptap、CMSリッチエディター用
 
 ### 12.2 方針
 
@@ -455,30 +457,21 @@ Phinxを使用する。
 - React、Vue、Svelteは使用しない
 - サーバーサイドレンダリングを基本とする
 - 必要な部分だけ非同期化する
-- UI状態管理はStimulusで行う
-- HTML差し替えや部分更新はhtmxで行う
+- 小規模なUI状態は、用途ごとに分離したVanilla JavaScriptで扱う
+- HTML差し替えや部分更新が必要な箇所ではhtmxを使ってよい
+- ライブラリを読み込んでいることだけを採用理由にせず、実際の用途がある依存だけを維持する
 
 ### 12.3 htmxの用途
 
-- 記事一覧の絞り込み
-- 検索結果の部分更新
-- メディア選択モーダル
-- タグ候補検索
-- 問い合わせステータス変更
-- ゴミ箱復元
-- 公開予約状態更新
-- 差分表示の読み込み
+現在はサーバーサイドレンダリングと通常のform送信を基本とする。画面全体の再描画が操作性や負荷の問題になった場合だけ、対象を限定してhtmxへ移す。
 
-### 12.4 Stimulusの用途
+### 12.4 Vanilla JavaScriptの用途
 
 - モーダル
-- ドロップダウン
-- タブ
 - トースト通知
-- サイドバー開閉
-- スマホメニュー開閉
-- 日時入力補助
-- エディタ周辺UI
+- 二重送信防止
+- 確認ダイアログ
+- CMSリッチエディター周辺UI
 
 ### 12.5 非採用
 
@@ -498,22 +491,20 @@ Phinxを使用する。
 
 ### 13.1 採用技術
 
-Tailwind CSS v4を採用する。
+- 通常Frontと派生Frontは、アプリケーションごとに分離したCSSを使う。
+- CMSは現行のTailwind CSS 3.4系ブラウザビルドを使う。
 
 ### 13.2 方針
 
-- Tailwind CSS v4を基本のCSS基盤にする
-- CMSとユーザーフロントで同じデザイントークンを使う
+- Front固有CSSをCMSや別Frontへ混ぜない
+- CMSはutility classを基本とする
 - 必要に応じて独自CSS変数を定義する
-- コンポーネントごとの見た目を統一する
-- 無秩序なクラス指定を避ける
+- 同じアプリケーション内のコンポーネントは見た目を統一する
+- Tailwindのブラウザビルドを本番で継続するか、事前buildへ移すかは公開前に判断する
 
 ### 13.3 対象
 
-Tailwind CSSは以下の両方で使用する。
-
-- ユーザーフロント
-- CMS
+Tailwind CSSはCMSで使用する。Frontは公開面ごとのCSSを使用する。
 
 ### 13.4 非採用
 
@@ -530,24 +521,15 @@ Tailwind CSSは以下の両方で使用する。
 
 ### 14.1 方針
 
-記事本文エディタは、CMSの中核機能として別途選定する。  
-初期実装ではMarkdownベースを第一候補とする。
+CMSの記事・固定ページ本文は、Markdown、HTML、Tiptapリッチエディターから入力形式を選べるようにする。
 
-### 14.2 候補
+### 14.2 採用技術
 
-以下のいずれかを採用する。
+TiptapのOSS editor packageを自前buildして使用する。
 
-- EasyMDE
-- Toast UI Editor
-- TinyMCE
+Tiptap Cloud、AI Toolkit、Collaboration、Pro Extensionsには依存しない。保存形式と表示用派生HTMLの扱いは `docs/decisions.md` を正とする。
 
-### 14.3 選定方針
-
-- Markdown運用を重視する場合は EasyMDE または Toast UI Editor
-- リッチテキスト運用を重視する場合は TinyMCE
-- 初期実装では EasyMDE を優先候補とする
-
-### 14.4 必須機能
+### 14.3 必須機能
 
 - 見出し
 - 太字
@@ -569,10 +551,7 @@ league/commonmarkを使用する。
 
 ### 15.2 HTMLサニタイズ
 
-以下のどちらかを使用する。
-
-- HTMLPurifier
-- Symfony HtmlSanitizer
+HTMLPurifierを使用する。
 
 ### 15.3 方針
 
@@ -595,6 +574,8 @@ Symfony Mailerを使用する。
 - パスワード再設定
 - 管理者通知
 
+これらの通知・再設定機能は現時点では未実装であり、運用要件が決まった時点で追加する。Symfony Mailerが依存packageに含まれていることと、メール送信UseCaseが実装済みであることを同一視しない。
+
 ### 16.3 方針
 
 - PHPのmail関数を直接使わない
@@ -607,7 +588,7 @@ Symfony Mailerを使用する。
 
 ### 17.1 採用技術
 
-Intervention Imageを使用する。
+libvips CLIの `vipsthumbnail` を使用する。PHPからの外部プロセス実行はFrameworkの `ProcessRunner` を通す。
 
 ### 17.2 必須処理
 
@@ -624,6 +605,9 @@ Intervention Imageを使用する。
 - ファイル名は安全な形式に変換する
 - アップロード可能な拡張子を制限する
 - MIMEタイプを検証する
+- JPEG、PNG、WebPはWebPのthumbnail / optimized画像を同期生成する
+- 派生生成に失敗しても元画像の登録は成立させる
+- PHP画像ライブラリへ変換責務を重複して持たせない
 
 ---
 
@@ -640,10 +624,11 @@ Intervention Imageを使用する。
 - ログアウト
 - パスワードハッシュ化
 - パスワード検証
-- パスワード再設定
 - セッション管理
 - CSRF対策
 - ログイン試行制限
+
+パスワード再設定はメール運用を含む要件が決まった時点で追加する。
 
 ### 18.3 パスワード処理
 
@@ -651,7 +636,8 @@ Intervention Imageを使用する。
 
 - `password_hash()`
 - `password_verify()`
-- `password_needs_rehash()`
+
+ApplicationはPHP標準関数を直接呼ばず、UseCaseが要求するpassword hash / verify Portへ依存する。
 
 ### 18.4 権限
 
@@ -686,9 +672,10 @@ editor  記事・固定ページ・メディア・問い合わせ管理が可能
 ### 19.3 セッション
 
 - ログイン成功時にセッションIDを再生成する
-- 管理画面は一定時間操作がなければ再認証を求める
 - CookieにはHttpOnlyを付ける
 - HTTPS環境ではSecureを付ける
+
+無操作時間による再認証は、運用要件が決まった時点で追加する。
 
 ---
 
@@ -773,15 +760,12 @@ mailpit   開発用メール確認
 
 ### 23.1 用途
 
-- 公開予約記事の公開処理
-- sitemap.xml再生成
 - 古い一時ファイル削除
 - バックアップ実行
 
 ### 23.2 方針
 
-- cronを使用する
-- CLIコマンドを `bin/console` に集約する
+- 定期処理が必要になった時点でcronと専用CLI commandを用意する
 - Webリクエストに重い定期処理を混ぜない
 
 ### 23.3 公開予約
@@ -794,6 +778,8 @@ status = published かつ published_at > 現在時刻
 
 公開時刻を過ぎた記事はステータス更新を行わず、その時点でフロントの公開対象になる。
 
+この判定は `IClock` の基準時刻をQueryへ渡して行う。公開のためのcron処理は不要である。
+
 ---
 
 ## 24. ログ
@@ -801,8 +787,10 @@ status = published かつ published_at > 現在時刻
 ### 24.1 方針
 
 - アプリケーションログを保存する
-- エラーログを保存する
-- CMSの操作ログをDBに保存する
+- Audit logを保存する
+- Security logを保存する
+- 現行実装では、それぞれ用途別のJSON Linesファイルへ分離して保存する
+- Audit管理画面はAudit logファイルをApplication Query経由で読み取る
 
 ### 24.2 操作ログ対象
 
@@ -850,17 +838,18 @@ PHPUnitを使用する。
 
 ### 26.1 方針
 
-Tailwind CSS v4とStimulusを扱うため、最小限のビルド環境を用意する。
+CMSリッチエディターを自前hostするため、最小限のbuild環境を用意する。
 
-### 26.2 採用候補
+### 26.2 採用技術
 
 Viteを使用する。
 
 ### 26.3 方針
 
 - React/Vue用の構成にはしない
-- CSSと小規模JSのビルドのみ行う
-- ビルド成果物は `public/assets/` に出力する
+- 現在はTiptapを使うCMSリッチエディターのJavaScriptだけをbuildする
+- build成果物は `public/assets/js/cms-rich-editor.js` に出力する
+- Front CSSと共通JavaScriptは現時点ではViteのbuild対象にしない
 
 ---
 
@@ -877,7 +866,7 @@ Viteを使用する。
 | Next.js | PHP自前CMS方針と合わない |
 | Nuxt | PHP自前CMS方針と合わない |
 | Node.jsバックエンド | PHPで統一するため |
-| Bootstrap | Tailwind CSS v4を採用するため |
+| Bootstrap | 現行のCSS方針と合わないため |
 | Plates | 採用感・将来性の面で第一候補にしない |
 | 独自テンプレートエンジン | 労力に対する利点が薄い |
 | 自作ORM | 複雑化しやすいため初期不採用 |
@@ -896,7 +885,7 @@ Viteを使用する。
 ```text
 PHP 8.5
 Composer
-自前軽量フレームワーク
+自前軽量フレームワーク pera
 自作PSR-11風DIコンテナ
 FastRoute
 Latte
@@ -904,13 +893,15 @@ PDO
 PostgreSQL
 Phinx
 league/commonmark
-HTMLPurifier または Symfony HtmlSanitizer
-Symfony Mailer
-Intervention Image
+HTMLPurifier
+Symfony Mailer、送信機能は未実装
+libvips CLI + ProcessRunner
 vlucas/phpdotenv
+Vanilla JavaScript
 htmx
-Stimulus
-Tailwind CSS v4
+Tiptap
+Front用CSS
+CMS Tailwind CSS 3.4系
 Vite
 PHPUnit
 FrankenPHP + Caddy
@@ -931,13 +922,13 @@ AIまたは開発者が実装する際は、以下を必ず守ること。
 - Composerを使用する
 - PHP 8.5を前提にする
 - テンプレートはLatteを使う
-- CSSはTailwind CSS v4を使う
-- JavaScriptはhtmx + Stimulusを使う
+- FrontとCMSのCSS責務を混ぜない
+- JavaScriptはSSRを補助する範囲に留める
 - DBアクセスはPDOを使う
 - マイグレーションはPhinxを使う
 - インフラはFrankenPHP + Caddyを第一候補にする
 - FrankenPHP専用実装に依存しすぎない
-- 公開予約はcronで処理する
+- 公開期間判定は `IClock` の基準時刻を使い、公開のためのstatus更新やcronを要求しない
 - 記事と固定ページのバージョン管理を実装する
 - 記事と固定ページの更新履歴を保存する
 - 記事の更新履歴は復元前にプレビューできる
@@ -949,43 +940,23 @@ AIまたは開発者が実装する際は、以下を必ず守ること。
 
 ## 30. 判断が必要な残項目
 
-以下は実装前に最終決定する。
+以下は公開前または運用要件が決まった時点で判断する。
 
-### 30.1 DB
+### 30.1 CMS CSS
 
-PostgreSQLを採用済み。
+現行のTailwind CSS 3.4系ブラウザビルドを継続するか、事前buildへ移すかを判断する。
 
-### 30.2 ルーター
+### 30.2 メール送信
 
-以下のどちらを使うかを決める。
+問い合わせ通知、パスワード再設定、管理者通知の運用要件を決め、必要なUseCaseだけを実装する。
 
-- FastRoute
-- Symfony Routing
+### 30.3 未使用依存
 
-未決定の場合はFastRouteを優先する。
-
-### 30.3 HTMLサニタイザー
-
-以下のどちらを使うかを決める。
-
-- HTMLPurifier
-- Symfony HtmlSanitizer
-
-未決定の場合はHTMLPurifierを優先する。
-
-### 30.4 本文エディタ
-
-以下のどれを使うかを決める。
-
-- EasyMDE
-- Toast UI Editor
-- TinyMCE
-
-未決定の場合はEasyMDEを優先する。
+Composerに残る未使用packageは、実装予定がないことを確認したうえで別の変更単位で削除する。
 
 ---
 
 ## 31. この文書の位置づけ
 
-この文書は、技術スタックの決定版である。  
-画面設計、DB設計、アプリケーション設計、実装作業は、この技術スタックを前提として進める。
+この文書は、技術選定の一次資料である。
+機能の実装状況は `docs/feature_inventory.md`、設計判断の理由は `docs/decisions.md`、アーキテクチャ境界は `docs/webmedia_architecture_rules.md` を正とする。
