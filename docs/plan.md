@@ -13,11 +13,10 @@
 
 1. OGP / Twitter Card、RSS / Atom の仕様を決める。場当たり的に仮実装しない。
 2. CMS / Front の PC/SP 表示を、日本語フォントがある環境または Playwright 環境で再確認する。
-3. Article / Page と同じ Domain Entity 方針へ、他の Entity と Repository 境界を揃える。
-   - `AdminUser`、`User`、`Category`、`Tag`、`SiteSettings`、`MediaUpload`、`InquiryStatusUpdate`、`LoginAttempt`、`CmsLoginAttemptReset`、Front の `Inquiry` を順に確認する。
-   - Entity が直接保持する primitive を、業務上の意味、不変条件、形式制約を持つ `Domain/Value` へ移す。
-   - Repository の ID 引数と生成 ID 戻り値を Domain Value へ揃える。件数の `int` と真偽判定の `bool` だけは規約どおり例外として許容する。
-   - 単に class 数を増やすための ValueObject 化はせず、Article / Page と同様に入力変換、DB row 復元、Domain rule の境界が読める形にする。
+3. `docs/application_ports.md` と現行実装の整合性を確認する。
+   - Application が外側の能力へ依存している箇所と、現行の Port 配置を洗い出す。
+   - 資料と実装のどちらを直すべきか、UseCase の要求、依存方向、横断基盤との違いを見て個別に判断する。
+   - 判断前に Port を機械的に追加・削除しない。
 
 ## 後で忘れず判断すること
 

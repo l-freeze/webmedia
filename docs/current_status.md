@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- `AdminUser`、`User`、`Category`、`Tag`、`SiteSettings`、`MediaUpload`、`InquiryStatusUpdate`、`LoginAttempt`、`CmsLoginAttemptReset`、Front の `Inquiry` を、Article / Page と同じ Domain Entity / Domain Value 方針へ統一した。Article / Page 側に残っていた slug 照合引数と Article の author ID も同時に型付けした。入力 primitive から Domain Value への変換は Application、DB 値との相互変換は Repository 実装に閉じ、CMS / Front の全 Domain Entity で primitive の直接保持は0件になった。全 Domain Repository の ID、slug、email 引数と生成 ID は Domain Value に揃え、戻り値の scalar は件数の `int`、真偽判定の `bool`、`void` だけを維持した。PHPUnit 213 tests / 3160 assertions と PHPStan を通過済み。
 - production PHP 16件とtests 1件の `array_filter` をすべて条件付き `foreach` へ変更した。CSV、validation、Setting media、Audit、Sitemap、test countでは、複数の配列関数が行っていた変換・除外・index補正・集計を一度のループへ統合した。POC の `apps/front-business` と未追跡の `apps/minimal` は対象外とし、通常実装とtestsの `array_map` / `array_filter` は0件になった。
 - production PHP 33件とtests 2件の `array_map` をすべて、利用箇所より前で結果配列を組み立てる通常の `foreach` へ変更した。即時実行 closureやrender引数内の変換は使わず、変換結果を名前付き変数として渡す。
 - Query interface 41個・45 method、Repository interface 12個・29 method と実装を確認し、戻り値境界の修正対象2件を対応した。AdminUser Repository の生成 ID は `AdminUserId` Domain Value、Role List Query の permission code は UseCase `Permission` Value の型付き配列を返す。件数の `int`、真偽判定の `bool`、`void` は規約どおり維持する。対応済み項目は `docs/architecture_boundary_review.md` から削除した。
