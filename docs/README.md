@@ -21,6 +21,7 @@
 - `docs/decisions.md`: なぜやる / やらないの設計判断記録。
 - `docs/site_model_plan.md`: `sites` を中心にした公開面モデルの追加方針。
 - `docs/architecture_boundary_review.md`: 責務・境界・構造の全体精査で抽出した検証待ち候補。
+- `docs/system_architecture_review_20260717.md`: システム全体の品質属性・実行時意味論・運用境界を含む総合レビューと改善候補。トリアージ後は正規文書へ移管する。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。
 - `docs/webmedia_technical_stack.md`: 技術スタック。
