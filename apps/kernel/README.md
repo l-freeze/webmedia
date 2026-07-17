@@ -50,6 +50,10 @@ Kernel はRequestごとに `Session` オブジェクトをContainerへ登録し�
 
 Sessionの開始判断はFrameworkの `Session` 内部へ閉じ、Kernelはrequest scopeの生成と `finally` でのcloseだけを担当します。ControllerやmiddlewareはSession lifecycleを操作せず、従来どおり必要な場合だけ `Session` または `Csrf` を依存として宣言します。
 
+Application codeでは、Sessionを使うControllerのconstructorへ `Pera\Framework\Security\Session` を追加するだけです。注入だけでは開始せず、最初の `get()`、`set()`、flash操作などが開始契機になります。小さなControllerの例、pageや機能がSession keyを所有するclass、CSRF、testの書き方は `src/Framework/Security/README.md` を正とします。
+
+Kernel scaffoldはこのlifecycleを最初から組み立てますが、app scaffoldはSession利用Controllerを既定では生成しません。生成直後の公開pageやAPIをstatelessに保ちつつ、必要になったpageではconstructor dependencyを1つ追加するだけで利用できるためです。
+
 `handle()` 内の `loadContainer()` は `require` でコンテナ設定を毎リクエスト再実行します。これは意図的な設計です。コンテナをリクエスト間で再利用すると、`Csrf::class` の singleton が別ユーザーの `Session` を保持し続けるセキュリティリスクがあります。そのリスクはパフォーマンス上の利益を大きく上回るため、コンテナの再利用は行いません。
 
 Worker mode の恩恵であるプロセス起動コストの排除は、`Application` インスタンスの長寿命化だけで十分に得られます。ルート解析とミドルウェア設定の読み込みはコンストラクタで1度だけ実行され、`$routers` と `$middleware` に保持されます。

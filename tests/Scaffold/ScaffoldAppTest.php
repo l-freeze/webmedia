@@ -83,6 +83,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('CREATE TABLE IF NOT EXISTS scaffold_messages', $controller);
             self::assertStringContainsString('INSERT INTO scaffold_messages', $controller);
             self::assertStringContainsString("template: 'index.latte'", $controller);
+            self::assertStringNotContainsString('Pera\\Framework\\Security\\Session', $controller);
 
             $template = $this->read(path: $root . '/apps/mini-app/templates/index.latte');
             self::assertStringContainsString('<h1>{$title}</h1>', $template);

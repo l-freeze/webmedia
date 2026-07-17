@@ -51,6 +51,8 @@ PHP 側の切り替え処理は [src/Framework/Runtime/RuntimeFactory.php](src/F
 
 ## セッション Cookie
 
+Sessionはrequestごとに注入されますが、native PHP SessionはController、認証、CSRFなどが最初にstateへアクセスしたときだけ開始します。Sessionを使わない公開pageはSession Cookieとbackend lockを持ちません。Controllerでの最短の使い方、pageや機能ごとのkey所有、flash、CSRF、worker lifecycleは [Framework Security README](src/Framework/Security/README.md) を参照してください。
+
 Session cookie はアプリケーション側で `HttpOnly` を常に有効にします。`SameSite` と本番での `Secure` 強制は環境変数で指定できます。
 
 ```text

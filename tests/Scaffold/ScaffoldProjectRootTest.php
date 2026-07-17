@@ -36,6 +36,15 @@ final class ScaffoldProjectRootTest extends TestCase
             self::assertStringContainsString('Session::fromNativeGlobals(', $application);
             self::assertStringNotContainsString('sessionRuntime->start(', $application);
             self::assertStringNotContainsString('SessionState', $application);
+            $readme = $this->read(path: $root . '/apps/kernel/README.md');
+            self::assertStringContainsString(
+                'constructor-injecting `Pera\\Framework\\Security\\Session`',
+                $readme,
+            );
+            self::assertStringContainsString(
+                'App scaffolds intentionally do not generate a stateful Controller by default',
+                $readme,
+            );
             self::assertFileDoesNotExist($projectRoot . '/vendor/pera/framework/apps/kernel/config/application.php');
         } finally {
             $this->removeDirectory(path: $root);

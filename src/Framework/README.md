@@ -32,7 +32,7 @@ For example, malformed global request input is represented by a Framework HTTP e
 
 `PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. The default Shared scaffold binds `Psr\Log\LoggerInterface` to it as a temporary starting point, and applications replace that binding with their real PSR-3 logger. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
 
-`Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy. A request-scoped native `Session` starts PHP session storage only on first state access. Constructing `Session` or passing a safe request through `CsrfMiddleware` does not make an otherwise stateless response stateful.
+`Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy. A request-scoped native `Session` starts PHP session storage only on first state access. Constructing `Session` or passing a safe request through `CsrfMiddleware` does not make an otherwise stateless response stateful. See `src/Framework/Security/README.md` for the smallest Controller example, application-owned Session state, CSRF, testing, and worker lifecycle.
 
 `ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case. See `src/Framework/Process/README.md` for usage.
 
@@ -136,9 +136,10 @@ For a first read, start here:
 2. `src/Framework/Bootstrap/README.md`
 3. `src/Framework/Container/README.md`
 4. `src/Framework/Http/Middleware/README.md`
-5. `src/Framework/Process/README.md`
-6. `bin/README.md`
-7. `apps/kernel/README.md`
-8. `apps/shared/README.md`
+5. `src/Framework/Security/README.md`
+6. `src/Framework/Process/README.md`
+7. `bin/README.md`
+8. `apps/kernel/README.md`
+9. `apps/shared/README.md`
 
 The top-level `README.md` describes the `webmedia` project itself. This README describes the Framework.

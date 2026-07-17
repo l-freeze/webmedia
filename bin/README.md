@@ -63,6 +63,8 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
 
+app scaffoldはSession利用Controllerを既定では生成しません。`minimal`を含む生成直後のGETをstatelessに保ち、公開page、API、Sessionを使うpageのどれにも同じapp scaffoldを使えるようにするためです。Sessionが必要なControllerへ `Pera\Framework\Security\Session` をconstructor injectionし、`get()`、`set()`、flash操作などを呼べば、そのrequestだけnative Sessionが開始します。copy-and-paste可能な最小例と、pageや機能がSession keyを所有する構成は `src/Framework/Security/README.md` にあります。
+
 ## App Scaffold
 
 `bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。

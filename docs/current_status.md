@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-17
+- 2026-07-18
 
 ## 現在地
 
@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- Framework Security READMEを追加し、Sessionの最短Controller利用、page/機能所有classへの分離、flash、CSRF、worker lifecycle、backend境界、認証時ID再生成、unit testを一つの入口にまとめた。KernelとscaffoldのREADMEはlifecycleだけを所有してSecurity READMEへ導く。app scaffoldにはstateful Controllerを既定生成せず、生成直後の公開page/APIをstatelessに保ちながら、constructor injectionだけでSession利用へ進める方針を明記した。生成Kernel READMEの案内とminimal Controllerのstateless性をscaffold testで固定し、PHPUnit 231 tests / 3346 assertions、PHPStan、`composer validate --strict`を通過済み。
 - native PHP Sessionを全request開始からfirst state accessでの遅延開始へ変更した。Framework `Session`内部の単一state gatewayだけが開始を担い、Kernelはrequest-scope Sessionの生成・注入と`finally` closeを担当する。Controller、middleware、route設定は変更していない。実HTTPで公開トップとrobotsはSession Cookieなし、問い合わせとCMSログインはSessionあり、問い合わせCookie付きの次の公開GETもSessionを再開しないことを確認した。現行KernelとKernel scaffoldを同じlifecycleへ揃え、PHPUnit 231 tests / 3342 assertions、PHPStan 738 files、`composer validate --strict`を通過済み。
 - Latteを生成するShared scaffoldとAppの`minimal` / `todo` templateが、consumer rootのruntime `require`へ`latte/latte:^3.0`を追加する依存レシピを実装した。Kernel、`bare`、`layered`はmanifestを変更しない。既存runtime制約は維持し、`require-dev`にだけある場合は同じ制約でruntimeへ移す。scaffold内では依存解決を実行せず、manifest更新後の`composer update`を表示する。manifestが無ければ`composer require`を案内し、不正なら生成前に失敗する。PHPUnit 224 tests / 3295 assertions、PHPStan 737 files、`composer validate --strict`を通過済み。
 - Frameworkのpublic namespaceを `App\Framework` から `Pera\Framework` へ変更し、production、tests、scaffold template、Composer PSR-4、関連READMEを追随させた。生成されるKernel / Shared / appはFrameworkだけを `Pera\Framework` で参照し、利用プロジェクト側の `App\Kernel` 等は維持する。
