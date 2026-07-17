@@ -37,6 +37,11 @@ final class ScaffoldSharedTest extends TestCase
             $readme = $this->read(path: $root . '/apps/shared/README.md');
             self::assertStringContainsString('This is not a real logger.', $readme);
             self::assertStringContainsString('Psr\Log\NullLogger', $readme);
+            self::assertStringContainsString('The Framework package itself does not require Latte.', $readme);
+
+            self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
+            self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -44,7 +49,27 @@ final class ScaffoldSharedTest extends TestCase
 
     private function temporaryRoot(): string
     {
-        return sys_get_temp_dir() . '/webmedia-scaffold-shared-test-' . bin2hex(random_bytes(4));
+        $root = sys_get_temp_dir() . '/webmedia-scaffold-shared-test-' . bin2hex(random_bytes(4));
+        self::assertTrue(mkdir($root, recursive: true));
+        self::assertNotFalse(file_put_contents(
+            $root . '/composer.json',
+            "{\n  \"name\": \"example/app\",\n  \"require\": {\n    \"php\": \"^8.5\"\n  }\n}\n",
+        ));
+
+        return $root;
+    }
+
+    private function composerRuntimeRequirement(string $root, string $package): ?string
+    {
+        $contents = $this->read(path: $root . '/composer.json');
+        $composer = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        $requirements = $composer['require'] ?? [];
+        self::assertIsArray($requirements);
+        $constraint = $requirements[$package] ?? null;
+        self::assertTrue($constraint === null || is_string($constraint));
+
+        return $constraint;
     }
 
     private function runScaffold(string $root): string

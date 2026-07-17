@@ -38,6 +38,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
+
+            self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -85,6 +87,10 @@ final class ScaffoldAppTest extends TestCase
             $template = $this->read(path: $root . '/apps/mini-app/templates/index.latte');
             self::assertStringContainsString('<h1>{$title}</h1>', $template);
             self::assertStringContainsString('Route: <code>{$path}</code>', $template);
+
+            self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
+            self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -145,6 +151,10 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('SELECT ', $indexController);
             self::assertStringNotContainsString('INSERT ', $indexController);
             self::assertStringNotContainsString('CREATE TABLE', $indexController);
+
+            self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
+            self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -184,6 +194,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('AppNameHeaderMiddleware::class', $middleware);
+
+            self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
         } finally {
             $this->removeDirectory(path: $root);
         }
@@ -191,7 +203,27 @@ final class ScaffoldAppTest extends TestCase
 
     private function temporaryRoot(): string
     {
-        return sys_get_temp_dir() . '/webmedia-scaffold-app-test-' . bin2hex(random_bytes(4));
+        $root = sys_get_temp_dir() . '/webmedia-scaffold-app-test-' . bin2hex(random_bytes(4));
+        self::assertTrue(mkdir($root, recursive: true));
+        self::assertNotFalse(file_put_contents(
+            $root . '/composer.json',
+            "{\n  \"name\": \"example/app\",\n  \"require\": {\n    \"php\": \"^8.5\"\n  }\n}\n",
+        ));
+
+        return $root;
+    }
+
+    private function composerRuntimeRequirement(string $root, string $package): ?string
+    {
+        $contents = $this->read(path: $root . '/composer.json');
+        $composer = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        $requirements = $composer['require'] ?? [];
+        self::assertIsArray($requirements);
+        $constraint = $requirements[$package] ?? null;
+        self::assertTrue($constraint === null || is_string($constraint));
+
+        return $constraint;
     }
 
     private function runScaffold(string $root, string $name, string $pathPrefix, string $template): string

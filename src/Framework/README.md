@@ -105,6 +105,8 @@ Namespace customization is intentionally not supported. `pera` gives users a cle
 
 `scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `ITemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
+Scaffold dependencies follow generated capabilities. `scaffold-shared` and the `minimal` / `todo` app templates add `latte/latte:^3.0` to the consuming root project's runtime requirements. Kernel, `bare`, and `layered` do not require Latte and leave the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
+
 ## Composer Package Direction
 
 When this Framework is split into a Composer package, the runtime package should contain Framework code and the explicit scaffold commands. Installing the Framework library alone must not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.

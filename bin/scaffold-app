@@ -58,6 +58,8 @@ if (!in_array($template, ['bare', 'minimal', 'todo', 'layered'], true)) {
     exit(1);
 }
 
+$composerFeatures = in_array($template, ['minimal', 'todo'], true) ? ['latte'] : [];
+
 $appRoot = "{$root}/apps/{$name}";
 $namespace = namespaceName(name: $name);
 $healthPath = rtrim($pathPrefix, '/') . '/health';
@@ -148,6 +150,23 @@ foreach ($paths as $path) {
         fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
         exit(1);
     }
+}
+
+/**
+ * @var Closure(string, list<string>): array{
+ *     required: array<string, string>,
+ *     added: array<string, string>,
+ *     present: array<string, string>,
+ *     missingManifest: bool,
+ *     messages: list<string>
+ * } $syncComposerRequirements
+ */
+$syncComposerRequirements = require __DIR__ . '/scaffold-composer-requirements.php';
+try {
+    $composerRequirementResult = $syncComposerRequirements($root, $composerFeatures);
+} catch (Throwable $throwable) {
+    fwrite(STDERR, "Failed to prepare scaffold Composer requirements: {$throwable->getMessage()}\n");
+    exit(1);
 }
 
 foreach ($directories as $directory) {
@@ -442,6 +461,12 @@ echo "Add this PSR-4 entry to composer.json when you add PHP classes under apps/
 echo $autoload . "\n\n";
 echo "Then run:\n\n";
 echo "composer dump-autoload\n";
+if ($composerRequirementResult['messages'] !== []) {
+    echo "\n";
+    foreach ($composerRequirementResult['messages'] as $message) {
+        echo $message . "\n";
+    }
+}
 
 /** @phpstan-return non-empty-string */
 function namespaceName(string $name): string

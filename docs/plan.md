@@ -37,9 +37,8 @@
 1. Framework配布物専用の `composer.json` を用意し、webmedia root packageから独立して `composer validate --strict` できるようにする。
 2. Framework packageの `require` は、Framework production codeが直接使うPHP version、FastRoute、PSR Container、PSR Logと、vendor binaryが依存するComposer runtime APIだけから始める。実使用scanと隔離install testで最終確定する。
 3. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
-4. standard Shared scaffoldが生成する具象実装について、必要packageが未導入なら生成前に不足一覧とroot projectへ追加するコマンドを表示する。Framework側へ暗黙に依存を戻さない。
-5. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
-6. monorepoで開発を続ける間はComposer path repositoryでFramework packageをroot applicationから利用し、monorepo rootのautoloadが欠落を隠さない状態にする。
+4. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
+5. monorepoで開発を続ける間はComposer path repositoryでFramework packageをroot applicationから利用し、monorepo rootのautoloadが欠落を隠さない状態にする。
 
 ### 配布とscaffold
 

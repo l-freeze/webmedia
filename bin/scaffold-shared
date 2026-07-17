@@ -82,6 +82,8 @@ $container->singleton(
 
 Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `ITemplateRenderer`.
 
+The scaffold adds `latte/latte:^3.0` to the consuming project's runtime requirements when `composer.json` exists. The Framework package itself does not require Latte.
+
 `LatteTemplateRenderer` disables Latte's compiled view cache by default because worker mode keeps loaded template classes in the PHP process. Pass `cacheDirectory` explicitly only when running a classic/non-worker runtime.
 
 To switch an app to Smarty:
@@ -499,6 +501,23 @@ foreach (array_keys($files) as $path) {
     }
 }
 
+/**
+ * @var Closure(string, list<string>): array{
+ *     required: array<string, string>,
+ *     added: array<string, string>,
+ *     present: array<string, string>,
+ *     missingManifest: bool,
+ *     messages: list<string>
+ * } $syncComposerRequirements
+ */
+$syncComposerRequirements = require __DIR__ . '/scaffold-composer-requirements.php';
+try {
+    $composerRequirementResult = $syncComposerRequirements($root, ['latte']);
+} catch (Throwable $throwable) {
+    fwrite(STDERR, "Failed to prepare scaffold Composer requirements: {$throwable->getMessage()}\n");
+    exit(1);
+}
+
 foreach ($directories as $directory) {
     ensureDirectory($directory);
 }
@@ -520,6 +539,12 @@ foreach (array_keys($files) as $path) {
 echo "\n";
 echo "Add this PSR-4 entry to composer.json when this is a new project:\n\n";
 echo "\"App\\\\Shared\\\\\": \"apps/shared/src/\"\n";
+if ($composerRequirementResult['messages'] !== []) {
+    echo "\n";
+    foreach ($composerRequirementResult['messages'] as $message) {
+        echo $message . "\n";
+    }
+}
 
 function ensureDirectory(string $directory): void
 {

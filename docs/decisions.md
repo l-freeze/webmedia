@@ -485,6 +485,10 @@ scaffoldで生成された `App\Kernel` は、生成直後から全て利用プ�
 
 Framework packageの依存はFramework production codeが直接使うものに限定する。Kernel / Shared / appの生成物が使うDotenv、Latte、DB、migration、content、mail、mediaの依存はproject skeletonまたは利用側root packageが所有する。
 
+scaffoldが外部packageを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。現在はShared scaffoldとAppの`minimal` / `todo` templateが、consumer rootのruntime `require`へ`latte/latte:^3.0`を追加する。Kernel、`bare`、`layered`はLatteを生成しないため追加しない。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
+
+scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
+
 PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とする。package化だけを理由にPSR-7 / PSR-15等への移行を新しい残作業にはしない。
 
 ### 理由
@@ -493,6 +497,8 @@ PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とす�
 - KernelはFrameworkを使うための便利な初期構成であり、Framework成立の必須条件ではない。
 - 利用者所有の生成codeをdependency updateが書き換えると、利用者の変更とのownership conflictが起きる。
 - scaffoldの具象実装を理由にFrameworkへDotenv、Latte、DB関連を持たせると、runtime coreの依存境界がstarter都合で膨らむ。
+- 生成sourceとroot依存を同じ機能レシピで扱えば、Latteを使わない利用者へ不要なpackageを課さず、Latteを生成した利用者のmanifest不足も防げる。
+- scaffold内からComposerを再帰実行しなければ、network、lock全体の再解決、plugin/script実行を暗黙の副作用にせず、利用者が明示的に確認できる。
 - 明示commandまたはproject skeletonなら、Composer pluginによる暗黙のfilesystem変更と `allow-plugins` 依存を避けられる。
 
 ### 採用しないこと

@@ -18,6 +18,25 @@ Framework を package として導入した root project では、`php vendor/bi
 
 Composer が生成した vendor binary proxy から実行した場合は、Composer が渡す root project のautoload pathから生成先を決めます。現在のリポジトリで `php bin/scaffold-*` を直接実行した場合は従来どおりこのリポジトリrootを使います。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も `--root=/path/to/project` が明示されていれば、その指定を優先します。
 
+## Composer Dependencies
+
+scaffoldが外部packageを参照するファイルを生成する場合は、その機能に対応する依存レシピをconsumer projectへ適用します。現在の対応はLatteです。
+
+| Scaffold | `latte/latte` |
+| --- | --- |
+| `scaffold-shared` | `require`へ`^3.0`を追加 |
+| `scaffold-app --template=minimal` | `require`へ`^3.0`を追加 |
+| `scaffold-app --template=todo` | `require`へ`^3.0`を追加 |
+| `scaffold-kernel` | 変更なし |
+| `scaffold-app --template=bare` | 変更なし |
+| `scaffold-app --template=layered` | 変更なし |
+
+root `composer.json`がある場合は、Latteをruntimeで使う生成物に合わせて`require`を更新します。既に`require`にある制約は上書きしません。`require-dev`にだけある場合は、その制約を維持したまま`require`へ移します。
+
+scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`vendor`も変更しません。manifestを更新した場合は、既存の`composer.lock`があれば対象を限定した`composer update latte/latte`、まだlockがなければ初回の`composer update`を表示します。`composer.json`がないrootへの生成は許可し、代わりに`composer require latte/latte:^3.0`を表示します。Latteを使わないscaffoldはmanifestを読み書きしません。
+
+この依存は生成codeを所有するconsumer projectの依存です。Framework package自体の`require`へLatteを含める理由にはしません。
+
 ## Kernel Scaffold
 
 `bin/scaffold-kernel` は Framework を使うプロジェクト側に固定の Kernel 層を生成します。
@@ -142,7 +161,7 @@ php bin/scaffold-app todo /todo --template=todo
 
 `fullpack` は、policy、guard、audit、permission、role などの設計が充実してきた段階で追加する全部載せ template の予約名です。現時点では有効な `--template` 値ではありません。
 
-コマンドは `apps/kernel/config/application.php` や `composer.json` を自動編集しません。生成後に追加する `ApplicationDefinition` と PSR-4 autoload の例を表示します。これは、どの設定がどの役割を持つかを実行者が確認できるようにするためです。
+コマンドは `apps/kernel/config/application.php` やComposerのPSR-4 autoloadを自動編集しません。生成後に追加する `ApplicationDefinition` と PSR-4 autoload の例を表示します。生成物が必要とする外部packageだけは、前述の依存レシピに従ってroot `composer.json`へ反映します。これは、application登録とautoload設定を利用者の合成判断として残しつつ、生成したsourceとpackage依存の不整合を防ぐためです。
 
 テスト用に別 root へ生成する場合は `--root` を指定できます。
 
@@ -156,7 +175,7 @@ php bin/scaffold-app api /api --root=/tmp/example-project
 
 このコマンドは project setup 用です。通常はプロジェクトごとに一度だけ実行します。Controller や app を追加するたびに実行するものではありません。
 
-Framework package としては、インストール時点で Kernel scaffold と Shared scaffold が生成されている状態を標準にします。`scaffold-app` は、その後に個別の app を追加するためのコマンドです。
+新規project skeletonではKernelとSharedが揃った状態を標準にします。Framework libraryを既存projectへ追加した場合は自動生成せず、必要な利用者が各scaffoldを明示的に実行します。`scaffold-app` は、その後に個別の app を追加するためのコマンドです。
 
 ```bash
 php bin/scaffold-shared
@@ -183,6 +202,8 @@ php bin/scaffold-shared
 `PdoHelper` と `PdoRow` は PDO persistence 実装の標準スターターです。Framework 本体は PDO を要求しません。PDO を使う default persistence examples の補助として Shared に生成します。
 
 `LatteTemplateRenderer` は Framework の `ITemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
+
+この生成物に合わせ、`scaffold-shared`はconsumer projectのruntime依存へ`latte/latte:^3.0`を追加します。Framework package自体へは追加しません。manifest更新後のinstall手順は「Composer Dependencies」を参照してください。
 
 scaffold が生成する `LatteTemplateRenderer` は、Latte の compiled view cache をデフォルトでは有効にしません。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic / non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
 

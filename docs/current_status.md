@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- Latteを生成するShared scaffoldとAppの`minimal` / `todo` templateが、consumer rootのruntime `require`へ`latte/latte:^3.0`を追加する依存レシピを実装した。Kernel、`bare`、`layered`はmanifestを変更しない。既存runtime制約は維持し、`require-dev`にだけある場合は同じ制約でruntimeへ移す。scaffold内では依存解決を実行せず、manifest更新後の`composer update`を表示する。manifestが無ければ`composer require`を案内し、不正なら生成前に失敗する。PHPUnit 224 tests / 3295 assertions、PHPStan 737 files、`composer validate --strict`を通過済み。
 - Frameworkのpublic namespaceを `App\Framework` から `Pera\Framework` へ変更し、production、tests、scaffold template、Composer PSR-4、関連READMEを追随させた。生成されるKernel / Shared / appはFrameworkだけを `Pera\Framework` で参照し、利用プロジェクト側の `App\Kernel` 等は維持する。
 - Composer vendor binary proxyが渡す `_composer_autoload_path` からconsumer project rootを解決する共通処理を追加した。現在のrepository直実行はrepository root、package実体のproxyなし直実行はcurrent working directoryへfallbackし、明示 `--root` は従来どおり優先する。Kernel vendor binary、repository fallback、direct package fallbackの専用testを追加した。
 - Framework packageとstarterの依存分離方針を決定した。Framework installはKernelを自動生成せず、生成Kernelは全面的に利用者所有とする。Framework runtime依存、project skeleton依存、app依存を別manifestへ分ける後続作業を `docs/plan.md` に整理した。PSR方針は既存READMEを正とし、再検討課題にはしていない。PHPUnit 217 tests / 3192 assertions、PHPStan 736 files、`composer validate --strict`を通過済み。

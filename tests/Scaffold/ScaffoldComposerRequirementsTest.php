@@ -1,0 +1,261 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Scaffold;
+
+use Closure;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+final class ScaffoldComposerRequirementsTest extends TestCase
+{
+    public function testLatteFeatureAddsRuntimeRequirementWithoutCreatingLockFile(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "php": "^8.5"
+  }
+}
+JSON);
+
+            $result = $this->sync(root: $root, features: ['latte']);
+
+            self::assertSame(['latte/latte' => '^3.0'], $result['added']);
+            self::assertSame('^3.0', $this->runtimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertFileDoesNotExist($root . '/composer.lock');
+            self::assertContains('composer update', $result['messages']);
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testExistingLockUsesTargetedUpdateCommand(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "php": "^8.5"
+  }
+}
+JSON);
+            self::assertNotFalse(file_put_contents($root . '/composer.lock', "{}\n"));
+
+            $result = $this->sync(root: $root, features: ['latte']);
+
+            self::assertContains('composer update latte/latte', $result['messages']);
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testExistingRuntimeConstraintIsPreservedAndSecondRunIsIdempotent(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "latte/latte": "^3.1",
+    "php": "^8.5"
+  }
+}
+JSON);
+            $before = $this->read(path: $root . '/composer.json');
+
+            $result = $this->sync(root: $root, features: ['latte']);
+
+            self::assertSame([], $result['added']);
+            self::assertSame(['latte/latte' => '^3.1'], $result['present']);
+            self::assertSame([], $result['messages']);
+            self::assertSame($before, $this->read(path: $root . '/composer.json'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testDevelopmentRequirementIsMovedToRuntimeWithoutChangingConstraint(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "php": "^8.5"
+  },
+  "require-dev": {
+    "latte/latte": "^3.2",
+    "phpunit/phpunit": "^11.0"
+  }
+}
+JSON);
+
+            $result = $this->sync(root: $root, features: ['latte']);
+            $composer = $this->composer(root: $root);
+            $developmentRequirements = $composer['require-dev'] ?? [];
+            self::assertIsArray($developmentRequirements);
+
+            self::assertSame(['latte/latte' => '^3.2'], $result['added']);
+            self::assertSame('^3.2', $this->runtimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertArrayNotHasKey('latte/latte', $developmentRequirements);
+            self::assertSame('^11.0', $developmentRequirements['phpunit/phpunit'] ?? null);
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testFeaturelessScaffoldDoesNotRequireOrReadComposerManifest(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, '{invalid json');
+
+            $result = $this->sync(root: $root, features: []);
+
+            self::assertSame([], $result['required']);
+            self::assertSame([], $result['messages']);
+            self::assertSame('{invalid json' . "\n", $this->read(path: $root . '/composer.json'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testMissingManifestReturnsExplicitRequireCommandWithoutCreatingOne(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $result = $this->sync(root: $root, features: ['latte']);
+
+            self::assertTrue($result['missingManifest']);
+            self::assertSame(['latte/latte' => '^3.0'], $result['required']);
+            self::assertContains('composer require latte/latte:^3.0', $result['messages']);
+            self::assertFileDoesNotExist($root . '/composer.json');
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testInvalidManifestFailsBeforeItCanBeRewritten(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, '{invalid json');
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Composer manifest is not valid JSON');
+
+            $this->sync(root: $root, features: ['latte']);
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    private function temporaryRoot(): string
+    {
+        $root = sys_get_temp_dir() . '/webmedia-scaffold-composer-test-' . bin2hex(random_bytes(4));
+        self::assertTrue(mkdir($root, recursive: true));
+
+        return $root;
+    }
+
+    private function writeComposer(string $root, string $contents): void
+    {
+        self::assertNotFalse(file_put_contents($root . '/composer.json', rtrim($contents) . "\n"));
+    }
+
+    /**
+     * @param list<string> $features
+     * @return array{
+     *     required: array<string, string>,
+     *     added: array<string, string>,
+     *     present: array<string, string>,
+     *     missingManifest: bool,
+     *     messages: list<string>
+     * }
+     */
+    private function sync(string $root, array $features): array
+    {
+        /**
+         * @var Closure(string, list<string>): array{
+         *     required: array<string, string>,
+         *     added: array<string, string>,
+         *     present: array<string, string>,
+         *     missingManifest: bool,
+         *     messages: list<string>
+         * } $sync
+         */
+        $sync = require dirname(__DIR__, 2) . '/bin/scaffold-composer-requirements.php';
+
+        return $sync($root, $features);
+    }
+
+    /** @return array<string, mixed> */
+    private function composer(string $root): array
+    {
+        $composer = json_decode($this->read(path: $root . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+
+        /** @var array<string, mixed> $composer */
+        return $composer;
+    }
+
+    private function runtimeRequirement(string $root, string $package): ?string
+    {
+        $composer = $this->composer(root: $root);
+        $requirements = $composer['require'] ?? [];
+        self::assertIsArray($requirements);
+        $constraint = $requirements[$package] ?? null;
+        self::assertTrue($constraint === null || is_string($constraint));
+
+        return $constraint;
+    }
+
+    private function read(string $path): string
+    {
+        $contents = file_get_contents($path);
+        self::assertIsString($contents);
+
+        return $contents;
+    }
+
+    private function removeDirectory(string $path): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        $items = scandir($path);
+        self::assertIsArray($items);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $child = $path . '/' . $item;
+            if (is_dir($child)) {
+                $this->removeDirectory(path: $child);
+                continue;
+            }
+
+            unlink($child);
+        }
+
+        rmdir($path);
+    }
+}
