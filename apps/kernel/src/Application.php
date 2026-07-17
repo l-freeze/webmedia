@@ -17,7 +17,6 @@ use Pera\Framework\Http\Response;
 use Pera\Framework\Routing\Router;
 use Pera\Framework\Security\NativeSessionRuntime;
 use Pera\Framework\Security\Session;
-use Pera\Framework\Security\SessionState;
 use RuntimeException;
 use Throwable;
 
@@ -66,16 +65,12 @@ final class Application implements IApplication
             );
         }
 
-        $this->sessionRuntime->start(secure: $request->isHttps());
+        $session = Session::fromNativeGlobals(
+            runtime: $this->sessionRuntime,
+            secure: $request->isHttps(),
+        );
 
         try {
-            /** @var array<string, mixed> $_SESSION */
-            $sessionData = &$_SESSION;
-            $session = new Session(
-                state: new SessionState(data: $sessionData),
-                runtime: $this->sessionRuntime,
-            );
-
             return $this->handleWithExceptionHandling(request: $request, session: $session);
         } finally {
             $this->sessionRuntime->close();

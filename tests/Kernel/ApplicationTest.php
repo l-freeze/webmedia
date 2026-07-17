@@ -15,6 +15,16 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        session_id('');
+        $_SESSION = [];
+    }
+
     public function testSelectsApplicationByLongestPathPrefix(): void
     {
         $root = sys_get_temp_dir() . '/webmedia-kernel-test-' . bin2hex(random_bytes(4));
@@ -49,6 +59,97 @@ final class ApplicationTest extends TestCase
         self::assertSame('api', $response->body);
     }
 
+    public function testHandleGlobalsDoesNotStartSessionForStatelessController(): void
+    {
+        $root = sys_get_temp_dir() . '/webmedia-kernel-stateless-test-' . bin2hex(random_bytes(4));
+
+        try {
+            $this->writeApplicationConfig(
+                root: $root,
+                app: 'front',
+                routePath: '/articles/example',
+                controller: FrontController::class,
+            );
+            $application = new Application(
+                root: $root,
+                definitions: [
+                    new ApplicationDefinition(
+                        name: 'front',
+                        pathPrefix: '/',
+                        routesPath: '/apps/front/config/routes.php',
+                        containerPath: '/apps/front/config/container.php',
+                        middlewarePath: '/apps/front/config/middleware.php',
+                    ),
+                ],
+            );
+            $this->resetNativeSession();
+            $this->setRequestGlobals(path: '/articles/example');
+
+            $body = $this->handleGlobals(application: $application);
+
+            self::assertSame('front', $body);
+            self::assertSame(PHP_SESSION_NONE, session_status());
+            self::assertSame('', session_id());
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testStatefulThenStatelessWorkerRequestsDoNotStartSecondSession(): void
+    {
+        $root = sys_get_temp_dir() . '/webmedia-kernel-worker-session-test-' . bin2hex(random_bytes(4));
+
+        try {
+            $this->writeApplicationConfig(
+                root: $root,
+                app: 'stateful',
+                routePath: '/state',
+                controller: StatefulController::class,
+            );
+            $this->writeApplicationConfig(
+                root: $root,
+                app: 'front',
+                routePath: '/articles/example',
+                controller: FrontController::class,
+            );
+            $application = new Application(
+                root: $root,
+                definitions: [
+                    new ApplicationDefinition(
+                        name: 'stateful',
+                        pathPrefix: '/state',
+                        routesPath: '/apps/stateful/config/routes.php',
+                        containerPath: '/apps/stateful/config/container.php',
+                        middlewarePath: '/apps/stateful/config/middleware.php',
+                    ),
+                    new ApplicationDefinition(
+                        name: 'front',
+                        pathPrefix: '/',
+                        routesPath: '/apps/front/config/routes.php',
+                        containerPath: '/apps/front/config/container.php',
+                        middlewarePath: '/apps/front/config/middleware.php',
+                    ),
+                ],
+            );
+            $this->resetNativeSession();
+            $this->setRequestGlobals(path: '/state');
+
+            self::assertSame('stateful', $this->handleGlobals(application: $application));
+            self::assertSame(PHP_SESSION_NONE, session_status());
+            self::assertNotSame('', session_id());
+            self::assertTrue($_SESSION['visited'] ?? false);
+
+            session_id('');
+            $this->setRequestGlobals(path: '/articles/example');
+
+            self::assertSame('front', $this->handleGlobals(application: $application));
+            self::assertSame(PHP_SESSION_NONE, session_status());
+            self::assertSame('', session_id());
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
     /**
      * @param class-string $controller
      */
@@ -79,6 +180,60 @@ PHP);
 
         return new Session(state: new SessionState(data: $data), runtime: new NativeSessionRuntime());
     }
+
+    private function resetNativeSession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        session_id('');
+        $_SESSION = [];
+    }
+
+    private function setRequestGlobals(string $path): void
+    {
+        $_SERVER = ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => $path];
+        $_GET = [];
+        $_POST = [];
+        $_FILES = [];
+        $_COOKIE = [];
+    }
+
+    private function handleGlobals(Application $application): string
+    {
+        ob_start();
+        $application->handleGlobals();
+        $body = ob_get_clean();
+        self::assertIsString($body);
+
+        return $body;
+    }
+
+    private function removeDirectory(string $path): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        $items = scandir($path);
+        self::assertIsArray($items);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $child = $path . '/' . $item;
+            if (is_dir($child)) {
+                $this->removeDirectory(path: $child);
+                continue;
+            }
+
+            unlink($child);
+        }
+
+        rmdir($path);
+    }
 }
 
 final readonly class FrontController
@@ -96,5 +251,20 @@ final readonly class ApiController
     public function __invoke(Request $request, array $vars): Response
     {
         return new Response(body: 'api');
+    }
+}
+
+final readonly class StatefulController
+{
+    public function __construct(private Session $session)
+    {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars): Response
+    {
+        $this->session->set(key: 'visited', value: true);
+
+        return new Response(body: 'stateful');
     }
 }
