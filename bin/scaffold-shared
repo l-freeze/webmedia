@@ -12,7 +12,13 @@ declare(strict_types=1);
  */
 
 $args = array_values(array_slice($argv, 1));
-$root = dirname(__DIR__);
+/** @var Closure(?string, string, ?string): string $resolveProjectRoot */
+$resolveProjectRoot = require __DIR__ . '/scaffold-project-root.php';
+$root = $resolveProjectRoot(
+    $GLOBALS['_composer_autoload_path'] ?? null,
+    dirname(__DIR__),
+    getcwd() !== false ? getcwd() : null,
+);
 foreach ($args as $arg) {
     if (str_starts_with($arg, '--root=')) {
         $root = rtrim(substr($arg, strlen('--root=')), '/');
