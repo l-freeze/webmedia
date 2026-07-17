@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Framework\Container\Container;
-use App\Framework\Security\Csrf;
-use App\Framework\Security\CsrfMiddleware;
-use App\Framework\Security\Session;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Security\Csrf;
+use Pera\Framework\Security\CsrfMiddleware;
+use Pera\Framework\Security\Session;
 use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Application\IAuditLogger;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;

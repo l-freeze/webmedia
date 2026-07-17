@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Http;
+namespace Pera\Framework\Http;
 
-use App\Framework\Http\Exception\MalformedRequestException;
+use Pera\Framework\Http\Exception\MalformedRequestException;
 use Uri\Rfc3986\Uri;
 
 final readonly class Request

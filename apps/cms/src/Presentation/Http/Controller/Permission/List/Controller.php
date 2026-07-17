@@ -6,9 +6,9 @@ namespace App\Cms\Presentation\Http\Controller\Permission\List;
 
 use App\Cms\Application\Permission\List\Input;
 use App\Cms\Application\Permission\List\Interactor;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {

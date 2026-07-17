@@ -11,9 +11,9 @@ Framework は `IExceptionHandler` だけを定義し、どの画面を返すか�
 `IExceptionHandler` を実装します。
 
 ```php
-use App\Framework\Http\ExceptionHandling\IExceptionHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use Throwable;
 
 final readonly class FrontExceptionHandler implements IExceptionHandler
@@ -34,8 +34,8 @@ final readonly class FrontExceptionHandler implements IExceptionHandler
 通常のエントリポイントでは `ApplicationBootstrapConfig` に渡します。
 
 ```php
-use App\Framework\Bootstrap\ApplicationBootstrap;
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Bootstrap\ApplicationBootstrap;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
 
 $root = dirname(__DIR__);
 
@@ -76,8 +76,8 @@ $application = new Application(
 未処理例外を 500 response に変換したい場合は、`PlainTextExceptionHandler` またはアプリケーション固有の `IExceptionHandler` 実装を `ApplicationBootstrapConfig` に渡してください。
 
 ```php
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
-use App\Framework\Http\ExceptionHandling\PlainTextExceptionHandler;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Http\ExceptionHandling\PlainTextExceptionHandler;
 
 new ApplicationBootstrapConfig(
     root: dirname(__DIR__),

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Process;
+namespace Pera\Framework\Process;
 
 use InvalidArgumentException;
 

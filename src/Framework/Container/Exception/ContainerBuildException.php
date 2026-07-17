@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Container\Exception;
+namespace Pera\Framework\Container\Exception;
 
 use Psr\Container\ContainerExceptionInterface;
 use RuntimeException;

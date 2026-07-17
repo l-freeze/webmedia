@@ -102,8 +102,8 @@ We prefer boring, explicit, readable code over clever abstractions.
 PSR は標準であること自体を理由に採用しません。軽さと可読性を壊さず、外部との接続価値がある場合に採用します。
 
 - PSR-3: `Psr\Log\LoggerInterface` をログの標準 contract として使います。
-- PSR-4: `App\Framework`、`App\Kernel`、`App\Shared`、`App\Front`、`App\Cms` を Composer autoload で解決します。
-- PSR-11: `App\Framework\Container\Container` は `Psr\Container\ContainerInterface` に準拠しています。
+- PSR-4: `Pera\Framework`、`App\Kernel`、`App\Shared`、`App\Front`、`App\Cms` を Composer autoload で解決します。
+- PSR-11: `Pera\Framework\Container\Container` は `Psr\Container\ContainerInterface` に準拠しています。
 - PSR-16: `apps/shared` は `Psr\SimpleCache\CacheInterface` を共通キャッシュ contract として使います。
 
 HTTP の内部モデルは軽量性と可読性を優先し、独自の `Request` / `Response` を使います。`final readonly class` によって不変性を保証しているため、PSR-7 は採用していません。

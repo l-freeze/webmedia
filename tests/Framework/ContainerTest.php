@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Container\Container;
+use Pera\Framework\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;

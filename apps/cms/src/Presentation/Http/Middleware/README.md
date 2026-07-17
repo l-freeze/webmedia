@@ -18,13 +18,13 @@ middleware が増え、1つのディレクトリに置くとかえって責務�
 
 ## 作り方
 
-`App\Framework\Http\Middleware\IMiddleware` を実装します。
+`Pera\Framework\Http\Middleware\IMiddleware` を実装します。
 
 ```php
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class ExampleMiddleware implements IMiddleware
 {

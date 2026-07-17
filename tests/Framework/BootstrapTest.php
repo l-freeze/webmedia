@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Application\IApplication;
-use App\Framework\Bootstrap\ApplicationBootstrap;
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Bootstrap\ApplicationBootstrap;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
 use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +20,7 @@ final class BootstrapTest extends TestCase
         $container = <<<'PHP'
 <?php
 declare(strict_types=1);
-return new \App\Framework\Container\Container();
+return new \Pera\Framework\Container\Container();
 PHP;
         $routes = <<<'PHP'
 <?php

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\Csrf;
-use App\Framework\Security\CsrfMiddleware;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Http\Middleware\CallableRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Csrf;
+use Pera\Framework\Security\CsrfMiddleware;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use PHPUnit\Framework\TestCase;
 
 final class CsrfMiddlewareTest extends TestCase

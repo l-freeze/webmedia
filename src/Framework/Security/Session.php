@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Security;
+namespace Pera\Framework\Security;
 
 final class Session
 {

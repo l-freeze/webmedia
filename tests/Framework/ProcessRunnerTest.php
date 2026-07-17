@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Process\ProcessRunner;
+use Pera\Framework\Process\ProcessRunner;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Routing;
+namespace Pera\Framework\Routing;
 
-use App\Framework\Container\Container;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use RuntimeException;

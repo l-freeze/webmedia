@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Framework\Container\Container;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Container\Container;
+use Pera\Framework\View\ITemplateRenderer;
 use App\Front\Application\Article;
 use App\Front\Application\Category;
 use App\Front\Application\Home;

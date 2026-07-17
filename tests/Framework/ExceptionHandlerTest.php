@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Http\ExceptionHandling\IExceptionHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -23,7 +23,7 @@ final class ExceptionHandlerTest extends TestCase
         $container = <<<'PHP'
 <?php
 declare(strict_types=1);
-return new \App\Framework\Container\Container();
+return new \Pera\Framework\Container\Container();
 PHP;
         $routes = <<<'PHP'
 <?php

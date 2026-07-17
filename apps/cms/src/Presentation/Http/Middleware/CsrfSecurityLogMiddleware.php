@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Middleware;
 
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\Csrf;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Csrf;
 use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 

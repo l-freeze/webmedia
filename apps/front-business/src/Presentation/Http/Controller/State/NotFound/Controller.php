@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\FrontBusiness\Presentation\Http\Controller\State\NotFound;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {

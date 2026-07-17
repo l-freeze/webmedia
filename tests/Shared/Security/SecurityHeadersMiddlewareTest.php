@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Shared\Security;
 
-use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\CallableRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
 use PHPUnit\Framework\TestCase;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Front\Presentation\Http\Controller\Robots;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use App\Front\Presentation\Seo\CanonicalUrl;
 
 final readonly class Controller

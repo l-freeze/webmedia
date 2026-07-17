@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Bootstrap;
+namespace Pera\Framework\Bootstrap;
 
-use App\Framework\Application\IApplication;
-use App\Framework\Http\ExceptionHandling\IExceptionHandler;
-use App\Framework\Http\Middleware\MiddlewarePipeline;
-use App\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
+use Pera\Framework\Http\Middleware\MiddlewarePipeline;
+use Pera\Framework\Security\NativeSessionRuntime;
 use Closure;
 
 final readonly class ApplicationBootstrapConfig

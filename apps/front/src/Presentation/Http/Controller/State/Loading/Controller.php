@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Front\Presentation\Http\Controller\State\Loading;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Cms\Presentation\Http\Middleware;
 
 use App\Cms\Infrastructure\Security\CmsGuard;
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class RequireCmsSessionMiddleware implements IMiddleware
 {

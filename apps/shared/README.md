@@ -73,7 +73,7 @@ Framework の `Response` は HTTP response を表現して送信するだけに�
 
 ### CSRF middleware
 
-`App\Framework\Security\CsrfMiddleware` は shared middleware として標準適用します。
+`Pera\Framework\Security\CsrfMiddleware` は shared middleware として標準適用します。
 
 CSRF は session-backed な state-changing request の横断ルールです。Controller ごとの `Csrf::validate()` ではなく middleware で検証します。検証 token は body の `_csrf` だけを読み、query fallback はしません。
 
@@ -133,7 +133,7 @@ cache を無効化したい環境では `SHARED_CACHE_DRIVER=null` を指定し�
 
 ### Latte template renderer
 
-`App\Shared\View\Infrastructure\LatteTemplateRenderer` は `App\Framework\View\ITemplateRenderer` の Latte 実装です。
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` は `Pera\Framework\View\ITemplateRenderer` の Latte 実装です。
 
 Framework は template engine を決めません。Controller は `ITemplateRenderer` に依存し、各アプリの container が Latte または Smarty の具象実装を登録します。独自の template engine への差し替えも容易です。
 

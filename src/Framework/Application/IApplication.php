@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Application;
+namespace Pera\Framework\Application;
 
 interface IApplication
 {

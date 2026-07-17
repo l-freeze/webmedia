@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\NativeSessionRuntime;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 

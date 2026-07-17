@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Http\Middleware;
+namespace Pera\Framework\Http\Middleware;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 interface IMiddleware
 {

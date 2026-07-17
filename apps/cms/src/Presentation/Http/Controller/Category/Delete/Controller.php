@@ -7,9 +7,9 @@ namespace App\Cms\Presentation\Http\Controller\Category\Delete;
 use App\Cms\Application\Category\Delete\Input;
 use App\Cms\Application\Category\Delete\Interactor;
 use App\Cms\Presentation\Audit\AuditReporter;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\Session;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Session;
 
 final readonly class Controller
 {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\FrontBusiness\Presentation\Http\Controller\Page\Show;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 use App\FrontBusiness\Application\Page\Show\Input;
 use App\FrontBusiness\Application\Page\Show\Interactor;
 use App\FrontBusiness\Presentation\Seo\CanonicalUrl;

@@ -61,7 +61,7 @@ Replace this binding with the PSR-3 logger used by the application, such as Mono
 
 ## View
 
-`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `App\Framework\View\ITemplateRenderer`.
+`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `Pera\Framework\View\ITemplateRenderer`.
 
 Register it in each app container with that app's template directory:
 
@@ -92,8 +92,8 @@ MARKDOWN,
 
 declare(strict_types=1);
 
-use App\Framework\Container\Container;
-use App\Framework\Logging\PlaceholderLogger;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Logging\PlaceholderLogger;
 use Psr\Log\LoggerInterface;
 
 return static function (Container $container, string $root): void {
@@ -279,10 +279,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Security\Infrastructure\Http;
 
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class SecurityHeadersMiddleware implements IMiddleware
 {
@@ -433,7 +433,7 @@ declare(strict_types=1);
 
 namespace App\Shared\View\Infrastructure;
 
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\View\ITemplateRenderer;
 use Latte\Engine;
 
 final class LatteTemplateRenderer implements ITemplateRenderer

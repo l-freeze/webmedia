@@ -11,8 +11,8 @@ Framework の外側から `ApplicationBootstrapConfig` を渡すことで、Kern
 `public/index.php` では最小構成で起動します。
 
 ```php
-use App\Framework\Bootstrap\ApplicationBootstrap;
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Bootstrap\ApplicationBootstrap;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
 
 $root = dirname(__DIR__);
 

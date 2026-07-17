@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Http\Exception\MalformedRequestException;
-use App\Framework\Http\Request;
+use Pera\Framework\Http\Exception\MalformedRequestException;
+use Pera\Framework\Http\Request;
 use PHPUnit\Framework\TestCase;
 
 final class RequestTest extends TestCase

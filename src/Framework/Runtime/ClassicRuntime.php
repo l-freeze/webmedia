@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Runtime;
+namespace Pera\Framework\Runtime;
 
-use App\Framework\Application\IApplication;
+use Pera\Framework\Application\IApplication;
 
 final class ClassicRuntime implements IRuntime
 {

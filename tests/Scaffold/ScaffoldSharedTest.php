@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Scaffold;
 
-use App\Framework\Container\Container;
-use App\Framework\Logging\PlaceholderLogger;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Logging\PlaceholderLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

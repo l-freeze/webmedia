@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Logging;
+namespace Pera\Framework\Logging;
 
 use LogicException;
 use Psr\Log\AbstractLogger;

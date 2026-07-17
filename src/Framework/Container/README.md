@@ -4,7 +4,7 @@
 
 Framework の DI container は、アプリケーションの service 解決と constructor injection を扱う最小実装です。
 
-`App\Framework\Container\Container` は PSR-11 `Psr\Container\ContainerInterface` に準拠しています。
+`Pera\Framework\Container\Container` は PSR-11 `Psr\Container\ContainerInterface` に準拠しています。
 
 ## PSR-11
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Http;
+namespace Pera\Framework\Http;
 
 use InvalidArgumentException;
 

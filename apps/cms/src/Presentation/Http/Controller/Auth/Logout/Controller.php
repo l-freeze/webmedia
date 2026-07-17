@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Http\Controller\Auth\Logout;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\Session;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Session;
 use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 

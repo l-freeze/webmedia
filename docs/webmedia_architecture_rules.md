@@ -1242,7 +1242,7 @@ Composer PSR-4 root:
 {
   "autoload": {
     "psr-4": {
-      "App\\Framework\\": "src/Framework/",
+      "Pera\\Framework\\": "src/Framework/",
       "App\\Kernel\\": "apps/kernel/src/",
       "App\\Shared\\": "apps/shared/src/",
       "App\\Front\\": "apps/front/src/",

@@ -210,7 +210,7 @@ declare(strict_types=1);
 use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
 use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoHealthCheckRepository;
-use App\Framework\Container\Container;
+use Pera\Framework\Container\Container;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -234,8 +234,8 @@ declare(strict_types=1);
 
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoTodoRepository;
-use App\Framework\Container\Container;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Container\Container;
+use Pera\Framework\View\ITemplateRenderer;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -266,8 +266,8 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 
 declare(strict_types=1);
 
-use App\Framework\Container\Container;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Container\Container;
+use Pera\Framework\View\ITemplateRenderer;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
@@ -297,7 +297,7 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 
 declare(strict_types=1);
 
-use App\Framework\Container\Container;
+use Pera\Framework\Container\Container;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -691,8 +691,8 @@ namespace App\{{ namespace }}\Presentation\Http\Controller\Contact\Submit;
 
 use App\{{ namespace }}\Application\Contact\Submit\Input;
 use App\{{ namespace }}\Application\Contact\Submit\Interactor;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class Controller
 {
@@ -727,8 +727,8 @@ namespace App\{{ namespace }}\Presentation\Http\Controller\Health\Show;
 
 use App\{{ namespace }}\Application\Health\Show\Input;
 use App\{{ namespace }}\Application\Health\Show\Interactor;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class Controller
 {
@@ -756,10 +756,10 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Infrastructure\Http\Middleware;
 
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class AppNameHeaderMiddleware implements IMiddleware
 {
@@ -815,9 +815,9 @@ declare(strict_types=1);
 
 namespace App\{{ namespace }}\Presentation\Http\Controller\Index;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 use App\Shared\Database\PdoHelper;
 use PDO;
 
@@ -962,9 +962,9 @@ declare(strict_types=1);
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Index;
 
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
@@ -999,8 +999,8 @@ declare(strict_types=1);
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Store;
 
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class Controller
 {
@@ -1029,8 +1029,8 @@ declare(strict_types=1);
 namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete;
 
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class Controller
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Shared;
 
-use App\Framework\Container\Container;
-use App\Framework\Security\CsrfMiddleware;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Security\CsrfMiddleware;
 use App\Shared\Audit\Application\IAuditLogger;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;

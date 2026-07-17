@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Front\Presentation\Http\Controller\Search\Index;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 use App\Front\Application\Article\Search\Input;
 use App\Front\Application\Article\Search\Interactor;
 use App\Front\Application\Layout\Load\Query\ISiteSettingQuery;

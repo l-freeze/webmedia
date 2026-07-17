@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Framework\Application\IApplication;
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
-use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use App\Framework\Http\Middleware\MiddlewarePipeline;
-use App\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
+use Pera\Framework\Http\Middleware\MiddlewarePipeline;
+use Pera\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
 use App\Kernel\ApplicationDefinition;
 use Dotenv\Dotenv;

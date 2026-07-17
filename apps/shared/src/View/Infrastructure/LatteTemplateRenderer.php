@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\View\Infrastructure;
 
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\View\ITemplateRenderer;
 use Latte\Engine;
 
 final class LatteTemplateRenderer implements ITemplateRenderer

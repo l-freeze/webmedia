@@ -9,8 +9,8 @@ use App\Cms\Application\Article\Restore\Interactor;
 use App\Cms\Domain\Exception\ResourceOperationDeniedException;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Audit\AuditReporter;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class Controller
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Container;
+namespace Pera\Framework\Container;
 
-use App\Framework\Container\Exception\ContainerBuildException;
-use App\Framework\Container\Exception\ServiceNotFoundException;
+use Pera\Framework\Container\Exception\ContainerBuildException;
+use Pera\Framework\Container\Exception\ServiceNotFoundException;
 use Closure;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;

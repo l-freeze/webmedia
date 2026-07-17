@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Framework\Bootstrap\ApplicationBootstrap;
-use App\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Bootstrap\ApplicationBootstrap;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
 
 $root = dirname(__DIR__);
 

@@ -9,9 +9,9 @@ use App\Cms\Application\Auth\GetCurrentUser\Interactor;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Infrastructure\Security\UnauthenticatedCmsUserException;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use PHPUnit\Framework\TestCase;
 
 final class CmsGuardTest extends TestCase

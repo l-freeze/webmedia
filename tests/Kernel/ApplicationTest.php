@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Kernel;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use App\Kernel\Application;
 use App\Kernel\ApplicationDefinition;
 use PHPUnit\Framework\TestCase;
@@ -58,7 +58,7 @@ final class ApplicationTest extends TestCase
         file_put_contents("{$root}/apps/{$app}/config/container.php", <<<'PHP'
 <?php
 declare(strict_types=1);
-return new \App\Framework\Container\Container();
+return new \Pera\Framework\Container\Container();
 PHP);
         file_put_contents("{$root}/apps/{$app}/config/middleware.php", <<<'PHP'
 <?php

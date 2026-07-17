@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Cms\Media;
 
 use App\Cms\Infrastructure\Media\VipsImageVariantGenerator;
-use App\Framework\Process\ProcessRunner;
+use Pera\Framework\Process\ProcessRunner;
 use PHPUnit\Framework\TestCase;
 
 final class VipsImageVariantGeneratorTest extends TestCase

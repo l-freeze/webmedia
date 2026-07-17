@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Runtime\ClassicRuntime;
-use App\Framework\Runtime\FrankenWorkerRuntime;
-use App\Framework\Runtime\RuntimeFactory;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Runtime\ClassicRuntime;
+use Pera\Framework\Runtime\FrankenWorkerRuntime;
+use Pera\Framework\Runtime\RuntimeFactory;
 use App\Kernel\Application;
 use PHPUnit\Framework\TestCase;
 
@@ -90,7 +90,7 @@ final class RuntimeTest extends TestCase
         $container = <<<'PHP'
 <?php
 declare(strict_types=1);
-return new \App\Framework\Container\Container();
+return new \Pera\Framework\Container\Container();
 PHP;
         $routes = <<<'PHP'
 <?php

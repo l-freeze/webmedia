@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Infrastructure\Media;
 
-use App\Framework\Process\ProcessRunner;
+use Pera\Framework\Process\ProcessRunner;
 
 final readonly class VipsImageVariantGenerator
 {

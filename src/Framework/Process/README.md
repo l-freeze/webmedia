@@ -9,7 +9,7 @@ It is a small runtime primitive for synchronous commands. It does not decide whi
 Pass the command as a list of arguments.
 
 ```php
-use App\Framework\Process\ProcessRunner;
+use Pera\Framework\Process\ProcessRunner;
 
 $result = $processRunner->run(
     command: [

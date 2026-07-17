@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\FrontBusiness\Presentation\Http\Controller\Sitemap;
 
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use App\FrontBusiness\Application\Sitemap\Build\Input;
 use App\FrontBusiness\Application\Sitemap\Build\Interactor;
 use App\FrontBusiness\Presentation\Sitemap\SitemapXml;

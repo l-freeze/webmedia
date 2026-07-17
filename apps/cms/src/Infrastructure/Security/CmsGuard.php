@@ -7,7 +7,7 @@ namespace App\Cms\Infrastructure\Security;
 use App\Cms\Application\Auth\GetCurrentUser\Input;
 use App\Cms\Application\Auth\GetCurrentUser\Interactor;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
-use App\Framework\Security\Session;
+use Pera\Framework\Security\Session;
 
 final class CmsGuard
 {

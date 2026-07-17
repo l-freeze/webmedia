@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Framework;
 
-use App\Framework\Container\Container;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Routing\Router;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Routing\Router;
 use PHPUnit\Framework\TestCase;
 
 final class RouterTest extends TestCase

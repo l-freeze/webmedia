@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Http\Middleware;
+namespace Pera\Framework\Http\Middleware;
 
-use App\Framework\Container\Container;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 use RuntimeException;
 
 final readonly class MiddlewarePipeline

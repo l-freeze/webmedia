@@ -9,9 +9,9 @@ use App\Cms\Application\Article\Preview\Interactor;
 use App\Cms\Application\Article\PublicationDateTime;
 use App\Cms\Presentation\Presenter\Article\ArticleStatusPresenter;
 use App\Shared\Markdown\Infrastructure\Markdown;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\View\ITemplateRenderer;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {

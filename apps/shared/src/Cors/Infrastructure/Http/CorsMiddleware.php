@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Cors\Infrastructure\Http;
 
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class CorsMiddleware implements IMiddleware
 {

@@ -11,10 +11,10 @@ Framework は `Request -> Middleware -> Controller -> Response` の実行順だ�
 `IMiddleware` を実装します。
 
 ```php
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\IRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\IRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
 
 final readonly class ExampleMiddleware implements IMiddleware
 {

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Cms\Auth;
 
 use App\Cms\Presentation\Http\Controller\Auth\Logout\Controller;
-use App\Framework\Http\Request;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use App\Shared\Event\Application\IEventBus;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use PHPUnit\Framework\TestCase;

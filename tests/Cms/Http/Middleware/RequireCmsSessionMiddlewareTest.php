@@ -8,12 +8,12 @@ use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
-use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Http\Middleware\CallableRequestHandler;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use PHPUnit\Framework\TestCase;
 
 final class RequireCmsSessionMiddlewareTest extends TestCase

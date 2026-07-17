@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Bootstrap;
+namespace Pera\Framework\Bootstrap;
 
-use App\Framework\Application\IApplication;
-use App\Framework\Runtime\RuntimeFactory;
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Runtime\RuntimeFactory;
 use RuntimeException;
 
 final readonly class ApplicationBootstrap

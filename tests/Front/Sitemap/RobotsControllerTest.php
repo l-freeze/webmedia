@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Front\Sitemap;
 
-use App\Framework\Http\Request;
+use Pera\Framework\Http\Request;
 use App\Front\Presentation\Http\Controller\Robots\Controller;
 use App\Front\Presentation\Seo\CanonicalUrl;
 use PHPUnit\Framework\TestCase;

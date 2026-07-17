@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cms\Presentation\Audit;
 
-use App\Framework\Http\Request;
+use Pera\Framework\Http\Request;
 
 final readonly class AuditReporter
 {

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Kernel;
 
-use App\Framework\Application\IApplication;
-use App\Framework\Container\Container;
-use App\Framework\Http\Exception\MalformedRequestException;
-use App\Framework\Http\ExceptionHandling\IExceptionHandler;
-use App\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use App\Framework\Http\Middleware\CallableRequestHandler;
-use App\Framework\Http\Middleware\IMiddleware;
-use App\Framework\Http\Middleware\MiddlewarePipeline;
-use App\Framework\Http\Request;
-use App\Framework\Http\Response;
-use App\Framework\Routing\Router;
-use App\Framework\Security\NativeSessionRuntime;
-use App\Framework\Security\Session;
-use App\Framework\Security\SessionState;
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Exception\MalformedRequestException;
+use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
+use Pera\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
+use Pera\Framework\Http\Middleware\CallableRequestHandler;
+use Pera\Framework\Http\Middleware\IMiddleware;
+use Pera\Framework\Http\Middleware\MiddlewarePipeline;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Routing\Router;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 use RuntimeException;
 use Throwable;
 

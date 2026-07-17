@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Framework\Http\Exception;
+namespace Pera\Framework\Http\Exception;
 
 use RuntimeException;
 
