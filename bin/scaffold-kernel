@@ -42,6 +42,8 @@ Kernel is the fixed application composition layer.
 
 Framework provides HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap. Kernel decides which apps are mounted, where their config files live, and how requests are dispatched to them.
 
+Kernel creates one request-scoped `Session`, but the native PHP session starts only if middleware or application code accesses session state. Stateless requests do not need route flags or separate application definitions.
+
 The path and namespace are fixed:
 
 - `apps/kernel`
@@ -134,7 +136,6 @@ use Pera\Framework\Http\Response;
 use Pera\Framework\Routing\Router;
 use Pera\Framework\Security\NativeSessionRuntime;
 use Pera\Framework\Security\Session;
-use Pera\Framework\Security\SessionState;
 use RuntimeException;
 use Throwable;
 
@@ -169,16 +170,12 @@ final class Application implements IApplication
     public function handleGlobals(): void
     {
         $request = Request::fromGlobals();
-        $this->sessionRuntime->start(secure: $request->isHttps());
+        $session = Session::fromNativeGlobals(
+            runtime: $this->sessionRuntime,
+            secure: $request->isHttps(),
+        );
 
         try {
-            /** @var array<string, mixed> $_SESSION */
-            $sessionData = &$_SESSION;
-            $session = new Session(
-                state: new SessionState(data: $sessionData),
-                runtime: $this->sessionRuntime,
-            );
-
             $this->handleWithExceptionHandling(request: $request, session: $session)->send();
         } finally {
             $this->sessionRuntime->close();

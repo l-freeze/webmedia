@@ -61,6 +61,8 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成される `apps/kernel/config/application.php` は、先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel/project startup の責務です。
 
+生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
+
 ## App Scaffold
 
 `bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。

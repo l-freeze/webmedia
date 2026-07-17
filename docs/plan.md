@@ -52,7 +52,6 @@
 ### 後で行うFramework / Kernel改善
 
 - `IApplication::handleGlobals(): void` とRequest生成・Response送信のlifecycle境界を再検討する。
-- Kernelの全request Session開始をやめ、sessionを必要なapp/routeだけに限定する。
 - production exception handler、request ID、通常loggerの標準合成方法を決める。
 - `Request::isHttps()` のtrusted proxy判定を暗黙header trustから分離する。
 - 未知のruntime指定や利用不能なFrankenPHP指定をsilent fallbackさせるか、起動失敗にするか決める。

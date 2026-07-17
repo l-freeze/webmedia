@@ -46,6 +46,10 @@ DB エンジンを変える場合でも、Framework は変更しません。Kern
 
 FrankenPHP Worker mode に対応する場合、`Application` インスタンスはプロセス起動時に1度だけ生成し、リクエストごとに `handle()` を呼び出します。
 
+Kernel はRequestごとに `Session` オブジェクトをContainerへ登録しますが、native PHP SessionはmiddlewareやControllerが最初にsession stateへアクセスした時点で開始します。記事表示、robots、sitemapなどSessionを使わないrequestは、route metadataやpath一覧を追加しなくてもstatelessのままです。問い合わせのCSRF tokenやCMS認証のように `Csrf` / `Session` を使う処理では従来どおり自動的に開始します。
+
+Sessionの開始判断はFrameworkの `Session` 内部へ閉じ、Kernelはrequest scopeの生成と `finally` でのcloseだけを担当します。ControllerやmiddlewareはSession lifecycleを操作せず、従来どおり必要な場合だけ `Session` または `Csrf` を依存として宣言します。
+
 `handle()` 内の `loadContainer()` は `require` でコンテナ設定を毎リクエスト再実行します。これは意図的な設計です。コンテナをリクエスト間で再利用すると、`Csrf::class` の singleton が別ユーザーの `Session` を保持し続けるセキュリティリスクがあります。そのリスクはパフォーマンス上の利益を大きく上回るため、コンテナの再利用は行いません。
 
 Worker mode の恩恵であるプロセス起動コストの排除は、`Application` インスタンスの長寿命化だけで十分に得られます。ルート解析とミドルウェア設定の読み込みはコンストラクタで1度だけ実行され、`$routers` と `$middleware` に保持されます。

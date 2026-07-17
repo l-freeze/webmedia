@@ -28,10 +28,14 @@ final class ScaffoldProjectRootTest extends TestCase
             self::assertStringContainsString('Created kernel scaffold: apps/kernel', $output);
             self::assertFileExists($root . '/apps/kernel/config/application.php');
             self::assertFileExists($root . '/apps/kernel/src/Application.php');
+            $application = $this->read(path: $root . '/apps/kernel/src/Application.php');
             self::assertStringContainsString(
                 'use Pera\\Framework\\Application\\IApplication;',
-                $this->read(path: $root . '/apps/kernel/src/Application.php'),
+                $application,
             );
+            self::assertStringContainsString('Session::fromNativeGlobals(', $application);
+            self::assertStringNotContainsString('sessionRuntime->start(', $application);
+            self::assertStringNotContainsString('SessionState', $application);
             self::assertFileDoesNotExist($projectRoot . '/vendor/pera/framework/apps/kernel/config/application.php');
         } finally {
             $this->removeDirectory(path: $root);

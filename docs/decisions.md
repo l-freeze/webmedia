@@ -473,6 +473,28 @@ docs / tests は、対応する実装 commit に含める方が追いやすい�
 - 1行ごとの過度に細かい commit。
 - Framework、Kernel、Shared、app の変更を、単に同じリファクタリング名だけで一つにまとめること。
 
+## Session lifecycle
+
+### 判断
+
+KernelはRequestごとに一つの `Session` を生成してContainerへ登録する。ただしnative PHP Sessionは、middlewareまたはControllerが `Session` stateへ最初にアクセスした時点でFramework内部から開始する。KernelはRequest終了時に `finally` でcloseし、未開始の場合は何もしない。
+
+`Session::get()`、`set()`、flash、CSRF token、認証など、既存の利用APIは変更しない。開始判断は `Session` 内部の単一state gatewayへ閉じ、個々のControllerやmiddlewareには持たせない。
+
+### 理由
+
+- 記事、カテゴリ、タグ、固定ページ、robots、sitemapなど、Sessionを使わない公開requestへSession Cookieとsession cache headerを付けない。
+- 問い合わせのCSRFとCMS認証は、既存の `Csrf` / `Session` 依存を通じて必要時に開始できる。
+- Session利用の事実と別に設定を持たないため、設定漏れと実装の不一致が起きない。
+- Sessionの生成はrequest scope、開始はFramework、closeはKernelというlifecycle境界を維持できる。
+
+### 採用しないこと
+
+- `ApplicationDefinition`へSession有効フラグを追加しない。
+- route metadataへ `requires_session` を追加しない。
+- Session対象pathの一覧をKernelまたはmiddlewareへ持たせない。
+- Sessionを避ける目的でFrontを別applicationへ分割したり、問い合わせのCSRF方式を変更したりしない。
+
 ## Framework packageとKernel scaffold
 
 ### 判断
