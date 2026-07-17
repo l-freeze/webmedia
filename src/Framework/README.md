@@ -107,11 +107,13 @@ Namespace customization is intentionally not supported. `pera` gives users a cle
 
 ## Composer Package Direction
 
-When this Framework is split into a Composer package, the package should include the scaffold commands. Framework installation should create Kernel and Shared during project setup. `scaffold-app` is for adding individual apps after that setup. Templates do not decide whether Kernel or Shared exist.
+When this Framework is split into a Composer package, the runtime package should contain Framework code and the explicit scaffold commands. Installing the Framework library alone must not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.
 
-The default shared scaffold generates a Latte implementation for `ITemplateRenderer`, so the package should require `latte/latte`. Framework core still depends only on the renderer interface and does not reference Latte classes.
+Generated Kernel code belongs entirely to the consuming project. It remains under `App\Kernel`, is optional, and is never overwritten or upgraded by a Framework package update.
 
-Automatic generation during `composer require` requires a Composer plugin. This repository includes `src/Framework/Installer/Composer/FrameworkInstallerPlugin.php` for that package direction. It is Framework installer code, but not Framework runtime code. The plugin creates Kernel and Shared only when their required config files are missing.
+Framework runtime dependencies and starter dependencies are separate. FastRoute and the PSR interfaces used by Framework belong to the Framework package. Dotenv, Latte, database drivers, migrations, and other implementations referenced by generated project code belong to the consuming root project or new-project skeleton. The Framework package must not require Latte merely because the standard Shared scaffold offers a Latte adapter.
+
+The existing Composer plugin is a prototype and is not the standard installation path. If automatic generation is required in the future, it must be released and tested as a separate Composer plugin package. The default path remains explicit `vendor/bin` commands.
 
 ## Examples
 

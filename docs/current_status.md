@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-15
+- 2026-07-17
 
 ## 現在地
 
@@ -14,6 +14,9 @@
 
 ## 直近作業
 
+- Frameworkのpublic namespaceを `App\Framework` から `Pera\Framework` へ変更し、production、tests、scaffold template、Composer PSR-4、関連READMEを追随させた。生成されるKernel / Shared / appはFrameworkだけを `Pera\Framework` で参照し、利用プロジェクト側の `App\Kernel` 等は維持する。
+- Composer vendor binary proxyが渡す `_composer_autoload_path` からconsumer project rootを解決する共通処理を追加した。現在のrepository直実行はrepository root、package実体のproxyなし直実行はcurrent working directoryへfallbackし、明示 `--root` は従来どおり優先する。Kernel vendor binary、repository fallback、direct package fallbackの専用testを追加した。
+- Framework packageとstarterの依存分離方針を決定した。Framework installはKernelを自動生成せず、生成Kernelは全面的に利用者所有とする。Framework runtime依存、project skeleton依存、app依存を別manifestへ分ける後続作業を `docs/plan.md` に整理した。PSR方針は既存READMEを正とし、再検討課題にはしていない。PHPUnit 217 tests / 3192 assertions、PHPStan 736 files、`composer validate --strict`を通過済み。
 - 空のPSR-3ラッパーだったShared `IApplicationLogger`を削除した。通常ログのcontractは`Psr\Log\LoggerInterface`を直接使い、webmediaのShared containerから実運用の`JsonFileApplicationLogger`へbindする。`JsonFileApplicationLogger`は`storage/logs/application.log`へJSON Linesを出力する具象実装として維持する。新規プロジェクト向けの`scaffold-shared`は、初期bindingとしてFrameworkの`PlaceholderLogger`を生成する。これは書き込み時に例外を投げる仮実装であり、利用側は実際のPSR-3ロガー、または意図的に破棄する`Psr\Log\NullLogger`へ差し替える。PHPUnit 214 tests / 3177 assertions と PHPStan 735 files を通過済み。
 - `AdminUser`、`User`、`Category`、`Tag`、`SiteSettings`、`MediaUpload`、`InquiryStatusUpdate`、`LoginAttempt`、`CmsLoginAttemptReset`、Front の `Inquiry` を、Article / Page と同じ Domain Entity / Domain Value 方針へ統一した。Article / Page 側に残っていた slug 照合引数と Article の author ID も同時に型付けした。入力 primitive から Domain Value への変換は Application、DB 値との相互変換は Repository 実装に閉じ、CMS / Front の全 Domain Entity で primitive の直接保持は0件になった。全 Domain Repository の ID、slug、email 引数と生成 ID は Domain Value に揃え、戻り値の scalar は件数の `int`、真偽判定の `bool`、`void` だけを維持した。PHPUnit 213 tests / 3160 assertions と PHPStan を通過済み。
 - production PHP 16件とtests 1件の `array_filter` をすべて条件付き `foreach` へ変更した。CSV、validation、Setting media、Audit、Sitemap、test countでは、複数の配列関数が行っていた変換・除外・index補正・集計を一度のループへ統合した。POC の `apps/front-business` と未追跡の `apps/minimal` は対象外とし、通常実装とtestsの `array_map` / `array_filter` は0件になった。

@@ -199,17 +199,18 @@ namespace を任意指定する option は用意しません。
 
 ### Composer require との関係
 
-通常の dependency scripts は `composer require` した root project では自動実行されません。
-
-`composer require` と同時に Kernel と Shared を生成したい場合は、Framework package 側で Composer plugin を提供し、install event から `scaffold-kernel` と `scaffold-shared` と同等の処理を呼びます。
-
-Framework package の標準 scaffold は Latte 実装を生成するため、package の `require` には `latte/latte` を含めます。ただし Framework core は Latte クラスへ依存せず、`ITemplateRenderer` interface だけを持ちます。
-
-plugin を使わない運用では、Framework 追加後に次を実行します。
+Framework library のインストールだけでは Kernel / Shared を生成しません。Kernel を使うかどうかは利用プロジェクトが決め、必要な場合だけ明示的に実行します。
 
 ```bash
+composer require pera/framework
 php vendor/bin/scaffold-kernel
 php vendor/bin/scaffold-shared
 ```
 
-Framework package 側の Composer plugin は `src/Framework/Installer/Composer/FrameworkInstallerPlugin.php` に置きます。これは Framework installer code で、Framework runtime には含めません。Composer plugin は root project の `allow-plugins` で許可された場合だけ実行されます。plugin は Kernel と Shared の必須 config が存在しない場合だけ scaffold を呼び、既存ファイルは上書きしません。
+新規プロジェクト向けには、Frameworkと標準starter依存をroot `composer.json` に持つproject skeletonを別途用意する。Framework packageの `require` はFramework runtimeが直接使う依存だけに限定する。
+
+- Framework package: FastRoute、Frameworkが直接実装するPSR interface、vendor binaryが利用するComposer runtime APIなど。
+- project skeleton / root project: Dotenv、Latte、利用するPDO driver、migration toolなど。
+- 個別app: CommonMark、HTML Purifier、Mailer、画像処理など、そのappだけが必要とするもの。
+
+既存の `FrameworkInstallerPlugin` は検討用prototypeであり、標準経路にはしない。将来自動生成が本当に必要になった場合だけ、Framework runtimeから分離したComposer plugin packageとして再設計する。

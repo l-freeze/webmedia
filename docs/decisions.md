@@ -472,3 +472,33 @@ docs / tests は、対応する実装 commit に含める方が追いやすい�
 
 - 1行ごとの過度に細かい commit。
 - Framework、Kernel、Shared、app の変更を、単に同じリファクタリング名だけで一つにまとめること。
+
+## Framework packageとKernel scaffold
+
+### 判断
+
+Frameworkのpublic namespaceは `Pera\Framework` とする。`App` namespaceは利用プロジェクト側のKernel、Shared、各appだけに使う。
+
+FrameworkはComposer libraryとして配布する。Framework libraryのinstallはKernelの生成を暗黙に実行しない。Kernelを必要とする利用者だけがscaffoldを明示的に実行する。新規project向けには、Frameworkをrequireしたproject skeletonを別の配布単位として用意する。
+
+scaffoldで生成された `App\Kernel` は、生成直後から全て利用プロジェクトの所有物である。FrameworkはKernelへ依存せず、Framework updateも生成済みKernelを上書き・自動upgradeしない。
+
+Framework packageの依存はFramework production codeが直接使うものに限定する。Kernel / Shared / appの生成物が使うDotenv、Latte、DB、migration、content、mail、mediaの依存はproject skeletonまたは利用側root packageが所有する。
+
+PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とする。package化だけを理由にPSR-7 / PSR-15等への移行を新しい残作業にはしない。
+
+### 理由
+
+- `Pera\Framework` なら、consumer projectの `App` namespaceとFrameworkのpublic APIを区別できる。
+- KernelはFrameworkを使うための便利な初期構成であり、Framework成立の必須条件ではない。
+- 利用者所有の生成codeをdependency updateが書き換えると、利用者の変更とのownership conflictが起きる。
+- scaffoldの具象実装を理由にFrameworkへDotenv、Latte、DB関連を持たせると、runtime coreの依存境界がstarter都合で膨らむ。
+- 明示commandまたはproject skeletonなら、Composer pluginによる暗黙のfilesystem変更と `allow-plugins` 依存を避けられる。
+
+### 採用しないこと
+
+- `App\Framework` をpublic package namespaceとして維持しない。
+- `composer require pera/framework` の副作用としてKernel / Sharedを自動生成しない。
+- Framework packageが生成済みKernelをupgradeまたは上書きしない。
+- Shared scaffoldがLatteを生成することだけを理由にFramework packageへLatteをrequireしない。
+- 現行要件が変わらないままPSR対応方針を再検討しない。
