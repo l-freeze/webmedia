@@ -33,18 +33,20 @@
 - 新規projectの標準導入はproject skeleton、既存projectへの追加は `composer require` 後の明示的なvendor binary実行を基本とする。
 - Frameworkは`packages/framework`を自己完結したpackage rootとし、webmedia rootはComposer path repositoryから`pera/framework`を利用する。root PSR-4でFramework namespaceを重複autoloadしない。
 - Composer installer pluginは持たず、Framework install時にKernelやSharedを暗黙生成しない。
+- Dotenvによる任意の`.env`読み込みは標準Kernel scaffoldに含める。環境初期化はapplication compositionより前に行うKernelの責務とし、Sharedには置かない。`vlucas/phpdotenv`はFramework packageではなく生成物を使うconsumer rootが所有する。
+- 正式に利用可能とするscaffoldはKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。将来予約の`fullpack`は実装されるまで対象外とする。
 
 ### 依存分離
 
 1. Framework packageの暫定 `require` はPHP 8.5、ext-session、ext-uri、FastRoute、PSR Container、PSR Log、Composer runtime APIとする。packaged artifactの隔離install testで最終確定する。
 2. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
-3. scaffoldが生成する外部依存を再scanし、Latte以外に不足しているDotenv、ext-pdo、PDO driverの依存レシピと案内を決める。driverをFramework packageへ持たせない。
+3. 次の実装ではscaffoldが生成する外部依存を再scanし、Kernel scaffoldのDotenv、PDOを使う生成物のext-pdo、PDO driverの依存レシピと案内を整える。driverをFramework packageへ持たせない。
 4. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
 
 ### 配布とscaffold
 
 1. `packages/framework/bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
-2. Kernel scaffold、Shared scaffold、App scaffoldを、空のconsumer projectとpackaged artifactから実行するE2E testを追加する。生成後のautoload、PHP構文、PHPStan、最小HTTP応答まで確認する。
+2. Kernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全scaffoldを、空のconsumer projectとpackaged artifactから実行するE2E testを追加する。生成後のautoload、PHP構文、PHPStan、最小HTTP応答まで確認する。
 3. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。
 4. 部分生成、既存file、書込み失敗時のatomicityと再実行方針を決める。既存利用者fileは常に非上書きを既定とする。
 5. license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。package名は`pera/framework`とする。

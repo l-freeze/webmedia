@@ -117,6 +117,15 @@ Framework runtime dependencies and starter dependencies are separate. FastRoute 
 
 There is no Composer installer plugin in this package. If automatic generation is required in the future, it must be released and tested as a separate Composer plugin package. The default path remains explicit `vendor/bin` commands.
 
+## Monorepo Development
+
+The `webmedia` root consumes this package through a Composer path repository with `symlink: true`. Composer therefore links `vendor/pera/framework` to `packages/framework` instead of copying the package.
+
+- Changes to existing Framework PHP files, README files, and scaffold script contents are visible immediately. Running `composer install` again is unnecessary.
+- Changes to this package's `require`, PSR-4 mapping, or `bin` list require `composer update pera/framework --with-all-dependencies` from the root so that `composer.lock`, autoload metadata, and vendor binary proxies are regenerated.
+- A fresh checkout should use the normal `composer install` from the root lock file.
+- Consumers of a published non-path package receive Framework changes through the normal `composer update pera/framework` flow.
+
 ## Examples
 
 The current `webmedia` project contains real applications:

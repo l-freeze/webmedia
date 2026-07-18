@@ -509,6 +509,10 @@ scaffoldで生成された `App\Kernel` は、生成直後から全て利用プ�
 
 Framework packageの依存はFramework production codeが直接使うものに限定する。Kernel / Shared / appの生成物が使うDotenv、Latte、DB、migration、content、mail、mediaの依存はproject skeletonまたは利用側root packageが所有する。
 
+標準Kernel scaffoldは`.env`が存在する場合にDotenvで任意ロードする起動処理を持つ。環境変数の読み込みはcontainer構築や各appの起動より前に一度行うapplication compositionの責務なので、Sharedには置かない。`vlucas/phpdotenv`は生成Kernelを使うconsumer rootまたはproject skeletonの依存であり、Framework runtime packageの依存にはしない。
+
+正式なscaffold support対象はKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。特定templateだけをpackage導入経路から外さず、packaged artifactからのconsumer E2Eで各生成契約を検証する。予約名の`fullpack`は実装されるまでsupport対象ではない。
+
 scaffoldが外部packageを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。現在はShared scaffoldとAppの`minimal` / `todo` templateが、consumer rootのruntime `require`へ`latte/latte:^3.0`を追加する。Kernel、`bare`、`layered`はLatteを生成しないため追加しない。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
 
 scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
@@ -523,6 +527,7 @@ Framework packageはComposer installer pluginを持たない。install時にKern
 - KernelはFrameworkを使うための便利な初期構成であり、Framework成立の必須条件ではない。
 - 利用者所有の生成codeをdependency updateが書き換えると、利用者の変更とのownership conflictが起きる。
 - scaffoldの具象実装を理由にFrameworkへDotenv、Latte、DB関連を持たせると、runtime coreの依存境界がstarter都合で膨らむ。
+- 環境読み込みをSharedへ置くと、複数appが利用する共有サービス層がprocess全体の初期化順序まで所有してしまう。Kernelなら起動時の一回だけに限定できる。
 - 生成sourceとroot依存を同じ機能レシピで扱えば、Latteを使わない利用者へ不要なpackageを課さず、Latteを生成した利用者のmanifest不足も防げる。
 - scaffold内からComposerを再帰実行しなければ、network、lock全体の再解決、plugin/script実行を暗黙の副作用にせず、利用者が明示的に確認できる。
 - 明示commandまたはproject skeletonなら、Composer pluginによる暗黙のfilesystem変更と `allow-plugins` 依存を避けられる。
@@ -533,4 +538,6 @@ Framework packageはComposer installer pluginを持たない。install時にKern
 - `composer require pera/framework` の副作用としてKernel / Sharedを自動生成しない。
 - Framework packageが生成済みKernelをupgradeまたは上書きしない。
 - Shared scaffoldがLatteを生成することだけを理由にFramework packageへLatteをrequireしない。
+- Kernel scaffoldがDotenvを使うことだけを理由にFramework packageへDotenvをrequireしない。
+- Sharedから`.env`を読み込まない。
 - 現行要件が変わらないままPSR対応方針を再検討しない。

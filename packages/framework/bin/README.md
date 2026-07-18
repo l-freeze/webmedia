@@ -61,6 +61,12 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成される `apps/kernel/config/application.php` は、先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel/project startup の責務です。
 
+Dotenvは標準Kernelの起動機能として扱い、Sharedからは`.env`を読み込みません。現在の生成sourceは`vlucas/phpdotenv`を参照するため、依存レシピの対応が入るまではconsumer rootで明示的に追加してください。
+
+```bash
+composer require vlucas/phpdotenv
+```
+
 生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
 
 app scaffoldはSession利用Controllerを既定では生成しません。`minimal`を含む生成直後のGETをstatelessに保ち、公開page、API、Sessionを使うpageのどれにも同じapp scaffoldを使えるようにするためです。Sessionが必要なControllerへ `Pera\Framework\Security\Session` をconstructor injectionし、`get()`、`set()`、flash操作などを呼べば、そのrequestだけnative Sessionが開始します。copy-and-paste可能な最小例と、pageや機能がSession keyを所有する構成は `../src/Security/README.md` にあります。
@@ -74,6 +80,8 @@ php vendor/bin/scaffold-app api /api
 ```
 
 デフォルト template は `minimal` です。
+
+正式なsupport対象は`bare`、`minimal`、`todo`、`layered`の全templateです。予約名の`fullpack`は実装されるまで利用できません。
 
 全 template で生成される基本ファイル:
 
