@@ -31,23 +31,23 @@
 - scaffoldで生成した `App\Kernel` は全て利用プロジェクトの所有物とし、Framework updateで上書き、差分適用、自動upgradeをしない。
 - PSRに関する採用範囲と独自境界は各Framework READMEとtechnical stackに既に記載しているため、要件が変わらない限り再検討タスクにしない。
 - 新規projectの標準導入はproject skeleton、既存projectへの追加は `composer require` 後の明示的なvendor binary実行を基本とする。
+- Frameworkは`packages/framework`を自己完結したpackage rootとし、webmedia rootはComposer path repositoryから`pera/framework`を利用する。root PSR-4でFramework namespaceを重複autoloadしない。
+- Composer installer pluginは持たず、Framework install時にKernelやSharedを暗黙生成しない。
 
 ### 依存分離
 
-1. Framework配布物専用の `composer.json` を用意し、webmedia root packageから独立して `composer validate --strict` できるようにする。
-2. Framework packageの `require` は、Framework production codeが直接使うPHP version、FastRoute、PSR Container、PSR Logと、vendor binaryが依存するComposer runtime APIだけから始める。実使用scanと隔離install testで最終確定する。
-3. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
+1. Framework packageの暫定 `require` はPHP 8.5、ext-session、ext-uri、FastRoute、PSR Container、PSR Log、Composer runtime APIとする。packaged artifactの隔離install testで最終確定する。
+2. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
+3. scaffoldが生成する外部依存を再scanし、Latte以外に不足しているDotenv、ext-pdo、PDO driverの依存レシピと案内を決める。driverをFramework packageへ持たせない。
 4. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
-5. monorepoで開発を続ける間はComposer path repositoryでFramework packageをroot applicationから利用し、monorepo rootのautoloadが欠落を隠さない状態にする。
 
 ### 配布とscaffold
 
-1. `bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
+1. `packages/framework/bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
 2. Kernel scaffold、Shared scaffold、App scaffoldを、空のconsumer projectとpackaged artifactから実行するE2E testを追加する。生成後のautoload、PHP構文、PHPStan、最小HTTP応答まで確認する。
 3. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。
 4. 部分生成、既存file、書込み失敗時のatomicityと再実行方針を決める。既存利用者fileは常に非上書きを既定とする。
-5. Composer plugin prototypeは標準導入経路から外す。自動生成が必要になった場合だけ、独立したplugin packageとしてmanifest、許可、failure、uninstallを再設計する。
-6. package名、license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。
+5. license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。package名は`pera/framework`とする。
 
 ### 後で行うFramework / Kernel改善
 

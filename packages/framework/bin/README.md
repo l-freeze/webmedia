@@ -6,17 +6,17 @@
 
 | Command | Description |
 | --- | --- |
-| `php bin/scaffold-kernel` | Framework を使うプロジェクト側に固定の Kernel 層を生成します。通常はプロジェクトごとに一度だけ実行します。 |
-| `php bin/scaffold-shared` | CMS / Front / 追加 app から共通利用する `apps/shared` の最小構成を生成します。通常はプロジェクトごとに一度だけ実行します。 |
-| `php bin/scaffold-app <name> <path-prefix>` | 新しい HTTP application を `apps/{name}` に生成します。`--template` を省略すると `minimal` template を使います。 |
-| `php bin/scaffold-app <name> <path-prefix> --template=bare` | route / Controller / view を含まない config only 構成を生成します。 |
-| `php bin/scaffold-app <name> <path-prefix> --template=minimal` | 1つの Controller と view で動く single-controller HTML starter を生成します。 |
-| `php bin/scaffold-app <name> <path-prefix> --template=layered` | Application / Domain / Infrastructure を分けた縦割りスターターを生成します。 |
-| `php bin/scaffold-app <name> <path-prefix> --template=todo` | PDO repository と Latte view を含む小さな Todo アプリのスターターを生成します。 |
+| `php vendor/bin/scaffold-kernel` | Framework を使うプロジェクト側に固定の Kernel 層を生成します。通常はプロジェクトごとに一度だけ実行します。 |
+| `php vendor/bin/scaffold-shared` | CMS / Front / 追加 app から共通利用する `apps/shared` の最小構成を生成します。通常はプロジェクトごとに一度だけ実行します。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix>` | 新しい HTTP application を `apps/{name}` に生成します。`--template` を省略すると `minimal` template を使います。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix> --template=bare` | route / Controller / view を含まない config only 構成を生成します。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix> --template=minimal` | 1つの Controller と view で動く single-controller HTML starter を生成します。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix> --template=layered` | Application / Domain / Infrastructure を分けた縦割りスターターを生成します。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix> --template=todo` | PDO repository と Latte view を含む小さな Todo アプリのスターターを生成します。 |
 
 Framework を package として導入した root project では、`php vendor/bin/scaffold-kernel`、`php vendor/bin/scaffold-shared` のように `vendor/bin` から実行します。
 
-Composer が生成した vendor binary proxy から実行した場合は、Composer が渡す root project のautoload pathから生成先を決めます。現在のリポジトリで `php bin/scaffold-*` を直接実行した場合は従来どおりこのリポジトリrootを使います。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も `--root=/path/to/project` が明示されていれば、その指定を優先します。
+Composer が生成した vendor binary proxy から実行した場合は、Composer が渡す root project のautoload pathから生成先を決めます。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も `--root=/path/to/project` が明示されていれば、その指定を優先します。
 
 ## Composer Dependencies
 
@@ -39,10 +39,10 @@ scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`ven
 
 ## Kernel Scaffold
 
-`bin/scaffold-kernel` は Framework を使うプロジェクト側に固定の Kernel 層を生成します。
+`vendor/bin/scaffold-kernel` は Framework を使うプロジェクト側に固定の Kernel 層を生成します。
 
 ```bash
-php bin/scaffold-kernel
+php vendor/bin/scaffold-kernel
 ```
 
 生成されるファイル:
@@ -63,14 +63,14 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
 
-app scaffoldはSession利用Controllerを既定では生成しません。`minimal`を含む生成直後のGETをstatelessに保ち、公開page、API、Sessionを使うpageのどれにも同じapp scaffoldを使えるようにするためです。Sessionが必要なControllerへ `Pera\Framework\Security\Session` をconstructor injectionし、`get()`、`set()`、flash操作などを呼べば、そのrequestだけnative Sessionが開始します。copy-and-paste可能な最小例と、pageや機能がSession keyを所有する構成は `src/Framework/Security/README.md` にあります。
+app scaffoldはSession利用Controllerを既定では生成しません。`minimal`を含む生成直後のGETをstatelessに保ち、公開page、API、Sessionを使うpageのどれにも同じapp scaffoldを使えるようにするためです。Sessionが必要なControllerへ `Pera\Framework\Security\Session` をconstructor injectionし、`get()`、`set()`、flash操作などを呼べば、そのrequestだけnative Sessionが開始します。copy-and-paste可能な最小例と、pageや機能がSession keyを所有する構成は `../src/Security/README.md` にあります。
 
 ## App Scaffold
 
-`bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。
+`vendor/bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。
 
 ```bash
-php bin/scaffold-app api /api
+php vendor/bin/scaffold-app api /api
 ```
 
 デフォルト template は `minimal` です。
@@ -95,7 +95,7 @@ php bin/scaffold-app api /api
 Kernel に接続するための config only 構成だけを生成します。
 
 ```bash
-php bin/scaffold-app api /api --template=bare
+php vendor/bin/scaffold-app api /api --template=bare
 ```
 
 生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`ITemplateRenderer` binding は生成しません。
@@ -107,7 +107,7 @@ php bin/scaffold-app api /api --template=bare
 1つの Controller に処理を寄せた、動く最小アプリを生成します。
 
 ```bash
-php bin/scaffold-app api /api --template=minimal
+php vendor/bin/scaffold-app api /api --template=minimal
 ```
 
 `--template` を省略した場合も `minimal` です。
@@ -128,7 +128,7 @@ php bin/scaffold-app api /api --template=minimal
 CMS と同じ方向性の縦割りスターターを生成します。
 
 ```bash
-php bin/scaffold-app api /api --template=layered
+php vendor/bin/scaffold-app api /api --template=layered
 ```
 
 追加で生成される主な構成:
@@ -149,7 +149,7 @@ php bin/scaffold-app api /api --template=layered
 PDO を使う小さな Todo アプリのスターターを生成します。
 
 ```bash
-php bin/scaffold-app todo /todo --template=todo
+php vendor/bin/scaffold-app todo /todo --template=todo
 ```
 
 追加で生成される主な構成:
@@ -170,19 +170,19 @@ php bin/scaffold-app todo /todo --template=todo
 テスト用に別 root へ生成する場合は `--root` を指定できます。
 
 ```bash
-php bin/scaffold-app api /api --root=/tmp/example-project
+php vendor/bin/scaffold-app api /api --root=/tmp/example-project
 ```
 
 ## Shared Scaffold
 
-`bin/scaffold-shared` は Framework を使うプロジェクト側に `apps/shared` の最小構成を生成します。
+`vendor/bin/scaffold-shared` は Framework を使うプロジェクト側に `apps/shared` の最小構成を生成します。
 
 このコマンドは project setup 用です。通常はプロジェクトごとに一度だけ実行します。Controller や app を追加するたびに実行するものではありません。
 
 新規project skeletonではKernelとSharedが揃った状態を標準にします。Framework libraryを既存projectへ追加した場合は自動生成せず、必要な利用者が各scaffoldを明示的に実行します。`scaffold-app` は、その後に個別の app を追加するためのコマンドです。
 
 ```bash
-php bin/scaffold-shared
+php vendor/bin/scaffold-shared
 ```
 
 生成されるファイル:
@@ -238,4 +238,4 @@ php vendor/bin/scaffold-shared
 - project skeleton / root project: Dotenv、Latte、利用するPDO driver、migration toolなど。
 - 個別app: CommonMark、HTML Purifier、Mailer、画像処理など、そのappだけが必要とするもの。
 
-既存の `FrameworkInstallerPlugin` は検討用prototypeであり、標準経路にはしない。将来自動生成が本当に必要になった場合だけ、Framework runtimeから分離したComposer plugin packageとして再設計する。
+Framework packageはComposer installer pluginを含まず、install時に利用者のfileを生成しません。将来自動生成が本当に必要になった場合だけ、Framework runtimeから分離したComposer plugin packageとして再設計します。

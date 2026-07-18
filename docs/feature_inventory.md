@@ -83,6 +83,7 @@
 | Logging / Audit / SecurityLog | 一部完了 | JSON Lines logger、EventBus、CMS Audit 閲覧、監査ログのページング/日時ソート/絞り込み、CMS Audit middleware の業務要約 | request id の運用、例外ログ連携 |
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
+| Composer package | 一部完了 | `packages/framework`の独立manifest、production source、明示scaffold binary、root path repository利用。installer pluginなし | packaged artifact隔離install、release metadata、project skeleton |
 | Scaffold | 完了 | Kernel / Shared / App scaffold、生成機能別Composer依存レシピ、scaffold tests | packaged artifact E2E、atomicity、fullpack template は残作業 |
 
 ## docs 棚卸し

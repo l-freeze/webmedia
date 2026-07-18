@@ -7,11 +7,11 @@ declare(strict_types=1);
  * Scaffold an app under apps/{name}.
  *
  * Usage:
- *   php bin/scaffold-app api /api
- *   php bin/scaffold-app api /api --template=bare
- *   php bin/scaffold-app todo /todo --template=todo
- *   php bin/scaffold-app api /api --template=layered
- *   php bin/scaffold-app preview /preview --root=/tmp/example
+ *   php vendor/bin/scaffold-app api /api
+ *   php vendor/bin/scaffold-app api /api --template=bare
+ *   php vendor/bin/scaffold-app todo /todo --template=todo
+ *   php vendor/bin/scaffold-app api /api --template=layered
+ *   php vendor/bin/scaffold-app preview /preview --root=/tmp/example
  */
 
 $args = array_values(array_slice($argv, 1));
@@ -37,7 +37,7 @@ foreach ($args as $arg) {
 }
 
 if (count($filteredArgs) !== 2) {
-    fwrite(STDERR, "Usage: php bin/scaffold-app <name> <path-prefix> [--template=bare|minimal|todo|layered] [--root=/path/to/project]\n");
+    fwrite(STDERR, "Usage: php vendor/bin/scaffold-app <name> <path-prefix> [--template=bare|minimal|todo|layered] [--root=/path/to/project]\n");
     exit(1);
 }
 

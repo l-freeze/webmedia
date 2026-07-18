@@ -106,22 +106,21 @@ Composerを必ず使用する。
 - PSR-4 autoloadを使用する
 - vendorディレクトリはGit管理しない
 
-### 5.2 想定ディレクトリ名前空間
+### 5.2 Composer package境界
+
+Framework package自身のautoload:
 
 ```json
 {
   "autoload": {
     "psr-4": {
-      "Pera\\Framework\\": "src/Framework/",
-      "App\\Kernel\\": "apps/kernel/src/",
-      "App\\Shared\\": "apps/shared/src/",
-      "App\\Front\\": "apps/front/src/",
-      "App\\FrontBusiness\\": "apps/front-business/src/",
-      "App\\Cms\\": "apps/cms/src/"
+      "Pera\\Framework\\": "src/"
     }
   }
 }
 ```
+
+webmedia rootは`pera/framework`をpath repository経由でrequireする。root autoloadは`App\\Kernel`、`App\\Shared`、`App\\Front`、`App\\FrontBusiness`、`App\\Cms`だけを所有し、Framework namespaceを重複登録しない。
 
 ---
 
@@ -153,14 +152,17 @@ project-root/
 │       │   ├── Infrastructure/
 │       │   └── Presentation/
 │       └── templates/
-├── src/
-│   └── Framework/
-│       ├── Container/
-│       ├── Http/
-│       ├── Routing/
-│       ├── View/
-│       ├── Security/
-│       └── Process/
+├── packages/
+│   └── framework/
+│       ├── composer.json
+│       ├── bin/
+│       └── src/
+│           ├── Container/
+│           ├── Http/
+│           ├── Routing/
+│           ├── View/
+│           ├── Security/
+│           └── Process/
 ├── public/
 │   ├── index.php
 │   └── assets/
@@ -195,7 +197,7 @@ Web公開ディレクトリは必ず `public/` に限定する。
 
 以下はWebから直接アクセスできない場所に置く。
 
-- `src/`
+- `packages/framework/`
 - `apps/*/src/`
 - `apps/*/templates/`
 - `apps/*/config/`

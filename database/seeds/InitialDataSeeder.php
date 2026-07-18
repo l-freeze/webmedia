@@ -104,7 +104,7 @@ final class InitialDataSeeder extends AbstractSeed
                 'title' => 'Composer autoloadをPSR-4で整理する',
                 'slug' => 'composer-psr4-autoload',
                 'category_id' => 1,
-                'excerpt' => 'apps/front、apps/cms、src/FrameworkをPSR-4で読み込む構成を確認します。',
+                'excerpt' => 'apps/front、apps/cms、packages/framework/srcをPSR-4で読み込む構成を確認します。',
                 'body' => "## namespaceとディレクトリを合わせる\n\nPSR-4ではnamespaceのprefixと実ディレクトリの対応が重要です。`App\\Cms\\` は `apps/cms/src/`、`App\\Front\\` は `apps/front/src/` に対応させます。\n\nこの対応が崩れると、クラス名からファイルを発見できず、実行時エラーにつながります。\n\n## 分離の利点\n\nfrontとcmsを別アプリケーションとして扱うことで、UseCaseやQueryの責務が読みやすくなります。",
                 'tags' => [4, 6, 9],
             ],

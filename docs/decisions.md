@@ -503,6 +503,8 @@ Frameworkのpublic namespaceは `Pera\Framework` とする。`App` namespaceは�
 
 FrameworkはComposer libraryとして配布する。Framework libraryのinstallはKernelの生成を暗黙に実行しない。Kernelを必要とする利用者だけがscaffoldを明示的に実行する。新規project向けには、Frameworkをrequireしたproject skeletonを別の配布単位として用意する。
 
+monorepo内でもFrameworkは`packages/framework`を自己完結したpackage rootとし、production code、独立manifest、明示scaffold binaryを同じ配布境界へ置く。webmedia rootはComposer path repositoryから`pera/framework`をrequireし、root PSR-4でFramework namespaceを直接autoloadしない。
+
 scaffoldで生成された `App\Kernel` は、生成直後から全て利用プロジェクトの所有物である。FrameworkはKernelへ依存せず、Framework updateも生成済みKernelを上書き・自動upgradeしない。
 
 Framework packageの依存はFramework production codeが直接使うものに限定する。Kernel / Shared / appの生成物が使うDotenv、Latte、DB、migration、content、mail、mediaの依存はproject skeletonまたは利用側root packageが所有する。
@@ -512,6 +514,8 @@ scaffoldが外部packageを直接参照するsourceを生成する場合は、�
 scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
 
 PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とする。package化だけを理由にPSR-7 / PSR-15等への移行を新しい残作業にはしない。
+
+Framework packageはComposer installer pluginを持たない。install時にKernelやSharedを自動生成せず、将来自動生成が必要になった場合だけ独立plugin packageとして再設計する。
 
 ### 理由
 

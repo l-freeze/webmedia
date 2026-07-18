@@ -140,7 +140,7 @@
 
 ### P0-04 Host / proxy / TLSのtrust boundaryが未定義
 
-- 根拠: `Request::isHttps()` は送信元を限定せず `X-Forwarded-Proto` を信用する (`src/Framework/Http/Request.php:91-99`)。`FRONT_SITE_URL` が空ならrobots/sitemapが `HTTP_HOST` から絶対URLを作る。実測で `Host: attacker.example` に対し `Sitemap: http://attacker.example/sitemap.xml` が返った。
+- 根拠: `Request::isHttps()` は送信元を限定せず `X-Forwarded-Proto` を信用する (`packages/framework/src/Http/Request.php:91-99`)。`FRONT_SITE_URL` が空ならrobots/sitemapが `HTTP_HOST` から絶対URLを作る。実測で `Host: attacker.example` に対し `Sitemap: http://attacker.example/sitemap.xml` が返った。
 - 意味: Host header poisoning、誤canonical、cookie secure判定の誤りにつながる。proxyを置いた時だけでなく、直結時にforwarded headerを外部から注入できることも問題である。
 - 改善: productionでは公開base URLを必須化し、許可HostをCaddyとApplicationの両方で制限する。trusted proxy CIDRと、どのforwarded headerを正規化するかをCaddy側に閉じ、Applicationは正規化済み属性だけを見る。
 - 完了条件: 未許可Hostは400、外部からの偽 `X-Forwarded-Proto` は無視され、robots/canonical/cookie属性が構成表どおりになる。
@@ -408,12 +408,12 @@
 - 改善: experimentならrepository外へ置く。公式sampleならautoload、ApplicationDefinition、DB ownership、GET安全性、testを一つのinstallable sliceとして完成させる。
 - 完了条件: fresh checkoutから明示コマンドだけで起動し、同じGETを繰り返して状態を変更しない。
 
-### P2-15 Framework coreとinstaller/scaffoldの品質境界が曖昧
+### P2-15 Framework coreとscaffoldの保証境界が未確定
 
-- 根拠: Frameworkは小さなruntimeを標榜する一方、installer/scaffold/binはapp形状やComposer操作を知る。installer pluginの一部はPHPStan除外で、ProcessRunnerとは別のshell実行経路もある。
-- 影響: coreのsecurity/compatibility保証と開発toolの保証が混ざり、配布時のsupport範囲が不明になる。
-- 改善: runtime package、dev scaffolding、project templateを配布・version・test単位で分ける。除外にはowner、理由、期限を付ける。
-- 完了条件: 各artifactのpublic API、supported PHP/runtime、security boundary、release testが独立して説明できる。
+- 根拠: Frameworkは`packages/framework`へ自己完結したComposer packageとして分離され、暗黙生成するinstaller pluginとPHPStan除外は削除済み。一方、runtime codeと明示scaffold binaryは同じpackageに含まれ、packaged artifactからの隔離E2Eとそれぞれのsupport範囲はまだない。
+- 影響: HTTP runtimeの互換性保証と、生成Kernel / Shared / appの完成保証を同じものと誤解しやすい。
+- 改善: 一つのpackageを維持する間も、runtime public API testとscaffold consumer E2Eを分け、support対象をREADMEとrelease policyで明記する。依存またはrelease cadenceが実際に分かれた場合だけscaffoldを別package化する。
+- 完了条件: runtimeとscaffoldそれぞれのsupported PHP/runtime、security boundary、release testが説明でき、空consumerで生成後の最小HTTP応答まで再現できる。
 
 ### P2-16 未使用/重複dependencyとassetを定期的に棚卸しする
 

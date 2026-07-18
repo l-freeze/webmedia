@@ -12,7 +12,7 @@ middleware が増え、1つのディレクトリに置くとかえって責務�
 
 - `apps/cms/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect、CMS 固有の認証/認可入口、CMS 固有の HTTP 監査 event 発火など、CMS の HTTP 表現に直接関わる middleware。
 - `apps/cms/src/Infrastructure/Http/Middleware/`: proxy header、upload limit、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近い middleware が必要になった場合だけ作る。
-- `src/Framework/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
+- `packages/framework/src/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
 
 現在 `apps/cms/src/Infrastructure/Http` は使いません。必要な責務が出るまで作らない方針です。
 

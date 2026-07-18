@@ -7,8 +7,8 @@ declare(strict_types=1);
  * Scaffold shared application support under apps/shared.
  *
  * Usage:
- *   php bin/scaffold-shared
- *   php bin/scaffold-shared --root=/tmp/example
+ *   php vendor/bin/scaffold-shared
+ *   php vendor/bin/scaffold-shared --root=/tmp/example
  */
 
 $args = array_values(array_slice($argv, 1));
@@ -25,7 +25,7 @@ foreach ($args as $arg) {
         continue;
     }
 
-    fwrite(STDERR, "Usage: php bin/scaffold-shared [--root=/path/to/project]\n");
+    fwrite(STDERR, "Usage: php vendor/bin/scaffold-shared [--root=/path/to/project]\n");
     exit(1);
 }
 
@@ -63,7 +63,7 @@ Replace this binding with the PSR-3 logger used by the application, such as Mono
 
 `apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
 
-`bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
+`vendor/bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
 
 ## View
 

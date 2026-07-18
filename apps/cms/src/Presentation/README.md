@@ -79,6 +79,6 @@ CMS 固有 middleware は `apps/cms/src/Presentation/Http/Middleware` に置き�
 
 - `Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect、CMS 固有の認証/認可入口、CMS 固有 event 発火など、CMS の HTTP 表現に直接関わるもの。
 - `Infrastructure/Http/Middleware/`: proxy header、upload limit、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いものが必要になった場合だけ作る。
-- `src/Framework/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
+- `packages/framework/src/Http/Middleware/`: CMS/Front に依存しない middleware interface、pipeline、共通実行機構。
 
 現在 `apps/cms/src/Infrastructure/Http` は使いません。Infrastructure に置くべき HTTP 入出力実装が出た時点で追加します。

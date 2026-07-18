@@ -232,7 +232,7 @@ final class ScaffoldAppTest extends TestCase
         $projectRoot = dirname(__DIR__, 2);
         $command = implode(' ', [
             escapeshellarg(PHP_BINARY),
-            escapeshellarg($projectRoot . '/bin/scaffold-app'),
+            escapeshellarg($projectRoot . '/packages/framework/bin/scaffold-app'),
             escapeshellarg($name),
             escapeshellarg($pathPrefix),
             '--template=' . escapeshellarg($template),

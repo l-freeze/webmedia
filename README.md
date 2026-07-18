@@ -47,11 +47,11 @@ handle {
 
 `.docker/caddy/Caddyfile` だけの変更で classic mode に切り替えられます。worker block の中で `env APP_RUNTIME frankenphp-worker` を指定しているため、worker block を有効にしたまま `.env` だけで classic mode にすることはできません。
 
-PHP 側の切り替え処理は [src/Framework/Runtime/RuntimeFactory.php](src/Framework/Runtime/RuntimeFactory.php) にあります。`APP_RUNTIME` 未指定時は `classic` が使われ、`APP_RUNTIME=frankenphp-worker` かつ FrankenPHP worker 関数が利用できる場合だけ worker runtime を使います。
+PHP 側の切り替え処理は [packages/framework/src/Runtime/RuntimeFactory.php](packages/framework/src/Runtime/RuntimeFactory.php) にあります。`APP_RUNTIME` 未指定時は `classic` が使われ、`APP_RUNTIME=frankenphp-worker` かつ FrankenPHP worker 関数が利用できる場合だけ worker runtime を使います。
 
 ## セッション Cookie
 
-Sessionはrequestごとに注入されますが、native PHP SessionはController、認証、CSRFなどが最初にstateへアクセスしたときだけ開始します。Sessionを使わない公開pageはSession Cookieとbackend lockを持ちません。Controllerでの最短の使い方、pageや機能ごとのkey所有、flash、CSRF、worker lifecycleは [Framework Security README](src/Framework/Security/README.md) を参照してください。
+Sessionはrequestごとに注入されますが、native PHP SessionはController、認証、CSRFなどが最初にstateへアクセスしたときだけ開始します。Sessionを使わない公開pageはSession Cookieとbackend lockを持ちません。Controllerでの最短の使い方、pageや機能ごとのkey所有、flash、CSRF、worker lifecycleは [Framework Security README](packages/framework/src/Security/README.md) を参照してください。
 
 Session cookie はアプリケーション側で `HttpOnly` を常に有効にします。`SameSite` と本番での `Secure` 強制は環境変数で指定できます。
 
@@ -70,7 +70,7 @@ make test
 
 ## 構成
 
-- `src/Framework`: DI、HTTP、Routing、middleware pipeline、runtime などのアプリ非依存な軽量基盤
+- `packages/framework`: 独立Composer manifest、scaffold binary、DI、HTTP、Routing、middleware pipeline、runtimeを持つ自己完結したFramework package
 - `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く
 - `apps/shared`: 複数 App で共有する横断関心ごと。セキュリティヘッダ、ログ、キャッシュなど
 - `apps/front`: 読者向けフロント。公開済み記事の Query と Presentation/HTTP 表示を担当

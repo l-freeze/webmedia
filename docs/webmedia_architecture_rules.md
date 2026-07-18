@@ -48,22 +48,24 @@ use App\Cms\...;
 
 共通基盤は責務ごとに明確に分ける。
 
-- `src/Framework`: DI、HTTP、Routing など、アプリケーション都合を持たない軽量 Framework core
+- `packages/framework`: 独立したComposer manifest、scaffold binary、DI、HTTP、Routingなどを持つ軽量Framework package。production codeは`src`配下
 - `apps/kernel`: 起動、runtime、DB factory など、実行基盤を組み立てる Kernel
 - `apps/shared`: `front` / `cms` の両方から使うアプリケーション側の共有基盤
 
 `apps/shared` は許可する。ただし、雑多な helper や業務ロジックの避難場所にしてはならない。`front` / `cms` のどちらか一方に閉じる機能は、それぞれのアプリケーション配下に置く。
 
 ```text
-src/
-  Framework/
-    Container/
-    Http/
-    Routing/
-    View/
-    Database/
-    Security/
-    Content/
+packages/
+  framework/
+    composer.json
+    bin/
+    src/
+      Container/
+      Http/
+      Routing/
+      View/
+      Security/
+      Process/
 ```
 
 `apps/common`、`apps/modules`、`apps/framework` は禁止する。`apps` 直下に追加する共有ディレクトリは、責務が明確な `kernel` / `shared` に限定する。
@@ -871,7 +873,7 @@ middleware が増え、1つの置き場では責務が読みにくくなった�
 
 - `apps/<app>/src/Presentation/Http/Middleware/`: 画面、ルート、ログイン状態、表示モード、SEO、redirect、route-level permission、HTTP envelope audit など、HTTP 表現と入口制御に直接関わるもの。
 - `apps/<app>/src/Infrastructure/Http/Middleware/`: proxy header、upload limit、外部基盤都合の request/response 制約など、技術的な入出力や実行基盤に近いものが必要になった場合だけ作る。
-- `src/Framework/Http/Middleware/`: app に依存しない middleware interface、pipeline、共通実行機構。
+- `packages/framework/src/Http/Middleware/`: app に依存しない middleware interface、pipeline、共通実行機構。
 
 分離する場合は class の namespace、`apps/<app>/config/middleware.php` の import、README の配置説明を同じ変更単位で更新する。
 
@@ -1236,21 +1238,19 @@ callback を受け取らず、操作の意味が明確な PHP 標準配列関数
 
 ## 14. Namespace ルール
 
-Composer PSR-4 root:
+Framework packageのPSR-4 root:
 
 ```json
 {
   "autoload": {
     "psr-4": {
-      "Pera\\Framework\\": "src/Framework/",
-      "App\\Kernel\\": "apps/kernel/src/",
-      "App\\Shared\\": "apps/shared/src/",
-      "App\\Front\\": "apps/front/src/",
-      "App\\Cms\\": "apps/cms/src/"
+      "Pera\\Framework\\": "src/"
     }
   }
 }
 ```
+
+webmedia rootは`pera/framework`をComposer path repository経由でrequireし、`Pera\\Framework`をroot autoloadへ重複登録しない。`App\\Kernel`、`App\\Shared`、各appだけをroot packageがautoloadする。
 
 例:
 

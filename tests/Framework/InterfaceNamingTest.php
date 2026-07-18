@@ -10,6 +10,6 @@ final class InterfaceNamingTest extends InterfaceNamingTestCase
 {
     public function testFrameworkInterfacesUseIPrefix(): void
     {
-        $this->assertInterfacesUseIPrefix(dirname(__DIR__, 2) . '/src/Framework');
+        $this->assertInterfacesUseIPrefix(dirname(__DIR__, 2) . '/packages/framework/src');
     }
 }

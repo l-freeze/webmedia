@@ -50,7 +50,7 @@ Kernel はRequestごとに `Session` オブジェクトをContainerへ登録し�
 
 Sessionの開始判断はFrameworkの `Session` 内部へ閉じ、Kernelはrequest scopeの生成と `finally` でのcloseだけを担当します。ControllerやmiddlewareはSession lifecycleを操作せず、従来どおり必要な場合だけ `Session` または `Csrf` を依存として宣言します。
 
-Application codeでは、Sessionを使うControllerのconstructorへ `Pera\Framework\Security\Session` を追加するだけです。注入だけでは開始せず、最初の `get()`、`set()`、flash操作などが開始契機になります。小さなControllerの例、pageや機能がSession keyを所有するclass、CSRF、testの書き方は `src/Framework/Security/README.md` を正とします。
+Application codeでは、Sessionを使うControllerのconstructorへ `Pera\Framework\Security\Session` を追加するだけです。注入だけでは開始せず、最初の `get()`、`set()`、flash操作などが開始契機になります。小さなControllerの例、pageや機能がSession keyを所有するclass、CSRF、testの書き方は `packages/framework/src/Security/README.md` を正とします。
 
 Kernel scaffoldはこのlifecycleを最初から組み立てますが、app scaffoldはSession利用Controllerを既定では生成しません。生成直後の公開pageやAPIをstatelessに保ちつつ、必要になったpageではconstructor dependencyを1つ追加するだけで利用できるためです。
 
@@ -64,10 +64,10 @@ Worker mode 用エントリポイントは `apps/kernel/` に追加します。
 
 ## Scaffold
 
-新しいアプリの最小構成は `bin/scaffold-app` で生成できます。
+新しいアプリの最小構成は `vendor/bin/scaffold-app` で生成できます。
 
 ```bash
-php bin/scaffold-app api /api
+php vendor/bin/scaffold-app api /api
 ```
 
 デフォルトの `minimal` template は、単一 Controller、`GET <path-prefix>` route、Latte template、`ITemplateRenderer` binding を含む single-controller HTML starter です。DB 接続は Kernel 側の既存 `PDO::class` binding を使います。
@@ -75,7 +75,7 @@ php bin/scaffold-app api /api
 config only の極薄構成だけが必要な場合は `bare` を使います。
 
 ```bash
-php bin/scaffold-app api /api --template=bare
+php vendor/bin/scaffold-app api /api --template=bare
 ```
 
 このコマンドは `apps/kernel/config/application.php` は自動編集しません。生成後に追加する `ApplicationDefinition` を表示するので、内容を確認して Kernel config へ追加します。
@@ -83,7 +83,7 @@ php bin/scaffold-app api /api --template=bare
 縦割りのスターターも生成できます。
 
 ```bash
-php bin/scaffold-app api /api --template=layered
+php vendor/bin/scaffold-app api /api --template=layered
 ```
 
 `layered` は Controller、Application Interactor、Domain Entity、Value Object、Repository interface、PDO repository、アプリ固有 middleware のサンプルを含みます。薄く始める場合はデフォルトの `minimal` を使います。
@@ -91,7 +91,7 @@ php bin/scaffold-app api /api --template=layered
 PDO を使う小さな Todo スターターも生成できます。
 
 ```bash
-php bin/scaffold-app todo /todo --template=todo
+php vendor/bin/scaffold-app todo /todo --template=todo
 ```
 
 `todo` は Controller、Latte template、Application-level repository interface、PDO repository を含みます。Controller に SQL を直接書かずに、DB を使う最小の画面として読めるサンプルです。

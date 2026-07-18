@@ -11,7 +11,7 @@
 
 本プロジェクトの軽量 PHP Framework は `pera` と呼ぶ。
 
-`pera` は `src/Framework` に置く。HTTP / DI / Routing / View / Security / Process など、アプリケーション都合を持たない薄い実行基盤を担当する。`apps/kernel`、`apps/shared`、`apps/front`、`apps/cms` は `pera` の外側にあるプロジェクト側の層として扱う。
+`pera` は自己完結したComposer packageとして `packages/framework` に置き、production codeはその `src` 配下に置く。HTTP / DI / Routing / View / Security / Process など、アプリケーション都合を持たない薄い実行基盤を担当する。`apps/kernel`、`apps/shared`、`apps/front`、`apps/cms` は `pera` の外側にあるプロジェクト側の層として扱う。
 
 ## 主要資料
 

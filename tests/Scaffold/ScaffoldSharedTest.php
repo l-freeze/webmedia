@@ -77,7 +77,7 @@ final class ScaffoldSharedTest extends TestCase
         $projectRoot = dirname(__DIR__, 2);
         $command = implode(' ', [
             escapeshellarg(PHP_BINARY),
-            escapeshellarg($projectRoot . '/bin/scaffold-shared'),
+            escapeshellarg($projectRoot . '/packages/framework/bin/scaffold-shared'),
             '--root=' . escapeshellarg($root),
             '2>&1',
         ]);

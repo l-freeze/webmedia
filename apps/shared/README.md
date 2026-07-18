@@ -69,7 +69,7 @@ CMS/Front 固有の middleware は、それぞれの `apps/*/config/middleware.p
 
 Framework の `Response` は HTTP response を表現して送信するだけにし、CSP、Referrer-Policy、Permissions-Policy などのアプリケーション要件は shared middleware で差し込みます。
 
-`bin/scaffold-app` が生成する `apps/{name}/config/middleware.php` は shared middleware を読み込むため、新規 app にも自動で適用されます。
+`vendor/bin/scaffold-app` が生成する `apps/{name}/config/middleware.php` は shared middleware を読み込むため、新規 app にも自動で適用されます。
 
 ### CSRF middleware
 
@@ -177,4 +177,4 @@ Framework は PDO を要求しません。DB接続方式やDBエンジンは Ker
 - CMS/Front 共通の PDO persistence helper
 - アプリ都合の共通 infrastructure
 
-Framework の routing、container、HTTP primitive などは `src/Framework` に置きます。
+Framework の routing、container、HTTP primitive などは `packages/framework/src` に置きます。

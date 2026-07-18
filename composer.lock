@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9daa02068cfc568f4ce2c62bb5d3c38c",
+    "content-hash": "778b38c43448fca7ccda583e41e5fd56",
     "packages": [
         {
             "name": "cakephp/chronos",
@@ -1340,16 +1340,16 @@
         },
         {
             "name": "nikic/fast-route",
-            "version": "v1.3.0",
+            "version": "1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/FastRoute.git",
-                "reference": "181d480e08d9476e61381e04a71b34dc0432e812"
+                "reference": "7476684f39bb9124b3be69ed3d84b66723920298"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/181d480e08d9476e61381e04a71b34dc0432e812",
-                "reference": "181d480e08d9476e61381e04a71b34dc0432e812",
+                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/7476684f39bb9124b3be69ed3d84b66723920298",
+                "reference": "7476684f39bb9124b3be69ed3d84b66723920298",
                 "shasum": ""
             },
             "require": {
@@ -1384,9 +1384,46 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/FastRoute/issues",
-                "source": "https://github.com/nikic/FastRoute/tree/master"
+                "source": "https://github.com/nikic/FastRoute/tree/1.3.1"
             },
-            "time": "2018-02-13T20:26:39+00:00"
+            "time": "2026-07-09T19:38:47+00:00"
+        },
+        {
+            "name": "pera/framework",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "packages/framework",
+                "reference": "13dcf569bce88f34bec05e9b357aba876c9ed515"
+            },
+            "require": {
+                "composer-runtime-api": "^2.2",
+                "ext-session": "*",
+                "ext-uri": "*",
+                "nikic/fast-route": "^1.3",
+                "php": ">=8.5",
+                "psr/container": "^2.0",
+                "psr/log": "^3.0"
+            },
+            "bin": [
+                "bin/scaffold-app",
+                "bin/scaffold-kernel",
+                "bin/scaffold-shared"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Pera\\Framework\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "A lightweight PHP framework for explicit application composition.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "phpoption/phpoption",
@@ -5052,7 +5089,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "pera/framework": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

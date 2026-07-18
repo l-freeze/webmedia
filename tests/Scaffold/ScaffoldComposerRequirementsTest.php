@@ -200,7 +200,7 @@ JSON);
          *     messages: list<string>
          * } $sync
          */
-        $sync = require dirname(__DIR__, 2) . '/bin/scaffold-composer-requirements.php';
+        $sync = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-composer-requirements.php';
 
         return $sync($root, $features);
     }

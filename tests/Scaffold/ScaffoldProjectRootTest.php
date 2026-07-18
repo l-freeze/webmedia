@@ -20,7 +20,7 @@ final class ScaffoldProjectRootTest extends TestCase
             file_put_contents($proxy, sprintf(
                 "<?php\n\$GLOBALS['_composer_autoload_path'] = %s;\nrequire %s;\n",
                 var_export($root . '/vendor/autoload.php', true),
-                var_export($projectRoot . '/bin/scaffold-kernel', true),
+                var_export($projectRoot . '/packages/framework/bin/scaffold-kernel', true),
             ));
 
             $output = $this->executeCommand(command: [PHP_BINARY, $proxy]);
@@ -51,22 +51,23 @@ final class ScaffoldProjectRootTest extends TestCase
         }
     }
 
-    public function testRepositoryExecutionKeepsRepositoryRootFallback(): void
+    public function testDirectPackageExecutionUsesRepositoryWorkingDirectory(): void
     {
         /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
-        $resolveProjectRoot = require dirname(__DIR__, 2) . '/bin/scaffold-project-root.php';
+        $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
         $projectRoot = dirname(__DIR__, 2);
+        $packageRoot = $projectRoot . '/packages/framework';
 
         self::assertSame(
             $projectRoot,
-            $resolveProjectRoot(null, $projectRoot, sys_get_temp_dir()),
+            $resolveProjectRoot(null, $packageRoot, $projectRoot),
         );
     }
 
     public function testPackagedScriptDirectExecutionFallsBackToWorkingDirectory(): void
     {
         /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
-        $resolveProjectRoot = require dirname(__DIR__, 2) . '/bin/scaffold-project-root.php';
+        $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
 
         self::assertSame(
             '/tmp/consumer-project',

@@ -7,8 +7,8 @@ declare(strict_types=1);
  * Scaffold the fixed Kernel layer under apps/kernel.
  *
  * Usage:
- *   php bin/scaffold-kernel
- *   php bin/scaffold-kernel --root=/tmp/example
+ *   php vendor/bin/scaffold-kernel
+ *   php vendor/bin/scaffold-kernel --root=/tmp/example
  */
 
 $args = array_values(array_slice($argv, 1));
@@ -25,7 +25,7 @@ foreach ($args as $arg) {
         continue;
     }
 
-    fwrite(STDERR, "Usage: php bin/scaffold-kernel [--root=/path/to/project]\n");
+    fwrite(STDERR, "Usage: php vendor/bin/scaffold-kernel [--root=/path/to/project]\n");
     exit(1);
 }
 

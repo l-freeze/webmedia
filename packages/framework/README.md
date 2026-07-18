@@ -32,9 +32,9 @@ For example, malformed global request input is represented by a Framework HTTP e
 
 `PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. The default Shared scaffold binds `Psr\Log\LoggerInterface` to it as a temporary starting point, and applications replace that binding with their real PSR-3 logger. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
 
-`Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy. A request-scoped native `Session` starts PHP session storage only on first state access. Constructing `Session` or passing a safe request through `CsrfMiddleware` does not make an otherwise stateless response stateful. See `src/Framework/Security/README.md` for the smallest Controller example, application-owned Session state, CSRF, testing, and worker lifecycle.
+`Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy. A request-scoped native `Session` starts PHP session storage only on first state access. Constructing `Session` or passing a safe request through `CsrfMiddleware` does not make an otherwise stateless response stateful. See `src/Security/README.md` for the smallest Controller example, application-owned Session state, CSRF, testing, and worker lifecycle.
 
-`ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case. See `src/Framework/Process/README.md` for usage.
+`ProcessRunner` is kept in the Framework because `proc_open()` is a low-level PHP runtime boundary that is easy to use unsafely. The Framework only provides a synchronous, shell-free, timeout-bound runner with bounded stdout/stderr capture and startup warning reporting. Applications still decide which executable is allowed and what a failed process means for their use case. See `src/Process/README.md` for usage.
 
 ## Fixed Application Shape
 
@@ -107,15 +107,15 @@ Namespace customization is intentionally not supported. `pera` gives users a cle
 
 Scaffold dependencies follow generated capabilities. `scaffold-shared` and the `minimal` / `todo` app templates add `latte/latte:^3.0` to the consuming root project's runtime requirements. Kernel, `bare`, and `layered` do not require Latte and leave the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
 
-## Composer Package Direction
+## Composer Package
 
-When this Framework is split into a Composer package, the runtime package should contain Framework code and the explicit scaffold commands. Installing the Framework library alone must not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.
+`pera/framework` contains Framework code and the explicit scaffold commands. Installing the Framework library alone does not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.
 
 Generated Kernel code belongs entirely to the consuming project. It remains under `App\Kernel`, is optional, and is never overwritten or upgraded by a Framework package update.
 
 Framework runtime dependencies and starter dependencies are separate. FastRoute and the PSR interfaces used by Framework belong to the Framework package. Dotenv, Latte, database drivers, migrations, and other implementations referenced by generated project code belong to the consuming root project or new-project skeleton. The Framework package must not require Latte merely because the standard Shared scaffold offers a Latte adapter.
 
-The existing Composer plugin is a prototype and is not the standard installation path. If automatic generation is required in the future, it must be released and tested as a separate Composer plugin package. The default path remains explicit `vendor/bin` commands.
+There is no Composer installer plugin in this package. If automatic generation is required in the future, it must be released and tested as a separate Composer plugin package. The default path remains explicit `vendor/bin` commands.
 
 ## Examples
 
@@ -132,14 +132,11 @@ A smaller `todo` template is available for a first PDO-backed app. A small `blog
 
 For a first read, start here:
 
-1. `src/Framework/README.md`
-2. `src/Framework/Bootstrap/README.md`
-3. `src/Framework/Container/README.md`
-4. `src/Framework/Http/Middleware/README.md`
-5. `src/Framework/Security/README.md`
-6. `src/Framework/Process/README.md`
+1. `README.md`
+2. `src/Bootstrap/README.md`
+3. `src/Container/README.md`
+4. `src/Http/Middleware/README.md`
+5. `src/Security/README.md`
+6. `src/Process/README.md`
 7. `bin/README.md`
-8. `apps/kernel/README.md`
-9. `apps/shared/README.md`
-
-The top-level `README.md` describes the `webmedia` project itself. This README describes the Framework.
+Generated Kernel and Shared directories contain their own project-side README files. This package README describes only the Framework and its scaffold commands.
