@@ -20,7 +20,9 @@ $normalize = static function (string $path): string {
  */
 return static function (?string $composerAutoloadPath, string $packageRoot, ?string $workingDirectory) use ($normalize): string {
     if ($composerAutoloadPath !== null && $composerAutoloadPath !== '' && is_file($composerAutoloadPath)) {
-        return $normalize(dirname($composerAutoloadPath, 2));
+        $resolvedAutoloadPath = realpath($composerAutoloadPath);
+
+        return $normalize(dirname($resolvedAutoloadPath !== false ? $resolvedAutoloadPath : $composerAutoloadPath, 2));
     }
 
     if ($workingDirectory !== null && $workingDirectory !== '') {

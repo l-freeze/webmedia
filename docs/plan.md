@@ -46,10 +46,9 @@
 ### 配布とscaffold
 
 1. `packages/framework/bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
-2. Kernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全scaffoldを、空のconsumer projectとpackaged artifactから実行するE2E testを追加する。生成後のautoload、PHP構文、PHPStan、最小HTTP応答まで確認する。
-3. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。
-4. 部分生成、既存file、書込み失敗時のatomicityと再実行方針を決める。既存利用者fileは常に非上書きを既定とする。
-5. license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。package名は`pera/framework`とする。
+2. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件をproject skeletonで決める。
+3. 部分生成、既存file、書込み失敗時のatomicityと再実行方針を決める。既存利用者fileは常に非上書きを既定とする。
+4. license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。package名は`pera/framework`とする。
 
 ### 後で行うFramework / Kernel改善
 

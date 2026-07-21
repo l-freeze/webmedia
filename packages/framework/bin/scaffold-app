@@ -1133,7 +1133,13 @@ final readonly class PdoTodoRepository implements ITodoRepository
             if (!is_array($row)) {
                 throw new UnexpectedValueException('Todo row must be an associative array.');
             }
-            $items[] = $this->item(row: $row);
+            $values = [];
+            foreach ($row as $key => $value) {
+                if (is_string($key)) {
+                    $values[$key] = $value;
+                }
+            }
+            $items[] = $this->item(row: $values);
         }
 
         return $items;

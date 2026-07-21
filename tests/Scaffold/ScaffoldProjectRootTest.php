@@ -70,6 +70,29 @@ final class ScaffoldProjectRootTest extends TestCase
         );
     }
 
+    public function testComposerProxyAutoloadPathIsCanonicalizedBeforeResolvingRoot(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            self::assertTrue(mkdir($root . '/vendor/bin', recursive: true));
+            self::assertNotFalse(file_put_contents($root . '/vendor/autoload.php', "<?php\n"));
+            /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
+            $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
+
+            self::assertSame(
+                $root,
+                $resolveProjectRoot(
+                    $root . '/vendor/bin/../autoload.php',
+                    '/tmp/vendor/pera/framework',
+                    '/tmp/ignored-working-directory',
+                ),
+            );
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
     public function testPackagedScriptDirectExecutionFallsBackToWorkingDirectory(): void
     {
         /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */

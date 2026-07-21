@@ -16,7 +16,7 @@
 
 Framework を package として導入した root project では、`php vendor/bin/scaffold-kernel`、`php vendor/bin/scaffold-shared` のように `vendor/bin` から実行します。
 
-Composer が生成した vendor binary proxy から実行した場合は、Composer が渡す root project のautoload pathから生成先を決めます。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も `--root=/path/to/project` が明示されていれば、その指定を優先します。
+Composerが生成したvendor binary proxyから実行した場合は、Composerが渡すroot projectのautoload pathを実在pathへ正規化してから生成先を決めます。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も`--root=/path/to/project`が明示されていれば、その指定を優先します。
 
 ## Composer Dependencies
 
