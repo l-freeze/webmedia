@@ -1,6 +1,12 @@
 {
   "name": "pera/framework",
   "description": "A lightweight PHP framework for explicit application composition.",
+  "keywords": [
+    "framework",
+    "frankenphp",
+    "http",
+    "php"
+  ],
   "type": "library",
   "license": "proprietary",
   "require": {

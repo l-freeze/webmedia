@@ -47,7 +47,7 @@
 
 1. `packages/framework/bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
 2. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件をproject skeletonで決める。
-3. license、public API / semantic versioning、changelog、security policy、配布除外fileを確定する。package名は`pera/framework`とする。
+3. package名は`pera/framework`とする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前にlicense、公開repository URL、security reporting URL、初回tagを確定する。
 
 ### 後で行うFramework / Kernel改善
 

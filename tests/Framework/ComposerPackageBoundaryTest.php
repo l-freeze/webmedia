@@ -63,6 +63,9 @@ final class ComposerPackageBoundaryTest extends TestCase
         ], $manifest['bin'] ?? null);
 
         self::assertFileExists($root . '/packages/framework/bin/scaffold-transaction.php');
+        foreach (['API.md', 'CHANGELOG.md', 'SECURITY.md'] as $releaseDocument) {
+            self::assertFileExists($root . '/packages/framework/' . $releaseDocument);
+        }
 
         self::assertFileDoesNotExist(
             $root . '/packages/framework/src/Installer/Composer/FrameworkInstallerPlugin.php',

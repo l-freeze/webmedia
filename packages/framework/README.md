@@ -117,6 +117,8 @@ Framework runtime dependencies and starter dependencies are separate. FastRoute 
 
 There is no Composer installer plugin in this package. If automatic generation is required in the future, it must be released and tested as a separate Composer plugin package. The default path remains explicit `vendor/bin` commands.
 
+Public API and compatibility rules are documented in [`API.md`](API.md). Release changes are recorded in [`CHANGELOG.md`](CHANGELOG.md), and private vulnerability reporting expectations are documented in [`SECURITY.md`](SECURITY.md).
+
 ## Monorepo Development
 
 The `webmedia` root consumes this package through a Composer path repository with `symlink: true`. Composer therefore links `vendor/pera/framework` to `packages/framework` instead of copying the package.
