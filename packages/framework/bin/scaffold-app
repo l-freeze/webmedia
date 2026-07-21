@@ -58,7 +58,12 @@ if (!in_array($template, ['bare', 'minimal', 'todo', 'layered'], true)) {
     exit(1);
 }
 
-$composerFeatures = in_array($template, ['minimal', 'todo'], true) ? ['latte'] : [];
+$composerFeatures = match ($template) {
+    'minimal' => ['latte'],
+    'todo' => ['latte', 'pdo-sqlite'],
+    'layered' => ['pdo-sqlite'],
+    default => [],
+};
 
 $appRoot = "{$root}/apps/{$name}";
 $namespace = namespaceName(name: $name);
@@ -95,7 +100,9 @@ if ($template === 'layered') {
         "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit",
         "{$appRoot}/src/Presentation/Http/Controller/Health/Show",
         "{$appRoot}/src/Infrastructure/Http/Middleware",
+        "{$appRoot}/src/Infrastructure/Database",
         "{$appRoot}/src/Infrastructure/Persistence",
+        "{$appRoot}/storage",
     ]);
     $paths = array_merge($paths, [
         "{$appRoot}/src/Application/Health/Show/Input.php",
@@ -110,7 +117,9 @@ if ($template === 'layered') {
         "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit/Controller.php",
         "{$appRoot}/src/Presentation/Http/Controller/Health/Show/Controller.php",
         "{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php",
+        "{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php",
         "{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php",
+        "{$appRoot}/storage/.gitignore",
     ]);
 }
 
@@ -120,8 +129,10 @@ if ($template === 'todo') {
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Index",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Store",
+        "{$appRoot}/src/Infrastructure/Database",
         "{$appRoot}/src/Infrastructure/Persistence",
         "{$appRoot}/templates",
+        "{$appRoot}/storage",
     ]);
     $paths = array_merge($paths, [
         "{$appRoot}/src/Application/Todo/TodoItem.php",
@@ -129,8 +140,10 @@ if ($template === 'todo') {
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php",
         "{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php",
+        "{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php",
         "{$appRoot}/src/Infrastructure/Persistence/PdoTodoRepository.php",
         "{$appRoot}/templates/index.latte",
+        "{$appRoot}/storage/.gitignore",
     ]);
 }
 
@@ -233,6 +246,7 @@ if ($template === 'layered') {
 declare(strict_types=1);
 
 use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
+use App\{{ namespace }}\Infrastructure\Database\ConnectionFactory;
 use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoHealthCheckRepository;
 use Pera\Framework\Container\Container;
@@ -246,6 +260,9 @@ if (!is_callable($sharedContainer)) {
 }
 $sharedContainer($container, $root);
 
+$container->singleton(id: \PDO::class, factory: static fn (): \PDO => (new ConnectionFactory(
+    dsn: 'sqlite:' . $root . '/apps/{{ name }}/storage/app.sqlite',
+))->create());
 $container->bind(abstract: IHealthCheckRepository::class, concrete: PdoHealthCheckRepository::class);
 $container->singleton(id: AppNameHeaderMiddleware::class, factory: static fn (): AppNameHeaderMiddleware => new AppNameHeaderMiddleware(appName: '{{ name }}'));
 
@@ -258,6 +275,7 @@ PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
 declare(strict_types=1);
 
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
+use App\{{ namespace }}\Infrastructure\Database\ConnectionFactory;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoTodoRepository;
 use Pera\Framework\Container\Container;
 use Pera\Framework\View\ITemplateRenderer;
@@ -266,18 +284,15 @@ use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 $root = dirname(__DIR__, 3);
 $container = new Container();
 
-$kernelContainer = require $root . '/apps/kernel/config/container.php';
-if (!is_callable($kernelContainer)) {
-    throw new \RuntimeException('Kernel container configuration is invalid.');
-}
-$kernelContainer($container);
-
 $sharedContainer = require $root . '/apps/shared/config/container.php';
 if (!is_callable($sharedContainer)) {
     throw new \RuntimeException('Shared container configuration is invalid.');
 }
 $sharedContainer($container, $root);
 
+$container->singleton(id: \PDO::class, factory: static fn (): \PDO => (new ConnectionFactory(
+    dsn: 'sqlite:' . $root . '/apps/{{ name }}/storage/app.sqlite',
+))->create());
 $container->bind(abstract: ITodoRepository::class, concrete: PdoTodoRepository::class);
 $container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
     templateDirectory: $root . '/apps/{{ name }}/templates',
@@ -297,12 +312,6 @@ use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
-
-$kernelContainer = require $root . '/apps/kernel/config/container.php';
-if (!is_callable($kernelContainer)) {
-    throw new \RuntimeException('Kernel container configuration is invalid.');
-}
-$kernelContainer($container);
 
 $sharedContainer = require $root . '/apps/shared/config/container.php';
 if (!is_callable($sharedContainer)) {
@@ -324,20 +333,22 @@ declare(strict_types=1);
 
 use Pera\Framework\Container\Container;
 
-$root = dirname(__DIR__, 3);
-$container = new Container();
-
-$sharedContainer = require $root . '/apps/shared/config/container.php';
-if (!is_callable($sharedContainer)) {
-    throw new \RuntimeException('Shared container configuration is invalid.');
-}
-$sharedContainer($container, $root);
-
-return $container;
+return new Container();
 PHP);
 }
 
-if ($template === 'layered') {
+if ($template === 'bare') {
+    writeFile("{$appRoot}/config/middleware.php", <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+return [
+    // Add app-specific middleware here.
+    // Example: App\YourApp\Infrastructure\Http\Middleware\YourMiddleware::class,
+];
+PHP);
+} elseif ($template === 'layered') {
     writeFile("{$appRoot}/config/middleware.php", renderTemplate(<<<'PHP'
 <?php
 
@@ -390,12 +401,17 @@ writeFile("{$appRoot}/src/.gitkeep", '');
 
 if ($template === 'layered') {
     writeLayeredSource(appRoot: $appRoot, namespace: $namespace, name: $name);
+    writePdoConnectionSource(appRoot: $appRoot, namespace: $namespace);
 }
 if ($template === 'minimal') {
     writeMinimalSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath);
 }
 if ($template === 'todo') {
     writeTodoSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath, viewBasePath: $viewBasePath);
+    writePdoConnectionSource(appRoot: $appRoot, namespace: $namespace);
+}
+if (in_array($template, ['layered', 'todo'], true)) {
+    writeFile("{$appRoot}/storage/.gitignore", "*\n!.gitignore\n");
 }
 
 $definition = <<<PHP
@@ -434,7 +450,7 @@ if ($template === 'bare') {
 if ($template === 'minimal') {
     echo "Minimal starter:\n";
     echo "- Single-controller HTML starter at {$basePath}.\n";
-    echo "- Presentation/Http/Controller/Index: Controller with PDO access and ITemplateRenderer output.\n";
+    echo "- Presentation/Http/Controller/Index: Stateless Controller with ITemplateRenderer output.\n";
     echo "- templates/index.latte: Single-page Latte view.\n\n";
 }
 if ($template === 'layered') {
@@ -446,6 +462,7 @@ if ($template === 'layered') {
     echo "- Domain/Repository: HealthCheck repository interface.\n";
     echo "- Presentation/Http/Controller: HTTP controller examples.\n";
     echo "- Infrastructure/Http/Middleware: App-specific middleware example.\n";
+    echo "- Infrastructure/Database: App-owned SQLite PDO connection factory.\n";
     echo "- Infrastructure/Persistence: PDO repository example.\n\n";
 }
 if ($template === 'todo') {
@@ -453,6 +470,7 @@ if ($template === 'todo') {
     echo "- Application/Todo: Todo DTO and repository interface.\n";
     echo "- Presentation/Http/Controller/Todo: List, create, and complete actions.\n";
     echo "- Infrastructure/Persistence: PDO repository with a small self-contained todos table.\n";
+    echo "- Infrastructure/Database: App-owned SQLite PDO connection factory.\n";
     echo "- templates/index.latte: Latte view for the todo list.\n\n";
 }
 echo "Add this ApplicationDefinition to apps/kernel/config/application.php:\n\n";
@@ -849,59 +867,24 @@ namespace App\{{ namespace }}\Presentation\Http\Controller\Index;
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
 use Pera\Framework\View\ITemplateRenderer;
-use App\Shared\Database\PdoHelper;
-use PDO;
 
 final readonly class Controller
 {
-    public function __construct(
-        private PDO $pdo,
-        private ITemplateRenderer $renderer,
-    ) {
+    public function __construct(private ITemplateRenderer $renderer)
+    {
     }
 
     /** @param array<string, string> $vars */
     public function __invoke(Request $request, array $vars = []): Response
     {
-        $this->ensureSchema();
-        $this->ensureWelcomeMessage();
-
-        $message = PdoHelper::fetchColumn(statement: PdoHelper::query(
-            pdo: $this->pdo,
-            sql: 'SELECT body FROM scaffold_messages ORDER BY id ASC LIMIT 1',
-        ));
-        $message = is_scalar($message) ? (string) $message : '{{ name }} is running.';
-
         return new Response(
             body: $this->renderer->render(template: 'index.latte', params: [
                 'title' => '{{ name }}',
-                'message' => $message,
+                'message' => '{{ name }} is running.',
                 'path' => '{{ basePath }}',
             ]),
             headers: ['Content-Type' => 'text/html; charset=utf-8'],
         );
-    }
-
-    private function ensureSchema(): void
-    {
-        $this->pdo->exec('CREATE TABLE IF NOT EXISTS scaffold_messages (id INTEGER PRIMARY KEY, body VARCHAR(255) NOT NULL)');
-    }
-
-    private function ensureWelcomeMessage(): void
-    {
-        $count = PdoHelper::fetchColumn(statement: PdoHelper::query(
-            pdo: $this->pdo,
-            sql: 'SELECT COUNT(*) FROM scaffold_messages',
-        ));
-        if ((int) $count > 0) {
-            return;
-        }
-
-        $statement = PdoHelper::prepare(
-            pdo: $this->pdo,
-            sql: 'INSERT INTO scaffold_messages (id, body) VALUES (:id, :body)',
-        );
-        PdoHelper::execute(statement: $statement, params: ['id' => 1, 'body' => '{{ name }} is running.']);
     }
 }
 PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
@@ -933,6 +916,43 @@ PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
 </body>
 </html>
 LATTE, namespace: $namespace, healthPath: '', name: $name));
+}
+
+function writePdoConnectionSource(string $appRoot, string $namespace): void
+{
+    writeFile("{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php", renderTemplate(<<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\{{ namespace }}\Infrastructure\Database;
+
+use PDO;
+
+final readonly class ConnectionFactory
+{
+    public function __construct(
+        private string $dsn,
+        private ?string $username = null,
+        private ?string $password = null,
+    ) {
+    }
+
+    public function create(): PDO
+    {
+        return new PDO(
+            dsn: $this->dsn,
+            username: $this->username,
+            password: $this->password,
+            options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ],
+        );
+    }
+}
+PHP, namespace: $namespace, healthPath: '', name: ''));
 }
 
 function writeTodoSource(string $appRoot, string $namespace, string $name, string $basePath, string $viewBasePath): void
@@ -1091,9 +1111,10 @@ namespace App\{{ namespace }}\Infrastructure\Persistence;
 
 use App\{{ namespace }}\Application\Todo\TodoItem;
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use App\Shared\Database\PdoHelper;
-use App\Shared\Database\PdoRow;
 use PDO;
+use PDOStatement;
+use RuntimeException;
+use UnexpectedValueException;
 
 final readonly class PdoTodoRepository implements ITodoRepository
 {
@@ -1107,7 +1128,11 @@ final readonly class PdoTodoRepository implements ITodoRepository
         $this->ensureSchema();
 
         $items = [];
-        foreach (PdoHelper::fetchAll(statement: PdoHelper::query(pdo: $this->pdo, sql: 'SELECT id, title, completed, created_at FROM todos ORDER BY completed ASC, created_at DESC')) as $row) {
+        $statement = $this->query(sql: 'SELECT id, title, completed, created_at FROM todos ORDER BY completed ASC, created_at DESC');
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (!is_array($row)) {
+                throw new UnexpectedValueException('Todo row must be an associative array.');
+            }
             $items[] = $this->item(row: $row);
         }
 
@@ -1118,8 +1143,8 @@ final readonly class PdoTodoRepository implements ITodoRepository
     {
         $this->ensureSchema();
 
-        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'INSERT INTO todos (id, title, completed, created_at) VALUES (:id, :title, 0, :created_at)');
-        PdoHelper::execute(statement: $statement, params: [
+        $statement = $this->prepare(sql: 'INSERT INTO todos (id, title, completed, created_at) VALUES (:id, :title, 0, :created_at)');
+        $this->execute(statement: $statement, params: [
             'id' => bin2hex(random_bytes(16)),
             'title' => $title,
             'created_at' => date('Y-m-d H:i:s'),
@@ -1130,8 +1155,8 @@ final readonly class PdoTodoRepository implements ITodoRepository
     {
         $this->ensureSchema();
 
-        $statement = PdoHelper::prepare(pdo: $this->pdo, sql: 'UPDATE todos SET completed = 1 WHERE id = :id');
-        PdoHelper::execute(statement: $statement, params: ['id' => $id]);
+        $statement = $this->prepare(sql: 'UPDATE todos SET completed = 1 WHERE id = :id');
+        $this->execute(statement: $statement, params: ['id' => $id]);
     }
 
     private function ensureSchema(): void
@@ -1142,14 +1167,51 @@ final readonly class PdoTodoRepository implements ITodoRepository
     /** @param array<string, mixed> $row */
     private function item(array $row): TodoItem
     {
-        $todo = PdoRow::from(values: $row);
+        $id = $row['id'] ?? null;
+        $title = $row['title'] ?? null;
+        $completed = $row['completed'] ?? null;
+        $createdAt = $row['created_at'] ?? null;
+        if (!is_string($id) || !is_string($title) || !is_string($createdAt)) {
+            throw new UnexpectedValueException('Todo row contains invalid string values.');
+        }
+        if (!is_int($completed) && !is_string($completed)) {
+            throw new UnexpectedValueException('Todo row contains an invalid completed value.');
+        }
 
         return new TodoItem(
-            id: $todo->string(key: 'id'),
-            title: $todo->string(key: 'title'),
-            completed: $todo->int(key: 'completed') === 1,
-            createdAt: $todo->string(key: 'created_at'),
+            id: $id,
+            title: $title,
+            completed: (int) $completed === 1,
+            createdAt: $createdAt,
         );
+    }
+
+    private function query(string $sql): PDOStatement
+    {
+        $statement = $this->pdo->query($sql);
+        if (!$statement instanceof PDOStatement) {
+            throw new RuntimeException('Failed to execute todo query.');
+        }
+
+        return $statement;
+    }
+
+    private function prepare(string $sql): PDOStatement
+    {
+        $statement = $this->pdo->prepare($sql);
+        if (!$statement instanceof PDOStatement) {
+            throw new RuntimeException('Failed to prepare todo statement.');
+        }
+
+        return $statement;
+    }
+
+    /** @param array<string, mixed> $params */
+    private function execute(PDOStatement $statement, array $params): void
+    {
+        if (!$statement->execute($params)) {
+            throw new RuntimeException('Failed to execute todo statement.');
+        }
     }
 }
 PHP, namespace: $namespace, healthPath: '', name: $name));

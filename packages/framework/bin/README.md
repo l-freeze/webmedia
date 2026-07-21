@@ -20,20 +20,20 @@ Composer が生成した vendor binary proxy から実行した場合は、Compo
 
 ## Composer Dependencies
 
-scaffoldが外部packageを参照するファイルを生成する場合は、その機能に対応する依存レシピをconsumer projectへ適用します。現在の対応はLatteです。
+scaffoldが外部packageやPHP extensionを参照するファイルを生成する場合は、その機能に対応する依存レシピをconsumer projectへ適用します。
 
-| Scaffold | `latte/latte` |
+| Scaffold | consumer rootへ追加するruntime依存 |
 | --- | --- |
-| `scaffold-shared` | `require`へ`^3.0`を追加 |
-| `scaffold-app --template=minimal` | `require`へ`^3.0`を追加 |
-| `scaffold-app --template=todo` | `require`へ`^3.0`を追加 |
-| `scaffold-kernel` | 変更なし |
-| `scaffold-app --template=bare` | 変更なし |
-| `scaffold-app --template=layered` | 変更なし |
+| `scaffold-kernel` | `vlucas/phpdotenv:^5.6` |
+| `scaffold-shared` | `latte/latte:^3.0` |
+| `scaffold-app --template=bare` | なし |
+| `scaffold-app --template=minimal` | `latte/latte:^3.0` |
+| `scaffold-app --template=todo` | `latte/latte:^3.0`、`ext-pdo:*`、`ext-pdo_sqlite:*` |
+| `scaffold-app --template=layered` | `ext-pdo:*`、`ext-pdo_sqlite:*` |
 
-root `composer.json`がある場合は、Latteをruntimeで使う生成物に合わせて`require`を更新します。既に`require`にある制約は上書きしません。`require-dev`にだけある場合は、その制約を維持したまま`require`へ移します。
+root `composer.json`がある場合は、生成機能に合わせて`require`を更新します。既に`require`にある制約は上書きしません。`require-dev`にだけある場合は、その制約を維持したまま`require`へ移します。
 
-scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`vendor`も変更しません。manifestを更新した場合は、既存の`composer.lock`があれば対象を限定した`composer update latte/latte`、まだlockがなければ初回の`composer update`を表示します。`composer.json`がないrootへの生成は許可し、代わりに`composer require latte/latte:^3.0`を表示します。Latteを使わないscaffoldはmanifestを読み書きしません。
+scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`vendor`も変更しません。manifestを更新した場合は、既存の`composer.lock`があれば追加した依存だけに限定した`composer update`、まだlockがなければ初回の`composer update`を表示します。`composer.json`がないrootへの生成は許可し、代わりに必要な`composer require`を表示します。依存を生成しない`bare`はmanifestを読み書きしません。
 
 この依存は生成codeを所有するconsumer projectの依存です。Framework package自体の`require`へLatteを含める理由にはしません。
 
@@ -61,11 +61,7 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成される `apps/kernel/config/application.php` は、先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel/project startup の責務です。
 
-Dotenvは標準Kernelの起動機能として扱い、Sharedからは`.env`を読み込みません。現在の生成sourceは`vlucas/phpdotenv`を参照するため、依存レシピの対応が入るまではconsumer rootで明示的に追加してください。
-
-```bash
-composer require vlucas/phpdotenv
-```
+Dotenvは標準Kernelの起動機能として扱い、Sharedからは`.env`を読み込みません。`scaffold-kernel`は生成sourceに合わせてconsumer rootのruntime依存へ`vlucas/phpdotenv:^5.6`を追加します。
 
 生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
 
@@ -90,9 +86,9 @@ php vendor/bin/scaffold-app api /api
 - `apps/{name}/config/middleware.php`
 - `apps/{name}/src/.gitkeep`
 
-`container.php` は shared container を読み込んだうえで、アプリ固有の DI 定義を追加する場所です。
+`container.php` はアプリ固有のDI定義を置く場所です。`minimal`、`todo`、`layered`はShared containerを読み込みますが、`bare`はSharedにも依存しません。
 
-`middleware.php` は shared middleware を読み込んだうえで、アプリ固有の middleware を追加する場所です。
+`middleware.php` はアプリ固有middlewareを置く場所です。`minimal`、`todo`、`layered`はShared middlewareを読み込みますが、`bare`は空のmiddleware listから始まります。
 
 `routes.php` はそのアプリの route 定義を置く場所です。
 
@@ -106,7 +102,7 @@ Kernel に接続するための config only 構成だけを生成します。
 php vendor/bin/scaffold-app api /api --template=bare
 ```
 
-生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`ITemplateRenderer` binding は生成しません。
+生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`ITemplateRenderer` bindingは生成せず、Kernel、Shared、DB、template engineにも依存しません。
 
 これまで `--template=minimal` を config only として使っていた自動化は、`--template=bare` へ移行してください。
 
@@ -122,12 +118,12 @@ php vendor/bin/scaffold-app api /api --template=minimal
 
 追加で生成される主な構成:
 
-- `src/Presentation/Http/Controller/Index/Controller.php`: DB 接続、最小データ処理、ITemplateRenderer 経由の HTML 出力を同一ソース内で行う Controller
+- `src/Presentation/Http/Controller/Index/Controller.php`: ITemplateRenderer経由でHTMLを出力するstateless Controller
 - `templates/index.latte`: 一枚絵の HTML として成立する Latte template
 
 `config/routes.php` には `GET <path-prefix>` の route が追加されます。`path-prefix` が `/` の場合は `/`、それ以外は末尾 slash を除いた prefix を route にします。
 
-`config/container.php` は Kernel container から既存の `PDO::class` binding を読み込み、Shared container を読み込んだうえで、`ITemplateRenderer::class` を `LatteTemplateRenderer` へ binding します。scaffold 側で独自の sqlite `PDO::class` binding は生成しません。
+`config/container.php` はShared containerを読み込み、`ITemplateRenderer::class`を`LatteTemplateRenderer`へbindingします。Kernel containerやPDO bindingは読み込みません。
 
 `minimal` は layered architecture の見本ではなく、request から HTML response までの導線を最短で確認するための single-controller HTML starter です。層を分けた構成から始める場合は `layered` を使います。
 
@@ -148,9 +144,10 @@ php vendor/bin/scaffold-app api /api --template=layered
 - `src/Domain/Repository`: Repository interface の例
 - `src/Presentation/Http/Controller`: Controller の例
 - `src/Infrastructure/Http/Middleware`: アプリ固有 middleware の例
+- `src/Infrastructure/Database`: app所有のSQLite PDO connection factory
 - `src/Infrastructure/Persistence`: PDO repository 実装の例
 
-`layered` は一通り揃ったスターターです。middleware なし、DB なしのような細かい分類は用意していません。薄く始めたい場合は `minimal` を使います。
+`layered`は一通り揃ったDBありスターターです。SQLite databaseと`PDO::class` bindingはapp自身が所有し、KernelへPDO設定を要求しません。middlewareなし、DBなしのような細かい分類は用意していません。薄く始めたい場合は`minimal`を使います。
 
 ### todo
 
@@ -164,10 +161,11 @@ php vendor/bin/scaffold-app todo /todo --template=todo
 
 - `src/Application/Todo`: Todo DTO と repository interface
 - `src/Presentation/Http/Controller/Todo`: 一覧表示、追加、完了の Controller
+- `src/Infrastructure/Database`: app所有のSQLite PDO connection factory
 - `src/Infrastructure/Persistence`: PDO repository 実装
 - `templates/index.latte`: Todo 一覧の Latte template
 
-`todo` は、Controller に SQL を直接書かずに PDO を使う最小例です。生成された repository はサンプルとして `todos` table を `CREATE TABLE IF NOT EXISTS` で用意します。実運用では migration 管理へ移してください。
+`todo`は、ControllerにSQLを直接書かずにPDOを使う最小例です。SQLite databaseと`PDO::class` bindingはapp自身が所有し、KernelへPDO設定を要求しません。生成されたrepositoryはサンプルとして`todos` tableを`CREATE TABLE IF NOT EXISTS`で用意します。実運用ではmigration管理へ移してください。
 
 ### future: fullpack
 
@@ -197,8 +195,6 @@ php vendor/bin/scaffold-shared
 
 - `apps/shared/config/container.php`
 - `apps/shared/config/middleware.php`
-- `apps/shared/src/Database/PdoHelper.php`
-- `apps/shared/src/Database/PdoRow.php`
 - `apps/shared/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php`
 - `apps/shared/src/Validation/FormValidator.php`
 - `apps/shared/src/Validation/ValidationInput.php`
@@ -210,8 +206,6 @@ php vendor/bin/scaffold-shared
 `SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
 
 `apps/shared/config/container.php` は、初期状態で `Psr\Log\LoggerInterface` を Framework の `PlaceholderLogger` へ bind します。これは実ロガーではなく、ロガー未設定のまま書き込もうとしたときに例外を投げ、ログが黙って捨てられることを防ぐための仮実装です。アプリケーションで使う Monolog などの PSR-3 実装、またはプロジェクト固有の実装へ差し替えてください。ログを意図的に捨てる場合だけ、`Psr\Log\NullLogger` を明示的に bind します。
-
-`PdoHelper` と `PdoRow` は PDO persistence 実装の標準スターターです。Framework 本体は PDO を要求しません。PDO を使う default persistence examples の補助として Shared に生成します。
 
 `LatteTemplateRenderer` は Framework の `ITemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 

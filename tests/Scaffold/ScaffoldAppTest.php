@@ -29,13 +29,12 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('IndexController::class', $routes);
 
             $container = $this->read(path: $root . '/apps/api/config/container.php');
-            self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
+            self::assertStringNotContainsString("require \$root . '/apps/shared/config/container.php'", $container);
             self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
             self::assertStringNotContainsString('ITemplateRenderer::class', $container);
 
             $middleware = $this->read(path: $root . '/apps/api/config/middleware.php');
-            self::assertStringContainsString('CSRF protection', $middleware);
-            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
+            self::assertStringNotContainsString('apps/shared/config/middleware.php', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
@@ -63,7 +62,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString("'/mini/'", $routes);
 
             $container = $this->read(path: $root . '/apps/mini-app/config/container.php');
-            self::assertStringContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
+            self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
             self::assertStringContainsString("require \$root . '/apps/shared/config/container.php'", $container);
             self::assertStringContainsString('ITemplateRenderer::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
@@ -78,10 +77,10 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
             $controller = $this->read(path: $root . '/apps/mini-app/src/Presentation/Http/Controller/Index/Controller.php');
-            self::assertStringContainsString('private PDO $pdo', $controller);
+            self::assertStringNotContainsString('PDO', $controller);
             self::assertStringContainsString('private ITemplateRenderer $renderer', $controller);
-            self::assertStringContainsString('CREATE TABLE IF NOT EXISTS scaffold_messages', $controller);
-            self::assertStringContainsString('INSERT INTO scaffold_messages', $controller);
+            self::assertStringNotContainsString('CREATE TABLE', $controller);
+            self::assertStringNotContainsString('INSERT INTO', $controller);
             self::assertStringContainsString("template: 'index.latte'", $controller);
             self::assertStringNotContainsString('Pera\\Framework\\Security\\Session', $controller);
 
@@ -90,6 +89,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('Route: <code>{$path}</code>', $template);
 
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'ext-pdo'));
             self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
             self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
@@ -125,6 +125,7 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('Created app scaffold: apps/todo (todo)', $output);
             self::assertStringContainsString('Todo starter:', $output);
             self::assertFileExists($root . '/apps/todo/src/Application/Todo/ITodoRepository.php');
+            self::assertFileExists($root . '/apps/todo/src/Infrastructure/Database/ConnectionFactory.php');
             self::assertFileExists($root . '/apps/todo/src/Infrastructure/Persistence/PdoTodoRepository.php');
             self::assertFileExists($root . '/apps/todo/templates/index.latte');
 
@@ -133,7 +134,9 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString("['POST', '/todo/{id:[a-f0-9]+}/complete', TodoCompleteController::class]", $routes);
 
             $container = $this->read(path: $root . '/apps/todo/config/container.php');
-            self::assertStringContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
+            self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
+            self::assertStringContainsString("dsn: 'sqlite:'", $container);
+            self::assertStringContainsString('ConnectionFactory', $container);
             self::assertStringContainsString('ITodoRepository::class', $container);
             self::assertStringContainsString('LatteTemplateRenderer', $container);
             self::assertStringNotContainsString('cacheDirectory:', $container);
@@ -154,6 +157,8 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('CREATE TABLE', $indexController);
 
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertSame('*', $this->composerRuntimeRequirement(root: $root, package: 'ext-pdo'));
+            self::assertSame('*', $this->composerRuntimeRequirement(root: $root, package: 'ext-pdo_sqlite'));
             self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
             self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
@@ -188,7 +193,13 @@ final class ScaffoldAppTest extends TestCase
         $root = $this->temporaryRoot();
 
         try {
-            $this->runScaffold(root: $root, name: 'layered-app', pathPrefix: '/layered', template: 'layered');
+            $output = $this->runScaffold(root: $root, name: 'layered-app', pathPrefix: '/layered', template: 'layered');
+
+            self::assertFileExists($root . '/apps/layered-app/src/Infrastructure/Database/ConnectionFactory.php');
+            $container = $this->read(path: $root . '/apps/layered-app/config/container.php');
+            self::assertStringNotContainsString("require \$root . '/apps/kernel/config/container.php'", $container);
+            self::assertStringContainsString("dsn: 'sqlite:'", $container);
+            self::assertStringContainsString('ConnectionFactory', $container);
 
             $middleware = $this->read(path: $root . '/apps/layered-app/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
@@ -197,6 +208,9 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('AppNameHeaderMiddleware::class', $middleware);
 
             self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertSame('*', $this->composerRuntimeRequirement(root: $root, package: 'ext-pdo'));
+            self::assertSame('*', $this->composerRuntimeRequirement(root: $root, package: 'ext-pdo_sqlite'));
+            self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
         } finally {
             $this->removeDirectory(path: $root);
         }

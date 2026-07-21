@@ -58,6 +58,35 @@ JSON);
         }
     }
 
+    public function testMultipleFeaturesAddConsumerOwnedRuntimeRequirements(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "php": "^8.5"
+  }
+}
+JSON);
+
+            $result = $this->sync(root: $root, features: ['dotenv', 'pdo-sqlite']);
+
+            self::assertSame([
+                'ext-pdo' => '*',
+                'ext-pdo_sqlite' => '*',
+                'vlucas/phpdotenv' => '^5.6',
+            ], $result['added']);
+            self::assertSame('*', $this->runtimeRequirement(root: $root, package: 'ext-pdo'));
+            self::assertSame('*', $this->runtimeRequirement(root: $root, package: 'ext-pdo_sqlite'));
+            self::assertSame('^5.6', $this->runtimeRequirement(root: $root, package: 'vlucas/phpdotenv'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
     public function testExistingRuntimeConstraintIsPreservedAndSecondRunIsIdempotent(): void
     {
         $root = $this->temporaryRoot();

@@ -38,6 +38,9 @@ final class ScaffoldSharedTest extends TestCase
             self::assertStringContainsString('This is not a real logger.', $readme);
             self::assertStringContainsString('Psr\Log\NullLogger', $readme);
             self::assertStringContainsString('The Framework package itself does not require Latte.', $readme);
+            self::assertStringNotContainsString('PDO helpers', $readme);
+            self::assertFileDoesNotExist($root . '/apps/shared/src/Database/PdoHelper.php');
+            self::assertFileDoesNotExist($root . '/apps/shared/src/Database/PdoRow.php');
 
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
             self::assertStringContainsString('Updated composer.json runtime requirements:', $output);

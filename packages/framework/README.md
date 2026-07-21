@@ -82,7 +82,7 @@ Those choices belong in Kernel, Shared, or each App.
 
 The default Shared scaffold provides `App\Shared\Validation` as a small form validation starting point, and the layered app scaffold shows how to use it. Framework core does not own validation classes.
 
-The default Shared scaffold also provides small PDO helpers for the default persistence examples. Framework core does not require PDO.
+PDO-backed app templates own their connection factory and persistence code. Neither Framework, the Kernel scaffold, nor the Shared scaffold provides a project-wide PDO binding.
 
 ## Scaffold
 
@@ -105,7 +105,7 @@ Namespace customization is intentionally not supported. `pera` gives users a cle
 
 `scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `ITemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
-Scaffold dependencies follow generated capabilities. `scaffold-shared` and the `minimal` / `todo` app templates add `latte/latte:^3.0` to the consuming root project's runtime requirements. Kernel, `bare`, and `layered` do not require Latte and leave the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
+Scaffold dependencies follow generated capabilities. Kernel adds Dotenv, Shared and HTML app templates add Latte, and PDO-backed app templates add the PDO and SQLite platform requirements to the consuming root project. `bare` leaves the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
 
 ## Composer Package
 

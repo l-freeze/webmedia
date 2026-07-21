@@ -16,6 +16,7 @@ final class ScaffoldProjectRootTest extends TestCase
         try {
             mkdir($root . '/vendor', 0777, true);
             file_put_contents($root . '/vendor/autoload.php', "<?php\n");
+            file_put_contents($root . '/composer.json', "{\n  \"name\": \"example/app\",\n  \"require\": {\n    \"php\": \"^8.5\"\n  }\n}\n");
             $proxy = $root . '/composer-bin-proxy.php';
             file_put_contents($proxy, sprintf(
                 "<?php\n\$GLOBALS['_composer_autoload_path'] = %s;\nrequire %s;\n",
@@ -28,6 +29,11 @@ final class ScaffoldProjectRootTest extends TestCase
             self::assertStringContainsString('Created kernel scaffold: apps/kernel', $output);
             self::assertFileExists($root . '/apps/kernel/config/application.php');
             self::assertFileExists($root . '/apps/kernel/src/Application.php');
+            $composer = json_decode($this->read(path: $root . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+            self::assertIsArray($composer);
+            $requirements = $composer['require'] ?? [];
+            self::assertIsArray($requirements);
+            self::assertSame('^5.6', $requirements['vlucas/phpdotenv'] ?? null);
             $application = $this->read(path: $root . '/apps/kernel/src/Application.php');
             self::assertStringContainsString(
                 'use Pera\\Framework\\Application\\IApplication;',

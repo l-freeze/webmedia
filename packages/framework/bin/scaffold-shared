@@ -32,7 +32,6 @@ foreach ($args as $arg) {
 $sharedRoot = "{$root}/apps/shared";
 $directories = [
     "{$sharedRoot}/config",
-    "{$sharedRoot}/src/Database",
     "{$sharedRoot}/src/Security/Infrastructure/Http",
     "{$sharedRoot}/src/Validation",
     "{$sharedRoot}/src/View/Infrastructure",
@@ -50,8 +49,6 @@ Framework stays thin: HTTP primitives, routing, container, middleware pipeline, 
 The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
 
 The scaffold includes a small form validation set under `App\Shared\Validation`. Validation is application-side because rules, messages, and normalization such as trimming belong to the project, but the generated classes give layered apps a default path.
-
-The scaffold includes small PDO helpers under `App\Shared\Database`. Framework core does not require PDO, but the default app structure uses PDO-based persistence examples.
 
 ## Logging
 
@@ -110,164 +107,6 @@ return static function (Container $container, string $root): void {
         factory: static fn (): LoggerInterface => new PlaceholderLogger(),
     );
 };
-PHP,
-    "{$sharedRoot}/src/Database/PdoHelper.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Database;
-
-use PDO;
-use PDOStatement;
-use RuntimeException;
-
-final readonly class PdoHelper
-{
-    private function __construct()
-    {
-    }
-
-    public static function prepare(PDO $pdo, string $sql): PDOStatement
-    {
-        $statement = $pdo->prepare($sql);
-        if (!$statement instanceof PDOStatement) {
-            throw new RuntimeException('Failed to prepare SQL statement.');
-        }
-
-        return $statement;
-    }
-
-    public static function query(PDO $pdo, string $sql): PDOStatement
-    {
-        $statement = $pdo->query($sql);
-        if (!$statement instanceof PDOStatement) {
-            throw new RuntimeException('Failed to execute SQL query.');
-        }
-
-        return $statement;
-    }
-
-    /** @param array<string, mixed> $params */
-    public static function execute(PDOStatement $statement, array $params = []): void
-    {
-        $executed = $params === [] ? $statement->execute() : $statement->execute($params);
-        if (!$executed) {
-            throw new RuntimeException('Failed to execute SQL statement.');
-        }
-    }
-
-    /** @return array<string, mixed>|null */
-    public static function fetch(PDOStatement $statement): ?array
-    {
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($row === false) {
-            return null;
-        }
-        if (!is_array($row)) {
-            throw new RuntimeException('Failed to fetch associative row.');
-        }
-
-        /** @var array<string, mixed> $row */
-        return $row;
-    }
-
-    /** @return list<array<string, mixed>> */
-    public static function fetchAll(PDOStatement $statement): array
-    {
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        /** @var list<array<string, mixed>> $rows */
-        return $rows;
-    }
-
-    public static function fetchColumn(PDOStatement $statement): mixed
-    {
-        $value = $statement->fetchColumn();
-        return $value === false ? null : $value;
-    }
-}
-PHP,
-    "{$sharedRoot}/src/Database/PdoRow.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Database;
-
-use Stringable;
-
-final readonly class PdoRow
-{
-    /** @param array<string, mixed> $values */
-    private function __construct(private array $values)
-    {
-    }
-
-    /** @param array<string, mixed> $values */
-    public static function from(array $values): self
-    {
-        return new self(values: $values);
-    }
-
-    public function int(string $key, int $default = 0): int
-    {
-        $value = $this->values[$key] ?? null;
-        if (is_int($value)) {
-            return $value;
-        }
-        if (is_float($value)) {
-            return (int) $value;
-        }
-        if (is_string($value) && is_numeric($value)) {
-            return (int) $value;
-        }
-
-        return $default;
-    }
-
-    public function nullableInt(string $key): ?int
-    {
-        return array_key_exists($key, $this->values) && $this->values[$key] !== null
-            ? $this->int(key: $key)
-            : null;
-    }
-
-    public function string(string $key, string $default = ''): string
-    {
-        $value = $this->values[$key] ?? null;
-        if (is_string($value)) {
-            return $value;
-        }
-        if (is_int($value) || is_float($value) || is_bool($value) || $value instanceof Stringable) {
-            return (string) $value;
-        }
-
-        return $default;
-    }
-
-    public function nullableString(string $key): ?string
-    {
-        return array_key_exists($key, $this->values) && $this->values[$key] !== null
-            ? $this->string(key: $key)
-            : null;
-    }
-
-    public function date(string $key, string $format = 'Y-m-d', string $default = ''): string
-    {
-        $value = $this->string(key: $key);
-        if ($value === '') {
-            return $default;
-        }
-
-        $timestamp = strtotime($value);
-        if ($timestamp === false) {
-            return $default;
-        }
-
-        return date($format, $timestamp);
-    }
-}
 PHP,
     "{$sharedRoot}/config/middleware.php" => <<<'PHP'
 <?php

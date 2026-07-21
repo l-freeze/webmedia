@@ -40,7 +40,7 @@
 
 1. Framework packageの暫定 `require` はPHP 8.5、ext-session、ext-uri、FastRoute、PSR Container、PSR Log、Composer runtime APIとする。packaged artifactの隔離install testで最終確定する。
 2. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
-3. 次の実装ではscaffoldが生成する外部依存を再scanし、Kernel scaffoldのDotenv、PDOを使う生成物のext-pdo、PDO driverの依存レシピと案内を整える。driverをFramework packageへ持たせない。
+3. Kernel scaffoldのDotenv、PDOを使う`todo` / `layered`のext-pdoとSQLite driverは、生成機能別の依存レシピでconsumer rootへ追加する。Framework packageと汎用KernelへDB依存を持たせない。
 4. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
 
 ### 配布とscaffold

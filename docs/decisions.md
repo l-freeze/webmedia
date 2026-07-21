@@ -513,7 +513,9 @@ Framework packageの依存はFramework production codeが直接使うものに�
 
 正式なscaffold support対象はKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。特定templateだけをpackage導入経路から外さず、packaged artifactからのconsumer E2Eで各生成契約を検証する。予約名の`fullpack`は実装されるまでsupport対象ではない。
 
-scaffoldが外部packageを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。現在はShared scaffoldとAppの`minimal` / `todo` templateが、consumer rootのruntime `require`へ`latte/latte:^3.0`を追加する。Kernel、`bare`、`layered`はLatteを生成しないため追加しない。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
+scaffoldが外部packageやPHP extensionを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。KernelはDotenv、SharedとHTML templateはLatte、PDOを使う`todo` / `layered`はPDOとSQLite driverをconsumer rootのruntime `require`へ追加する。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
+
+汎用Kernel scaffoldへPDO bindingやConnectionFactoryを生成しない。`bare`はSharedやDBに依存せず、`minimal`はDB非依存とする。DBありの`todo` / `layered`はapp自身のInfrastructureにConnectionFactory、storage、PDO bindingを生成し、DB選択と接続構成をapp所有に閉じる。webmedia固有KernelのPDO共有は、複数appが同じDBを使う当該projectのcomposition判断として別に扱う。
 
 scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
 

@@ -3,7 +3,12 @@
 declare(strict_types=1);
 
 $requirementsByFeature = [
+    'dotenv' => ['vlucas/phpdotenv' => '^5.6'],
     'latte' => ['latte/latte' => '^3.0'],
+    'pdo-sqlite' => [
+        'ext-pdo' => '*',
+        'ext-pdo_sqlite' => '*',
+    ],
 ];
 
 /**
