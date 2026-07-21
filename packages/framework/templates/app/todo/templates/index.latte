@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$title}</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1f2937; }
+        form { margin: 0; }
+        .todo-form { display: flex; gap: 8px; margin: 24px 0; }
+        input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
+        ul { list-style: none; padding: 0; }
+        li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #e5e7eb; }
+        .completed { color: #64748b; text-decoration: line-through; }
+        .empty { color: #64748b; }
+    </style>
+</head>
+<body>
+    <h1>{$title}</h1>
+
+    <form class="todo-form" method="post" action="{$basePath === '' ? '/' : $basePath}">
+        <input type="text" name="title" placeholder="New todo" required>
+        <button type="submit">Add</button>
+    </form>
+
+    {if count($todos) === 0}
+        <p class="empty">No todos yet.</p>
+    {else}
+        <ul>
+            {foreach $todos as $todo}
+                <li>
+                    <span class="{$todo['completed'] ? 'completed' : ''}">{$todo['title']}</span>
+                    {if !$todo['completed']}
+                        <form method="post" action="{$basePath}/{$todo['id']}/complete">
+                            <button type="submit">Complete</button>
+                        </form>
+                    {/if}
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
+</body>
+</html>

@@ -24,6 +24,14 @@ Composerが生成したvendor binary proxyから実行した場合は、Composer
 
 生成中は同じ`apps`directory内の一時rootへ全fileを書き、完了後にdirectory renameで対象rootとして公開します。生成または公開に失敗した場合は一時rootを削除し、その実行で変更したconsumer `composer.json`も開始前の内容へ戻します。したがって失敗後は半端な生成物を手で選別せず再実行できます。生成完了後のsourceは利用者所有であり、Framework updateは上書きしません。
 
+## Template Sources
+
+生成sourceの正本はpackage内の`templates/kernel`、`templates/shared`、`templates/app/{template}`です。`bin/scaffold-*`は引数検証、project root解決、Composer依存レシピ、atomic publishだけを担当し、生成PHPやLatteを巨大な埋め込み文字列として所有しません。
+
+app templateでは`{{ namespace }}`のような明示placeholderだけを置換します。未解決placeholderが残れば生成前に失敗します。生成内容を変更するときは`bin/scaffold-*`へPHP文字列を追加せず、対応するtemplate fileを直接編集してください。
+
+標準Kernelの`Application.php`と`ApplicationDefinition.php`は現行project Kernelと同一であることをtestで検査します。これは次に生成するKernelのdriftを防ぐための検査であり、既に生成済みで利用者所有となったKernelをFramework updateで変更する仕組みではありません。
+
 ## Composer Dependencies
 
 scaffoldが外部packageやPHP extensionを参照するファイルを生成する場合は、その機能に対応する依存レシピをconsumer projectへ適用します。

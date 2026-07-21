@@ -42,17 +42,14 @@ if (count($filteredArgs) !== 2) {
 }
 
 [$name, $pathPrefix] = $filteredArgs;
-
 if (!preg_match('/^[a-z][a-z0-9-]*$/', $name)) {
     fwrite(STDERR, "App name must match /^[a-z][a-z0-9-]*$/.\n");
     exit(1);
 }
-
 if ($pathPrefix === '' || $pathPrefix[0] !== '/') {
     fwrite(STDERR, "Path prefix must start with \"/\".\n");
     exit(1);
 }
-
 if (!in_array($template, ['bare', 'minimal', 'todo', 'layered'], true)) {
     fwrite(STDERR, "Template must be one of: bare, minimal, todo, layered.\n");
     exit(1);
@@ -64,8 +61,6 @@ $composerFeatures = match ($template) {
     'layered' => ['pdo-sqlite'],
     default => [],
 };
-
-$appRoot = "{$root}/apps/{$name}";
 $namespace = namespaceName(name: $name);
 $healthPath = rtrim($pathPrefix, '/') . '/health';
 if ($healthPath === '/health' && $pathPrefix !== '/') {
@@ -79,94 +74,42 @@ if ($basePath === '') {
 $viewBasePath = $basePath === '/' ? '' : $basePath;
 $todoCompletePath = $viewBasePath . '/{id:[a-f0-9]+}/complete';
 
-$directories = [
-    "{$appRoot}/config",
-    "{$appRoot}/src",
-];
-$paths = [
-    "{$appRoot}/config/routes.php",
-    "{$appRoot}/config/container.php",
-    "{$appRoot}/config/middleware.php",
-    "{$appRoot}/src/.gitkeep",
-];
-
-if ($template === 'layered') {
-    $directories = array_merge($directories, [
-        "{$appRoot}/src/Application/Health/Show",
-        "{$appRoot}/src/Application/Contact/Submit",
-        "{$appRoot}/src/Domain/Entity",
-        "{$appRoot}/src/Domain/Repository",
-        "{$appRoot}/src/Domain/Value",
-        "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit",
-        "{$appRoot}/src/Presentation/Http/Controller/Health/Show",
-        "{$appRoot}/src/Infrastructure/Http/Middleware",
-        "{$appRoot}/src/Infrastructure/Database",
-        "{$appRoot}/src/Infrastructure/Persistence",
-        "{$appRoot}/storage",
-    ]);
-    $paths = array_merge($paths, [
-        "{$appRoot}/src/Application/Health/Show/Input.php",
-        "{$appRoot}/src/Application/Health/Show/Output.php",
-        "{$appRoot}/src/Application/Health/Show/Interactor.php",
-        "{$appRoot}/src/Application/Contact/Submit/Input.php",
-        "{$appRoot}/src/Application/Contact/Submit/Output.php",
-        "{$appRoot}/src/Application/Contact/Submit/Interactor.php",
-        "{$appRoot}/src/Domain/Entity/HealthCheck.php",
-        "{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php",
-        "{$appRoot}/src/Domain/Value/HealthMessage.php",
-        "{$appRoot}/src/Presentation/Http/Controller/Contact/Submit/Controller.php",
-        "{$appRoot}/src/Presentation/Http/Controller/Health/Show/Controller.php",
-        "{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php",
-        "{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php",
-        "{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php",
-        "{$appRoot}/storage/.gitignore",
-    ]);
+/** @var Closure(string, array<string, string>): array<string, string> $loadTemplateFiles */
+$loadTemplateFiles = require __DIR__ . '/scaffold-template-files.php';
+try {
+    $templateFiles = $loadTemplateFiles(
+        dirname(__DIR__) . '/templates/app/' . $template,
+        [
+            'namespace' => $namespace,
+            'name' => $name,
+            'healthPath' => $healthPath,
+            'contactPath' => $contactPath,
+            'basePath' => $basePath,
+            'viewBasePath' => $viewBasePath,
+            'todoCompletePath' => $todoCompletePath,
+        ],
+    );
+} catch (Throwable $throwable) {
+    fwrite(STDERR, $throwable->getMessage() . "\n");
+    exit(1);
 }
 
-if ($template === 'todo') {
-    $directories = array_merge($directories, [
-        "{$appRoot}/src/Application/Todo",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Index",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Store",
-        "{$appRoot}/src/Infrastructure/Database",
-        "{$appRoot}/src/Infrastructure/Persistence",
-        "{$appRoot}/templates",
-        "{$appRoot}/storage",
-    ]);
-    $paths = array_merge($paths, [
-        "{$appRoot}/src/Application/Todo/TodoItem.php",
-        "{$appRoot}/src/Application/Todo/ITodoRepository.php",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php",
-        "{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php",
-        "{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php",
-        "{$appRoot}/src/Infrastructure/Persistence/PdoTodoRepository.php",
-        "{$appRoot}/templates/index.latte",
-        "{$appRoot}/storage/.gitignore",
-    ]);
-}
-
-if ($template === 'minimal') {
-    $directories = array_merge($directories, [
-        "{$appRoot}/src/Presentation/Http/Controller/Index",
-        "{$appRoot}/templates",
-    ]);
-    $paths = array_merge($paths, [
-        "{$appRoot}/src/Presentation/Http/Controller/Index/Controller.php",
-        "{$appRoot}/templates/index.latte",
-    ]);
-}
-
-foreach ($paths as $path) {
-    if (file_exists($path)) {
-        fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
-        exit(1);
+$appRoot = "{$root}/apps/{$name}";
+$files = [];
+$directories = [];
+foreach ($templateFiles as $relativePath => $contents) {
+    $path = $appRoot . '/' . $relativePath;
+    $files[$path] = $contents;
+    $directory = dirname($path);
+    if ($directory !== $appRoot) {
+        $directories[$directory] = true;
     }
 }
+ksort($files);
+ksort($directories);
+$createdDirectories = array_keys($directories);
+$createdFiles = array_keys($files);
 
-$createdDirectories = $directories;
-$createdPaths = $paths;
 /** @var Closure(string, string): ScaffoldFilesystemTransaction $createScaffoldTransaction */
 $createScaffoldTransaction = require __DIR__ . '/scaffold-transaction.php';
 try {
@@ -175,9 +118,8 @@ try {
     fwrite(STDERR, $throwable->getMessage() . "\n");
     exit(1);
 }
-$appRoot = $scaffoldTransaction->stagingRoot();
-$directories = $scaffoldTransaction->stagePaths(paths: $directories);
-$paths = $scaffoldTransaction->stagePaths(paths: $paths);
+$directories = $scaffoldTransaction->stagePaths(paths: $createdDirectories);
+$files = $scaffoldTransaction->stageFiles(files: $files);
 
 /**
  * @var Closure(string, list<string>): array{
@@ -199,235 +141,9 @@ try {
 foreach ($directories as $directory) {
     ensureDirectory($directory);
 }
-
-if ($template === 'layered') {
-    writeFile("{$appRoot}/config/routes.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Presentation\Http\Controller\Health\Show\Controller as HealthShowController;
-use App\{{ namespace }}\Presentation\Http\Controller\Contact\Submit\Controller as ContactSubmitController;
-
-return [
-    ['GET', '{{ healthPath }}', HealthShowController::class],
-    ['POST', '{{ contactPath }}', ContactSubmitController::class],
-];
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $contactPath));
-} elseif ($template === 'todo') {
-    writeFile("{$appRoot}/config/routes.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete\Controller as TodoCompleteController;
-use App\{{ namespace }}\Presentation\Http\Controller\Todo\Index\Controller as TodoIndexController;
-use App\{{ namespace }}\Presentation\Http\Controller\Todo\Store\Controller as TodoStoreController;
-
-return [
-    ['GET', '{{ basePath }}', TodoIndexController::class],
-    ['POST', '{{ basePath }}', TodoStoreController::class],
-    ['POST', '{{ todoCompletePath }}', TodoCompleteController::class],
-];
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name, contactPath: $contactPath, basePath: $basePath, todoCompletePath: $todoCompletePath));
-} elseif ($template === 'minimal') {
-    writeFile("{$appRoot}/config/routes.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Presentation\Http\Controller\Index\Controller as IndexController;
-
-return [
-    ['GET', '{{ basePath }}', IndexController::class],
-];
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name, basePath: $basePath));
-} else {
-    writeFile("{$appRoot}/config/routes.php", <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-return [
-];
-PHP);
+foreach ($files as $path => $contents) {
+    writeFile(path: $path, contents: $contents);
 }
-
-if ($template === 'layered') {
-    writeFile("{$appRoot}/config/container.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
-use App\{{ namespace }}\Infrastructure\Database\ConnectionFactory;
-use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
-use App\{{ namespace }}\Infrastructure\Persistence\PdoHealthCheckRepository;
-use Pera\Framework\Container\Container;
-
-$root = dirname(__DIR__, 3);
-$container = new Container();
-
-$sharedContainer = require $root . '/apps/shared/config/container.php';
-if (!is_callable($sharedContainer)) {
-    throw new \RuntimeException('Shared container configuration is invalid.');
-}
-$sharedContainer($container, $root);
-
-$container->singleton(id: \PDO::class, factory: static fn (): \PDO => (new ConnectionFactory(
-    dsn: 'sqlite:' . $root . '/apps/{{ name }}/storage/app.sqlite',
-))->create());
-$container->bind(abstract: IHealthCheckRepository::class, concrete: PdoHealthCheckRepository::class);
-$container->singleton(id: AppNameHeaderMiddleware::class, factory: static fn (): AppNameHeaderMiddleware => new AppNameHeaderMiddleware(appName: '{{ name }}'));
-
-return $container;
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
-} elseif ($template === 'todo') {
-    writeFile("{$appRoot}/config/container.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use App\{{ namespace }}\Infrastructure\Database\ConnectionFactory;
-use App\{{ namespace }}\Infrastructure\Persistence\PdoTodoRepository;
-use Pera\Framework\Container\Container;
-use Pera\Framework\View\ITemplateRenderer;
-use App\Shared\View\Infrastructure\LatteTemplateRenderer;
-
-$root = dirname(__DIR__, 3);
-$container = new Container();
-
-$sharedContainer = require $root . '/apps/shared/config/container.php';
-if (!is_callable($sharedContainer)) {
-    throw new \RuntimeException('Shared container configuration is invalid.');
-}
-$sharedContainer($container, $root);
-
-$container->singleton(id: \PDO::class, factory: static fn (): \PDO => (new ConnectionFactory(
-    dsn: 'sqlite:' . $root . '/apps/{{ name }}/storage/app.sqlite',
-))->create());
-$container->bind(abstract: ITodoRepository::class, concrete: PdoTodoRepository::class);
-$container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
-    templateDirectory: $root . '/apps/{{ name }}/templates',
-));
-
-return $container;
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
-} elseif ($template === 'minimal') {
-    writeFile("{$appRoot}/config/container.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use Pera\Framework\Container\Container;
-use Pera\Framework\View\ITemplateRenderer;
-use App\Shared\View\Infrastructure\LatteTemplateRenderer;
-
-$root = dirname(__DIR__, 3);
-$container = new Container();
-
-$sharedContainer = require $root . '/apps/shared/config/container.php';
-if (!is_callable($sharedContainer)) {
-    throw new \RuntimeException('Shared container configuration is invalid.');
-}
-$sharedContainer($container, $root);
-
-$container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
-    templateDirectory: $root . '/apps/{{ name }}/templates',
-));
-
-return $container;
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
-} else {
-    writeFile("{$appRoot}/config/container.php", <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use Pera\Framework\Container\Container;
-
-return new Container();
-PHP);
-}
-
-if ($template === 'bare') {
-    writeFile("{$appRoot}/config/middleware.php", <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-return [
-    // Add app-specific middleware here.
-    // Example: App\YourApp\Infrastructure\Http\Middleware\YourMiddleware::class,
-];
-PHP);
-} elseif ($template === 'layered') {
-    writeFile("{$appRoot}/config/middleware.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
-
-$root = dirname(__DIR__, 3);
-$sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
-if (!is_array($sharedMiddleware)) {
-    throw new \RuntimeException('Shared middleware configuration is invalid.');
-}
-
-return [
-    ...$sharedMiddleware,
-
-    // Shared middleware includes security headers and CSRF protection.
-    // CSRF is disabled when APP_ENV is stg, staging, dev, develop, development, or test.
-    // Exclude paths with CSRF_EXCLUDED_PATHS=/webhook/*,/api/external.
-    // Add app-specific middleware here.
-    // Example: AppNameHeaderMiddleware::class,
-    AppNameHeaderMiddleware::class,
-];
-PHP, namespace: $namespace, healthPath: $healthPath, name: $name));
-} else {
-    writeFile("{$appRoot}/config/middleware.php", <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-$root = dirname(__DIR__, 3);
-$sharedMiddleware = require $root . '/apps/shared/config/middleware.php';
-if (!is_array($sharedMiddleware)) {
-    throw new \RuntimeException('Shared middleware configuration is invalid.');
-}
-
-return [
-    ...$sharedMiddleware,
-
-    // Shared middleware includes security headers and CSRF protection.
-    // CSRF is disabled when APP_ENV is stg, staging, dev, develop, development, or test.
-    // Exclude paths with CSRF_EXCLUDED_PATHS=/webhook/*,/api/external.
-    // Add app-specific middleware here.
-    // Example: App\YourApp\Infrastructure\Http\Middleware\YourMiddleware::class,
-];
-PHP);
-}
-
-writeFile("{$appRoot}/src/.gitkeep", '');
-
-if ($template === 'layered') {
-    writeLayeredSource(appRoot: $appRoot, namespace: $namespace, name: $name);
-    writePdoConnectionSource(appRoot: $appRoot, namespace: $namespace);
-}
-if ($template === 'minimal') {
-    writeMinimalSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath);
-}
-if ($template === 'todo') {
-    writeTodoSource(appRoot: $appRoot, namespace: $namespace, name: $name, basePath: $basePath, viewBasePath: $viewBasePath);
-    writePdoConnectionSource(appRoot: $appRoot, namespace: $namespace);
-}
-if (in_array($template, ['layered', 'todo'], true)) {
-    writeFile("{$appRoot}/storage/.gitignore", "*\n!.gitignore\n");
-}
-
 $scaffoldTransaction->commit();
 
 $definition = <<<PHP
@@ -439,7 +155,6 @@ new ApplicationDefinition(
     middlewarePath: '/apps/{$name}/config/middleware.php',
 ),
 PHP;
-
 $autoload = "\"App\\\\{$namespace}\\\\\": \"apps/{$name}/src/\"";
 
 echo "Created app scaffold: apps/{$name} ({$template})\n\n";
@@ -449,14 +164,14 @@ foreach ($createdDirectories as $directory) {
 }
 echo "\n";
 echo "Created files:\n";
-foreach ($createdPaths as $path) {
+foreach ($createdFiles as $path) {
     echo '- ' . relativePath(root: $root, path: $path) . "\n";
 }
 echo "\n";
 echo "Generated files:\n";
 echo "- apps/{$name}/config/routes.php: Route definitions for this app.\n";
-echo "- apps/{$name}/config/container.php: App DI container, after shared bindings.\n";
-echo "- apps/{$name}/config/middleware.php: App middleware list, after shared middleware.\n";
+echo "- apps/{$name}/config/container.php: App DI container.\n";
+echo "- apps/{$name}/config/middleware.php: App middleware list.\n";
 echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
 if ($template === 'bare') {
     echo "Bare starter:\n";
@@ -514,14 +229,14 @@ function namespaceName(string $name): string
     return $namespace;
 }
 
-function ensureDirectory(string $path): void
+function ensureDirectory(string $directory): void
 {
-    if (is_dir($path)) {
+    if (is_dir($directory)) {
         return;
     }
 
-    if (!mkdir($path, 0777, true) && !is_dir($path)) {
-        throw new RuntimeException("Failed to create directory: {$path}");
+    if (!mkdir($directory, 0775, true) && !is_dir($directory)) {
+        throw new RuntimeException("Failed to create directory: {$directory}");
     }
 }
 
@@ -532,766 +247,8 @@ function writeFile(string $path, string $contents): void
     }
 }
 
-function renderTemplate(string $contents, string $namespace, string $healthPath, string $name, string $contactPath = '', string $basePath = '', string $viewBasePath = '', string $todoCompletePath = ''): string
-{
-    return str_replace(
-        ['{{ namespace }}', '{{ healthPath }}', '{{ name }}', '{{ contactPath }}', '{{ basePath }}', '{{ viewBasePath }}', '{{ todoCompletePath }}'],
-        [$namespace, $healthPath, $name, $contactPath, $basePath, $viewBasePath, $todoCompletePath],
-        $contents,
-    );
-}
-
-function writeLayeredSource(string $appRoot, string $namespace, string $name): void
-{
-    writeFile("{$appRoot}/src/Application/Health/Show/Input.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Health\Show;
-
-final readonly class Input
-{
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Health/Show/Output.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Health\Show;
-
-use App\{{ namespace }}\Domain\Entity\HealthCheck;
-
-final readonly class Output
-{
-    public function __construct(public HealthCheck $healthCheck)
-    {
-    }
-
-    /** @return array{status:string,message:string,database:string} */
-    public function toArray(): array
-    {
-        return [
-            'status' => $this->healthCheck->status,
-            'message' => $this->healthCheck->message->value,
-            'database' => $this->healthCheck->databaseOk ? 'ok' : 'ng',
-        ];
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Health/Show/Interactor.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Health\Show;
-
-use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
-
-final readonly class Interactor
-{
-    public function __construct(private IHealthCheckRepository $healthChecks)
-    {
-    }
-
-    public function execute(Input $input): Output
-    {
-        return new Output(healthCheck: $this->healthChecks->get());
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Contact/Submit/Input.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Contact\Submit;
-
-final readonly class Input
-{
-    public function __construct(
-        public string $name,
-        public string $email,
-        public string $message,
-    ) {
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Contact/Submit/Output.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Contact\Submit;
-
-use App\Shared\Validation\ValidationOutput;
-
-final readonly class Output
-{
-    public function __construct(public bool $accepted, public ValidationOutput $validation)
-    {
-    }
-
-    public static function accepted(): self
-    {
-        return new self(accepted: true, validation: ValidationOutput::valid());
-    }
-
-    public static function invalid(ValidationOutput $validation): self
-    {
-        return new self(accepted: false, validation: $validation);
-    }
-
-    /** @return array{accepted:bool,error:?string} */
-    public function toArray(): array
-    {
-        return [
-            'accepted' => $this->accepted,
-            'error' => $this->validation->firstMessage(),
-        ];
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Contact/Submit/Interactor.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Contact\Submit;
-
-use App\Shared\Validation\FormValidator;
-use App\Shared\Validation\ValidationInput;
-
-final readonly class Interactor
-{
-    public function execute(Input $input): Output
-    {
-        $validation = (new FormValidator(input: new ValidationInput(values: [
-            'name' => $input->name,
-            'email' => $input->email,
-            'message' => $input->message,
-        ])))
-            ->required(field: 'name', label: '名前')
-            ->required(field: 'email', label: 'メールアドレス')
-            ->email(field: 'email', label: 'メールアドレス')
-            ->required(field: 'message', label: '内容')
-            ->output();
-
-        if (!$validation->isValid()) {
-            return Output::invalid(validation: $validation);
-        }
-
-        return Output::accepted();
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Domain/Entity/HealthCheck.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Domain\Entity;
-
-use App\{{ namespace }}\Domain\Value\HealthMessage;
-
-final readonly class HealthCheck
-{
-    public function __construct(
-        public string $status,
-        public HealthMessage $message,
-        public bool $databaseOk,
-    ) {
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Domain/Repository/IHealthCheckRepository.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Domain\Repository;
-
-use App\{{ namespace }}\Domain\Entity\HealthCheck;
-
-interface IHealthCheckRepository
-{
-    public function get(): HealthCheck;
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Domain/Value/HealthMessage.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Domain\Value;
-
-use InvalidArgumentException;
-
-final readonly class HealthMessage
-{
-    public function __construct(public string $value)
-    {
-        if ($value === '') {
-            throw new InvalidArgumentException('Health message must not be empty.');
-        }
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Contact/Submit/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Contact\Submit;
-
-use App\{{ namespace }}\Application\Contact\Submit\Input;
-use App\{{ namespace }}\Application\Contact\Submit\Interactor;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class Controller
-{
-    public function __construct(private Interactor $interactor)
-    {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        $output = $this->interactor->execute(input: new Input(
-            name: $request->input(key: 'name'),
-            email: $request->input(key: 'email'),
-            message: $request->input(key: 'message'),
-        ));
-
-        return new Response(
-            body: json_encode($output->toArray(), JSON_THROW_ON_ERROR),
-            status: $output->accepted ? 201 : 422,
-            headers: ['Content-Type' => 'application/json; charset=utf-8'],
-        );
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Health/Show/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Health\Show;
-
-use App\{{ namespace }}\Application\Health\Show\Input;
-use App\{{ namespace }}\Application\Health\Show\Interactor;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class Controller
-{
-    public function __construct(private Interactor $interactor)
-    {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        $output = $this->interactor->execute(input: new Input());
-
-        return new Response(
-            body: json_encode($output->toArray(), JSON_THROW_ON_ERROR),
-            headers: ['Content-Type' => 'application/json; charset=utf-8'],
-        );
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Infrastructure/Http/Middleware/AppNameHeaderMiddleware.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Infrastructure\Http\Middleware;
-
-use Pera\Framework\Http\Middleware\IMiddleware;
-use Pera\Framework\Http\Middleware\IRequestHandler;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class AppNameHeaderMiddleware implements IMiddleware
-{
-    public function __construct(private string $appName)
-    {
-    }
-
-    public function process(Request $request, IRequestHandler $handler): Response
-    {
-        return $handler->handle(request: $request)->withHeader(name: 'X-App-Name', value: $this->appName);
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Infrastructure/Persistence/PdoHealthCheckRepository.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Infrastructure\Persistence;
-
-use App\{{ namespace }}\Domain\Entity\HealthCheck;
-use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
-use App\{{ namespace }}\Domain\Value\HealthMessage;
-use PDO;
-
-final readonly class PdoHealthCheckRepository implements IHealthCheckRepository
-{
-    public function __construct(private PDO $pdo)
-    {
-    }
-
-    public function get(): HealthCheck
-    {
-        $databaseOk = $this->pdo->query('SELECT 1') !== false;
-
-        return new HealthCheck(
-            status: 'ok',
-            message: new HealthMessage(value: '{{ name }} is ready'),
-            databaseOk: $databaseOk,
-        );
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-}
-
-function writeMinimalSource(string $appRoot, string $namespace, string $name, string $basePath): void
-{
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Index/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Index;
-
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-use Pera\Framework\View\ITemplateRenderer;
-
-final readonly class Controller
-{
-    public function __construct(private ITemplateRenderer $renderer)
-    {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        return new Response(
-            body: $this->renderer->render(template: 'index.latte', params: [
-                'title' => '{{ name }}',
-                'message' => '{{ name }} is running.',
-                'path' => '{{ basePath }}',
-            ]),
-            headers: ['Content-Type' => 'text/html; charset=utf-8'],
-        );
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
-
-    writeFile("{$appRoot}/templates/index.latte", renderTemplate(<<<'LATTE'
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{$title}</title>
-    <style>
-        body { margin: 0; font-family: system-ui, sans-serif; color: #1f2937; background: #f8fafc; }
-        main { max-width: 720px; margin: 72px auto; padding: 0 20px; }
-        .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 28px; box-shadow: 0 10px 24px rgba(15, 23, 42, .06); }
-        h1 { margin: 0 0 12px; font-size: 32px; line-height: 1.25; }
-        p { margin: 0 0 16px; line-height: 1.7; }
-        code { display: inline-block; padding: 3px 7px; border-radius: 6px; background: #f1f5f9; color: #334155; }
-    </style>
-</head>
-<body>
-    <main>
-        <section class="panel">
-            <h1>{$title}</h1>
-            <p>{$message}</p>
-            <p>Route: <code>{$path}</code></p>
-        </section>
-    </main>
-</body>
-</html>
-LATTE, namespace: $namespace, healthPath: '', name: $name));
-}
-
-function writePdoConnectionSource(string $appRoot, string $namespace): void
-{
-    writeFile("{$appRoot}/src/Infrastructure/Database/ConnectionFactory.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Infrastructure\Database;
-
-use PDO;
-
-final readonly class ConnectionFactory
-{
-    public function __construct(
-        private string $dsn,
-        private ?string $username = null,
-        private ?string $password = null,
-    ) {
-    }
-
-    public function create(): PDO
-    {
-        return new PDO(
-            dsn: $this->dsn,
-            username: $this->username,
-            password: $this->password,
-            options: [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ],
-        );
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: ''));
-}
-
-function writeTodoSource(string $appRoot, string $namespace, string $name, string $basePath, string $viewBasePath): void
-{
-    writeFile("{$appRoot}/src/Application/Todo/TodoItem.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Todo;
-
-final readonly class TodoItem
-{
-    public function __construct(
-        public string $id,
-        public string $title,
-        public bool $completed,
-        public string $createdAt,
-    ) {
-    }
-
-    /** @return array{id:string,title:string,completed:bool,created_at:string} */
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'completed' => $this->completed,
-            'created_at' => $this->createdAt,
-        ];
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Application/Todo/ITodoRepository.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Application\Todo;
-
-interface ITodoRepository
-{
-    /** @return list<TodoItem> */
-    public function all(): array;
-
-    public function add(string $title): void;
-
-    public function complete(string $id): void;
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Index/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Index;
-
-use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-use Pera\Framework\View\ITemplateRenderer;
-
-final readonly class Controller
-{
-    public function __construct(
-        private ITodoRepository $todos,
-        private ITemplateRenderer $renderer,
-    ) {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        $items = [];
-        foreach ($this->todos->all() as $todo) {
-            $items[] = $todo->toArray();
-        }
-
-        return new Response(body: $this->renderer->render(template: 'index.latte', params: [
-            'title' => '{{ name }} todos',
-            'basePath' => '{{ viewBasePath }}',
-            'todos' => $items,
-        ]));
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name, viewBasePath: $viewBasePath));
-
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Store/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Store;
-
-use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class Controller
-{
-    public function __construct(private ITodoRepository $todos)
-    {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        $title = trim($request->input(key: 'title'));
-        if ($title !== '') {
-            $this->todos->add(title: $title);
-        }
-
-        return Response::redirect(location: '{{ basePath }}');
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
-
-    writeFile("{$appRoot}/src/Presentation/Http/Controller/Todo/Complete/Controller.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Complete;
-
-use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class Controller
-{
-    public function __construct(private ITodoRepository $todos)
-    {
-    }
-
-    /** @param array<string, string> $vars */
-    public function __invoke(Request $request, array $vars = []): Response
-    {
-        $id = $vars['id'] ?? '';
-        if ($id !== '') {
-            $this->todos->complete(id: $id);
-        }
-
-        return Response::redirect(location: '{{ basePath }}');
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name, basePath: $basePath));
-
-    writeFile("{$appRoot}/src/Infrastructure/Persistence/PdoTodoRepository.php", renderTemplate(<<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\{{ namespace }}\Infrastructure\Persistence;
-
-use App\{{ namespace }}\Application\Todo\TodoItem;
-use App\{{ namespace }}\Application\Todo\ITodoRepository;
-use PDO;
-use PDOStatement;
-use RuntimeException;
-use UnexpectedValueException;
-
-final readonly class PdoTodoRepository implements ITodoRepository
-{
-    public function __construct(private PDO $pdo)
-    {
-    }
-
-    /** @return list<TodoItem> */
-    public function all(): array
-    {
-        $this->ensureSchema();
-
-        $items = [];
-        $statement = $this->query(sql: 'SELECT id, title, completed, created_at FROM todos ORDER BY completed ASC, created_at DESC');
-        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            if (!is_array($row)) {
-                throw new UnexpectedValueException('Todo row must be an associative array.');
-            }
-            $values = [];
-            foreach ($row as $key => $value) {
-                if (is_string($key)) {
-                    $values[$key] = $value;
-                }
-            }
-            $items[] = $this->item(row: $values);
-        }
-
-        return $items;
-    }
-
-    public function add(string $title): void
-    {
-        $this->ensureSchema();
-
-        $statement = $this->prepare(sql: 'INSERT INTO todos (id, title, completed, created_at) VALUES (:id, :title, 0, :created_at)');
-        $this->execute(statement: $statement, params: [
-            'id' => bin2hex(random_bytes(16)),
-            'title' => $title,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-    }
-
-    public function complete(string $id): void
-    {
-        $this->ensureSchema();
-
-        $statement = $this->prepare(sql: 'UPDATE todos SET completed = 1 WHERE id = :id');
-        $this->execute(statement: $statement, params: ['id' => $id]);
-    }
-
-    private function ensureSchema(): void
-    {
-        $this->pdo->exec('CREATE TABLE IF NOT EXISTS todos (id VARCHAR(32) PRIMARY KEY, title VARCHAR(255) NOT NULL, completed SMALLINT NOT NULL DEFAULT 0, created_at VARCHAR(32) NOT NULL)');
-    }
-
-    /** @param array<string, mixed> $row */
-    private function item(array $row): TodoItem
-    {
-        $id = $row['id'] ?? null;
-        $title = $row['title'] ?? null;
-        $completed = $row['completed'] ?? null;
-        $createdAt = $row['created_at'] ?? null;
-        if (!is_string($id) || !is_string($title) || !is_string($createdAt)) {
-            throw new UnexpectedValueException('Todo row contains invalid string values.');
-        }
-        if (!is_int($completed) && !is_string($completed)) {
-            throw new UnexpectedValueException('Todo row contains an invalid completed value.');
-        }
-
-        return new TodoItem(
-            id: $id,
-            title: $title,
-            completed: (int) $completed === 1,
-            createdAt: $createdAt,
-        );
-    }
-
-    private function query(string $sql): PDOStatement
-    {
-        $statement = $this->pdo->query($sql);
-        if (!$statement instanceof PDOStatement) {
-            throw new RuntimeException('Failed to execute todo query.');
-        }
-
-        return $statement;
-    }
-
-    private function prepare(string $sql): PDOStatement
-    {
-        $statement = $this->pdo->prepare($sql);
-        if (!$statement instanceof PDOStatement) {
-            throw new RuntimeException('Failed to prepare todo statement.');
-        }
-
-        return $statement;
-    }
-
-    /** @param array<string, mixed> $params */
-    private function execute(PDOStatement $statement, array $params): void
-    {
-        if (!$statement->execute($params)) {
-            throw new RuntimeException('Failed to execute todo statement.');
-        }
-    }
-}
-PHP, namespace: $namespace, healthPath: '', name: $name));
-
-    writeFile("{$appRoot}/templates/index.latte", renderTemplate(<<<'LATTE'
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{$title}</title>
-    <style>
-        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1f2937; }
-        form { margin: 0; }
-        .todo-form { display: flex; gap: 8px; margin: 24px 0; }
-        input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
-        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
-        ul { list-style: none; padding: 0; }
-        li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #e5e7eb; }
-        .completed { color: #64748b; text-decoration: line-through; }
-        .empty { color: #64748b; }
-    </style>
-</head>
-<body>
-    <h1>{$title}</h1>
-
-    <form class="todo-form" method="post" action="{$basePath === '' ? '/' : $basePath}">
-        <input type="text" name="title" placeholder="New todo" required>
-        <button type="submit">Add</button>
-    </form>
-
-    {if count($todos) === 0}
-        <p class="empty">No todos yet.</p>
-    {else}
-        <ul>
-            {foreach $todos as $todo}
-                <li>
-                    <span class="{$todo['completed'] ? 'completed' : ''}">{$todo['title']}</span>
-                    {if !$todo['completed']}
-                        <form method="post" action="{$basePath}/{$todo['id']}/complete">
-                            <button type="submit">Complete</button>
-                        </form>
-                    {/if}
-                </li>
-            {/foreach}
-        </ul>
-    {/if}
-</body>
-</html>
-LATTE, namespace: $namespace, healthPath: '', name: $name));
-}
-
 function relativePath(string $root, string $path): string
 {
-    $prefix = rtrim($root, '/') . '/';
-    if (str_starts_with($path, $prefix)) {
-        return substr($path, strlen($prefix));
-    }
-
-    return $path;
+    $root = rtrim($root, '/') . '/';
+    return str_starts_with($path, $root) ? substr($path, strlen($root)) : $path;
 }

@@ -36,18 +36,10 @@
 - Dotenvによる任意の`.env`読み込みは標準Kernel scaffoldに含める。環境初期化はapplication compositionより前に行うKernelの責務とし、Sharedには置かない。`vlucas/phpdotenv`はFramework packageではなく生成物を使うconsumer rootが所有する。
 - 正式に利用可能とするscaffoldはKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。将来予約の`fullpack`は実装されるまで対象外とする。
 
-### 依存分離
-
-1. Framework packageの暫定 `require` はPHP 8.5、ext-session、ext-uri、FastRoute、PSR Container、PSR Log、Composer runtime APIとする。packaged artifactの隔離install testで最終確定する。
-2. Dotenv、Latte、PDO driver、Phinxはproject skeletonまたは利用側root packageへ置く。CommonMark、HTML Purifier、Mailer、画像処理は、それを使うapp/project側に残す。
-3. Kernel scaffoldのDotenv、PDOを使う`todo` / `layered`のext-pdoとSQLite driverは、生成機能別の依存レシピでconsumer rootへ追加する。Framework packageと汎用KernelへDB依存を持たせない。
-4. 新規project skeletonのroot `composer.json` は `pera/framework` と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
-
 ### 配布とscaffold
 
-1. `packages/framework/bin/scaffold-*` 内の巨大なheredocをversion管理されたtemplate fileへ分離し、現行Kernelと生成Kernelのdriftを検出する。
-2. `public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件をproject skeletonで決める。
-3. package名は`pera/framework`とする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前にlicense、公開repository URL、security reporting URL、初回tagを確定する。
+1. 新規project skeletonのroot `composer.json`は`pera/framework`と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。`public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
+2. package名は`pera/framework`とする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前にlicense、公開repository URL、security reporting URL、初回tagを確定する。
 
 ### 後で行うFramework / Kernel改善
 
@@ -56,7 +48,6 @@
 - `Request::isHttps()` のtrusted proxy判定を暗黙header trustから分離する。
 - 未知のruntime指定や利用不能なFrankenPHP指定をsilent fallbackさせるか、起動失敗にするか決める。
 - Routerのmetadata取得とdispatchで同じroute matchを二度行う構造を整理する。
-- 現行Kernelとscaffold Kernelの差分を解消する。ただし生成済みKernelの自動更新機構は作らない。
 
 ## 完了済みの大枠
 

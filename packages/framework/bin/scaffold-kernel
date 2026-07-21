@@ -30,273 +30,30 @@ foreach ($args as $arg) {
 }
 
 $kernelRoot = "{$root}/apps/kernel";
-$directories = [
-    "{$kernelRoot}/config",
-    "{$kernelRoot}/src",
-];
-$files = [
-    "{$kernelRoot}/README.md" => <<<'MARKDOWN'
-# Kernel
-
-Kernel is the fixed application composition layer.
-
-Framework provides HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap. Kernel decides which apps are mounted, where their config files live, and how requests are dispatched to them.
-
-Kernel creates one request-scoped `Session`, but the native PHP session starts only if middleware or application code accesses session state. Stateless requests do not need route flags or separate application definitions.
-
-Application code uses Session by constructor-injecting `Pera\Framework\Security\Session`. Injection alone does not start native storage; the first state operation does. App scaffolds intentionally do not generate a stateful Controller by default, so a newly generated public page or API remains stateless until its code actually uses Session.
-
-See the Framework Security README for direct Controller usage, application-owned Session state, CSRF, testing, and worker lifecycle.
-
-The path and namespace are fixed:
-
-- `apps/kernel`
-- `App\Kernel`
-
-Add `ApplicationDefinition` entries in `apps/kernel/config/application.php`.
-
-`apps/kernel/config/application.php` loads `.env` when it exists. Framework does not read dotenv directly. Environment loading belongs to Kernel/project startup.
-MARKDOWN,
-    "{$kernelRoot}/config/application.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use Pera\Framework\Application\IApplication;
-use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
-use Pera\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use Pera\Framework\Http\Middleware\MiddlewarePipeline;
-use Pera\Framework\Security\NativeSessionRuntime;
-use App\Kernel\Application;
-use Dotenv\Dotenv;
-
-$root = dirname(__DIR__, 3);
-if (is_file($root . '/.env')) {
-    Dotenv::createImmutable($root)->safeLoad();
+/** @var Closure(string, array<string, string>): array<string, string> $loadTemplateFiles */
+$loadTemplateFiles = require __DIR__ . '/scaffold-template-files.php';
+try {
+    $templateFiles = $loadTemplateFiles(dirname(__DIR__) . '/templates/kernel');
+} catch (Throwable $throwable) {
+    fwrite(STDERR, $throwable->getMessage() . "\n");
+    exit(1);
 }
 
-$envString = static function (string $key, string $default): string {
-    $value = $_ENV[$key] ?? $default;
-
-    return is_scalar($value) ? (string) $value : $default;
-};
-
-return static fn (ApplicationBootstrapConfig $config): IApplication => new Application(
-    root: $config->root,
-    sessionRuntime: $config->sessionRuntime ?? new NativeSessionRuntime(
-        cookieSameSite: $envString(key: 'SESSION_COOKIE_SAMESITE', default: 'Lax'),
-        forceSecureCookie: filter_var($envString(key: 'SESSION_COOKIE_SECURE', default: 'false'), FILTER_VALIDATE_BOOL),
-    ),
-    middlewarePipeline: $config->middlewarePipeline ?? new MiddlewarePipeline(),
-    exceptionHandler: $config->exceptionHandler ?? new RethrowingExceptionHandler(),
-    definitions: [
-    ],
-);
-PHP,
-    "{$kernelRoot}/src/ApplicationDefinition.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Kernel;
-
-use InvalidArgumentException;
-
-final readonly class ApplicationDefinition
-{
-    public function __construct(
-        public string $name,
-        public string $pathPrefix,
-        public string $routesPath,
-        public string $containerPath,
-        public string $middlewarePath,
-    ) {
-        if ($name === '') {
-            throw new InvalidArgumentException('Application name must not be empty.');
-        }
-
-        if ($pathPrefix === '' || !str_starts_with($pathPrefix, '/')) {
-            throw new InvalidArgumentException('Application path prefix must start with "/".');
-        }
+$files = [];
+$directories = [];
+foreach ($templateFiles as $relativePath => $contents) {
+    $path = $kernelRoot . '/' . $relativePath;
+    $files[$path] = $contents;
+    $directory = dirname($path);
+    if ($directory !== $kernelRoot) {
+        $directories[$directory] = true;
     }
 }
-PHP,
-    "{$kernelRoot}/src/Application.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Kernel;
-
-use Pera\Framework\Application\IApplication;
-use Pera\Framework\Container\Container;
-use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
-use Pera\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
-use Pera\Framework\Http\Middleware\CallableRequestHandler;
-use Pera\Framework\Http\Middleware\IMiddleware;
-use Pera\Framework\Http\Middleware\MiddlewarePipeline;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-use Pera\Framework\Routing\Router;
-use Pera\Framework\Security\NativeSessionRuntime;
-use Pera\Framework\Security\Session;
-use RuntimeException;
-use Throwable;
-
-final class Application implements IApplication
-{
-    /** @var list<ApplicationDefinition> */
-    private array $definitions;
-
-    /** @var array<string, Router> */
-    private array $routers = [];
-
-    /** @var array<string, array<int, class-string<IMiddleware>>> */
-    private array $middleware = [];
-
-    /**
-     * @param list<ApplicationDefinition> $definitions
-     */
-    public function __construct(
-        private readonly string $root,
-        private readonly NativeSessionRuntime $sessionRuntime = new NativeSessionRuntime(),
-        private readonly MiddlewarePipeline $middlewarePipeline = new MiddlewarePipeline(),
-        private readonly IExceptionHandler $exceptionHandler = new RethrowingExceptionHandler(),
-        array $definitions = [],
-    ) {
-        $this->definitions = $this->sortDefinitions(definitions: $definitions);
-        foreach ($this->definitions as $definition) {
-            $this->routers[$definition->name] = new Router(routes: $this->loadRoutes(path: $definition->routesPath));
-            $this->middleware[$definition->name] = $this->loadMiddleware(path: $definition->middlewarePath);
-        }
-    }
-
-    public function handleGlobals(): void
-    {
-        $request = Request::fromGlobals();
-        $session = Session::fromNativeGlobals(
-            runtime: $this->sessionRuntime,
-            secure: $request->isHttps(),
-        );
-
-        try {
-            $this->handleWithExceptionHandling(request: $request, session: $session)->send();
-        } finally {
-            $this->sessionRuntime->close();
-        }
-    }
-
-    public function handle(Request $request, Session $session): Response
-    {
-        $definition = $this->matchDefinition(path: $request->path);
-        $container = $this->loadContainer(path: $definition->containerPath);
-        $container->instance(id: Request::class, instance: $request);
-        $container->instance(id: Session::class, instance: $session);
-
-        $router = $this->routers[$definition->name] ?? throw new RuntimeException("Application router is not loaded: {$definition->name}");
-
-        return $this->middlewarePipeline->handle(
-            request: $request,
-            container: $container,
-            middleware: $this->middleware[$definition->name] ?? [],
-            destination: new CallableRequestHandler(
-                handler: static fn (Request $request): Response => $router->dispatch(
-                    request: $request,
-                    container: $container,
-                ),
-            ),
-        );
-    }
-
-    private function matchDefinition(string $path): ApplicationDefinition
-    {
-        foreach ($this->definitions as $definition) {
-            if ($definition->pathPrefix === '/' || $path === $definition->pathPrefix || str_starts_with($path, $definition->pathPrefix . '/')) {
-                return $definition;
-            }
-        }
-
-        throw new RuntimeException("No application definition matched path: {$path}");
-    }
-
-    private function handleWithExceptionHandling(Request $request, Session $session): Response
-    {
-        try {
-            return $this->handle(request: $request, session: $session);
-        } catch (Throwable $throwable) {
-            return $this->exceptionHandler->handle(throwable: $throwable, request: $request);
-        }
-    }
-
-    private function loadContainer(string $path): Container
-    {
-        $container = require $this->root . $path;
-        if (!$container instanceof Container) {
-            throw new RuntimeException('Application container configuration is invalid.');
-        }
-
-        return $container;
-    }
-
-    /**
-     * @return array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string}>
-     */
-    private function loadRoutes(string $path): array
-    {
-        $routes = require $this->root . $path;
-        if (!is_array($routes)) {
-            throw new RuntimeException('Application route configuration is invalid.');
-        }
-
-        /** @var array<int, array{0:string,1:string,2:array{0:class-string,1:string}|class-string}> $routes */
-        return $routes;
-    }
-
-    /**
-     * @return array<int, class-string<IMiddleware>>
-     */
-    private function loadMiddleware(string $path): array
-    {
-        $fullPath = $this->root . $path;
-        if (!is_file($fullPath)) {
-            return [];
-        }
-
-        $middleware = require $fullPath;
-        if (!is_array($middleware)) {
-            throw new RuntimeException('Application middleware configuration is invalid.');
-        }
-
-        /** @var array<int, class-string<IMiddleware>> $middleware */
-        return $middleware;
-    }
-
-    /**
-     * @param list<ApplicationDefinition> $definitions
-     * @return list<ApplicationDefinition>
-     */
-    private function sortDefinitions(array $definitions): array
-    {
-        usort(
-            $definitions,
-            static fn (ApplicationDefinition $a, ApplicationDefinition $b): int => strlen($b->pathPrefix) <=> strlen($a->pathPrefix),
-        );
-
-        return $definitions;
-    }
-}
-PHP,
-];
-
-foreach (array_keys($files) as $path) {
-    if (file_exists($path)) {
-        fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
-        exit(1);
-    }
-}
-
-$createdDirectories = $directories;
+ksort($files);
+ksort($directories);
+$createdDirectories = array_keys($directories);
 $createdFiles = array_keys($files);
+
 /** @var Closure(string, string): ScaffoldFilesystemTransaction $createScaffoldTransaction */
 $createScaffoldTransaction = require __DIR__ . '/scaffold-transaction.php';
 try {
@@ -305,7 +62,7 @@ try {
     fwrite(STDERR, $throwable->getMessage() . "\n");
     exit(1);
 }
-$directories = $scaffoldTransaction->stagePaths(paths: $directories);
+$directories = $scaffoldTransaction->stagePaths(paths: $createdDirectories);
 $files = $scaffoldTransaction->stageFiles(files: $files);
 
 /**
@@ -328,11 +85,9 @@ try {
 foreach ($directories as $directory) {
     ensureDirectory($directory);
 }
-
 foreach ($files as $path => $contents) {
     writeFile(path: $path, contents: $contents);
 }
-
 $scaffoldTransaction->commit();
 
 echo "Created kernel scaffold: apps/kernel\n\n";
@@ -362,16 +117,14 @@ function ensureDirectory(string $directory): void
     }
 
     if (!mkdir($directory, 0775, true) && !is_dir($directory)) {
-        fwrite(STDERR, "Failed to create directory: {$directory}\n");
-        exit(1);
+        throw new RuntimeException("Failed to create directory: {$directory}");
     }
 }
 
 function writeFile(string $path, string $contents): void
 {
     if (file_put_contents($path, $contents) === false) {
-        fwrite(STDERR, "Failed to write file: {$path}\n");
-        exit(1);
+        throw new RuntimeException("Failed to write file: {$path}");
     }
 }
 

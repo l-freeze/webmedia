@@ -41,7 +41,7 @@ final class Application implements IApplication
         private readonly IExceptionHandler $exceptionHandler = new RethrowingExceptionHandler(),
         array $definitions = [],
     ) {
-        $this->definitions = $definitions !== [] ? $this->sortDefinitions(definitions: $definitions) : $this->defaultDefinitions();
+        $this->definitions = $this->sortDefinitions(definitions: $definitions);
         foreach ($this->definitions as $definition) {
             $this->routers[$definition->name] = new Router(routes: $this->loadRoutes(path: $definition->routesPath));
             $this->middleware[$definition->name] = $this->loadMiddleware(path: $definition->middlewarePath);
@@ -175,26 +175,5 @@ final class Application implements IApplication
         );
 
         return $definitions;
-    }
-
-    /** @return list<ApplicationDefinition> */
-    private function defaultDefinitions(): array
-    {
-        return $this->sortDefinitions(definitions: [
-            new ApplicationDefinition(
-                name: 'cms',
-                pathPrefix: '/admin',
-                routesPath: '/apps/cms/config/routes.php',
-                containerPath: '/apps/cms/config/container.php',
-                middlewarePath: '/apps/cms/config/middleware.php',
-            ),
-            new ApplicationDefinition(
-                name: 'front',
-                pathPrefix: '/',
-                routesPath: '/apps/front/config/routes.php',
-                containerPath: '/apps/front/config/container.php',
-                middlewarePath: '/apps/front/config/middleware.php',
-            ),
-        ]);
     }
 }

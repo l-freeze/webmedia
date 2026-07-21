@@ -40,6 +40,8 @@ final class ScaffoldProjectRootTest extends TestCase
                 $application,
             );
             self::assertStringContainsString('Session::fromNativeGlobals(', $application);
+            self::assertStringContainsString('catch (MalformedRequestException)', $application);
+            self::assertStringContainsString('$router->withRouteMetadata(request: $request)', $application);
             self::assertStringNotContainsString('sessionRuntime->start(', $application);
             self::assertStringNotContainsString('SessionState', $application);
             $readme = $this->read(path: $root . '/apps/kernel/README.md');
@@ -55,6 +57,20 @@ final class ScaffoldProjectRootTest extends TestCase
         } finally {
             $this->removeDirectory(path: $root);
         }
+    }
+
+    public function testGeneratedKernelApplicationDoesNotDriftFromCurrentKernel(): void
+    {
+        $projectRoot = dirname(__DIR__, 2);
+
+        self::assertSame(
+            $this->read(path: $projectRoot . '/apps/kernel/src/Application.php'),
+            $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/Application.php'),
+        );
+        self::assertSame(
+            $this->read(path: $projectRoot . '/apps/kernel/src/ApplicationDefinition.php'),
+            $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/ApplicationDefinition.php'),
+        );
     }
 
     public function testDirectPackageExecutionUsesRepositoryWorkingDirectory(): void

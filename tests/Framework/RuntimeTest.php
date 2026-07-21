@@ -10,6 +10,7 @@ use Pera\Framework\Runtime\ClassicRuntime;
 use Pera\Framework\Runtime\FrankenWorkerRuntime;
 use Pera\Framework\Runtime\RuntimeFactory;
 use App\Kernel\Application;
+use App\Kernel\ApplicationDefinition;
 use PHPUnit\Framework\TestCase;
 
 final class RuntimeTest extends TestCase
@@ -104,7 +105,25 @@ PHP;
         file_put_contents($root . '/apps/front/config/routes.php', $routes);
         file_put_contents($root . '/apps/cms/config/routes.php', "<?php\ndeclare(strict_types=1);\nreturn [];\n");
 
-        return new Application(root: $root);
+        return new Application(
+            root: $root,
+            definitions: [
+                new ApplicationDefinition(
+                    name: 'cms',
+                    pathPrefix: '/admin',
+                    routesPath: '/apps/cms/config/routes.php',
+                    containerPath: '/apps/cms/config/container.php',
+                    middlewarePath: '/apps/cms/config/middleware.php',
+                ),
+                new ApplicationDefinition(
+                    name: 'front',
+                    pathPrefix: '/',
+                    routesPath: '/apps/front/config/routes.php',
+                    containerPath: '/apps/front/config/container.php',
+                    middlewarePath: '/apps/front/config/middleware.php',
+                ),
+            ],
+        );
     }
 
     private function setRequestGlobals(string $path): void

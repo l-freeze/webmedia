@@ -8,6 +8,7 @@ use Pera\Framework\Application\IApplication;
 use Pera\Framework\Bootstrap\ApplicationBootstrap;
 use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
 use App\Kernel\Application;
+use App\Kernel\ApplicationDefinition;
 use PHPUnit\Framework\TestCase;
 
 final class BootstrapTest extends TestCase
@@ -35,7 +36,18 @@ PHP;
         $application = ApplicationBootstrap::createApplication(
             config: new ApplicationBootstrapConfig(
                 root: $root,
-                applicationFactory: static fn (ApplicationBootstrapConfig $config): IApplication => new Application(root: $config->root),
+                applicationFactory: static fn (ApplicationBootstrapConfig $config): IApplication => new Application(
+                    root: $config->root,
+                    definitions: [
+                        new ApplicationDefinition(
+                            name: 'front',
+                            pathPrefix: '/',
+                            routesPath: '/apps/front/config/routes.php',
+                            containerPath: '/apps/front/config/container.php',
+                            middlewarePath: '/apps/front/config/middleware.php',
+                        ),
+                    ],
+                ),
             ),
         );
 

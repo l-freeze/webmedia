@@ -9,6 +9,7 @@ use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
 use Pera\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
+use App\Kernel\ApplicationDefinition;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
@@ -41,6 +42,7 @@ PHP;
             root: $root,
             sessionRuntime: new NativeSessionRuntime(),
             exceptionHandler: new TestExceptionHandler(),
+            definitions: $this->definitions(),
         );
         $this->setRequestGlobals(path: '/exception');
 
@@ -59,7 +61,7 @@ PHP;
         file_put_contents($root . '/apps/front/config/routes.php', "<?php\ndeclare(strict_types=1);\nreturn [];\n");
         file_put_contents($root . '/apps/cms/config/routes.php', "<?php\ndeclare(strict_types=1);\nreturn [];\n");
 
-        $application = new Application(root: $root);
+        $application = new Application(root: $root, definitions: $this->definitions());
         $this->setRequestGlobals(path: '%');
 
         ob_start();
@@ -76,6 +78,27 @@ PHP;
         $_POST = [];
         $_FILES = [];
         $_COOKIE = [];
+    }
+
+    /** @return list<ApplicationDefinition> */
+    private function definitions(): array
+    {
+        return [
+            new ApplicationDefinition(
+                name: 'cms',
+                pathPrefix: '/admin',
+                routesPath: '/apps/cms/config/routes.php',
+                containerPath: '/apps/cms/config/container.php',
+                middlewarePath: '/apps/cms/config/middleware.php',
+            ),
+            new ApplicationDefinition(
+                name: 'front',
+                pathPrefix: '/',
+                routesPath: '/apps/front/config/routes.php',
+                containerPath: '/apps/front/config/container.php',
+                middlewarePath: '/apps/front/config/middleware.php',
+            ),
+        ];
     }
 }
 

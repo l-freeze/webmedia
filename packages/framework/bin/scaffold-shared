@@ -30,318 +30,30 @@ foreach ($args as $arg) {
 }
 
 $sharedRoot = "{$root}/apps/shared";
-$directories = [
-    "{$sharedRoot}/config",
-    "{$sharedRoot}/src/Security/Infrastructure/Http",
-    "{$sharedRoot}/src/Validation",
-    "{$sharedRoot}/src/View/Infrastructure",
-];
-$files = [
-    "{$sharedRoot}/README.md" => <<<'MARKDOWN'
-# Shared Application Layer
-
-`apps/shared` contains application-side common services and middleware that are shared by multiple apps.
-
-This scaffold is project setup. Run it once for a project, not once per controller or app.
-
-Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
-
-The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
-
-The scaffold includes a small form validation set under `App\Shared\Validation`. Validation is application-side because rules, messages, and normalization such as trimming belong to the project, but the generated classes give layered apps a default path.
-
-## Logging
-
-The generated shared container initially binds `Psr\Log\LoggerInterface` to Framework's `PlaceholderLogger`. This is not a real logger. It throws when a log is written so that missing logger configuration does not silently discard application logs.
-
-Replace this binding with the PSR-3 logger used by the application, such as Monolog or a project-specific implementation. If discarding logs is intentional, bind `Psr\Log\NullLogger` explicitly instead.
-
-## Middleware
-
-`apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
-
-`vendor/bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
-
-## View
-
-`App\Shared\View\Infrastructure\LatteTemplateRenderer` implements `Pera\Framework\View\ITemplateRenderer`.
-
-Register it in each app container with that app's template directory:
-
-```php
-$container->singleton(
-    id: ITemplateRenderer::class,
-    factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
-        templateDirectory: $root . '/apps/front/templates',
-    ),
-);
-```
-
-Latte is the default starting point, not a Framework requirement. Custom template engines are easy to swap in by implementing `ITemplateRenderer`.
-
-The scaffold adds `latte/latte:^3.0` to the consuming project's runtime requirements when `composer.json` exists. The Framework package itself does not require Latte.
-
-`LatteTemplateRenderer` disables Latte's compiled view cache by default because worker mode keeps loaded template classes in the PHP process. Pass `cacheDirectory` explicitly only when running a classic/non-worker runtime.
-
-To switch an app to Smarty:
-
-1. Add `smarty/smarty` to the project.
-2. Create `App\Shared\View\Infrastructure\SmartyTemplateRenderer` that implements `ITemplateRenderer`.
-3. Bind `ITemplateRenderer::class` to `SmartyTemplateRenderer` in the target app container.
-4. Convert that app's templates from Latte syntax to Smarty syntax.
-
-The Smarty renderer can keep the same `addGlobalProvider()` convenience method used by the default Latte renderer. That keeps common template values, such as site settings, CSRF data, flash messages, or current user information, registered once in the container instead of being passed by every controller.
-MARKDOWN,
-    "{$sharedRoot}/config/container.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use Pera\Framework\Container\Container;
-use Pera\Framework\Logging\PlaceholderLogger;
-use Psr\Log\LoggerInterface;
-
-return static function (Container $container, string $root): void {
-    $container->singleton(
-        id: LoggerInterface::class,
-        factory: static fn (): LoggerInterface => new PlaceholderLogger(),
-    );
-};
-PHP,
-    "{$sharedRoot}/config/middleware.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-use App\Shared\Security\Infrastructure\Http\SecurityHeadersMiddleware;
-
-return [
-    SecurityHeadersMiddleware::class,
-];
-PHP,
-    "{$sharedRoot}/src/Security/Infrastructure/Http/SecurityHeadersMiddleware.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Security\Infrastructure\Http;
-
-use Pera\Framework\Http\Middleware\IMiddleware;
-use Pera\Framework\Http\Middleware\IRequestHandler;
-use Pera\Framework\Http\Request;
-use Pera\Framework\Http\Response;
-
-final readonly class SecurityHeadersMiddleware implements IMiddleware
-{
-    /**
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        private array $headers = [
-            'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'DENY',
-            'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
-        ],
-    ) {
-    }
-
-    public function process(Request $request, IRequestHandler $handler): Response
-    {
-        $response = $handler->handle(request: $request);
-
-        foreach ($this->headers as $name => $value) {
-            if (!array_key_exists($name, $response->headers)) {
-                $response = $response->withHeader(name: $name, value: $value);
-            }
-        }
-
-        return $response;
-    }
-}
-PHP,
-    "{$sharedRoot}/src/Validation/FormValidator.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Validation;
-
-final class FormValidator
-{
-    /** @var list<ValidationError> */
-    private array $errors = [];
-
-    public function __construct(private readonly ValidationInput $input)
-    {
-    }
-
-    public function required(string $field, string $label): self
-    {
-        if ($this->input->string(field: $field) === '') {
-            $this->errors[] = new ValidationError(field: $field, message: "{$label}を入力してください。");
-        }
-
-        return $this;
-    }
-
-    public function email(string $field, string $label): self
-    {
-        $value = $this->input->string(field: $field);
-        if ($value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
-            $this->errors[] = new ValidationError(field: $field, message: "{$label}を正しく入力してください。");
-        }
-
-        return $this;
-    }
-
-    public function output(): ValidationOutput
-    {
-        return new ValidationOutput(errors: $this->errors);
-    }
-}
-PHP,
-    "{$sharedRoot}/src/Validation/ValidationError.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Validation;
-
-final readonly class ValidationError
-{
-    public function __construct(public string $field, public string $message)
-    {
-    }
-}
-PHP,
-    "{$sharedRoot}/src/Validation/ValidationInput.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Validation;
-
-final readonly class ValidationInput
-{
-    /** @param array<string, mixed> $values */
-    public function __construct(public array $values)
-    {
-    }
-
-    public function string(string $field): string
-    {
-        $value = $this->values[$field] ?? '';
-
-        return is_scalar($value) ? trim((string) $value) : '';
-    }
-}
-PHP,
-    "{$sharedRoot}/src/Validation/ValidationOutput.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Validation;
-
-final readonly class ValidationOutput
-{
-    /** @param list<ValidationError> $errors */
-    public function __construct(public array $errors = [])
-    {
-    }
-
-    public static function valid(): self
-    {
-        return new self();
-    }
-
-    public static function invalid(ValidationError ...$errors): self
-    {
-        return new self(errors: array_values($errors));
-    }
-
-    public function isValid(): bool
-    {
-        return $this->errors === [];
-    }
-
-    public function firstMessage(): ?string
-    {
-        return $this->errors[0]->message ?? null;
-    }
-}
-PHP,
-    "{$sharedRoot}/src/View/Infrastructure/LatteTemplateRenderer.php" => <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\View\Infrastructure;
-
-use Pera\Framework\View\ITemplateRenderer;
-use Latte\Engine;
-
-final class LatteTemplateRenderer implements ITemplateRenderer
-{
-    private const AUTO_REFRESH = true;
-
-    private Engine $engine;
-
-    private string $templateDirectory;
-
-    /** @var array<int, callable(): array<string, mixed>> */
-    private array $globalProviders = [];
-
-    public function __construct(string $templateDirectory, ?string $cacheDirectory = null)
-    {
-        $this->engine = new Engine();
-        if ($cacheDirectory !== null) {
-            // 日本語: compiled view cache は worker mode では基本不要です。
-            // 有効にするのは、template class が request をまたいで残らない
-            // classic/non-worker runtime を使う場合に限定してください。
-            // English: compiled view cache is usually unnecessary in worker mode.
-            // Enable it only for classic/non-worker runtimes where template
-            // classes do not stay loaded across requests.
-            $this->engine->setCacheDirectory($cacheDirectory);
-            $this->engine->setAutoRefresh(self::AUTO_REFRESH);
-        }
-        $this->templateDirectory = rtrim($templateDirectory, '/');
-    }
-
-    /** @param callable(): array<string, mixed> $provider */
-    public function addGlobalProvider(callable $provider): void
-    {
-        $this->globalProviders[] = $provider;
-    }
-
-    /** @param array<string, mixed> $params */
-    public function render(string $template, array $params = []): string
-    {
-        $globalParams = [];
-        foreach ($this->globalProviders as $provider) {
-            $globalParams = array_merge($globalParams, $provider());
-        }
-
-        return $this->engine->renderToString(
-            $this->templateDirectory . '/' . ltrim($template, '/'),
-            array_merge($globalParams, $params),
-        );
-    }
-}
-PHP,
-];
-
-foreach (array_keys($files) as $path) {
-    if (file_exists($path)) {
-        fwrite(STDERR, "Refusing to overwrite existing file: {$path}\n");
-        exit(1);
-    }
+/** @var Closure(string, array<string, string>): array<string, string> $loadTemplateFiles */
+$loadTemplateFiles = require __DIR__ . '/scaffold-template-files.php';
+try {
+    $templateFiles = $loadTemplateFiles(dirname(__DIR__) . '/templates/shared');
+} catch (Throwable $throwable) {
+    fwrite(STDERR, $throwable->getMessage() . "\n");
+    exit(1);
 }
 
-$createdDirectories = $directories;
+$files = [];
+$directories = [];
+foreach ($templateFiles as $relativePath => $contents) {
+    $path = $sharedRoot . '/' . $relativePath;
+    $files[$path] = $contents;
+    $directory = dirname($path);
+    if ($directory !== $sharedRoot) {
+        $directories[$directory] = true;
+    }
+}
+ksort($files);
+ksort($directories);
+$createdDirectories = array_keys($directories);
 $createdFiles = array_keys($files);
+
 /** @var Closure(string, string): ScaffoldFilesystemTransaction $createScaffoldTransaction */
 $createScaffoldTransaction = require __DIR__ . '/scaffold-transaction.php';
 try {
@@ -350,7 +62,7 @@ try {
     fwrite(STDERR, $throwable->getMessage() . "\n");
     exit(1);
 }
-$directories = $scaffoldTransaction->stagePaths(paths: $directories);
+$directories = $scaffoldTransaction->stagePaths(paths: $createdDirectories);
 $files = $scaffoldTransaction->stageFiles(files: $files);
 
 /**
@@ -373,11 +85,9 @@ try {
 foreach ($directories as $directory) {
     ensureDirectory($directory);
 }
-
 foreach ($files as $path => $contents) {
     writeFile(path: $path, contents: $contents);
 }
-
 $scaffoldTransaction->commit();
 
 echo "Created shared scaffold: apps/shared\n\n";
@@ -407,16 +117,14 @@ function ensureDirectory(string $directory): void
     }
 
     if (!mkdir($directory, 0775, true) && !is_dir($directory)) {
-        fwrite(STDERR, "Failed to create directory: {$directory}\n");
-        exit(1);
+        throw new RuntimeException("Failed to create directory: {$directory}");
     }
 }
 
 function writeFile(string $path, string $contents): void
 {
     if (file_put_contents($path, $contents) === false) {
-        fwrite(STDERR, "Failed to write file: {$path}\n");
-        exit(1);
+        throw new RuntimeException("Failed to write file: {$path}");
     }
 }
 

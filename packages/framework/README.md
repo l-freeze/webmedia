@@ -107,6 +107,8 @@ Namespace customization is intentionally not supported. `pera` gives users a cle
 
 Scaffold dependencies follow generated capabilities. Kernel adds Dotenv, Shared and HTML app templates add Latte, and PDO-backed app templates add the PDO and SQLite platform requirements to the consuming root project. `bare` leaves the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
 
+Generated source is stored as versioned files under `templates/`. The binary scripts own orchestration and atomic publication, not copies of PHP and Latte source embedded in command code. See `bin/README.md` for the template and ownership contract.
+
 ## Composer Package
 
 `pera/framework` contains Framework code and the explicit scaffold commands. Installing the Framework library alone does not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.

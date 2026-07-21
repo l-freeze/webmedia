@@ -13,6 +13,7 @@ The project follows Semantic Versioning after `1.0.0`. Before `1.0.0`, public AP
 - `bare`, DB-free `minimal`, SQLite-backed `todo`, and SQLite-backed `layered` app starters.
 - Generated-capability Composer recipes for Dotenv, Latte, PDO, and the SQLite PDO driver.
 - Atomic scaffold publishing with non-overwrite and rollback behavior.
+- Versioned Kernel, Shared, and app template files with strict placeholder rendering.
 - Lazy native Session startup on first state access.
 - Classic PHP and FrankenPHP worker runtimes.
 - HTTP, routing, middleware, DI container, CSRF, view contract, logging placeholder, and bounded synchronous process primitives.
