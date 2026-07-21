@@ -62,6 +62,8 @@ final class ComposerPackageBoundaryTest extends TestCase
             'bin/scaffold-shared',
         ], $manifest['bin'] ?? null);
 
+        self::assertFileExists($root . '/packages/framework/bin/scaffold-transaction.php');
+
         self::assertFileDoesNotExist(
             $root . '/packages/framework/src/Installer/Composer/FrameworkInstallerPlugin.php',
         );

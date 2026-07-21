@@ -340,6 +340,19 @@ foreach (array_keys($files) as $path) {
     }
 }
 
+$createdDirectories = $directories;
+$createdFiles = array_keys($files);
+/** @var Closure(string, string): ScaffoldFilesystemTransaction $createScaffoldTransaction */
+$createScaffoldTransaction = require __DIR__ . '/scaffold-transaction.php';
+try {
+    $scaffoldTransaction = $createScaffoldTransaction($root, $sharedRoot);
+} catch (Throwable $throwable) {
+    fwrite(STDERR, $throwable->getMessage() . "\n");
+    exit(1);
+}
+$directories = $scaffoldTransaction->stagePaths(paths: $directories);
+$files = $scaffoldTransaction->stageFiles(files: $files);
+
 /**
  * @var Closure(string, list<string>): array{
  *     required: array<string, string>,
@@ -365,14 +378,16 @@ foreach ($files as $path => $contents) {
     writeFile(path: $path, contents: $contents);
 }
 
+$scaffoldTransaction->commit();
+
 echo "Created shared scaffold: apps/shared\n\n";
 echo "Created directories:\n";
-foreach ($directories as $directory) {
+foreach ($createdDirectories as $directory) {
     echo '- ' . relativePath(root: $root, path: $directory) . "\n";
 }
 echo "\n";
 echo "Created files:\n";
-foreach (array_keys($files) as $path) {
+foreach ($createdFiles as $path) {
     echo '- ' . relativePath(root: $root, path: $path) . "\n";
 }
 echo "\n";

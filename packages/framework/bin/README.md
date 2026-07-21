@@ -18,6 +18,12 @@ Framework を package として導入した root project では、`php vendor/bi
 
 Composerが生成したvendor binary proxyから実行した場合は、Composerが渡すroot projectのautoload pathを実在pathへ正規化してから生成先を決めます。package内の実体をproxyなしで直接実行した場合はcurrent working directoryへfallbackします。いずれの場合も`--root=/path/to/project`が明示されていれば、その指定を優先します。
 
+## File Ownership and Atomicity
+
+各scaffoldは`apps/kernel`、`apps/shared`、`apps/{name}`のroot全体を一度だけ生成します。対象rootが既に存在する場合は、空directoryであっても書き込まずに失敗します。既存fileへ部分的に追加するcommandではありません。
+
+生成中は同じ`apps`directory内の一時rootへ全fileを書き、完了後にdirectory renameで対象rootとして公開します。生成または公開に失敗した場合は一時rootを削除し、その実行で変更したconsumer `composer.json`も開始前の内容へ戻します。したがって失敗後は半端な生成物を手で選別せず再実行できます。生成完了後のsourceは利用者所有であり、Framework updateは上書きしません。
+
 ## Composer Dependencies
 
 scaffoldが外部packageやPHP extensionを参照するファイルを生成する場合は、その機能に対応する依存レシピをconsumer projectへ適用します。
