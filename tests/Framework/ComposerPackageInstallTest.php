@@ -13,6 +13,55 @@ use SplFileInfo;
 
 final class ComposerPackageInstallTest extends TestCase
 {
+    public function testCopiedPackageInstallsWithoutGeneratingProjectFiles(): void
+    {
+        $temporaryRoot = sys_get_temp_dir() . '/pera-package-only-install-' . bin2hex(random_bytes(4));
+        $packageRoot = $temporaryRoot . '/package';
+        $consumerRoot = $temporaryRoot . '/consumer';
+        self::assertTrue(mkdir($temporaryRoot));
+
+        try {
+            $this->copyDirectory(
+                source: dirname(__DIR__, 2) . '/packages/framework',
+                destination: $packageRoot,
+            );
+            self::assertTrue(mkdir($consumerRoot));
+            $this->writeConsumerManifest(path: $consumerRoot . '/composer.json', packageRoot: $packageRoot);
+
+            $this->runCommand(
+                command: ['composer', 'install', '--no-interaction', '--no-progress', '--no-scripts', '--prefer-dist'],
+                workingDirectory: $consumerRoot,
+            );
+
+            self::assertDirectoryExists($consumerRoot . '/vendor/pera/framework');
+            self::assertFalse(is_link($consumerRoot . '/vendor/pera/framework'));
+            self::assertFileExists($consumerRoot . '/vendor/autoload.php');
+            foreach (['scaffold-kernel', 'scaffold-shared', 'scaffold-app'] as $binary) {
+                self::assertFileExists($consumerRoot . '/vendor/bin/' . $binary);
+            }
+            self::assertDirectoryDoesNotExist($consumerRoot . '/apps');
+
+            $this->runCommand(
+                command: [
+                    PHP_BINARY,
+                    '-r',
+                    sprintf(
+                        "require %s; new Pera\\Framework\\Container\\Container();",
+                        var_export($consumerRoot . '/vendor/autoload.php', true),
+                    ),
+                ],
+                workingDirectory: $consumerRoot,
+            );
+
+            $requirements = $this->packageRequirements(root: $consumerRoot);
+            self::assertArrayNotHasKey('latte/latte', $requirements);
+            self::assertArrayNotHasKey('vlucas/phpdotenv', $requirements);
+            self::assertArrayNotHasKey('ext-pdo', $requirements);
+        } finally {
+            $this->removeDirectory(path: $temporaryRoot);
+        }
+    }
+
     public function testCopiedPackageInstallsAndAllVendorScaffoldsRunInConsumerProject(): void
     {
         $temporaryRoot = sys_get_temp_dir() . '/pera-package-install-' . bin2hex(random_bytes(4));

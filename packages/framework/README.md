@@ -84,6 +84,38 @@ The default Shared scaffold provides `App\Shared\Validation` as a small form val
 
 PDO-backed app templates own their connection factory and persistence code. Neither Framework, the Kernel scaffold, nor the Shared scaffold provides a project-wide PDO binding.
 
+## Installation
+
+After the package is published, install the Framework library into an existing project with Composer:
+
+```bash
+composer require pera/framework
+```
+
+During local package development, point the consuming project's `composer.json` at the package directory and require its development version:
+
+```json
+{
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../path/to/pera/packages/framework",
+      "options": {
+        "symlink": true,
+        "versions": {
+          "pera/framework": "dev-main"
+        }
+      }
+    }
+  ],
+  "require": {
+    "pera/framework": "dev-main"
+  }
+}
+```
+
+Then run `composer update pera/framework --with-all-dependencies`. The install adds only the Framework library and its explicit vendor binaries. It does not create `apps/kernel`, `apps/shared`, an application, or a public entrypoint.
+
 ## Scaffold
 
 `pera` provides fixed scaffold commands.
