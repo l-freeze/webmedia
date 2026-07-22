@@ -26,6 +26,8 @@ CMS:
 
 Docker Compose の開発環境は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) で FrankenPHP worker mode を有効にしています。
 
+開発中は `apps`、`config`、Framework source、`public/index.php` の変更をFrankenPHPのworker watcherが監視します。PHPやLatte templateを変更するとPHP workerだけが自動再起動するため、通常はコンテナの再起動は不要です。ブラウザを再読み込みすると変更後の画面が表示されます。Caddyfile自体、Composer依存、Docker imageの変更は監視対象外なので、その場合は目的に応じて`docker compose restart app`、Composer更新、image rebuildを行います。
+
 通常の1リクエスト1実行の classic mode で動かす場合は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) の worker mode 用 `handle` block をコメントアウトし、classic mode 用 `handle` block をコメント解除します。
 
 ```caddyfile
