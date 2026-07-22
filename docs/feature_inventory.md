@@ -84,7 +84,7 @@
 | Cache | 一部完了 | PSR-16 file/null cache | Front article cache は未適用 |
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
 | Composer package | 一部完了 | `packages/framework`の独立manifest、production source、明示scaffold binary、root path repository利用、copied packageからの隔離Composer install E2E、public API / changelog / security / archive方針。installer pluginなし | license・公開repository/security URL・初回tag、project skeleton |
-| Scaffold | 完了 | Kernel / Shared / Appの`bare` / `minimal` / `todo` / `layered`、version管理された生成template、現行Kernelとのdrift検査、Dotenv / Latte / PDO / SQLite driverの生成機能別Composer依存レシピ、全vendor binaryのpackaged consumer E2E、一時root＋rename＋Composer rollbackによるatomic生成 | 将来予約のfullpack template |
+| Scaffold | 完了 | Kernel / Shared / Appの`bare` / `minimal` / `todo` / `layered`、Frameworkだけでplain textを返す実行可能bare、version管理された生成template、現行Kernelとのdrift検査、Dotenv / Latte / PDO / SQLite driverの生成機能別Composer依存レシピ、全vendor binaryのpackaged consumer E2E、一時root＋rename＋Composer rollbackによるatomic生成 | 将来予約のfullpack template |
 
 ## docs 棚卸し
 

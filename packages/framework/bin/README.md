@@ -9,7 +9,7 @@
 | `php vendor/bin/scaffold-kernel` | Framework を使うプロジェクト側に固定の Kernel 層を生成します。通常はプロジェクトごとに一度だけ実行します。 |
 | `php vendor/bin/scaffold-shared` | CMS / Front / 追加 app から共通利用する `apps/shared` の最小構成を生成します。通常はプロジェクトごとに一度だけ実行します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix>` | 新しい HTTP application を `apps/{name}` に生成します。`--template` を省略すると `minimal` template を使います。 |
-| `php vendor/bin/scaffold-app <name> <path-prefix> --template=bare` | route / Controller / view を含まない config only 構成を生成します。 |
+| `php vendor/bin/scaffold-app <name> <path-prefix> --template=bare` | Frameworkの`Response`だけでplain textを返すsingle-controller starterを生成します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix> --template=minimal` | 1つの Controller と view で動く single-controller HTML starter を生成します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix> --template=layered` | Application / Domain / Infrastructure を分けた縦割りスターターを生成します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix> --template=todo` | PDO repository と Latte view を含む小さな Todo アプリのスターターを生成します。 |
@@ -93,32 +93,32 @@ php vendor/bin/scaffold-app api /api
 
 正式なsupport対象は`bare`、`minimal`、`todo`、`layered`の全templateです。予約名の`fullpack`は実装されるまで利用できません。
 
-全 template で生成される基本ファイル:
+全 template で生成される基本構成:
 
 - `apps/{name}/config/routes.php`
 - `apps/{name}/config/container.php`
 - `apps/{name}/config/middleware.php`
-- `apps/{name}/src/.gitkeep`
+- `apps/{name}/src/`
 
 `container.php` はアプリ固有のDI定義を置く場所です。`minimal`、`todo`、`layered`はShared containerを読み込みますが、`bare`はSharedにも依存しません。
 
 `middleware.php` はアプリ固有middlewareを置く場所です。`minimal`、`todo`、`layered`はShared middlewareを読み込みますが、`bare`は空のmiddleware listから始まります。
 
-`routes.php` はそのアプリの route 定義を置く場所です。
+`routes.php` はそのアプリの route 定義を置く場所です。全templateが、生成直後にHTTP responseを確認できるrouteを少なくとも1つ持ちます。
 
 ## Templates
 
 ### bare
 
-Kernel に接続するための config only 構成だけを生成します。
+Frameworkだけでplain text responseを返す、最小の実行可能appを生成します。
 
 ```bash
 php vendor/bin/scaffold-app api /api --template=bare
 ```
 
-生成物は `config/routes.php`、`config/container.php`、`config/middleware.php`、`src/.gitkeep` だけです。route、Controller、view template、`ITemplateRenderer` bindingは生成せず、Kernel、Shared、DB、template engineにも依存しません。
+`config/routes.php`には`GET <path-prefix>`を生成し、`src/Presentation/Http/Controller/Index/Controller.php`は`text/plain`のFramework `Response`を返します。生の文字列をRouterへ返さないため、Controller / Framework間のresponse境界は他templateと同じです。
 
-これまで `--template=minimal` を config only として使っていた自動化は、`--template=bare` へ移行してください。
+Shared、DB、template engine、`ITemplateRenderer` bindingには依存せず、consumer `composer.json`へ追加依存も書き込みません。Frameworkのrouting、DI、HTTP responseまでを最短で確認したい場合に使います。
 
 ### minimal
 

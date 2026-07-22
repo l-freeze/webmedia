@@ -172,11 +172,11 @@ echo "Generated files:\n";
 echo "- apps/{$name}/config/routes.php: Route definitions for this app.\n";
 echo "- apps/{$name}/config/container.php: App DI container.\n";
 echo "- apps/{$name}/config/middleware.php: App middleware list.\n";
-echo "- apps/{$name}/src/.gitkeep: Placeholder for app source files.\n\n";
+echo "- apps/{$name}/src/: App PHP source root.\n\n";
 if ($template === 'bare') {
     echo "Bare starter:\n";
-    echo "- Config only: routes, container, middleware, and src placeholder.\n";
-    echo "- No route, Controller, ITemplateRenderer binding, or view template is generated.\n\n";
+    echo "- Single-controller plain-text starter at {$basePath}.\n";
+    echo "- No Shared code, ITemplateRenderer binding, view template, or database is required.\n\n";
 }
 if ($template === 'minimal') {
     echo "Minimal starter:\n";

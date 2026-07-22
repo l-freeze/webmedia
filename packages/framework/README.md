@@ -135,7 +135,7 @@ apps/shared  App\Shared
 
 Namespace customization is intentionally not supported. `pera` gives users a clear starting structure instead of making the first decision ambiguous.
 
-`scaffold-app` generates a new app under `apps/{name}`. The default `minimal` template is a single-controller HTML starter with a `GET <path-prefix>` route, a Latte template, and a `ITemplateRenderer` binding. Use `--template=bare` for config only, `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
+`scaffold-app` generates a new app under `apps/{name}`. Use `--template=bare` for a single Controller that returns a plain-text `Response` without Shared, Latte, or a database. The default `minimal` template adds a Latte HTML view and an `ITemplateRenderer` binding. Use `--template=todo` for a small PDO-backed Todo starter, and `--template=layered` for a larger Application / Domain / Infrastructure starter.
 
 Scaffold dependencies follow generated capabilities. Kernel adds Dotenv, Shared and HTML app templates add Latte, and PDO-backed app templates add the PDO and SQLite platform requirements to the consuming root project. `bare` leaves the manifest untouched. The scaffold updates only `composer.json`; it prints the explicit Composer command for updating the lock file and installed packages instead of starting a nested Composer process.
 

@@ -515,7 +515,7 @@ Framework packageの依存はFramework production codeが直接使うものに�
 
 scaffoldが外部packageやPHP extensionを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。KernelはDotenv、SharedとHTML templateはLatte、PDOを使う`todo` / `layered`はPDOとSQLite driverをconsumer rootのruntime `require`へ追加する。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
 
-汎用Kernel scaffoldへPDO bindingやConnectionFactoryを生成しない。`bare`はSharedやDBに依存せず、`minimal`はDB非依存とする。DBありの`todo` / `layered`はapp自身のInfrastructureにConnectionFactory、storage、PDO bindingを生成し、DB選択と接続構成をapp所有に閉じる。webmedia固有KernelのPDO共有は、複数appが同じDBを使う当該projectのcomposition判断として別に扱う。
+汎用Kernel scaffoldへPDO bindingやConnectionFactoryを生成しない。`bare`はShared、Latte、DBに依存せず、単一ControllerがFrameworkのplain text `Response`を返す最小実行例とする。`minimal`はDB非依存のLatte HTML例とする。DBありの`todo` / `layered`はapp自身のInfrastructureにConnectionFactory、storage、PDO bindingを生成し、DB選択と接続構成をapp所有に閉じる。webmedia固有KernelのPDO共有は、複数appが同じDBを使う当該projectのcomposition判断として別に扱う。
 
 scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
 

@@ -301,6 +301,18 @@ $bare = require __DIR__ . '/apps/bare/config/container.php';
 if (!$bare instanceof Container) {
     throw new RuntimeException('Bare scaffold did not return a Container.');
 }
+$bareRoutes = require __DIR__ . '/apps/bare/config/routes.php';
+$bareResponse = (new Router(routes: $bareRoutes))->dispatch(
+    request: new Request(method: 'GET', path: '/bare', query: [], body: [], server: []),
+    container: $bare,
+);
+if (
+    $bareResponse->status !== Response::HTTP_OK
+    || $bareResponse->body !== 'Hello from bare.'
+    || ($bareResponse->headers['Content-Type'] ?? null) !== 'text/plain; charset=utf-8'
+) {
+    throw new RuntimeException('Bare scaffold did not return its first plain-text HTTP 200 response.');
+}
 
 $minimal = require __DIR__ . '/apps/minimal/config/container.php';
 if (!$minimal instanceof Container) {

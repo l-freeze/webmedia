@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Scaffold;
 
+use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Routing\Router;
 use PHPUnit\Framework\TestCase;
 
 final class ScaffoldAppTest extends TestCase
 {
-    public function testBareTemplateGeneratesConfigOnlyStarter(): void
+    public function testBareTemplateGeneratesRunnablePlainTextStarter(): void
     {
         $root = $this->temporaryRoot();
 
@@ -20,13 +24,12 @@ final class ScaffoldAppTest extends TestCase
             self::assertFileExists($root . '/apps/api/config/routes.php');
             self::assertFileExists($root . '/apps/api/config/container.php');
             self::assertFileExists($root . '/apps/api/config/middleware.php');
-            self::assertFileExists($root . '/apps/api/src/.gitkeep');
+            self::assertFileExists($root . '/apps/api/src/Presentation/Http/Controller/Index/Controller.php');
             self::assertFileDoesNotExist($root . '/apps/api/templates/index.latte');
-            self::assertFileDoesNotExist($root . '/apps/api/src/Presentation/Http/Controller/Index/Controller.php');
+            self::assertFileDoesNotExist($root . '/apps/api/src/.gitkeep');
 
             $routes = $this->read(path: $root . '/apps/api/config/routes.php');
-            self::assertStringContainsString('return [', $routes);
-            self::assertStringNotContainsString('IndexController::class', $routes);
+            self::assertStringContainsString("['GET', '/api', IndexController::class]", $routes);
 
             $container = $this->read(path: $root . '/apps/api/config/container.php');
             self::assertStringNotContainsString("require \$root . '/apps/shared/config/container.php'", $container);
@@ -38,7 +41,49 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
+            $controllerPath = $root . '/apps/api/src/Presentation/Http/Controller/Index/Controller.php';
+            $controller = $this->read(path: $controllerPath);
+            self::assertStringContainsString('use Pera\\Framework\\Http\\Response;', $controller);
+            self::assertStringContainsString("body: 'Hello from api.'", $controller);
+            self::assertStringContainsString("'Content-Type' => 'text/plain; charset=utf-8'", $controller);
+            self::assertStringNotContainsString('ITemplateRenderer', $controller);
+            self::assertStringNotContainsString('Session', $controller);
+            self::assertStringNotContainsString('PDO', $controller);
+
+            require_once $controllerPath;
+            $routeDefinitions = require $root . '/apps/api/config/routes.php';
+            self::assertIsArray($routeDefinitions);
+            /** @var array<int, array{0:string, 1:string, 2:class-string|array{0:class-string, 1:string}, 3?:array<string, mixed>}> $routeDefinitions */
+            $appContainer = require $root . '/apps/api/config/container.php';
+            self::assertInstanceOf(Container::class, $appContainer);
+            $response = (new Router(routes: $routeDefinitions))->dispatch(
+                request: new Request(method: 'GET', path: '/api', query: [], body: [], server: []),
+                container: $appContainer,
+            );
+            self::assertSame(Response::HTTP_OK, $response->status);
+            self::assertSame('Hello from api.', $response->body);
+            self::assertSame('text/plain; charset=utf-8', $response->headers['Content-Type'] ?? null);
+
             self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertNull($this->composerRuntimeRequirement(root: $root, package: 'ext-pdo'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testBareTemplateHandlesRootPathPrefix(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->runScaffold(root: $root, name: 'root-bare', pathPrefix: '/', template: 'bare');
+
+            $routes = $this->read(path: $root . '/apps/root-bare/config/routes.php');
+            self::assertStringContainsString("['GET', '/', IndexController::class]", $routes);
+            self::assertStringNotContainsString("'//", $routes);
+
+            $controller = $this->read(path: $root . '/apps/root-bare/src/Presentation/Http/Controller/Index/Controller.php');
+            self::assertStringContainsString("body: 'Hello from root-bare.'", $controller);
         } finally {
             $this->removeDirectory(path: $root);
         }
