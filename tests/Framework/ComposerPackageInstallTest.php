@@ -62,6 +62,59 @@ final class ComposerPackageInstallTest extends TestCase
         }
     }
 
+    public function testInstalledKernelScaffoldBuildsWithoutSharedOrAppScaffolds(): void
+    {
+        $temporaryRoot = sys_get_temp_dir() . '/pera-kernel-only-install-' . bin2hex(random_bytes(4));
+        $packageRoot = $temporaryRoot . '/package';
+        $consumerRoot = $temporaryRoot . '/consumer';
+        self::assertTrue(mkdir($temporaryRoot));
+
+        try {
+            $projectRoot = dirname(__DIR__, 2);
+            $this->copyDirectory(
+                source: $projectRoot . '/packages/framework',
+                destination: $packageRoot,
+            );
+            self::assertTrue(mkdir($consumerRoot));
+            $this->writeConsumerManifest(path: $consumerRoot . '/composer.json', packageRoot: $packageRoot);
+
+            $this->runCommand(
+                command: ['composer', 'install', '--no-interaction', '--no-progress', '--no-scripts', '--prefer-dist'],
+                workingDirectory: $consumerRoot,
+            );
+            $output = $this->runCommand(
+                command: [PHP_BINARY, 'vendor/bin/scaffold-kernel'],
+                workingDirectory: $consumerRoot,
+            );
+
+            self::assertStringContainsString('Created kernel scaffold: apps/kernel', $output);
+            self::assertDirectoryExists($consumerRoot . '/apps/kernel');
+            self::assertDirectoryDoesNotExist($consumerRoot . '/apps/shared');
+            self::assertDirectoryDoesNotExist($consumerRoot . '/apps/bare');
+            self::assertSame('^5.6', $this->consumerRequirement(root: $consumerRoot, package: 'vlucas/phpdotenv'));
+            self::assertArrayNotHasKey('vlucas/phpdotenv', $this->packageRequirements(root: $consumerRoot));
+
+            $this->runCommand(
+                command: [
+                    'composer',
+                    'update',
+                    'vlucas/phpdotenv',
+                    '--with-all-dependencies',
+                    '--no-interaction',
+                    '--no-progress',
+                    '--no-scripts',
+                    '--prefer-dist',
+                ],
+                workingDirectory: $consumerRoot,
+            );
+            $this->lintGeneratedPhp(root: $consumerRoot . '/apps/kernel');
+            $this->analyseGeneratedPhp(projectRoot: $projectRoot, consumerRoot: $consumerRoot);
+            $this->verifyGeneratedKernel(root: $consumerRoot);
+        } finally {
+            $this->removeDirectory(path: $temporaryRoot);
+        }
+    }
+
     public function testCopiedPackageInstallsAndAllVendorScaffoldsRunInConsumerProject(): void
     {
         $temporaryRoot = sys_get_temp_dir() . '/pera-package-install-' . bin2hex(random_bytes(4));
@@ -176,6 +229,20 @@ final class ComposerPackageInstallTest extends TestCase
         self::assertArrayNotHasKey('vlucas/phpdotenv', $this->packageRequirements(root: $root));
     }
 
+    private function consumerRequirement(string $root, string $package): ?string
+    {
+        $contents = file_get_contents($root . '/composer.json');
+        self::assertIsString($contents);
+        $manifest = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($manifest);
+        $requirements = $manifest['require'] ?? [];
+        self::assertIsArray($requirements);
+        $constraint = $requirements[$package] ?? null;
+        self::assertTrue($constraint === null || is_string($constraint));
+
+        return $constraint;
+    }
+
     /** @return array<string, mixed> */
     private function packageRequirements(string $root): array
     {
@@ -268,6 +335,29 @@ if (!$todos instanceof ITodoRepository) {
 $todos->add('package install smoke test');
 if (count($todos->all()) !== 1) {
     throw new RuntimeException('Todo SQLite persistence is not executable.');
+}
+PHP));
+
+        $this->runCommand(command: [PHP_BINARY, $verificationPath], workingDirectory: $root);
+    }
+
+    private function verifyGeneratedKernel(string $root): void
+    {
+        $verificationPath = $root . '/verify-kernel.php';
+        self::assertNotFalse(file_put_contents($verificationPath, <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use Pera\Framework\Application\IApplication;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
+
+require __DIR__ . '/vendor/autoload.php';
+
+$applicationFactory = require __DIR__ . '/apps/kernel/config/application.php';
+$application = $applicationFactory(new ApplicationBootstrapConfig(root: __DIR__));
+if (!$application instanceof IApplication) {
+    throw new RuntimeException('Kernel scaffold did not build an application.');
 }
 PHP));
 
