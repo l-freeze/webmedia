@@ -185,3 +185,9 @@ For a first read, start here:
 6. `src/Process/README.md`
 7. `bin/README.md`
 Generated Kernel and Shared directories contain their own project-side README files. This package README describes only the Framework and its scaffold commands.
+
+## License
+
+`pera/framework` is open-source software released under the [MIT License](LICENSE).
+
+This license applies to the Framework package rooted in this directory. It does not change the license of a consuming project or of application code kept outside this package.

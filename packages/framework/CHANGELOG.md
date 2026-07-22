@@ -21,5 +21,6 @@ The project follows Semantic Versioning after `1.0.0`. Before `1.0.0`, public AP
 
 ### Changed
 
+- The Framework package is distributed under the MIT License.
 - Generated Kernel, Shared, and app code is owned entirely by the consuming project and is never updated automatically by Framework releases.
 - PDO composition belongs to DB-backed apps or the consuming project; Framework and the generic Kernel scaffold do not own a database backend.

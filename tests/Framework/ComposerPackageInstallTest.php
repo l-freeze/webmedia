@@ -36,6 +36,12 @@ final class ComposerPackageInstallTest extends TestCase
             self::assertDirectoryExists($consumerRoot . '/vendor/pera/framework');
             self::assertFalse(is_link($consumerRoot . '/vendor/pera/framework'));
             self::assertFileExists($consumerRoot . '/vendor/autoload.php');
+            self::assertFileExists($consumerRoot . '/vendor/pera/framework/LICENSE');
+            $installedManifestContents = file_get_contents($consumerRoot . '/vendor/pera/framework/composer.json');
+            self::assertIsString($installedManifestContents);
+            $installedManifest = json_decode($installedManifestContents, true, 512, JSON_THROW_ON_ERROR);
+            self::assertIsArray($installedManifest);
+            self::assertSame('MIT', $installedManifest['license'] ?? null);
             foreach (['scaffold-kernel', 'scaffold-shared', 'scaffold-app'] as $binary) {
                 self::assertFileExists($consumerRoot . '/vendor/bin/' . $binary);
             }

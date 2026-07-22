@@ -38,6 +38,7 @@ final class ComposerPackageBoundaryTest extends TestCase
 
         self::assertSame('pera/framework', $manifest['name'] ?? null);
         self::assertSame('library', $manifest['type'] ?? null);
+        self::assertSame('MIT', $manifest['license'] ?? null);
 
         $requirements = $manifest['require'] ?? null;
         self::assertSame([
@@ -67,7 +68,7 @@ final class ComposerPackageBoundaryTest extends TestCase
         foreach (['kernel', 'shared', 'app/bare', 'app/minimal', 'app/todo', 'app/layered'] as $template) {
             self::assertDirectoryExists($root . '/packages/framework/templates/' . $template);
         }
-        foreach (['API.md', 'CHANGELOG.md', 'SECURITY.md'] as $releaseDocument) {
+        foreach (['API.md', 'CHANGELOG.md', 'LICENSE', 'SECURITY.md'] as $releaseDocument) {
             self::assertFileExists($root . '/packages/framework/' . $releaseDocument);
         }
 

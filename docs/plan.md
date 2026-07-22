@@ -39,7 +39,7 @@
 ### 配布とscaffold
 
 1. 新規project skeletonのroot `composer.json`は`pera/framework`と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。`public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
-2. package名は`pera/framework`とする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前にlicense、公開repository URL、security reporting URL、初回tagを確定する。
+2. package名は`pera/framework`、licenseはMITとする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前に公開repository URL、security reporting URL、初回tagを確定する。
 
 ### 後で行うFramework / Kernel改善
 

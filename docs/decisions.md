@@ -523,6 +523,8 @@ PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とす�
 
 Framework packageはComposer installer pluginを持たない。install時にKernelやSharedを自動生成せず、将来自動生成が必要になった場合だけ独立plugin packageとして再設計する。
 
+`pera/framework`は広い利用と商用利用を妨げないMIT Licenseで公開する。licenseの適用範囲は自己完結したFramework package rootとし、consumer projectや同じprivate monorepoのpackage外にあるCMS / Front / 高水準architectureへ自動的に広げない。webmedia root packageは`proprietary`を維持する。
+
 ### 理由
 
 - `Pera\Framework` なら、consumer projectの `App` namespaceとFrameworkのpublic APIを区別できる。
