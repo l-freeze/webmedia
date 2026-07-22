@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
       - ./.docker/caddy/Caddyfile:/etc/frankenphp/Caddyfile:ro
+      - ./.docker/caddy/worker.${CADDY_WORKER_CONFIG:-dev}.caddyfile:/etc/frankenphp/worker.environment.caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     environment:

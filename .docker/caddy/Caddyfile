@@ -20,13 +20,9 @@
 			worker {
 				file /app/public/index.php
 				env APP_RUNTIME frankenphp-worker
-				# Docker Compose development: restart PHP workers when runtime
-				# source or Latte templates change. Runtime-generated files such
-				# as logs, cache, and uploads are intentionally outside this scope.
-				watch /app/apps
-				watch /app/config
-				watch /app/packages/framework/src
-				watch /app/public/index.php
+				# Docker Compose mounts the selected environment preset here.
+				# The built image uses the production (no-watch) preset.
+				import /etc/frankenphp/worker.environment.caddyfile
 			}
 		}
 	}

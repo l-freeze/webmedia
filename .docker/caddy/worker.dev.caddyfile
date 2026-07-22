@@ -1,0 +1,7 @@
+# Development only: restart PHP workers when runtime source or Latte templates
+# change. Runtime-generated logs, cache, and uploads are intentionally outside
+# this scope to avoid restart loops.
+watch /app/apps
+watch /app/config
+watch /app/packages/framework/src
+watch /app/public/index.php

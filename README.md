@@ -24,9 +24,26 @@ CMS:
 
 ## Runtime
 
-Docker Compose の開発環境は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) で FrankenPHP worker mode を有効にしています。
+Docker Compose の開発環境は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) で FrankenPHP worker mode を有効にしています。共通のCaddy設定は1つに保ち、環境差分になるworker watcherだけを次のpresetへ分離しています。
 
-開発中は `apps`、`config`、Framework source、`public/index.php` の変更をFrankenPHPのworker watcherが監視します。PHPやLatte templateを変更するとPHP workerだけが自動再起動するため、通常はコンテナの再起動は不要です。ブラウザを再読み込みすると変更後の画面が表示されます。Caddyfile自体、Composer依存、Docker imageの変更は監視対象外なので、その場合は目的に応じて`docker compose restart app`、Composer更新、image rebuildを行います。
+- [worker.dev.caddyfile](.docker/caddy/worker.dev.caddyfile): Docker Composeの既定。`apps`、`config`、Framework source、`public/index.php`を監視する
+- [worker.production.caddyfile](.docker/caddy/worker.production.caddyfile): watcherなし。Docker imageの既定
+
+開発presetではPHPやLatte templateを変更するとPHP workerだけが自動再起動するため、通常はコンテナの再起動は不要です。ブラウザを再読み込みすると変更後の画面が表示されます。Caddyfile自体、Composer依存、Docker imageの変更は監視対象外なので、その場合は目的に応じて`docker compose restart app`、Composer更新、image rebuildを行います。
+
+watcherを無効にしてDocker Composeを起動する場合は、production presetを指定してコンテナを再作成します。`restart`だけではbind mount元が切り替わらないため、`--force-recreate`が必要です。
+
+```bash
+CADDY_WORKER_CONFIG=production docker compose up -d --force-recreate app
+```
+
+開発presetへ戻す場合は次のとおりです。恒常的に切り替える場合は`.env`の`CADDY_WORKER_CONFIG`を`dev`または`production`に変更します。
+
+```bash
+CADDY_WORKER_CONFIG=dev docker compose up -d --force-recreate app
+```
+
+`worker.production.caddyfile`はwatcherを無効にするworker presetであり、TLS、proxy、secret管理を含む完全な本番デプロイ設定ではありません。本番Caddy全体は配備環境に合わせて別途構成します。
 
 通常の1リクエスト1実行の classic mode で動かす場合は、[.docker/caddy/Caddyfile](.docker/caddy/Caddyfile) の worker mode 用 `handle` block をコメントアウトし、classic mode 用 `handle` block をコメント解除します。
 
