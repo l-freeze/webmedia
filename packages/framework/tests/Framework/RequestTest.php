@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Framework;
+namespace Pera\Framework\Tests\Framework;
 
 use Pera\Framework\Http\Exception\MalformedRequestException;
 use Pera\Framework\Http\Request;

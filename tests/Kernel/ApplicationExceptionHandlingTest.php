@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Framework;
+namespace Tests\Kernel;
 
 use Pera\Framework\Http\ExceptionHandling\IExceptionHandler;
 use Pera\Framework\Http\Request;
@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
-final class ExceptionHandlerTest extends TestCase
+final class ApplicationExceptionHandlingTest extends TestCase
 {
     public function testApplicationCanConvertUnhandledExceptionToResponse(): void
     {
@@ -30,7 +30,7 @@ PHP;
 <?php
 declare(strict_types=1);
 return [
-    ['GET', '/exception', \Tests\Framework\ExceptionController::class],
+    ['GET', '/exception', \Tests\Kernel\ExceptionController::class],
 ];
 PHP;
         file_put_contents($root . '/apps/front/config/container.php', $container);

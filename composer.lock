@@ -1394,7 +1394,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/framework",
-                "reference": "13dcf569bce88f34bec05e9b357aba876c9ed515"
+                "reference": "622bd37b38c69a2a0735a859db374e67cdfcbb3c"
             },
             "require": {
                 "composer-runtime-api": "^2.2",
@@ -1404,6 +1404,10 @@
                 "php": ">=8.5",
                 "psr/container": "^2.0",
                 "psr/log": "^3.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.0"
             },
             "bin": [
                 "bin/scaffold-app",
@@ -1416,10 +1420,29 @@
                     "Pera\\Framework\\": "src/"
                 }
             },
+            "autoload-dev": {
+                "psr-4": {
+                    "Pera\\Framework\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "analyse": [
+                    "phpstan analyse --memory-limit=1G"
+                ],
+                "test": [
+                    "phpunit"
+                ]
+            },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "description": "A lightweight PHP framework for explicit application composition.",
+            "keywords": [
+                "framework",
+                "frankenphp",
+                "http",
+                "php"
+            ],
             "transport-options": {
                 "symlink": true,
                 "relative": true

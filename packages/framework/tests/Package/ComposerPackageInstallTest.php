@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Framework;
+namespace Pera\Framework\Tests\Package;
 
 use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +22,7 @@ final class ComposerPackageInstallTest extends TestCase
 
         try {
             $this->copyDirectory(
-                source: dirname(__DIR__, 2) . '/packages/framework',
+                source: dirname(__DIR__, 2),
                 destination: $packageRoot,
             );
             self::assertTrue(mkdir($consumerRoot));
@@ -76,9 +76,8 @@ final class ComposerPackageInstallTest extends TestCase
         self::assertTrue(mkdir($temporaryRoot));
 
         try {
-            $projectRoot = dirname(__DIR__, 2);
             $this->copyDirectory(
-                source: $projectRoot . '/packages/framework',
+                source: dirname(__DIR__, 2),
                 destination: $packageRoot,
             );
             self::assertTrue(mkdir($consumerRoot));
@@ -114,7 +113,7 @@ final class ComposerPackageInstallTest extends TestCase
                 workingDirectory: $consumerRoot,
             );
             $this->lintGeneratedPhp(root: $consumerRoot . '/apps/kernel');
-            $this->analyseGeneratedPhp(projectRoot: $projectRoot, consumerRoot: $consumerRoot);
+            $this->analyseGeneratedPhp(consumerRoot: $consumerRoot);
             $this->verifyGeneratedKernel(root: $consumerRoot);
         } finally {
             $this->removeDirectory(path: $temporaryRoot);
@@ -129,9 +128,8 @@ final class ComposerPackageInstallTest extends TestCase
         self::assertTrue(mkdir($temporaryRoot));
 
         try {
-            $projectRoot = dirname(__DIR__, 2);
             $this->copyDirectory(
-                source: $projectRoot . '/packages/framework',
+                source: dirname(__DIR__, 2),
                 destination: $packageRoot,
             );
             self::assertTrue(mkdir($consumerRoot));
@@ -161,7 +159,7 @@ final class ComposerPackageInstallTest extends TestCase
                 workingDirectory: $consumerRoot,
             );
             $this->lintGeneratedPhp(root: $consumerRoot . '/apps');
-            $this->analyseGeneratedPhp(projectRoot: $projectRoot, consumerRoot: $consumerRoot);
+            $this->analyseGeneratedPhp(consumerRoot: $consumerRoot);
             $this->verifyGeneratedContainers(root: $consumerRoot);
         } finally {
             $this->removeDirectory(path: $temporaryRoot);
@@ -382,12 +380,12 @@ PHP));
         $this->runCommand(command: [PHP_BINARY, $verificationPath], workingDirectory: $root);
     }
 
-    private function analyseGeneratedPhp(string $projectRoot, string $consumerRoot): void
+    private function analyseGeneratedPhp(string $consumerRoot): void
     {
         $this->runCommand(
             command: [
                 PHP_BINARY,
-                $projectRoot . '/vendor/bin/phpstan',
+                $this->phpStanBinary(),
                 'analyse',
                 '--no-progress',
                 '--level=max',
@@ -396,6 +394,22 @@ PHP));
             ],
             workingDirectory: $consumerRoot,
         );
+    }
+
+    private function phpStanBinary(): string
+    {
+        $packageRoot = dirname(__DIR__, 2);
+        $candidates = [
+            $packageRoot . '/vendor/bin/phpstan',
+            dirname($packageRoot, 2) . '/vendor/bin/phpstan',
+        ];
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        throw new RuntimeException('PHPStan binary was not found. Run composer install first.');
     }
 
     /** @param list<string> $command */
@@ -440,6 +454,9 @@ PHP));
                 continue;
             }
             $relativePath = substr($item->getPathname(), strlen($source) + 1);
+            if ($this->isDevelopmentArtifact(relativePath: $relativePath)) {
+                continue;
+            }
             $target = $destination . '/' . $relativePath;
             if ($item->isDir()) {
                 self::assertTrue(mkdir($target));
@@ -448,6 +465,14 @@ PHP));
             self::assertTrue(copy($item->getPathname(), $target));
             chmod($target, $item->getPerms() & 0777);
         }
+    }
+
+    private function isDevelopmentArtifact(string $relativePath): bool
+    {
+        $topLevelPath = explode('/', $relativePath, 2)[0];
+
+        return in_array($topLevelPath, ['.git', '.phpunit.cache', 'vendor'], true)
+            || in_array($relativePath, ['.phpunit.result.cache', 'composer.lock'], true);
     }
 
     private function removeDirectory(string $path): void

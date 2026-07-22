@@ -18,6 +18,7 @@ The project follows Semantic Versioning after `1.0.0`. Before `1.0.0`, public AP
 - Lazy native Session startup on first state access.
 - Classic PHP and FrankenPHP worker runtimes.
 - HTTP, routing, middleware, DI container, CSRF, view contract, logging placeholder, and bounded synchronous process primitives.
+- Package-owned PHPUnit and PHPStan configuration for testing Framework and scaffold behavior independently from a consuming project.
 
 ### Changed
 

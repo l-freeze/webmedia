@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+/** @var array<string, array<string, string>> $requirementsByFeature */
 $requirementsByFeature = [
     'dotenv' => ['vlucas/phpdotenv' => '^5.6'],
     'latte' => ['latte/latte' => '^3.0'],
@@ -25,8 +26,12 @@ $requirementsByFeature = [
  * }
  */
 return static function (string $root, array $features) use ($requirementsByFeature): array {
+    /** @var array<string, string> $required */
     $required = [];
     foreach ($features as $feature) {
+        if (!is_string($feature)) {
+            throw new InvalidArgumentException('Scaffold dependency feature must be a string.');
+        }
         if (!isset($requirementsByFeature[$feature])) {
             throw new InvalidArgumentException("Unknown scaffold dependency feature: {$feature}");
         }
@@ -48,7 +53,9 @@ return static function (string $root, array $features) use ($requirementsByFeatu
 
     $composerPath = rtrim($root, '/\\') . '/composer.json';
     if (!is_file($composerPath)) {
+        /** @var list<string> $requireArguments */
         $requireArguments = [];
+        /** @var list<string> $messages */
         $messages = ['composer.json was not found. Generated files require:'];
         foreach ($required as $package => $constraint) {
             $messages[] = "- {$package}: {$constraint}";
@@ -92,7 +99,9 @@ return static function (string $root, array $features) use ($requirementsByFeatu
         throw new RuntimeException("Composer manifest require-dev must be an object: {$composerPath}");
     }
 
+    /** @var array<string, string> $added */
     $added = [];
+    /** @var array<string, string> $present */
     $present = [];
     foreach ($required as $package => $defaultConstraint) {
         if (property_exists($require, $package)) {
@@ -165,6 +174,7 @@ return static function (string $root, array $features) use ($requirementsByFeatu
         }
     }
 
+    /** @var list<string> $messages */
     $messages = [];
     if ($added !== []) {
         $messages[] = 'Updated composer.json runtime requirements:';

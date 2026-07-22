@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-22
+- 2026-07-23
 
 ## 現在地
 
@@ -14,6 +14,8 @@
 
 ## 直近作業
 
+- Composer package名を`pera/framework`で確定した。`pera`は独立したFramework brandのvendorとし、Git Author / Packagist maintainer / GitHub ownerは`l-freeze`として分離する。公開前のpackage残作業は、公開repository、private security reporting URL、CI、初回tagの確定と、project skeletonの別配布である。
+- Framework / scaffold自身のtestを`packages/framework/tests`へ移し、package rootへ`phpunit.xml`、`phpstan.neon`、`require-dev`、Composer scriptsを追加した。Frameworkのbootstrap/runtime testはKernel具象から切り離し、webmedia固有のKernel例外処理・生成Kernel drift・root Composer consumptionだけをroot integration testに残した。package単体の`composer install`からPHPUnit 83 tests / 1370 assertionsとPHPStan level max、webmedia全体のPHPUnit 246 tests / 4266 assertionsとPHPStan level maxを通過済み。
 - `pera/framework`のlicenseをMITに決定し、package rootへ`LICENSE`を追加してComposer metadataも`MIT`へ変更した。MITの適用範囲は自己完結した`packages/framework` packageであり、webmedia rootとpackage外のCMS / Front等は`proprietary`のまま維持する。公開前のrelease metadata残作業は公開repository/security URLと初回tagになった。
 - Framework app scaffoldの`bare`をconfig-onlyから最小実行例へ変更した。`GET <path-prefix>`と単一Controllerを生成し、Controllerはplain text本文をFramework `Response`として返す。Shared、Latte、DBに依存せず、Session stateも使わず、consumer manifestを変更しない。Framework-only Composer install、Kernel-only scaffold、bareを含む全vendor scaffoldをコピー済みpackageからそれぞれ隔離検証し、bareの200 response、本文、Content-Type、root path prefixも確認した。PHPUnit 246 tests / 4164 assertions、PHPStan no errors、root/packageの`composer validate --strict`を通過済み。
 - Docker ComposeのFrankenPHP worker設定に開発用watch対象を追加した。共通Caddyfileは複製せず、`worker.dev.caddyfile`とwatcherなしの`worker.production.caddyfile`へ環境差分だけを分離する。Composeは`CADDY_WORKER_CONFIG`でpresetを選び、built imageはproduction presetを使う。開発presetでは`apps`、`config`、Framework source、`public/index.php`の変更時にPHP workerだけを自動再起動し、runtime生成物による再起動loopを避ける。切替時にbind mountを確実に更新する`--force-recreate`手順はroot READMEへ明記した。

@@ -32,6 +32,7 @@
 - PSRに関する採用範囲と独自境界は各Framework READMEとtechnical stackに既に記載しているため、要件が変わらない限り再検討タスクにしない。
 - 新規projectの標準導入はproject skeleton、既存projectへの追加は `composer require` 後の明示的なvendor binary実行を基本とする。
 - Frameworkは`packages/framework`を自己完結したpackage rootとし、webmedia rootはComposer path repositoryから`pera/framework`を利用する。root PSR-4でFramework namespaceを重複autoloadしない。
+- Frameworkとscaffold自体のtest・PHPUnit・PHPStan設定は`packages/framework`が所有する。webmediaの現行Kernelとのdriftやroot Composer wiringなど、特定consumerとの統合だけはwebmedia rootのtestが所有する。
 - Composer installer pluginは持たず、Framework install時にKernelやSharedを暗黙生成しない。
 - Dotenvによる任意の`.env`読み込みは標準Kernel scaffoldに含める。環境初期化はapplication compositionより前に行うKernelの責務とし、Sharedには置かない。`vlucas/phpdotenv`はFramework packageではなく生成物を使うconsumer rootが所有する。
 - 正式に利用可能とするscaffoldはKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。将来予約の`fullpack`は実装されるまで対象外とする。
@@ -39,7 +40,7 @@
 ### 配布とscaffold
 
 1. 新規project skeletonのroot `composer.json`は`pera/framework`と標準starter依存をrequireし、Kernel / Shared / public entrypoint / 最小appを含む。`public/index.php`、consumer側PSR-4、最小app登録、必要dependencyを含め、fresh projectが手編集なしで最初の200 responseを返す完成条件を決める。Frameworkを使うだけのminimal構成ではSharedやDBを必須にしない。
-2. package名は`pera/framework`、licenseはMITとする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前に公開repository URL、security reporting URL、初回tagを確定する。
+2. package名は`pera/framework`、licenseはMITとする。public API / pre-1.0互換性、changelog、security policy、archive除外方針はpackage内文書を正とする。公開前に公開repository URL、private security reporting URL、初回tagを確定する。
 
 ### 後で行うFramework / Kernel改善
 

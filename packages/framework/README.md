@@ -153,6 +153,18 @@ There is no Composer installer plugin in this package. If automatic generation i
 
 Public API and compatibility rules are documented in [`API.md`](API.md). Release changes are recorded in [`CHANGELOG.md`](CHANGELOG.md), and private vulnerability reporting expectations are documented in [`SECURITY.md`](SECURITY.md).
 
+## Development
+
+The Framework package owns its tests and static-analysis configuration. A checkout of this package can be developed without the `webmedia` project:
+
+```bash
+composer install
+composer test
+composer analyse
+```
+
+Framework runtime and scaffold behavior belongs in `tests/` here. Tests that assert integration with a specific consuming project, such as drift against that project's current Kernel or its root Composer wiring, belong to the consuming project instead.
+
 ## Monorepo Development
 
 The `webmedia` root consumes this package through a Composer path repository with `symlink: true`. Composer therefore links `vendor/pera/framework` to `packages/framework` instead of copying the package.
@@ -161,6 +173,7 @@ The `webmedia` root consumes this package through a Composer path repository wit
 - Changes to this package's `require`, PSR-4 mapping, or `bin` list require `composer update pera/framework --with-all-dependencies` from the root so that `composer.lock`, autoload metadata, and vendor binary proxies are regenerated.
 - A fresh checkout should use the normal `composer install` from the root lock file.
 - Consumers of a published non-path package receive Framework changes through the normal `composer update pera/framework` flow.
+- The root test suite also loads this package's tests, while project-specific integration tests remain under the root `tests/` directory.
 
 ## Examples
 

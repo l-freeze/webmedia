@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Scaffold;
+namespace Pera\Framework\Tests\Scaffold;
 
 use Pera\Framework\Container\Container;
 use Pera\Framework\Http\Request;
@@ -288,10 +288,10 @@ final class ScaffoldAppTest extends TestCase
 
     private function runScaffold(string $root, string $name, string $pathPrefix, string $template): string
     {
-        $projectRoot = dirname(__DIR__, 2);
+        $packageRoot = dirname(__DIR__, 2);
         $command = implode(' ', [
             escapeshellarg(PHP_BINARY),
-            escapeshellarg($projectRoot . '/packages/framework/bin/scaffold-app'),
+            escapeshellarg($packageRoot . '/bin/scaffold-app'),
             escapeshellarg($name),
             escapeshellarg($pathPrefix),
             '--template=' . escapeshellarg($template),

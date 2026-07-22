@@ -2,39 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Framework;
+namespace Pera\Framework\Tests\Package;
 
 use PHPUnit\Framework\TestCase;
 
 final class ComposerPackageBoundaryTest extends TestCase
 {
-    public function testRootConsumesFrameworkThroughPathPackageWithoutDuplicateAutoload(): void
+    public function testFrameworkManifestOwnsRuntimeTestsAndExplicitScaffoldBinaries(): void
     {
         $root = dirname(__DIR__, 2);
         $manifest = $this->manifest(path: $root . '/composer.json');
-
-        $requirements = $manifest['require'] ?? null;
-        self::assertIsArray($requirements);
-        self::assertSame('dev-main', $requirements['pera/framework'] ?? null);
-
-        $autoload = $manifest['autoload'] ?? null;
-        self::assertIsArray($autoload);
-        $psr4 = $autoload['psr-4'] ?? null;
-        self::assertIsArray($psr4);
-        self::assertArrayNotHasKey('Pera\\Framework\\', $psr4);
-
-        $repositories = $manifest['repositories'] ?? null;
-        self::assertIsArray($repositories);
-        $frameworkRepository = $repositories[0] ?? null;
-        self::assertIsArray($frameworkRepository);
-        self::assertSame('path', $frameworkRepository['type'] ?? null);
-        self::assertSame('packages/framework', $frameworkRepository['url'] ?? null);
-    }
-
-    public function testFrameworkManifestOwnsRuntimeAndExplicitScaffoldBinaries(): void
-    {
-        $root = dirname(__DIR__, 2);
-        $manifest = $this->manifest(path: $root . '/packages/framework/composer.json');
 
         self::assertSame('pera/framework', $manifest['name'] ?? null);
         self::assertSame('library', $manifest['type'] ?? null);
@@ -51,30 +28,37 @@ final class ComposerPackageBoundaryTest extends TestCase
             'psr/log' => '^3.0',
         ], $requirements);
 
+        self::assertSame([
+            'phpstan/phpstan' => '^2.1',
+            'phpunit/phpunit' => '^11.0',
+        ], $manifest['require-dev'] ?? null);
+
         $autoload = $manifest['autoload'] ?? null;
         self::assertIsArray($autoload);
-        self::assertSame(
-            ['Pera\\Framework\\' => 'src/'],
-            $autoload['psr-4'] ?? null,
-        );
+        self::assertSame(['Pera\\Framework\\' => 'src/'], $autoload['psr-4'] ?? null);
+        $autoloadDev = $manifest['autoload-dev'] ?? null;
+        self::assertIsArray($autoloadDev);
+        self::assertSame(['Pera\\Framework\\Tests\\' => 'tests/'], $autoloadDev['psr-4'] ?? null);
         self::assertSame([
             'bin/scaffold-app',
             'bin/scaffold-kernel',
             'bin/scaffold-shared',
         ], $manifest['bin'] ?? null);
 
-        self::assertFileExists($root . '/packages/framework/bin/scaffold-transaction.php');
-        self::assertFileExists($root . '/packages/framework/bin/scaffold-template-files.php');
+        self::assertFileExists($root . '/bin/scaffold-transaction.php');
+        self::assertFileExists($root . '/bin/scaffold-template-files.php');
         foreach (['kernel', 'shared', 'app/bare', 'app/minimal', 'app/todo', 'app/layered'] as $template) {
-            self::assertDirectoryExists($root . '/packages/framework/templates/' . $template);
+            self::assertDirectoryExists($root . '/templates/' . $template);
         }
         foreach (['API.md', 'CHANGELOG.md', 'LICENSE', 'SECURITY.md'] as $releaseDocument) {
-            self::assertFileExists($root . '/packages/framework/' . $releaseDocument);
+            self::assertFileExists($root . '/' . $releaseDocument);
         }
+        foreach (['phpunit.xml', 'phpstan.neon'] as $developmentPath) {
+            self::assertFileExists($root . '/' . $developmentPath);
+        }
+        self::assertDirectoryExists($root . '/tests');
 
-        self::assertFileDoesNotExist(
-            $root . '/packages/framework/src/Installer/Composer/FrameworkInstallerPlugin.php',
-        );
+        self::assertFileDoesNotExist($root . '/src/Installer/Composer/FrameworkInstallerPlugin.php');
         self::assertDirectoryDoesNotExist($root . '/src/Framework');
     }
 

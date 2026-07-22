@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Scaffold;
+namespace Pera\Framework\Tests\Scaffold;
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +11,7 @@ final class ScaffoldProjectRootTest extends TestCase
     public function testComposerVendorBinaryGeneratesIntoRootProject(): void
     {
         $root = $this->temporaryRoot();
-        $projectRoot = dirname(__DIR__, 2);
+        $packageRoot = dirname(__DIR__, 2);
 
         try {
             mkdir($root . '/vendor', 0777, true);
@@ -21,7 +21,7 @@ final class ScaffoldProjectRootTest extends TestCase
             file_put_contents($proxy, sprintf(
                 "<?php\n\$GLOBALS['_composer_autoload_path'] = %s;\nrequire %s;\n",
                 var_export($root . '/vendor/autoload.php', true),
-                var_export($projectRoot . '/packages/framework/bin/scaffold-kernel', true),
+                var_export($packageRoot . '/bin/scaffold-kernel', true),
             ));
 
             $output = $this->executeCommand(command: [PHP_BINARY, $proxy]);
@@ -53,36 +53,21 @@ final class ScaffoldProjectRootTest extends TestCase
                 'App scaffolds intentionally do not generate a stateful Controller by default',
                 $readme,
             );
-            self::assertFileDoesNotExist($projectRoot . '/vendor/pera/framework/apps/kernel/config/application.php');
+            self::assertFileDoesNotExist($packageRoot . '/apps/kernel/config/application.php');
         } finally {
             $this->removeDirectory(path: $root);
         }
     }
 
-    public function testGeneratedKernelApplicationDoesNotDriftFromCurrentKernel(): void
-    {
-        $projectRoot = dirname(__DIR__, 2);
-
-        self::assertSame(
-            $this->read(path: $projectRoot . '/apps/kernel/src/Application.php'),
-            $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/Application.php'),
-        );
-        self::assertSame(
-            $this->read(path: $projectRoot . '/apps/kernel/src/ApplicationDefinition.php'),
-            $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/ApplicationDefinition.php'),
-        );
-    }
-
     public function testDirectPackageExecutionUsesRepositoryWorkingDirectory(): void
     {
+        $packageRoot = dirname(__DIR__, 2);
         /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
-        $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
-        $projectRoot = dirname(__DIR__, 2);
-        $packageRoot = $projectRoot . '/packages/framework';
+        $resolveProjectRoot = require $packageRoot . '/bin/scaffold-project-root.php';
 
         self::assertSame(
-            $projectRoot,
-            $resolveProjectRoot(null, $packageRoot, $projectRoot),
+            $packageRoot,
+            $resolveProjectRoot(null, $packageRoot, $packageRoot),
         );
     }
 
@@ -94,7 +79,7 @@ final class ScaffoldProjectRootTest extends TestCase
             self::assertTrue(mkdir($root . '/vendor/bin', recursive: true));
             self::assertNotFalse(file_put_contents($root . '/vendor/autoload.php', "<?php\n"));
             /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
-            $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
+            $resolveProjectRoot = require dirname(__DIR__, 2) . '/bin/scaffold-project-root.php';
 
             self::assertSame(
                 $root,
@@ -112,7 +97,7 @@ final class ScaffoldProjectRootTest extends TestCase
     public function testPackagedScriptDirectExecutionFallsBackToWorkingDirectory(): void
     {
         /** @var \Closure(?string, string, ?string): string $resolveProjectRoot */
-        $resolveProjectRoot = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-project-root.php';
+        $resolveProjectRoot = require dirname(__DIR__, 2) . '/bin/scaffold-project-root.php';
 
         self::assertSame(
             '/tmp/consumer-project',

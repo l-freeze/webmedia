@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Scaffold;
+namespace Pera\Framework\Tests\Scaffold;
 
 use Pera\Framework\Container\Container;
 use Pera\Framework\Logging\PlaceholderLogger;
@@ -77,10 +77,10 @@ final class ScaffoldSharedTest extends TestCase
 
     private function runScaffold(string $root): string
     {
-        $projectRoot = dirname(__DIR__, 2);
+        $packageRoot = dirname(__DIR__, 2);
         $command = implode(' ', [
             escapeshellarg(PHP_BINARY),
-            escapeshellarg($projectRoot . '/packages/framework/bin/scaffold-shared'),
+            escapeshellarg($packageRoot . '/bin/scaffold-shared'),
             '--root=' . escapeshellarg($root),
             '2>&1',
         ]);

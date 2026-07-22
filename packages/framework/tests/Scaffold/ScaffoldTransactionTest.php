@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Scaffold;
+namespace Pera\Framework\Tests\Scaffold;
 
 use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +20,7 @@ final class ScaffoldTransactionTest extends TestCase
         self::assertNotFalse(file_put_contents($root . '/composer.json', $originalComposer));
 
         try {
-            $helperPath = dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-transaction.php';
+            $helperPath = dirname(__DIR__, 2) . '/bin/scaffold-transaction.php';
             $runnerPath = $root . '/fail-generation.php';
             $runner = sprintf(<<<'PHP'
 <?php

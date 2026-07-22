@@ -6,5 +6,6 @@ parameters:
         - database
         - public
         - packages/framework/src
+        - packages/framework/tests
         - tests
     tmpDir: storage/phpstan

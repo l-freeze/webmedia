@@ -48,7 +48,10 @@ final class ScaffoldFilesystemTransaction
         return $this->stagingRoot;
     }
 
-    /** @param list<string> $paths @return list<string> */
+    /**
+     * @param list<string> $paths
+     * @return list<string>
+     */
     public function stagePaths(array $paths): array
     {
         $staged = [];
@@ -59,7 +62,10 @@ final class ScaffoldFilesystemTransaction
         return $staged;
     }
 
-    /** @param array<string, string> $files @return array<string, string> */
+    /**
+     * @param array<string, string> $files
+     * @return array<string, string>
+     */
     public function stageFiles(array $files): array
     {
         $staged = [];
@@ -131,6 +137,9 @@ final class ScaffoldFilesystemTransaction
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         foreach ($iterator as $item) {
+            if (!$item instanceof SplFileInfo) {
+                continue;
+            }
             $path = $item->getPathname();
             $item->isDir() ? rmdir($path) : unlink($path);
         }

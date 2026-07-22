@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Scaffold;
+namespace Pera\Framework\Tests\Scaffold;
 
 use Closure;
 use PHPUnit\Framework\TestCase;
@@ -229,7 +229,7 @@ JSON);
          *     messages: list<string>
          * } $sync
          */
-        $sync = require dirname(__DIR__, 2) . '/packages/framework/bin/scaffold-composer-requirements.php';
+        $sync = require dirname(__DIR__, 2) . '/bin/scaffold-composer-requirements.php';
 
         return $sync($root, $features);
     }

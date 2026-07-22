@@ -503,6 +503,8 @@ Frameworkのpublic namespaceは `Pera\Framework` とする。`App` namespaceは�
 
 FrameworkはComposer libraryとして配布する。Framework libraryのinstallはKernelの生成を暗黙に実行しない。Kernelを必要とする利用者だけがscaffoldを明示的に実行する。新規project向けには、Frameworkをrequireしたproject skeletonを別の配布単位として用意する。
 
+Composer package名は`pera/framework`とする。`pera`を作者個人の一packageではなく独立したFramework brandとし、将来の`pera/skeleton`等も同じvendor namespaceへ置ける形を優先する。GitのAuthor、Packagist maintainer、GitHub ownerは`l-freeze`のままでよく、Composer package名やPHP namespaceと一致させる必要はない。
+
 monorepo内でもFrameworkは`packages/framework`を自己完結したpackage rootとし、production code、独立manifest、明示scaffold binaryを同じ配布境界へ置く。webmedia rootはComposer path repositoryから`pera/framework`をrequireし、root PSR-4でFramework namespaceを直接autoloadしない。
 
 scaffoldで生成された `App\Kernel` は、生成直後から全て利用プロジェクトの所有物である。FrameworkはKernelへ依存せず、Framework updateも生成済みKernelを上書き・自動upgradeしない。
