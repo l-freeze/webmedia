@@ -14,6 +14,8 @@ use App\Cms\Domain\Value\HeroTitle;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
 use PDO;
+use PDOStatement;
+use RuntimeException;
 
 final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepository
 {
@@ -57,19 +59,6 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
     {
         $now = date('Y-m-d H:i:s');
 
-        $params = [
-            'site_name' => $settings->siteName->value,
-            'site_description' => $settings->siteDescription->value,
-            'contact_email' => $settings->contactEmail->value,
-            'front_theme' => $settings->frontTheme->value,
-            'search_enabled' => $settings->searchEnabled->value,
-            'hero_image' => $settings->heroImage->value,
-            'hero_title' => $settings->heroTitle->value,
-            'hero_description' => $settings->heroDescription->value,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ];
-
         $update = PdoHelper::prepare(pdo: $this->pdo, sql: '
             UPDATE site_settings SET
                 site_name = :site_name,
@@ -82,17 +71,9 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
                 hero_description = :hero_description,
                 updated_at = :updated_at
         ');
-        PdoHelper::execute(statement: $update, params: [
-            'site_name' => $params['site_name'],
-            'site_description' => $params['site_description'],
-            'contact_email' => $params['contact_email'],
-            'front_theme' => $params['front_theme'],
-            'search_enabled' => $params['search_enabled'],
-            'hero_image' => $params['hero_image'],
-            'hero_title' => $params['hero_title'],
-            'hero_description' => $params['hero_description'],
-            'updated_at' => $params['updated_at'],
-        ]);
+        $this->bindSettings(statement: $update, settings: $settings);
+        $this->bindValue(statement: $update, parameter: ':updated_at', value: $now, type: PDO::PARAM_STR);
+        PdoHelper::execute(statement: $update);
         if ($update->rowCount() > 0) {
             return;
         }
@@ -106,7 +87,29 @@ final readonly class PdoSettingRepository implements ISettingQuery, ISettingRepo
                 :hero_image, :hero_title, :hero_description, :created_at, :updated_at
             )
         ');
-        PdoHelper::execute(statement: $insert, params: $params);
+        $this->bindSettings(statement: $insert, settings: $settings);
+        $this->bindValue(statement: $insert, parameter: ':created_at', value: $now, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $insert, parameter: ':updated_at', value: $now, type: PDO::PARAM_STR);
+        PdoHelper::execute(statement: $insert);
+    }
+
+    private function bindSettings(PDOStatement $statement, SiteSettings $settings): void
+    {
+        $this->bindValue(statement: $statement, parameter: ':site_name', value: $settings->siteName->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':site_description', value: $settings->siteDescription->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':contact_email', value: $settings->contactEmail->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':front_theme', value: $settings->frontTheme->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':search_enabled', value: $settings->searchEnabled->value, type: PDO::PARAM_BOOL);
+        $this->bindValue(statement: $statement, parameter: ':hero_image', value: $settings->heroImage->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':hero_title', value: $settings->heroTitle->value, type: PDO::PARAM_STR);
+        $this->bindValue(statement: $statement, parameter: ':hero_description', value: $settings->heroDescription->value, type: PDO::PARAM_STR);
+    }
+
+    private function bindValue(PDOStatement $statement, string $parameter, string|bool $value, int $type): void
+    {
+        if (!$statement->bindValue($parameter, $value, $type)) {
+            throw new RuntimeException("Failed to bind site setting parameter: {$parameter}");
+        }
     }
 
     private static function boolValue(mixed $value, bool $default): bool

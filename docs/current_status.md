@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-21
+- 2026-07-22
 
 ## 現在地
 
@@ -14,6 +14,7 @@
 
 ## 直近作業
 
+- CMSサイト設定の検索機能は、他の設定項目との視覚的一貫性を優先して「有効／無効」の2択selectを維持する。HTTPの`1` / `0`はApplicationの`bool`へ変換し、DB schemaを知る`PdoSettingRepository`が保存parameterを明示bindする。`search_enabled`には`PDO::PARAM_BOOL`、文字列列には`PDO::PARAM_STR`を指定し、Shared `PdoHelper`はPHP値からDB型を推測しない。これによりPostgreSQL boolean列へ`false`が空文字として送られる500エラーを解消する。Controllerの有効/無効変換、SQLiteでのRepository insert/update、実PostgreSQLへのrollback付きfalse保存、PHPUnit 243 tests / 3700 assertions、PHPStan 743 filesを確認済み。
 - Framework scaffoldの生成sourceを`packages/framework/templates`配下のversion管理fileへ分離し、binaryは引数検証、依存レシピ、atomic publishだけを担う構造にした。未解決placeholderは生成前に拒否する。現行Kernelにだけあったwebmedia固有の暗黙`cms/front`定義を`Application`から除き、app合成の正本を`config/application.php`へ一本化した上で、現行Kernelと生成Kernelの`Application.php` / `ApplicationDefinition.php`完全一致をtestで固定した。古い生成Kernelに欠けていたmalformed requestの400応答化とroute metadata付与も同期した。Composer archiveにtemplate/helperが含まれること、PHPUnit 238 tests / 3682 assertions、PHPStan 741 files、root/packageの`composer validate --strict`を確認済み。
 - Framework packageへ`API.md`、`CHANGELOG.md`、`SECURITY.md`、archive用`.gitattributes`を追加し、公開API、pre-1.0と1.0以降の互換性、生成codeの非自動更新、脆弱性報告、配布除外方針をpackage自身へ明記した。Composer metadataへ検索keywordも追加した。公開前に利用者判断が必要なのはlicense、公開repository/security reporting URL、初回tagであり、project skeletonはFramework package完成後の別配布単位とする。
 - 全scaffoldを対象rootへ直接書かず、同じ`apps`配下の一時rootへ生成してdirectory renameで公開するtransactionを追加した。対象のKernel / Shared / app rootが既に存在すれば空でも非上書きで失敗し、生成・公開に失敗した場合は一時fileを削除してconsumer `composer.json`も実行前へ戻す。shutdown時のrollback testを追加し、PHPUnit 237 tests / 3537 assertions、PHPStan 741 files、root/packageの`composer validate --strict`を通過済み。
