@@ -7,10 +7,10 @@ declare(strict_types=1);
  * Scaffold an app under apps/{name}.
  *
  * Usage:
- *   php vendor/bin/scaffold-app api /api
+ *   php vendor/bin/scaffold-app site /
  *   php vendor/bin/scaffold-app api /api --template=bare
  *   php vendor/bin/scaffold-app todo /todo --template=todo
- *   php vendor/bin/scaffold-app api /api --template=layered
+ *   php vendor/bin/scaffold-app admin /admin --template=layered
  *   php vendor/bin/scaffold-app preview /preview --root=/tmp/example
  */
 

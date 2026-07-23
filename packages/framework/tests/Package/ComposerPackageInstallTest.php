@@ -295,9 +295,15 @@ use App\Layered\Application\Health\Show\Input as HealthInput;
 use App\Layered\Application\Health\Show\Interactor as HealthInteractor;
 use App\Todo\Application\Todo\ITodoRepository;
 use Pera\Framework\Container\Container;
+use Pera\Framework\Http\Middleware\CallableRequestHandler;
+use Pera\Framework\Http\Middleware\MiddlewarePipeline;
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
 use Pera\Framework\Routing\Router;
+use Pera\Framework\Security\CsrfMiddleware;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -348,9 +354,70 @@ $todos = $todo->get(ITodoRepository::class);
 if (!$todos instanceof ITodoRepository) {
     throw new RuntimeException('Todo repository binding is not executable.');
 }
-$todos->add('package install smoke test');
-if (count($todos->all()) !== 1) {
-    throw new RuntimeException('Todo SQLite persistence is not executable.');
+
+$sessionData = [];
+$todo->instance(
+    id: Session::class,
+    instance: new Session(
+        state: new SessionState(data: $sessionData),
+        runtime: new NativeSessionRuntime(),
+    ),
+);
+$todoRoutes = require __DIR__ . '/apps/todo/config/routes.php';
+$todoRouter = new Router(routes: $todoRoutes);
+$todoMiddleware = require __DIR__ . '/apps/todo/config/middleware.php';
+if (!is_array($todoMiddleware) || !in_array(CsrfMiddleware::class, $todoMiddleware, true)) {
+    throw new RuntimeException('Todo scaffold did not import the shared CSRF middleware.');
+}
+$todoDestination = new CallableRequestHandler(
+    handler: static fn (Request $request): Response => $todoRouter->dispatch(
+        request: $request,
+        container: $todo,
+    ),
+);
+$pipeline = new MiddlewarePipeline();
+
+$todoIndex = $pipeline->handle(
+    request: new Request(method: 'GET', path: '/todo', query: [], body: [], server: []),
+    container: $todo,
+    middleware: $todoMiddleware,
+    destination: $todoDestination,
+);
+$csrfToken = $sessionData['_csrf'] ?? null;
+if (
+    $todoIndex->status !== Response::HTTP_OK
+    || !is_string($csrfToken)
+    || $csrfToken === ''
+    || substr_count($todoIndex->body, 'name="_csrf"') !== 1
+    || !str_contains($todoIndex->body, 'value="' . $csrfToken . '"')
+) {
+    throw new RuntimeException('Todo scaffold did not render its CSRF-protected form.');
+}
+
+$rejected = $pipeline->handle(
+    request: new Request(method: 'POST', path: '/todo', query: [], body: ['title' => 'rejected'], server: []),
+    container: $todo,
+    middleware: $todoMiddleware,
+    destination: $todoDestination,
+);
+if ($rejected->status !== Response::HTTP_UNPROCESSABLE_ENTITY || count($todos->all()) !== 0) {
+    throw new RuntimeException('Todo scaffold accepted a POST without a CSRF token.');
+}
+
+$accepted = $pipeline->handle(
+    request: new Request(
+        method: 'POST',
+        path: '/todo',
+        query: [],
+        body: ['title' => 'package install smoke test', '_csrf' => $csrfToken],
+        server: [],
+    ),
+    container: $todo,
+    middleware: $todoMiddleware,
+    destination: $todoDestination,
+);
+if ($accepted->status !== Response::HTTP_FOUND || count($todos->all()) !== 1) {
+    throw new RuntimeException('Todo scaffold did not accept a valid CSRF-protected POST.');
 }
 PHP));
 

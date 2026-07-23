@@ -42,6 +42,11 @@ final class ScaffoldSharedTest extends TestCase
             self::assertFileDoesNotExist($root . '/apps/shared/src/Database/PdoHelper.php');
             self::assertFileDoesNotExist($root . '/apps/shared/src/Database/PdoRow.php');
 
+            $middleware = $this->read(path: $root . '/apps/shared/config/middleware.php');
+            self::assertStringContainsString('use Pera\\Framework\\Security\\CsrfMiddleware;', $middleware);
+            self::assertStringContainsString('CsrfMiddleware::class', $middleware);
+            self::assertStringContainsString("add CsrfMiddleware::class to each browser/session app's", $middleware);
+
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
             self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
             self::assertStringContainsString("composer update\n", $output . "\n");

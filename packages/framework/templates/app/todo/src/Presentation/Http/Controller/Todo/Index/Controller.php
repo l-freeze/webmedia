@@ -7,6 +7,7 @@ namespace App\{{ namespace }}\Presentation\Http\Controller\Todo\Index;
 use App\{{ namespace }}\Application\Todo\ITodoRepository;
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Csrf;
 use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
@@ -14,6 +15,7 @@ final readonly class Controller
     public function __construct(
         private ITodoRepository $todos,
         private ITemplateRenderer $renderer,
+        private Csrf $csrf,
     ) {
     }
 
@@ -29,6 +31,7 @@ final readonly class Controller
             'title' => '{{ name }} todos',
             'basePath' => '{{ viewBasePath }}',
             'todos' => $items,
+            'csrfToken' => $this->csrf->token(),
         ]));
     }
 }

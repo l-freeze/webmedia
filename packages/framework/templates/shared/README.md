@@ -4,7 +4,7 @@
 
 This scaffold is project setup. Run it once for a project, not once per controller or app.
 
-Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers are inserted from shared middleware.
+Framework stays thin: HTTP primitives, routing, container, middleware pipeline, runtime, and bootstrap live in Framework. Application requirements such as security headers and the decision to apply CSRF protection are inserted from project middleware.
 
 The default shared scaffold also includes a Latte implementation of the Framework template renderer interface. Framework defines only the renderer interface; the template engine implementation is application-side shared infrastructure.
 
@@ -21,6 +21,10 @@ Replace this binding with the PSR-3 logger used by the application, such as Mono
 `apps/shared/config/middleware.php` returns middleware class names that should be applied to every app that imports shared middleware.
 
 `vendor/bin/scaffold-app` generates `apps/{name}/config/middleware.php` so it reads this shared middleware list automatically.
+
+The initial shared list enables security headers and CSRF protection. Safe HTTP methods pass through `CsrfMiddleware` without starting native session storage. Form applications must render the Framework CSRF token as a body field named `_csrf`; the Todo scaffold is a working example.
+
+This browser-safe default keeps a newly generated form protected without requiring policy setup first. If the project later adds a stateless API, comment out or remove `CsrfMiddleware::class` from the shared list and add it explicitly to every browser/session application's `config/middleware.php`. An API that authenticates with cookies or other ambient credentials still requires CSRF protection.
 
 ## View
 

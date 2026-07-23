@@ -13,9 +13,8 @@ if (!is_array($sharedMiddleware)) {
 return [
     ...$sharedMiddleware,
 
-    // Shared middleware includes security headers and CSRF protection.
-    // CSRF is disabled when APP_ENV is stg, staging, dev, develop, development, or test.
-    // Exclude paths with CSRF_EXCLUDED_PATHS=/webhook/*,/api/external.
+    // Shared middleware defaults to security headers and CSRF protection.
+    // Its config/middleware.php explains how to split CSRF per app when needed.
     // Add app-specific middleware here.
     // Example: AppNameHeaderMiddleware::class,
     AppNameHeaderMiddleware::class,

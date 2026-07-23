@@ -117,7 +117,8 @@ final class ScaffoldAppTest extends TestCase
 
             $middleware = $this->read(path: $root . '/apps/mini-app/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
-            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
+            self::assertStringContainsString('split CSRF per app when needed', $middleware);
+            self::assertStringNotContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
@@ -188,7 +189,8 @@ final class ScaffoldAppTest extends TestCase
 
             $middleware = $this->read(path: $root . '/apps/todo/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
-            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
+            self::assertStringContainsString('split CSRF per app when needed', $middleware);
+            self::assertStringNotContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('YourMiddleware::class', $middleware);
 
@@ -200,6 +202,11 @@ final class ScaffoldAppTest extends TestCase
             self::assertStringNotContainsString('SELECT ', $indexController);
             self::assertStringNotContainsString('INSERT ', $indexController);
             self::assertStringNotContainsString('CREATE TABLE', $indexController);
+            self::assertStringContainsString('private Csrf $csrf', $indexController);
+            self::assertStringContainsString("'csrfToken' => \$this->csrf->token()", $indexController);
+
+            $template = $this->read(path: $root . '/apps/todo/templates/index.latte');
+            self::assertSame(2, substr_count($template, 'name="_csrf" value="{$csrfToken}"'));
 
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
             self::assertSame('*', $this->composerRuntimeRequirement(root: $root, package: 'ext-pdo'));
@@ -248,7 +255,8 @@ final class ScaffoldAppTest extends TestCase
 
             $middleware = $this->read(path: $root . '/apps/layered-app/config/middleware.php');
             self::assertStringContainsString('CSRF protection', $middleware);
-            self::assertStringContainsString('CSRF_EXCLUDED_PATHS', $middleware);
+            self::assertStringContainsString('split CSRF per app when needed', $middleware);
+            self::assertStringNotContainsString('CSRF_EXCLUDED_PATHS', $middleware);
             self::assertStringContainsString('Add app-specific middleware here.', $middleware);
             self::assertStringContainsString('AppNameHeaderMiddleware::class', $middleware);
 
