@@ -31,6 +31,7 @@ return static fn (ApplicationBootstrapConfig $config): IApplication => new Appli
     middlewarePipeline: $config->middlewarePipeline ?? new MiddlewarePipeline(),
     exceptionHandler: $config->exceptionHandler ?? new RethrowingExceptionHandler(),
     definitions: [
+        // <pera:applications>
         new ApplicationDefinition(
             name: 'minimal',
             pathPrefix: '/',
@@ -38,5 +39,6 @@ return static fn (ApplicationBootstrapConfig $config): IApplication => new Appli
             containerPath: '/apps/minimal/config/container.php',
             middlewarePath: '/apps/minimal/config/middleware.php',
         ),
+        // </pera:applications>
     ],
 );

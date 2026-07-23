@@ -34,6 +34,14 @@ final class ScaffoldProjectRootTest extends TestCase
             $requirements = $composer['require'] ?? [];
             self::assertIsArray($requirements);
             self::assertSame('^5.6', $requirements['vlucas/phpdotenv'] ?? null);
+            $autoload = $composer['autoload'] ?? [];
+            self::assertIsArray($autoload);
+            $psr4 = $autoload['psr-4'] ?? [];
+            self::assertIsArray($psr4);
+            self::assertSame('apps/kernel/src/', $psr4['App\\Kernel\\'] ?? null);
+            $applicationConfig = $this->read(path: $root . '/apps/kernel/config/application.php');
+            self::assertStringContainsString('// <pera:applications>', $applicationConfig);
+            self::assertStringContainsString('// </pera:applications>', $applicationConfig);
             $application = $this->read(path: $root . '/apps/kernel/src/Application.php');
             self::assertStringContainsString(
                 'use Pera\\Framework\\Application\\IApplication;',

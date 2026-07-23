@@ -15,6 +15,6 @@ The path and namespace are fixed:
 - `apps/kernel`
 - `App\Kernel`
 
-Add `ApplicationDefinition` entries in `apps/kernel/config/application.php`.
+`apps/kernel/config/application.php` contains Pera application markers. `vendor/bin/scaffold-app` registers new `ApplicationDefinition` entries between those markers. The file remains consumer-owned: if you remove the markers or replace the composition format, scaffold leaves it unchanged and prints the definition to add manually.
 
 `apps/kernel/config/application.php` loads `.env` when it exists. Framework does not read dotenv directly. Environment loading belongs to Kernel/project startup.

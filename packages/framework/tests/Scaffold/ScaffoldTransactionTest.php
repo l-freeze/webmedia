@@ -18,6 +18,10 @@ final class ScaffoldTransactionTest extends TestCase
         self::assertTrue(mkdir($root));
         $originalComposer = "{\n  \"name\": \"example/app\"\n}\n";
         self::assertNotFalse(file_put_contents($root . '/composer.json', $originalComposer));
+        self::assertTrue(mkdir($root . '/apps/kernel/config', recursive: true));
+        $kernelPath = $root . '/apps/kernel/config/application.php';
+        $originalKernel = "<?php\n\nreturn 'kernel';\n";
+        self::assertNotFalse(file_put_contents($kernelPath, $originalKernel));
 
         try {
             $helperPath = dirname(__DIR__, 2) . '/bin/scaffold-transaction.php';
@@ -29,14 +33,18 @@ declare(strict_types=1);
 
 $createTransaction = require %s;
 $transaction = $createTransaction(%s, %s);
+$transaction->watchFile(%s);
 file_put_contents(%s, "{\n  \"changed\": true\n}\n");
+file_put_contents(%s, "<?php\n\nreturn 'changed';\n");
 file_put_contents($transaction->stagingRoot() . '/partial.php', "<?php\n");
 exit(23);
 PHP,
                 var_export($helperPath, true),
                 var_export($root, true),
                 var_export($root . '/apps/example', true),
+                var_export($kernelPath, true),
                 var_export($root . '/composer.json', true),
+                var_export($kernelPath, true),
             );
             self::assertNotFalse(file_put_contents($runnerPath, $runner));
 
@@ -45,6 +53,7 @@ PHP,
 
             self::assertSame(23, $status, implode("\n", $lines));
             self::assertSame($originalComposer, file_get_contents($root . '/composer.json'));
+            self::assertSame($originalKernel, file_get_contents($kernelPath));
             self::assertDirectoryDoesNotExist($root . '/apps/example');
             $stagingDirectories = glob($root . '/apps/.pera-*');
             self::assertIsArray($stagingDirectories);

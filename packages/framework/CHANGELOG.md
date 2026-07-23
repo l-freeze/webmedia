@@ -12,9 +12,12 @@ The project follows Semantic Versioning after `1.0.0`. Before `1.0.0`, public AP
 - Explicit `scaffold-kernel`, `scaffold-shared`, and `scaffold-app` vendor binaries.
 - `bare`, DB-free `minimal`, SQLite-backed `todo`, and SQLite-backed `layered` app starters.
 - Generated-capability Composer recipes for Dotenv, Latte, PDO, and the SQLite PDO driver.
+- Automatic PSR-4 registration for generated Kernel, Shared, and app source roots.
+- Automatic app registration inside a marker-bounded standard Kernel configuration, with a non-mutating fallback for custom Kernels.
 - Atomic scaffold publishing with non-overwrite and rollback behavior.
 - Versioned Kernel, Shared, and app template files with strict placeholder rendering.
 - Runnable `bare` starter with one plain-text route and no Shared, template-engine, or database dependency.
+- Runnable `layered` contact flow with Latte rendering, Shared validation, and CSRF protection.
 - Lazy native Session startup on first state access.
 - Classic PHP and FrankenPHP worker runtimes.
 - HTTP, routing, middleware, DI container, CSRF, view contract, logging placeholder, and bounded synchronous process primitives.

@@ -8,11 +8,16 @@ use App\{{ namespace }}\Application\Contact\Submit\Input;
 use App\{{ namespace }}\Application\Contact\Submit\Interactor;
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Csrf;
+use Pera\Framework\View\ITemplateRenderer;
 
 final readonly class Controller
 {
-    public function __construct(private Interactor $interactor)
-    {
+    public function __construct(
+        private Interactor $interactor,
+        private ITemplateRenderer $renderer,
+        private Csrf $csrf,
+    ) {
     }
 
     /** @param array<string, string> $vars */
@@ -24,10 +29,17 @@ final readonly class Controller
             message: $request->input(key: 'message'),
         ));
 
-        return new Response(
-            body: json_encode($output->toArray(), JSON_THROW_ON_ERROR),
-            status: $output->accepted ? 201 : 422,
-            headers: ['Content-Type' => 'application/json; charset=utf-8'],
-        );
+        return new Response(body: $this->renderer->render(template: 'contact.latte', params: [
+            'title' => '{{ name }} contact',
+            'action' => '{{ contactPath }}',
+            'csrfToken' => $this->csrf->token(),
+            'values' => [
+                'name' => $request->input(key: 'name'),
+                'email' => $request->input(key: 'email'),
+                'message' => $request->input(key: 'message'),
+            ],
+            'error' => $output->validation->firstMessage(),
+            'accepted' => $output->accepted,
+        ]), status: $output->accepted ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }

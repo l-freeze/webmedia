@@ -21,13 +21,4 @@ final readonly class Output
     {
         return new self(accepted: false, validation: $validation);
     }
-
-    /** @return array{accepted:bool,error:?string} */
-    public function toArray(): array
-    {
-        return [
-            'accepted' => $this->accepted,
-            'error' => $this->validation->firstMessage(),
-        ];
-    }
 }

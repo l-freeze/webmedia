@@ -97,6 +97,10 @@ final class ComposerPackageInstallTest extends TestCase
             self::assertDirectoryDoesNotExist($consumerRoot . '/apps/shared');
             self::assertDirectoryDoesNotExist($consumerRoot . '/apps/bare');
             self::assertSame('^5.6', $this->consumerRequirement(root: $consumerRoot, package: 'vlucas/phpdotenv'));
+            self::assertSame(
+                'apps/kernel/src/',
+                $this->consumerPsr4Path(root: $consumerRoot, namespace: 'App\\Kernel\\'),
+            );
             self::assertArrayNotHasKey('vlucas/phpdotenv', $this->packageRequirements(root: $consumerRoot));
 
             $this->runCommand(
@@ -154,6 +158,21 @@ final class ComposerPackageInstallTest extends TestCase
             $this->runAppScaffold(root: $consumerRoot, name: 'layered', pathPrefix: '/layered', template: 'layered');
 
             $this->assertGeneratedRequirements(root: $consumerRoot);
+            foreach ([
+                'App\\Kernel\\' => 'apps/kernel/src/',
+                'App\\Shared\\' => 'apps/shared/src/',
+                'App\\Bare\\' => 'apps/bare/src/',
+                'App\\Minimal\\' => 'apps/minimal/src/',
+                'App\\Todo\\' => 'apps/todo/src/',
+                'App\\Layered\\' => 'apps/layered/src/',
+            ] as $namespace => $path) {
+                self::assertSame($path, $this->consumerPsr4Path(root: $consumerRoot, namespace: $namespace));
+            }
+            $kernelConfig = file_get_contents($consumerRoot . '/apps/kernel/config/application.php');
+            self::assertIsString($kernelConfig);
+            foreach (['bare', 'minimal', 'todo', 'layered'] as $name) {
+                self::assertStringContainsString("name: '{$name}'", $kernelConfig);
+            }
             $this->runCommand(
                 command: ['composer', 'update', '--no-interaction', '--no-progress', '--no-scripts', '--prefer-dist'],
                 workingDirectory: $consumerRoot,
@@ -161,6 +180,7 @@ final class ComposerPackageInstallTest extends TestCase
             $this->lintGeneratedPhp(root: $consumerRoot . '/apps');
             $this->analyseGeneratedPhp(consumerRoot: $consumerRoot);
             $this->verifyGeneratedContainers(root: $consumerRoot);
+            $this->verifyGeneratedApplication(root: $consumerRoot);
         } finally {
             $this->removeDirectory(path: $temporaryRoot);
         }
@@ -181,16 +201,6 @@ final class ComposerPackageInstallTest extends TestCase
             'require' => [
                 'php' => '>=8.5',
                 'pera/framework' => 'dev-main',
-            ],
-            'autoload' => [
-                'psr-4' => [
-                    'App\\Kernel\\' => 'apps/kernel/src/',
-                    'App\\Shared\\' => 'apps/shared/src/',
-                    'App\\Bare\\' => 'apps/bare/src/',
-                    'App\\Minimal\\' => 'apps/minimal/src/',
-                    'App\\Todo\\' => 'apps/todo/src/',
-                    'App\\Layered\\' => 'apps/layered/src/',
-                ],
             ],
             'config' => ['sort-packages' => true],
         ];
@@ -245,6 +255,22 @@ final class ComposerPackageInstallTest extends TestCase
         self::assertTrue($constraint === null || is_string($constraint));
 
         return $constraint;
+    }
+
+    private function consumerPsr4Path(string $root, string $namespace): ?string
+    {
+        $contents = file_get_contents($root . '/composer.json');
+        self::assertIsString($contents);
+        $manifest = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($manifest);
+        $autoload = $manifest['autoload'] ?? [];
+        self::assertIsArray($autoload);
+        $psr4 = $autoload['psr-4'] ?? [];
+        self::assertIsArray($psr4);
+        $path = $psr4[$namespace] ?? null;
+        self::assertTrue($path === null || is_string($path));
+
+        return $path;
     }
 
     /** @return array<string, mixed> */
@@ -441,6 +467,172 @@ $applicationFactory = require __DIR__ . '/apps/kernel/config/application.php';
 $application = $applicationFactory(new ApplicationBootstrapConfig(root: __DIR__));
 if (!$application instanceof IApplication) {
     throw new RuntimeException('Kernel scaffold did not build an application.');
+}
+PHP));
+
+        $this->runCommand(command: [PHP_BINARY, $verificationPath], workingDirectory: $root);
+    }
+
+    private function verifyGeneratedApplication(string $root): void
+    {
+        $verificationPath = $root . '/verify-application.php';
+        self::assertNotFalse(file_put_contents($verificationPath, <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use App\Kernel\Application;
+use Pera\Framework\Bootstrap\ApplicationBootstrapConfig;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\NativeSessionRuntime;
+use Pera\Framework\Security\Session;
+use Pera\Framework\Security\SessionState;
+
+require __DIR__ . '/vendor/autoload.php';
+
+$applicationFactory = require __DIR__ . '/apps/kernel/config/application.php';
+$application = $applicationFactory(new ApplicationBootstrapConfig(root: __DIR__));
+if (!$application instanceof Application) {
+    throw new RuntimeException('Generated Kernel did not build its concrete Application.');
+}
+
+$sessionData = [];
+$session = new Session(
+    state: new SessionState(data: $sessionData),
+    runtime: new NativeSessionRuntime(),
+);
+
+$bare = $application->handle(
+    request: new Request(method: 'GET', path: '/bare', query: [], body: [], server: []),
+    session: $session,
+);
+if ($bare->status !== Response::HTTP_OK || $bare->body !== 'Hello from bare.') {
+    throw new RuntimeException('Registered bare scaffold did not return HTTP 200.');
+}
+
+$minimal = $application->handle(
+    request: new Request(method: 'GET', path: '/minimal', query: [], body: [], server: []),
+    session: $session,
+);
+if (
+    $minimal->status !== Response::HTTP_OK
+    || !str_contains($minimal->body, 'minimal is running.')
+    || $sessionData !== []
+) {
+    throw new RuntimeException('Registered minimal scaffold was not a stateless HTTP 200 page.');
+}
+
+$health = $application->handle(
+    request: new Request(method: 'GET', path: '/layered/health', query: [], body: [], server: []),
+    session: $session,
+);
+if (
+    $health->status !== Response::HTTP_OK
+    || !str_contains($health->body, '"database":"ok"')
+    || ($health->headers['X-App-Name'] ?? null) !== 'layered'
+) {
+    throw new RuntimeException('Registered layered scaffold health route is not executable.');
+}
+
+$contact = $application->handle(
+    request: new Request(method: 'GET', path: '/layered/contact', query: [], body: [], server: []),
+    session: $session,
+);
+$csrfToken = $sessionData['_csrf'] ?? null;
+if (
+    $contact->status !== Response::HTTP_OK
+    || !is_string($csrfToken)
+    || $csrfToken === ''
+    || !str_contains($contact->body, 'name="_csrf" value="' . $csrfToken . '"')
+) {
+    throw new RuntimeException('Registered layered scaffold did not render its CSRF-protected form.');
+}
+
+$contactWithoutToken = $application->handle(
+    request: new Request(
+        method: 'POST',
+        path: '/layered/contact',
+        query: [],
+        body: ['name' => 'Pera', 'email' => 'pera@example.com', 'message' => 'Hello'],
+        server: [],
+    ),
+    session: $session,
+);
+if ($contactWithoutToken->status !== Response::HTTP_UNPROCESSABLE_ENTITY) {
+    throw new RuntimeException('Registered layered scaffold accepted a POST without CSRF.');
+}
+
+$invalidContact = $application->handle(
+    request: new Request(
+        method: 'POST',
+        path: '/layered/contact',
+        query: [],
+        body: ['name' => '', 'email' => '', 'message' => '', '_csrf' => $csrfToken],
+        server: [],
+    ),
+    session: $session,
+);
+if (
+    $invalidContact->status !== Response::HTTP_UNPROCESSABLE_ENTITY
+    || !str_contains($invalidContact->body, '名前を入力してください。')
+) {
+    throw new RuntimeException('Registered layered scaffold did not return its validation result.');
+}
+
+$acceptedContact = $application->handle(
+    request: new Request(
+        method: 'POST',
+        path: '/layered/contact',
+        query: [],
+        body: [
+            'name' => 'Pera',
+            'email' => 'pera@example.com',
+            'message' => 'Hello',
+            '_csrf' => $csrfToken,
+        ],
+        server: [],
+    ),
+    session: $session,
+);
+if (
+    $acceptedContact->status !== Response::HTTP_OK
+    || !str_contains($acceptedContact->body, '送信内容を受け付けました。')
+) {
+    throw new RuntimeException('Registered layered scaffold did not accept a valid form POST.');
+}
+
+$todo = $application->handle(
+    request: new Request(method: 'GET', path: '/todo', query: [], body: [], server: []),
+    session: $session,
+);
+if (
+    $todo->status !== Response::HTTP_OK
+    || !str_contains($todo->body, 'name="_csrf" value="' . $csrfToken . '"')
+) {
+    throw new RuntimeException('Registered Todo scaffold did not render its CSRF-protected form.');
+}
+
+$rejectedTodo = $application->handle(
+    request: new Request(method: 'POST', path: '/todo', query: [], body: ['title' => 'rejected'], server: []),
+    session: $session,
+);
+if ($rejectedTodo->status !== Response::HTTP_UNPROCESSABLE_ENTITY) {
+    throw new RuntimeException('Registered Todo scaffold accepted a POST without CSRF.');
+}
+
+$acceptedTodo = $application->handle(
+    request: new Request(
+        method: 'POST',
+        path: '/todo',
+        query: [],
+        body: ['title' => 'package E2E', '_csrf' => $csrfToken],
+        server: [],
+    ),
+    session: $session,
+);
+if ($acceptedTodo->status !== Response::HTTP_FOUND) {
+    throw new RuntimeException('Registered Todo scaffold did not accept a valid form POST.');
 }
 PHP));
 

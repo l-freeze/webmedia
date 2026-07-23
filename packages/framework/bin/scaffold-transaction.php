@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 final class ScaffoldFilesystemTransaction
 {
-    private readonly string $composerPath;
-
-    private readonly ?string $originalComposer;
-
     private readonly string $stagingRoot;
+
+    /** @var array<string, string|null> */
+    private array $originalFiles = [];
 
     private bool $committed = false;
 
     public function __construct(
         private readonly string $finalRoot,
-        string $projectRoot,
+        private readonly string $projectRoot,
     ) {
         if (file_exists($this->finalRoot)) {
             throw new RuntimeException("Refusing to overwrite existing scaffold root: {$this->finalRoot}");
@@ -30,13 +29,12 @@ final class ScaffoldFilesystemTransaction
             throw new RuntimeException("Failed to create scaffold staging directory: {$this->stagingRoot}");
         }
 
-        $this->composerPath = rtrim($projectRoot, '/\\') . '/composer.json';
-        $composerContents = is_file($this->composerPath) ? file_get_contents($this->composerPath) : null;
-        if ($composerContents === false) {
+        try {
+            $this->watchFile(path: rtrim($this->projectRoot, '/\\') . '/composer.json');
+        } catch (Throwable $throwable) {
             $this->removeStagingRoot();
-            throw new RuntimeException("Failed to read Composer manifest: {$this->composerPath}");
+            throw $throwable;
         }
-        $this->originalComposer = $composerContents;
 
         register_shutdown_function(function (): void {
             $this->rollback();
@@ -46,6 +44,23 @@ final class ScaffoldFilesystemTransaction
     public function stagingRoot(): string
     {
         return $this->stagingRoot;
+    }
+
+    public function watchFile(string $path): void
+    {
+        $projectRoot = rtrim($this->projectRoot, '/\\');
+        if ($path !== $projectRoot && !str_starts_with($path, $projectRoot . '/')) {
+            throw new InvalidArgumentException("Scaffold transaction file is outside the project root: {$path}");
+        }
+        if (array_key_exists($path, $this->originalFiles)) {
+            return;
+        }
+
+        $contents = is_file($path) ? file_get_contents($path) : null;
+        if ($contents === false) {
+            throw new RuntimeException("Failed to read project file: {$path}");
+        }
+        $this->originalFiles[$path] = $contents;
     }
 
     /**
@@ -94,7 +109,7 @@ final class ScaffoldFilesystemTransaction
             return;
         }
 
-        $this->restoreComposer();
+        $this->restoreFiles();
         $this->removeStagingRoot();
     }
 
@@ -107,22 +122,27 @@ final class ScaffoldFilesystemTransaction
         return $this->stagingRoot . substr($path, strlen($this->finalRoot));
     }
 
-    private function restoreComposer(): void
+    private function restoreFiles(): void
     {
-        if ($this->originalComposer === null) {
-            return;
-        }
-        $currentComposer = is_file($this->composerPath) ? file_get_contents($this->composerPath) : null;
-        if ($currentComposer === $this->originalComposer) {
-            return;
-        }
+        foreach ($this->originalFiles as $path => $originalContents) {
+            $currentContents = is_file($path) ? file_get_contents($path) : null;
+            if ($currentContents === $originalContents) {
+                continue;
+            }
+            if ($originalContents === null) {
+                if (is_file($path)) {
+                    unlink($path);
+                }
+                continue;
+            }
 
-        $temporaryPath = $this->composerPath . '.pera-rollback-' . bin2hex(random_bytes(6));
-        if (file_put_contents($temporaryPath, $this->originalComposer, LOCK_EX) === false) {
-            return;
-        }
-        if (!rename($temporaryPath, $this->composerPath) && is_file($temporaryPath)) {
-            unlink($temporaryPath);
+            $temporaryPath = $path . '.pera-rollback-' . bin2hex(random_bytes(6));
+            if (file_put_contents($temporaryPath, $originalContents, LOCK_EX) === false) {
+                continue;
+            }
+            if (!rename($temporaryPath, $path) && is_file($temporaryPath)) {
+                unlink($temporaryPath);
+            }
         }
     }
 

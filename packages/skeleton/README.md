@@ -35,7 +35,7 @@ docker compose run --rm app php vendor/bin/scaffold-app todo /todo --template=to
 docker compose run --rm app php vendor/bin/scaffold-app admin /admin --template=layered
 ```
 
-The command prints the `ApplicationDefinition` and PSR-4 entry that must be added to Kernel and `composer.json`. It also updates runtime dependency declarations required by the selected template. Run the Composer command printed by the scaffold after reviewing the manifest change.
+The command adds the generated namespace to root PSR-4 autoload and registers the app in the standard Kernel configuration. It also updates runtime dependency declarations required by the selected template. Run the Composer command printed by the scaffold so the new autoload metadata and dependencies are installed. If the consumer-owned Kernel has been customized by removing the Pera application markers, the command leaves it unchanged and prints the `ApplicationDefinition` to add manually.
 
 When PHP 8.5 is installed locally, the same commands can be run directly as `php vendor/bin/scaffold-app ...`.
 

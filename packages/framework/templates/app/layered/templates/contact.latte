@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$title}</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1f2937; }
+        form { display: grid; gap: 16px; }
+        label { display: grid; gap: 6px; font-weight: 600; }
+        input, textarea { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
+        textarea { min-height: 140px; resize: vertical; }
+        button { justify-self: start; padding: 10px 16px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
+        .success { padding: 12px; border-radius: 6px; background: #dcfce7; color: #166534; }
+        .error { padding: 12px; border-radius: 6px; background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <h1>{$title}</h1>
+
+    {if $accepted}
+        <p class="success">送信内容を受け付けました。</p>
+    {/if}
+    {if $error !== null}
+        <p class="error">{$error}</p>
+    {/if}
+
+    <form method="post" action="{$action}">
+        <input type="hidden" name="_csrf" value="{$csrfToken}">
+        <label>
+            名前
+            <input type="text" name="name" value="{$values['name']}" required>
+        </label>
+        <label>
+            メールアドレス
+            <input type="email" name="email" value="{$values['email']}" required>
+        </label>
+        <label>
+            内容
+            <textarea name="message" required>{$values['message']}</textarea>
+        </label>
+        <button type="submit">送信</button>
+    </form>
+</body>
+</html>

@@ -6,7 +6,9 @@ use App\{{ namespace }}\Domain\Repository\IHealthCheckRepository;
 use App\{{ namespace }}\Infrastructure\Database\ConnectionFactory;
 use App\{{ namespace }}\Infrastructure\Http\Middleware\AppNameHeaderMiddleware;
 use App\{{ namespace }}\Infrastructure\Persistence\PdoHealthCheckRepository;
+use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 use Pera\Framework\Container\Container;
+use Pera\Framework\View\ITemplateRenderer;
 
 $root = dirname(__DIR__, 3);
 $container = new Container();
@@ -22,5 +24,8 @@ $container->singleton(id: \PDO::class, factory: static fn (): \PDO => (new Conne
 ))->create());
 $container->bind(abstract: IHealthCheckRepository::class, concrete: PdoHealthCheckRepository::class);
 $container->singleton(id: AppNameHeaderMiddleware::class, factory: static fn (): AppNameHeaderMiddleware => new AppNameHeaderMiddleware(appName: '{{ name }}'));
+$container->singleton(id: ITemplateRenderer::class, factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
+    templateDirectory: $root . '/apps/{{ name }}/templates',
+));
 
 return $container;

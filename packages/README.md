@@ -73,6 +73,39 @@ docker compose run --rm \
   app composer --working-dir=/pera-packaging-test/my-app validate --strict
 ```
 
+## Verify app scaffolds from clean projects
+
+Do not validate several scaffold changes in one already-modified project. For each of `bare`, `minimal`, `todo`, and `layered`, repeat the path-repository `create-project`, Framework repository configuration, and `composer install` steps above with a new target such as:
+
+```text
+/home/yamamoto/pera-packaging-test/scaffold-bare
+/home/yamamoto/pera-packaging-test/scaffold-minimal
+/home/yamamoto/pera-packaging-test/scaffold-todo
+/home/yamamoto/pera-packaging-test/scaffold-layered
+```
+
+Then run exactly one scaffold in each fresh project through its installed vendor binary:
+
+```bash
+docker compose run --rm \
+  -v /home/yamamoto/pera-packaging-test:/pera-packaging-test \
+  app php /pera-packaging-test/scaffold-bare/vendor/bin/scaffold-app bare /bare --template=bare
+
+docker compose run --rm \
+  -v /home/yamamoto/pera-packaging-test:/pera-packaging-test \
+  app php /pera-packaging-test/scaffold-minimal/vendor/bin/scaffold-app site /site --template=minimal
+
+docker compose run --rm \
+  -v /home/yamamoto/pera-packaging-test:/pera-packaging-test \
+  app php /pera-packaging-test/scaffold-todo/vendor/bin/scaffold-app todo /todo --template=todo
+
+docker compose run --rm \
+  -v /home/yamamoto/pera-packaging-test:/pera-packaging-test \
+  app php /pera-packaging-test/scaffold-layered/vendor/bin/scaffold-app admin /admin --template=layered
+```
+
+Run the Composer command printed by each scaffold from that same project, followed by `composer validate --strict`, `composer test`, and `composer analyse`. Confirm that the new PSR-4 entry and `ApplicationDefinition` were added automatically and test the generated route through the real Kernel. The root integration test `SkeletonCreateProjectTest` automates this isolation: each template gets a separately copied Framework package, a separately copied Skeleton package, a fresh Composer install with `symlink:false`, one vendor-binary scaffold invocation, and Kernel-level HTTP verification.
+
 Start the generated project's own FrankenPHP environment separately:
 
 ```bash

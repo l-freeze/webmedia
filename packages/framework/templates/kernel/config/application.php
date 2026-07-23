@@ -8,6 +8,7 @@ use Pera\Framework\Http\ExceptionHandling\RethrowingExceptionHandler;
 use Pera\Framework\Http\Middleware\MiddlewarePipeline;
 use Pera\Framework\Security\NativeSessionRuntime;
 use App\Kernel\Application;
+use App\Kernel\ApplicationDefinition;
 use Dotenv\Dotenv;
 
 $root = dirname(__DIR__, 3);
@@ -30,5 +31,7 @@ return static fn (ApplicationBootstrapConfig $config): IApplication => new Appli
     middlewarePipeline: $config->middlewarePipeline ?? new MiddlewarePipeline(),
     exceptionHandler: $config->exceptionHandler ?? new RethrowingExceptionHandler(),
     definitions: [
+        // <pera:applications>
+        // </pera:applications>
     ],
 );

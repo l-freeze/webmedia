@@ -85,7 +85,7 @@
 | Architecture Test | 完了 | 依存方向テストあり | `Input` named arguments / Controller alias など追加検査候補 |
 | Composer package | 一部完了 | `pera/framework`の独立manifest、MIT License、production source、package所有のPHPUnit/PHPStan設定とtests、明示scaffold binary、root path repository利用、copied packageからの隔離Composer install E2E、public API / changelog / security / archive方針。installer pluginなし | 公開repository、private security reporting URL、CI・初回tag |
 | Project skeleton | 完了 | `pera/skeleton`の独立project manifest、MIT License、利用者所有のKernel / Shared / DBなしminimal、public entrypoint、Dotenv / Latte、PHPUnit / PHPStan、FrankenPHP worker用Compose / Caddy設定、ローカルpath packageからの`composer create-project`隔離E2E | 公開repositoryと初回tagはComposer packageの公開作業で扱う |
-| Scaffold | 完了 | Kernel / Shared / Appの`bare` / `minimal` / `todo` / `layered`、Frameworkだけでplain textを返す実行可能bare、Sharedのブラウザ向け既定CSRFとApp別へ分解する生成コメント、CSRF token付きTodo form、version管理された生成template、現行Kernelとのdrift検査、Dotenv / Latte / PDO / SQLite driverの生成機能別Composer依存レシピ、全vendor binaryのpackaged consumer E2E、一時root＋rename＋Composer rollbackによるatomic生成 | 将来予約のfullpack template |
+| Scaffold | 完了 | Kernel / Shared / Appの`bare` / `minimal` / `todo` / `layered`、Frameworkだけでplain textを返すbare、Latte＋CSRF＋validationで送信まで動くlayered、Sharedのブラウザ向け既定CSRFとApp別へ分解する生成コメント、CSRF token付きTodo form、version管理された生成template、生成namespaceのPSR-4自動登録、marker内だけに限定した標準KernelへのApp自動登録、独自Kernelの非変更fallback、Dotenv / Latte / PDO / SQLite driverの生成機能別Composer依存レシピ、各App templateを別々のまっさらなpath repository projectへinstallして実Kernel経由で検証するE2E、生成root＋Composer＋Kernel設定を戻すatomic transaction | 将来予約のfullpack template |
 
 ## docs 棚卸し
 

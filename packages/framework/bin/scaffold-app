@@ -50,15 +50,37 @@ if ($pathPrefix === '' || $pathPrefix[0] !== '/') {
     fwrite(STDERR, "Path prefix must start with \"/\".\n");
     exit(1);
 }
+if (preg_match('#^/(?:[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+)*)?/?$#D', $pathPrefix) !== 1) {
+    fwrite(STDERR, "Path prefix must contain only URL path segments using letters, digits, dot, underscore, tilde, or hyphen.\n");
+    exit(1);
+}
+$pathPrefix = rtrim($pathPrefix, '/');
+if ($pathPrefix === '') {
+    $pathPrefix = '/';
+}
 if (!in_array($template, ['bare', 'minimal', 'todo', 'layered'], true)) {
     fwrite(STDERR, "Template must be one of: bare, minimal, todo, layered.\n");
     exit(1);
+}
+if ($template !== 'bare') {
+    foreach ([
+        "{$root}/apps/shared/config/container.php",
+        "{$root}/apps/shared/config/middleware.php",
+    ] as $sharedConfigPath) {
+        if (!is_file($sharedConfigPath)) {
+            fwrite(
+                STDERR,
+                "Template {$template} requires the Shared scaffold. Run vendor/bin/scaffold-shared first. Missing: {$sharedConfigPath}\n",
+            );
+            exit(1);
+        }
+    }
 }
 
 $composerFeatures = match ($template) {
     'minimal' => ['latte'],
     'todo' => ['latte', 'pdo-sqlite'],
-    'layered' => ['pdo-sqlite'],
+    'layered' => ['latte', 'pdo-sqlite'],
     default => [],
 };
 $namespace = namespaceName(name: $name);
@@ -73,6 +95,17 @@ if ($basePath === '') {
 }
 $viewBasePath = $basePath === '/' ? '' : $basePath;
 $todoCompletePath = $viewBasePath . '/{id:[a-f0-9]+}/complete';
+$definition = <<<PHP
+new ApplicationDefinition(
+    name: '{$name}',
+    pathPrefix: '{$pathPrefix}',
+    routesPath: '/apps/{$name}/config/routes.php',
+    containerPath: '/apps/{$name}/config/container.php',
+    middlewarePath: '/apps/{$name}/config/middleware.php',
+),
+PHP;
+$autoloadNamespace = "App\\{$namespace}\\";
+$autoloadPath = "apps/{$name}/src/";
 
 /** @var Closure(string, array<string, string>): array<string, string> $loadTemplateFiles */
 $loadTemplateFiles = require __DIR__ . '/scaffold-template-files.php';
@@ -120,21 +153,54 @@ try {
 }
 $directories = $scaffoldTransaction->stagePaths(paths: $createdDirectories);
 $files = $scaffoldTransaction->stageFiles(files: $files);
+$kernelApplicationPath = "{$root}/apps/kernel/config/application.php";
+try {
+    $scaffoldTransaction->watchFile(path: $kernelApplicationPath);
+} catch (Throwable $throwable) {
+    fwrite(STDERR, "Failed to prepare Kernel application registration: {$throwable->getMessage()}\n");
+    exit(1);
+}
 
 /**
- * @var Closure(string, list<string>): array{
+ * @var Closure(string, list<string>, array<string, string>): array{
  *     required: array<string, string>,
  *     added: array<string, string>,
  *     present: array<string, string>,
+ *     autoloadRequired: array<string, string>,
+ *     autoloadAdded: array<string, string>,
+ *     autoloadPresent: array<string, string>,
  *     missingManifest: bool,
  *     messages: list<string>
  * } $syncComposerRequirements
  */
 $syncComposerRequirements = require __DIR__ . '/scaffold-composer-requirements.php';
 try {
-    $composerRequirementResult = $syncComposerRequirements($root, $composerFeatures);
+    $composerRequirementResult = $syncComposerRequirements(
+        $root,
+        $composerFeatures,
+        [$autoloadNamespace => $autoloadPath],
+    );
 } catch (Throwable $throwable) {
     fwrite(STDERR, "Failed to prepare scaffold Composer requirements: {$throwable->getMessage()}\n");
+    exit(1);
+}
+
+/**
+ * @var Closure(string, string, string, string): array{
+ *     registered: bool,
+ *     messages: list<string>
+ * } $registerKernelApplication
+ */
+$registerKernelApplication = require __DIR__ . '/scaffold-kernel-registration.php';
+try {
+    $kernelRegistrationResult = $registerKernelApplication(
+        $root,
+        $name,
+        $pathPrefix,
+        $definition,
+    );
+} catch (Throwable $throwable) {
+    fwrite(STDERR, "Failed to register scaffold application: {$throwable->getMessage()}\n");
     exit(1);
 }
 
@@ -145,17 +211,6 @@ foreach ($files as $path => $contents) {
     writeFile(path: $path, contents: $contents);
 }
 $scaffoldTransaction->commit();
-
-$definition = <<<PHP
-new ApplicationDefinition(
-    name: '{$name}',
-    pathPrefix: '{$pathPrefix}',
-    routesPath: '/apps/{$name}/config/routes.php',
-    containerPath: '/apps/{$name}/config/container.php',
-    middlewarePath: '/apps/{$name}/config/middleware.php',
-),
-PHP;
-$autoload = "\"App\\\\{$namespace}\\\\\": \"apps/{$name}/src/\"";
 
 echo "Created app scaffold: apps/{$name} ({$template})\n\n";
 echo "Created directories:\n";
@@ -191,10 +246,11 @@ if ($template === 'layered') {
     echo "- Domain/Entity: HealthCheck entity example.\n";
     echo "- Domain/Value: HealthMessage value object example.\n";
     echo "- Domain/Repository: HealthCheck repository interface.\n";
-    echo "- Presentation/Http/Controller: HTTP controller examples.\n";
+    echo "- Presentation/Http/Controller: Health JSON and CSRF-protected contact form examples.\n";
     echo "- Infrastructure/Http/Middleware: App-specific middleware example.\n";
     echo "- Infrastructure/Database: App-owned SQLite PDO connection factory.\n";
-    echo "- Infrastructure/Persistence: PDO repository example.\n\n";
+    echo "- Infrastructure/Persistence: PDO repository example.\n";
+    echo "- templates/contact.latte: Latte form with validation and success states.\n\n";
 }
 if ($template === 'todo') {
     echo "Todo starter:\n";
@@ -204,12 +260,9 @@ if ($template === 'todo') {
     echo "- Infrastructure/Database: App-owned SQLite PDO connection factory.\n";
     echo "- templates/index.latte: Latte view for the todo list.\n\n";
 }
-echo "Add this ApplicationDefinition to apps/kernel/config/application.php:\n\n";
-echo $definition . "\n\n";
-echo "Add this PSR-4 entry to composer.json when you add PHP classes under apps/{$name}/src:\n\n";
-echo $autoload . "\n\n";
-echo "Then run:\n\n";
-echo "composer dump-autoload\n";
+foreach ($kernelRegistrationResult['messages'] as $message) {
+    echo $message . "\n";
+}
 if ($composerRequirementResult['messages'] !== []) {
     echo "\n";
     foreach ($composerRequirementResult['messages'] as $message) {

@@ -66,17 +66,24 @@ $directories = $scaffoldTransaction->stagePaths(paths: $createdDirectories);
 $files = $scaffoldTransaction->stageFiles(files: $files);
 
 /**
- * @var Closure(string, list<string>): array{
+ * @var Closure(string, list<string>, array<string, string>): array{
  *     required: array<string, string>,
  *     added: array<string, string>,
  *     present: array<string, string>,
+ *     autoloadRequired: array<string, string>,
+ *     autoloadAdded: array<string, string>,
+ *     autoloadPresent: array<string, string>,
  *     missingManifest: bool,
  *     messages: list<string>
  * } $syncComposerRequirements
  */
 $syncComposerRequirements = require __DIR__ . '/scaffold-composer-requirements.php';
 try {
-    $composerRequirementResult = $syncComposerRequirements($root, ['dotenv']);
+    $composerRequirementResult = $syncComposerRequirements(
+        $root,
+        ['dotenv'],
+        ['App\\Kernel\\' => 'apps/kernel/src/'],
+    );
 } catch (Throwable $throwable) {
     fwrite(STDERR, "Failed to prepare scaffold Composer requirements: {$throwable->getMessage()}\n");
     exit(1);
@@ -100,9 +107,6 @@ echo "Created files:\n";
 foreach ($createdFiles as $path) {
     echo '- ' . relativePath(root: $root, path: $path) . "\n";
 }
-echo "\n";
-echo "Add this PSR-4 entry to composer.json when this is a new project:\n\n";
-echo "\"App\\\\Kernel\\\\\": \"apps/kernel/src/\"\n";
 if ($composerRequirementResult['messages'] !== []) {
     echo "\n";
     foreach ($composerRequirementResult['messages'] as $message) {

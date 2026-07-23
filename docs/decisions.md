@@ -525,7 +525,9 @@ scaffoldが外部packageやPHP extensionを直接参照するsourceを生成す�
 
 汎用Kernel scaffoldへPDO bindingやConnectionFactoryを生成しない。`bare`はShared、Latte、DBに依存せず、単一ControllerがFrameworkのplain text `Response`を返す最小実行例とする。`minimal`はDB非依存のLatte HTML例とする。DBありの`todo` / `layered`はapp自身のInfrastructureにConnectionFactory、storage、PDO bindingを生成し、DB選択と接続構成をapp所有に閉じる。webmedia固有KernelのPDO共有は、複数appが同じDBを使う当該projectのcomposition判断として別に扱う。
 
-scaffoldはroot `composer.json`だけを更新し、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`を案内し、不正なmanifestでは生成前に失敗する。
+scaffoldは生成rootに加えてroot `composer.json`のruntime依存とPSR-4 autoloadを更新するが、依存解決、download、`composer.lock`更新を内側から実行しない。更新が必要な場合は実行者へ`composer update`または`composer dump-autoload`を表示し、既存lockがあれば追加packageだけへ更新範囲を限定する。manifestが無いrootへの生成は許可して`composer require`とPSR-4 entryを案内し、不正なmanifestや競合するnamespace mappingでは生成前に失敗する。
+
+App scaffoldは、標準Kernelの`apps/kernel/config/application.php`に明示した管理marker内だけへ`ApplicationDefinition`を追加する。これはscaffoldを明示実行した利用者が期待する定型配線であり、Composer install時の暗黙生成とは別である。markerがない利用者独自Kernelは一切変更せず、追加すべきdefinitionだけを表示する。生成root、Composer manifest、標準Kernel設定は同じscaffold transactionで扱い、公開前の失敗時は全て実行前へ戻す。
 
 PSRの採用範囲は既存のFramework各READMEとtechnical stackを正とする。package化だけを理由にPSR-7 / PSR-15等への移行を新しい残作業にはしない。
 
@@ -542,6 +544,7 @@ Framework packageはComposer installer pluginを持たない。install時にKern
 - 環境読み込みをSharedへ置くと、複数appが利用する共有サービス層がprocess全体の初期化順序まで所有してしまう。Kernelなら起動時の一回だけに限定できる。
 - 生成sourceとroot依存を同じ機能レシピで扱えば、Latteを使わない利用者へ不要なpackageを課さず、Latteを生成した利用者のmanifest不足も防げる。
 - scaffold内からComposerを再帰実行しなければ、network、lock全体の再解決、plugin/script実行を暗黙の副作用にせず、利用者が明示的に確認できる。
+- PSR-4と標準Kernel登録まで定型化すれば、生成しただけでは起動できないstarterや、手作業を前提にしたE2Eの見落としを防げる。管理markerの外側を変更しないことで利用者所有のcomposition境界は維持する。
 - 明示commandまたはproject skeletonなら、Composer pluginによる暗黙のfilesystem変更と `allow-plugins` 依存を避けられる。
 
 ### 採用しないこと

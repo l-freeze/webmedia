@@ -163,6 +163,80 @@ JSON);
         }
     }
 
+    public function testPsr4EntryIsAddedAndSecondRunIsIdempotent(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "require": {
+    "php": "^8.5"
+  }
+}
+JSON);
+
+            $result = $this->sync(
+                root: $root,
+                features: [],
+                psr4: ['App\\Todo\\' => 'apps/todo/src/'],
+            );
+
+            self::assertSame(['App\\Todo\\' => 'apps/todo/src/'], $result['autoloadAdded']);
+            self::assertContains('composer dump-autoload', $result['messages']);
+            self::assertSame('apps/todo/src/', $this->psr4Path(root: $root, namespace: 'App\\Todo\\'));
+
+            $before = $this->read(path: $root . '/composer.json');
+            $secondResult = $this->sync(
+                root: $root,
+                features: [],
+                psr4: ['App\\Todo\\' => 'apps/todo/src/'],
+            );
+
+            self::assertSame([], $secondResult['autoloadAdded']);
+            self::assertSame(['App\\Todo\\' => 'apps/todo/src/'], $secondResult['autoloadPresent']);
+            self::assertSame([], $secondResult['messages']);
+            self::assertSame($before, $this->read(path: $root . '/composer.json'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
+    public function testConflictingPsr4EntryIsRejectedWithoutRewritingManifest(): void
+    {
+        $root = $this->temporaryRoot();
+
+        try {
+            $this->writeComposer($root, <<<'JSON'
+{
+  "name": "example/app",
+  "autoload": {
+    "psr-4": {
+      "App\\Todo\\": "src/Todo/"
+    }
+  }
+}
+JSON);
+            $before = $this->read(path: $root . '/composer.json');
+
+            try {
+                $this->sync(
+                    root: $root,
+                    features: [],
+                    psr4: ['App\\Todo\\' => 'apps/todo/src/'],
+                );
+                self::fail('Conflicting PSR-4 entry should fail.');
+            } catch (RuntimeException $exception) {
+                self::assertStringContainsString('already mapped to a different path', $exception->getMessage());
+            }
+
+            self::assertSame($before, $this->read(path: $root . '/composer.json'));
+        } finally {
+            $this->removeDirectory(path: $root);
+        }
+    }
+
     public function testMissingManifestReturnsExplicitRequireCommandWithoutCreatingOne(): void
     {
         $root = $this->temporaryRoot();
@@ -210,28 +284,35 @@ JSON);
 
     /**
      * @param list<string> $features
+     * @param array<string, string> $psr4
      * @return array{
      *     required: array<string, string>,
      *     added: array<string, string>,
      *     present: array<string, string>,
+     *     autoloadRequired: array<string, string>,
+     *     autoloadAdded: array<string, string>,
+     *     autoloadPresent: array<string, string>,
      *     missingManifest: bool,
      *     messages: list<string>
      * }
      */
-    private function sync(string $root, array $features): array
+    private function sync(string $root, array $features, array $psr4 = []): array
     {
         /**
-         * @var Closure(string, list<string>): array{
+         * @var Closure(string, list<string>, array<string, string>): array{
          *     required: array<string, string>,
          *     added: array<string, string>,
          *     present: array<string, string>,
+         *     autoloadRequired: array<string, string>,
+         *     autoloadAdded: array<string, string>,
+         *     autoloadPresent: array<string, string>,
          *     missingManifest: bool,
          *     messages: list<string>
          * } $sync
          */
         $sync = require dirname(__DIR__, 2) . '/bin/scaffold-composer-requirements.php';
 
-        return $sync($root, $features);
+        return $sync($root, $features, $psr4);
     }
 
     /** @return array<string, mixed> */
@@ -253,6 +334,19 @@ JSON);
         self::assertTrue($constraint === null || is_string($constraint));
 
         return $constraint;
+    }
+
+    private function psr4Path(string $root, string $namespace): ?string
+    {
+        $composer = $this->composer(root: $root);
+        $autoload = $composer['autoload'] ?? [];
+        self::assertIsArray($autoload);
+        $psr4 = $autoload['psr-4'] ?? [];
+        self::assertIsArray($psr4);
+        $path = $psr4[$namespace] ?? null;
+        self::assertTrue($path === null || is_string($path));
+
+        return $path;
     }
 
     private function read(string $path): string

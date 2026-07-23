@@ -48,7 +48,12 @@ final class ScaffoldSharedTest extends TestCase
             self::assertStringContainsString("add CsrfMiddleware::class to each browser/session app's", $middleware);
 
             self::assertSame('^3.0', $this->composerRuntimeRequirement(root: $root, package: 'latte/latte'));
+            self::assertSame(
+                'apps/shared/src/',
+                $this->composerPsr4Path(root: $root, namespace: 'App\\Shared\\'),
+            );
             self::assertStringContainsString('Updated composer.json runtime requirements:', $output);
+            self::assertStringContainsString('Updated composer.json PSR-4 autoload:', $output);
             self::assertStringContainsString("composer update\n", $output . "\n");
         } finally {
             $this->removeDirectory(path: $root);
@@ -78,6 +83,21 @@ final class ScaffoldSharedTest extends TestCase
         self::assertTrue($constraint === null || is_string($constraint));
 
         return $constraint;
+    }
+
+    private function composerPsr4Path(string $root, string $namespace): ?string
+    {
+        $contents = $this->read(path: $root . '/composer.json');
+        $composer = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        $autoload = $composer['autoload'] ?? [];
+        self::assertIsArray($autoload);
+        $psr4 = $autoload['psr-4'] ?? [];
+        self::assertIsArray($psr4);
+        $path = $psr4[$namespace] ?? null;
+        self::assertTrue($path === null || is_string($path));
+
+        return $path;
     }
 
     private function runScaffold(string $root): string

@@ -20,9 +20,9 @@ Composerが生成したvendor binary proxyから実行した場合は、Composer
 
 ## File Ownership and Atomicity
 
-各scaffoldは`apps/kernel`、`apps/shared`、`apps/{name}`のroot全体を一度だけ生成します。対象rootが既に存在する場合は、空directoryであっても書き込まずに失敗します。既存fileへ部分的に追加するcommandではありません。
+各scaffoldは`apps/kernel`、`apps/shared`、`apps/{name}`のroot全体を一度だけ生成します。対象rootが既に存在する場合は、空directoryであっても書き込まずに失敗します。生成対象root内の既存fileへ部分的に追加するcommandではありません。project wiringとして変更する既存fileは、root `composer.json`と、後述の管理markerを持つ標準Kernelの`apps/kernel/config/application.php`だけです。
 
-生成中は同じ`apps`directory内の一時rootへ全fileを書き、完了後にdirectory renameで対象rootとして公開します。生成または公開に失敗した場合は一時rootを削除し、その実行で変更したconsumer `composer.json`も開始前の内容へ戻します。したがって失敗後は半端な生成物を手で選別せず再実行できます。生成完了後のsourceは利用者所有であり、Framework updateは上書きしません。
+生成中は同じ`apps`directory内の一時rootへ全fileを書き、完了後にdirectory renameで対象rootとして公開します。生成または公開に失敗した場合は一時rootを削除し、その実行で変更したconsumer `composer.json`と標準Kernelのapplication設定も開始前の内容へ戻します。したがって失敗後は半端な生成物を手で選別せず再実行できます。生成完了後のsourceは利用者所有であり、Framework updateは上書きしません。
 
 ## Template Sources
 
@@ -43,11 +43,11 @@ scaffoldが外部packageやPHP extensionを参照するファイルを生成す�
 | `scaffold-app --template=bare` | なし |
 | `scaffold-app --template=minimal` | `latte/latte:^3.0` |
 | `scaffold-app --template=todo` | `latte/latte:^3.0`、`ext-pdo:*`、`ext-pdo_sqlite:*` |
-| `scaffold-app --template=layered` | `ext-pdo:*`、`ext-pdo_sqlite:*` |
+| `scaffold-app --template=layered` | `latte/latte:^3.0`、`ext-pdo:*`、`ext-pdo_sqlite:*` |
 
-root `composer.json`がある場合は、生成機能に合わせて`require`を更新します。既に`require`にある制約は上書きしません。`require-dev`にだけある場合は、その制約を維持したまま`require`へ移します。
+root `composer.json`がある場合は、生成機能に合わせて`require`と生成sourceのPSR-4 autoloadを更新します。既に`require`にある制約は上書きしません。`require-dev`にだけある場合は、その制約を維持したまま`require`へ移します。同じnamespaceが異なるpathへ登録済みなら、利用者のautoload判断を上書きせずscaffold全体を失敗させます。
 
-scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`vendor`も変更しません。manifestを更新した場合は、既存の`composer.lock`があれば追加した依存だけに限定した`composer update`、まだlockがなければ初回の`composer update`を表示します。`composer.json`がないrootへの生成は許可し、代わりに必要な`composer require`を表示します。依存を生成しない`bare`はmanifestを読み書きしません。
+scaffold自身は依存解決やdownloadを実行せず、`composer.lock`と`vendor`も変更しません。runtime依存を追加した場合は、既存の`composer.lock`があれば追加packageだけに限定した`composer update`、まだlockがなければ初回の`composer update`を表示します。PSR-4だけを追加した場合は`composer dump-autoload`を表示します。`composer.json`がないrootへの生成は許可し、代わりに必要な`composer require`とPSR-4 entryを表示します。`bare`は追加runtime依存を持ちませんが、生成したApp namespaceのPSR-4 entryは追加します。
 
 この依存は生成codeを所有するconsumer projectの依存です。Framework package自体の`require`へLatteを含める理由にはしません。
 
@@ -75,7 +75,7 @@ namespace を任意指定する option は用意しません。Framework は Ker
 
 生成される `apps/kernel/config/application.php` は、先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel/project startup の責務です。
 
-Dotenvは標準Kernelの起動機能として扱い、Sharedからは`.env`を読み込みません。`scaffold-kernel`は生成sourceに合わせてconsumer rootのruntime依存へ`vlucas/phpdotenv:^5.6`を追加します。
+Dotenvは標準Kernelの起動機能として扱い、Sharedからは`.env`を読み込みません。`scaffold-kernel`は生成sourceに合わせてconsumer rootのruntime依存へ`vlucas/phpdotenv:^5.6`を、PSR-4 autoloadへ`App\Kernel\ => apps/kernel/src/`を追加します。
 
 生成されるKernelはRequestごとに遅延 `Session` を登録します。native PHP SessionはmiddlewareやControllerがsession stateへ初めてアクセスしたときだけ開始するため、Sessionを使わないappやrouteの設定は不要です。Kernelはrequest終了時のcloseを常に行い、未開始ならno-opになります。
 
@@ -106,6 +106,8 @@ php vendor/bin/scaffold-app site /
 
 `routes.php` はそのアプリの route 定義を置く場所です。全templateが、生成直後にHTTP responseを確認できるrouteを少なくとも1つ持ちます。
 
+生成したApp namespaceはroot `composer.json`のPSR-4 autoloadへ追加します。標準Kernelの`apps/kernel/config/application.php`に管理markerがある場合は、その範囲へ`ApplicationDefinition`も自動登録します。生成済みKernelは利用者所有なので、markerを削除した独自Kernelや別のcomposition構造は変更せず、必要なdefinitionだけを標準出力へ表示します。これにより標準projectは定型的な配線作業なしで進められ、独自Kernelの境界もscaffoldに侵食されません。
+
 ## Templates
 
 ### bare
@@ -118,7 +120,7 @@ php vendor/bin/scaffold-app api /api --template=bare
 
 `config/routes.php`には`GET <path-prefix>`を生成し、`src/Presentation/Http/Controller/Index/Controller.php`は`text/plain`のFramework `Response`を返します。生の文字列をRouterへ返さないため、Controller / Framework間のresponse境界は他templateと同じです。
 
-Shared、DB、template engine、`ITemplateRenderer` bindingには依存せず、consumer `composer.json`へ追加依存も書き込みません。Frameworkのrouting、DI、HTTP responseまでを最短で確認したい場合に使います。
+Shared、DB、template engine、`ITemplateRenderer` bindingには依存せず、consumer `composer.json`へ追加runtime依存も書き込みません。生成AppのPSR-4 entryは他templateと同様に追加します。Frameworkのrouting、DI、HTTP responseまでを最短で確認したい場合に使います。
 
 ### minimal
 
@@ -156,12 +158,13 @@ php vendor/bin/scaffold-app admin /admin --template=layered
 - `src/Domain/Entity`: Entity の例
 - `src/Domain/Value`: Value Object の例
 - `src/Domain/Repository`: Repository interface の例
-- `src/Presentation/Http/Controller`: Controller の例
+- `src/Presentation/Http/Controller`: JSON health checkとcontact formのController例
 - `src/Infrastructure/Http/Middleware`: アプリ固有 middleware の例
 - `src/Infrastructure/Database`: app所有のSQLite PDO connection factory
 - `src/Infrastructure/Persistence`: PDO repository 実装の例
+- `templates/contact.latte`: CSRF token、入力値、validation error、成功状態を表示するform
 
-`layered`は一通り揃ったDBありスターターです。SQLite databaseと`PDO::class` bindingはapp自身が所有し、KernelへPDO設定を要求しません。middlewareなし、DBなしのような細かい分類は用意していません。薄く始めたい場合は`minimal`を使います。
+`layered`は一通り揃ったDBありスターターです。`GET <path-prefix>/health`でDB-backed health response、`GET/POST <path-prefix>/contact`でCSRF付きHTML formと入力検証を確認できます。SQLite databaseと`PDO::class` bindingはapp自身が所有し、KernelへPDO設定を要求しません。middlewareなし、DBなしのような細かい分類は用意していません。薄く始めたい場合は`minimal`を使います。
 
 ### todo
 
@@ -184,8 +187,6 @@ php vendor/bin/scaffold-app todo /todo --template=todo
 ### future: fullpack
 
 `fullpack` は、policy、guard、audit、permission、role などの設計が充実してきた段階で追加する全部載せ template の予約名です。現時点では有効な `--template` 値ではありません。
-
-コマンドは `apps/kernel/config/application.php` やComposerのPSR-4 autoloadを自動編集しません。生成後に追加する `ApplicationDefinition` と PSR-4 autoload の例を表示します。生成物が必要とする外部packageだけは、前述の依存レシピに従ってroot `composer.json`へ反映します。これは、application登録とautoload設定を利用者の合成判断として残しつつ、生成したsourceとpackage依存の不整合を防ぐためです。
 
 テスト用に別 root へ生成する場合は `--root` を指定できます。
 
@@ -227,7 +228,7 @@ CSRFはブラウザ／Sessionアプリケーションに安全な初期値とし
 
 `LatteTemplateRenderer` は Framework の `ITemplateRenderer` interface に対する標準実装です。Framework 本体は template engine を決めませんが、scaffold はデフォルトの view 実装として Latte を生成します。
 
-この生成物に合わせ、`scaffold-shared`はconsumer projectのruntime依存へ`latte/latte:^3.0`を追加します。Framework package自体へは追加しません。manifest更新後のinstall手順は「Composer Dependencies」を参照してください。
+この生成物に合わせ、`scaffold-shared`はconsumer projectのruntime依存へ`latte/latte:^3.0`を、PSR-4 autoloadへ`App\Shared\ => apps/shared/src/`を追加します。Framework package自体へLatteを追加しません。manifest更新後のinstall手順は「Composer Dependencies」を参照してください。
 
 scaffold が生成する `LatteTemplateRenderer` は、Latte の compiled view cache をデフォルトでは有効にしません。worker mode では一度ロードされた template class が PHP process 内に残るため、compiled view cache は基本不要です。classic / non-worker runtime で使う場合だけ、app container から `cacheDirectory` を明示的に渡してください。
 
