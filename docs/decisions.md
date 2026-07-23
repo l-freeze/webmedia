@@ -515,6 +515,12 @@ Framework packageの依存はFramework production codeが直接使うものに�
 
 正式なscaffold support対象はKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。特定templateだけをpackage導入経路から外さず、packaged artifactからのconsumer E2Eで各生成契約を検証する。予約名の`fullpack`は実装されるまでsupport対象ではない。
 
+新規project用の`pera/skeleton`は`packages/skeleton`を自己完結したMIT LicenseのComposer project packageとして持つ。Skeletonは利用者所有のKernel、Shared、DBなしの`minimal` app、public entrypoint、Dotenv、Latte、PHPUnit / PHPStan、汎用FrankenPHP worker開発設定を含める。PDO、DB driver、migration tool、webmedia固有CMS / Front / infrastructureは含めない。
+
+SkeletonのKernel / Shared / minimalは配布物へ生成済みsourceとして収録する。`composer create-project pera/skeleton`はComposer標準のproject展開とdependency installだけを行い、scaffold、Composer installer plugin、post-create scriptによる暗黙のfilesystem生成を行わない。作成後の全project fileと`composer.lock`は利用者が所有する。追加appだけを明示的な`vendor/bin/scaffold-app`で生成する。
+
+Shared scaffoldは、ブラウザ／Sessionアプリケーションに安全な初期値としてSecurity HeadersとCSRFを共通middlewareへ含める。safe methodではCSRF middleware自体がSession stateへアクセスしないため、DBなしMinimalのGETはstatelessのまま維持する。後からstateless APIを追加するprojectは、利用者所有のSharedからCSRFを外し、ブラウザ／Sessionを使う各Appの`middleware.php`へ明示的に移す。Frameworkは`Csrf`と`CsrfMiddleware`の仕組みだけを所有し、適用policyは生成projectが所有する。
+
 scaffoldが外部packageやPHP extensionを直接参照するsourceを生成する場合は、生成機能とComposer依存を同じレシピで対応付ける。KernelはDotenv、SharedとHTML templateはLatte、PDOを使う`todo` / `layered`はPDOとSQLite driverをconsumer rootのruntime `require`へ追加する。既存のruntime制約は利用者の判断として維持し、`require-dev`にだけある制約はruntimeへ移す。
 
 汎用Kernel scaffoldへPDO bindingやConnectionFactoryを生成しない。`bare`はShared、Latte、DBに依存せず、単一ControllerがFrameworkのplain text `Response`を返す最小実行例とする。`minimal`はDB非依存のLatte HTML例とする。DBありの`todo` / `layered`はapp自身のInfrastructureにConnectionFactory、storage、PDO bindingを生成し、DB選択と接続構成をapp所有に閉じる。webmedia固有KernelのPDO共有は、複数appが同じDBを使う当該projectのcomposition判断として別に扱う。

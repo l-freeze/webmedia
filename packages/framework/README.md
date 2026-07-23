@@ -30,6 +30,8 @@ For example, malformed global request input is represented by a Framework HTTP e
 
 `Csrf` and `CsrfMiddleware` are kept in the Framework because CSRF protection is a normal safety rule for session-backed web forms. The session key name is also fixed by the Framework. Users should not have to choose this rule before they can build a safe form. Applications decide whether to apply the middleware and which paths to exclude.
 
+The generated Shared scaffold enables `CsrfMiddleware` as a browser-safe project default. If a project later adds a stateless API, it can remove that shared entry and list `CsrfMiddleware` explicitly in each browser/session application's middleware configuration. Framework still owns only the primitive; the generated project owns the application policy.
+
 `PlaceholderLogger` is kept in the Framework because missing logging should fail explicitly. The default Shared scaffold binds `Psr\Log\LoggerInterface` to it as a temporary starting point, and applications replace that binding with their real PSR-3 logger. If an application wants to discard logs, it should bind `Psr\Log\LoggerInterface` to an intentional null logger. Silent absence is not the default path.
 
 `Session` and flash values are kept in the Framework because session state and post-redirect-get flash messages are basic web primitives. Application code still owns the flash key names, messages, and display policy. A request-scoped native `Session` starts PHP session storage only on first state access. Constructing `Session` or passing a safe request through `CsrfMiddleware` does not make an otherwise stateless response stateful. See `src/Security/README.md` for the smallest Controller example, application-owned Session state, CSRF, testing, and worker lifecycle.
@@ -143,7 +145,15 @@ Generated source is stored as versioned files under `templates/`. The binary scr
 
 ## Composer Package
 
-`pera/framework` contains Framework code and the explicit scaffold commands. Installing the Framework library alone does not create Kernel or Shared automatically. A user who wants the standard project shape runs the scaffold commands explicitly; a new-project skeleton may run the same setup as part of project creation.
+`pera/framework` contains Framework code and the explicit scaffold commands. Installing the Framework library alone does not create Kernel or Shared automatically. A user who wants the standard project shape in an existing project runs the scaffold commands explicitly.
+
+For a new project, `pera/skeleton` contains a ready-to-run, consumer-owned Kernel, Shared layer, and database-free Minimal application:
+
+```bash
+composer create-project pera/skeleton my-app
+```
+
+The Skeleton ships these files as versioned project source; `create-project` does not run scaffold commands or an installer plugin behind the scenes. Additional `bare`, `minimal`, `todo`, and `layered` applications remain available through `vendor/bin/scaffold-app`.
 
 Generated Kernel code belongs entirely to the consuming project. It remains under `App\Kernel`, is optional, and is never overwritten or upgraded by a Framework package update.
 

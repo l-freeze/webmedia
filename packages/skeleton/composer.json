@@ -1,0 +1,42 @@
+{
+  "name": "pera/skeleton",
+  "description": "A ready-to-run project skeleton for the Pera PHP framework.",
+  "keywords": [
+    "framework",
+    "frankenphp",
+    "project",
+    "skeleton"
+  ],
+  "type": "project",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.5",
+    "latte/latte": "^3.0",
+    "pera/framework": "^0.1",
+    "psr/log": "^3.0",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\Kernel\\": "apps/kernel/src/",
+      "App\\Minimal\\": "apps/minimal/src/",
+      "App\\Shared\\": "apps/shared/src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "analyse": "phpstan analyse --memory-limit=1G",
+    "test": "phpunit"
+  }
+}

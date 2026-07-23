@@ -1,0 +1,21 @@
+{
+	auto_https off
+}
+
+:80 {
+	root * /app/public
+	encode zstd br gzip
+	header -X-Powered-By
+
+	handle {
+		php_server {
+			worker {
+				file /app/public/index.php
+				env APP_RUNTIME frankenphp-worker
+				import /etc/frankenphp/worker.environment.caddyfile
+			}
+		}
+	}
+
+	file_server
+}

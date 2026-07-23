@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - .:/app
+      - ./.docker/caddy/Caddyfile:/etc/frankenphp/Caddyfile:ro
+      - ./.docker/caddy/worker.${CADDY_WORKER_CONFIG:-dev}.caddyfile:/etc/frankenphp/worker.environment.caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

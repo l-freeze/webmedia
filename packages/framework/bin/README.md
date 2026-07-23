@@ -86,7 +86,7 @@ app scaffoldはSession利用Controllerを既定では生成しません。`minim
 `vendor/bin/scaffold-app` は新しい HTTP application の最小構成を `apps/{name}` に生成します。
 
 ```bash
-php vendor/bin/scaffold-app api /api
+php vendor/bin/scaffold-app site /
 ```
 
 デフォルト template は `minimal` です。
@@ -125,7 +125,7 @@ Shared、DB、template engine、`ITemplateRenderer` bindingには依存せず、
 1つの Controller に処理を寄せた、動く最小アプリを生成します。
 
 ```bash
-php vendor/bin/scaffold-app api /api --template=minimal
+php vendor/bin/scaffold-app site / --template=minimal
 ```
 
 `--template` を省略した場合も `minimal` です。
@@ -146,7 +146,7 @@ php vendor/bin/scaffold-app api /api --template=minimal
 CMS と同じ方向性の縦割りスターターを生成します。
 
 ```bash
-php vendor/bin/scaffold-app api /api --template=layered
+php vendor/bin/scaffold-app admin /admin --template=layered
 ```
 
 追加で生成される主な構成:
@@ -217,7 +217,11 @@ php vendor/bin/scaffold-shared
 - `apps/shared/src/View/Infrastructure/LatteTemplateRenderer.php`
 - `apps/shared/README.md`
 
-`SecurityHeadersMiddleware` は shared middleware として生成されます。Framework の `Response` はセキュリティヘッダを持たず、アプリケーション側で middleware として差し込みます。
+`SecurityHeadersMiddleware`とFrameworkの`CsrfMiddleware`はshared middlewareとして生成されます。Frameworkの`Response`はセキュリティヘッダを持たず、CSRFを含む適用policyもFramework coreではなくプロジェクト側のmiddleware構成が決めます。
+
+CSRFはブラウザ／Sessionアプリケーションに安全な初期値としてSharedで有効にします。GETなどのsafe methodはSession stateへアクセスしないため、CSRF middlewareを通ってもnative Sessionを開始しません。POST formはbodyの`_csrf`へFrameworkのtokenを出力する必要があり、`todo` templateが動作例を生成します。
+
+後からstateless APIを追加する場合は、生成された`apps/shared/config/middleware.php`の`CsrfMiddleware::class`をコメントアウトまたは削除し、ブラウザ／Sessionを使う各Appの`config/middleware.php`へ明示的に追加します。Cookieなどambient credentialで認証するAPIには引き続きCSRF対策が必要です。
 
 `apps/shared/config/container.php` は、初期状態で `Psr\Log\LoggerInterface` を Framework の `PlaceholderLogger` へ bind します。これは実ロガーではなく、ロガー未設定のまま書き込もうとしたときに例外を投げ、ログが黙って捨てられることを防ぐための仮実装です。アプリケーションで使う Monolog などの PSR-3 実装、またはプロジェクト固有の実装へ差し替えてください。ログを意図的に捨てる場合だけ、`Psr\Log\NullLogger` を明示的に bind します。
 
@@ -248,7 +252,13 @@ php vendor/bin/scaffold-kernel
 php vendor/bin/scaffold-shared
 ```
 
-新規プロジェクト向けには、Frameworkと標準starter依存をroot `composer.json` に持つproject skeletonを別途用意する。Framework packageの `require` はFramework runtimeが直接使う依存だけに限定する。
+新規プロジェクト向けには、Frameworkと標準starter依存をroot `composer.json` に持つ`pera/skeleton`を使う。
+
+```bash
+composer create-project pera/skeleton my-app
+```
+
+SkeletonはKernel、Shared、DBなしMinimal、public entrypointを生成済みsourceとして所有する。`create-project`時にscaffoldやinstaller pluginを暗黙実行しない。Framework packageの `require` はFramework runtimeが直接使う依存だけに限定する。
 
 - Framework package: FastRoute、Frameworkが直接実装するPSR interface、vendor binaryが利用するComposer runtime APIなど。
 - project skeleton / root project: Dotenv、Latte、利用するPDO driver、migration toolなど。
