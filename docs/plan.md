@@ -41,6 +41,12 @@
 
 1. `pera/framework`と`pera/skeleton`の公開repository URL、private security reporting URL、CI、初回tagを確定する。Frameworkのpublic API / pre-1.0互換性、changelog、security policy、archive除外方針はFramework package内文書を正とし、Skeletonの初期構成と利用手順はSkeleton READMEを正とする。
 
+### Proprietary Webmedia Skeleton
+
+- Webmedia本体を正本とし、`packages/webmedia-skeleton`は直接編集しない。
+- 正本変更後は`make check-webmedia-skeleton`でdriftと隔離受け入れを検査し、配布snapshotを更新するときだけ`make sync-webmedia-skeleton`を使う。
+- private repository、commercial license本文、配布packageのversion / support policyは実際の販売・配布経路を決める時点で確定する。
+
 ### 後で行うFramework / Kernel改善
 
 - `IApplication::handleGlobals(): void` とRequest生成・Response送信のlifecycle境界を再検討する。
@@ -60,6 +66,7 @@
 - Audit / SecurityLog の初期実装。
 - Architecture Test の初期実装。
 - scaffold-app template 整備。
+- proprietary Webmedia Skeletonのallowlist同期、隔離`create-project`、専用Compose / 空DB / HTTP受け入れ。
 - 主要 Front / CMS 画面の HTTP 確認。
 - 記事作成・編集・プレビュー・履歴復元、カテゴリ、タグ、問い合わせ送信の HTTP 経由確認。
 - Audit 管理画面。

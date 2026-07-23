@@ -98,6 +98,21 @@ packages/
     tests/
     .docker/
     compose.yaml
+  webmedia-skeleton/
+    composer.json
+    LICENSE
+    README.md
+    apps/
+      kernel/
+      shared/
+      front/
+      cms/
+    database/
+    public/
+    resources/
+    tests/
+    .docker/
+    docker-compose.yml
 ```
 
 `apps/common`、`apps/modules`、`apps/framework` は禁止する。`apps` 直下に追加する共有ディレクトリは、責務が明確な `kernel` / `shared` に限定する。
@@ -105,6 +120,8 @@ packages/
 `packages/framework`は`pera/framework`として公開する配布境界である。Framework runtime、明示scaffold binary、そのtemplate、package自身のtestと公開文書だけを置く。webmedia固有のApp、rootのpath repository検証、非公開のCMS設計を参照してはならない。
 
 `packages/skeleton`は`pera/skeleton`として公開する別の配布境界である。利用者所有になる初期Kernel / Shared / Minimal、public entrypoint、開発環境、project testを置く。Framework production codeを複製せず、Composer dependencyとして`pera/framework`を利用する。
+
+`packages/webmedia-skeleton`はproprietaryな配布snapshotであり、正本はrootのKernel / Shared / Front / CMS、database、resources、public、testsに置く。package側を直接編集せず、`tools/webmedia-skeleton`のallowlist同期だけで更新する。Framework source、Front Business POC、monorepo repository、秘密情報、runtime dataを含めない。候補は隔離`create-project`と配布物自身のDocker Compose受け入れを通過した場合だけ置換する。
 
 ## 3. 依存ルール
 
@@ -188,6 +205,17 @@ webmedia/
       apps/
       public/
       tests/
+    webmedia-skeleton/
+      apps/
+      database/
+      public/
+      resources/
+      tests/
+  tools/
+    webmedia-skeleton
+    webmedia-skeleton-command.php
+    WebmediaSkeletonBuilder.php
+    webmedia-skeleton-http-smoke.php
   public/
     assets/
     uploads/
@@ -206,7 +234,7 @@ webmedia/
   docker-compose.yml
 ```
 
-rootの`tests/`はwebmediaのApp / Kernel / Sharedと、特定consumerとしてのpackage統合を検証する。Framework runtimeとscaffold自体のtestは`packages/framework/tests/`、Skeleton初期projectのtestは`packages/skeleton/tests/`が所有する。
+rootの`tests/`はwebmediaのApp / Kernel / Sharedと、特定consumerとしてのpackage統合を検証する。Framework runtimeとscaffold自体のtestは`packages/framework/tests/`、公開Skeleton初期projectのtestは`packages/skeleton/tests/`が所有する。`packages/webmedia-skeleton/tests/`はroot testの配布snapshotであり、独立した正本ではない。
 
 ### 4.2 Front
 
@@ -1478,6 +1506,7 @@ testの配置は責務の所有先に合わせる。
 - `tests/`: webmediaのApp / Kernel / Shared、webmedia固有のintegration
 - `packages/framework/tests/`: Framework runtime、scaffold、package境界
 - `packages/skeleton/tests/`: 配布される初期project
+- `packages/webmedia-skeleton/tests/`: root testから同期されたproprietary配布snapshot
 
 Framework packageのtestをrootへだけ置いて、公開package単体では検証できない状態にしてはならない。root testからpackage testを併せて実行しても、test sourceの所有権は移らない。
 
@@ -1507,6 +1536,8 @@ PDO test では test database を使ってよい。
 [ ] packages/framework にwebmedia固有のApp、非公開設計、monorepo専用手順を混ぜていない
 [ ] Framework runtime / scaffoldのtestはpackages/framework/testsが所有している
 [ ] Skeleton固有sourceとtestはpackages/skeletonが所有し、Framework production codeを複製していない
+[ ] packages/webmedia-skeletonを直接編集せず、root正本からcheck / syncしている
+[ ] proprietary SkeletonにFront Business、path repository、秘密情報、runtime data、Framework sourceを混ぜていない
 [ ] Interface は依存制御のためだけに導入している
 [ ] Query interface は Application/<Feature>/<Action>/Query 配下にある
 [ ] Application/<Feature>/ 直下の通常ディレクトリは Action であり、Input / Interactor / Output を持つ

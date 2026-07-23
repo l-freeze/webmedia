@@ -4,10 +4,26 @@
 
 - `packages/framework`: `pera/framework` library
 - `packages/skeleton`: `pera/skeleton` project template
+- `packages/webmedia-skeleton`: proprietary `pera/webmedia-skeleton` distribution snapshot
 
-This document describes local package verification before the packages are published. These repository declarations are test-only and must not be added to either package's distributed `composer.json`.
+This document describes local package verification before the packages are published. These repository declarations are test-only and must not be added to a distributed `composer.json`.
 
 End-user installation, every supported Framework / Kernel / Shared combination, and the complete app-template reference are documented in `packages/framework/INSTALLATION.md`. This file owns only monorepo-local package verification.
+
+## Verify and synchronize the proprietary Webmedia Skeleton
+
+The canonical Webmedia implementation remains at the repository root. Do not edit `packages/webmedia-skeleton` directly.
+
+```bash
+make check-webmedia-skeleton
+make sync-webmedia-skeleton
+```
+
+Both commands generate a candidate from the tracked root allowlist and reject private environment files, runtime data, monorepo repository declarations, `apps/front-business`, and Framework source duplication.
+
+`check-webmedia-skeleton` first requires the committed package to match the generated candidate. It then uses a copied path repository with `symlink:false` to create a clean project. The generated project builds its own Docker image and starts a unique Compose project with a new PostgreSQL volume. Composer validation, PHPUnit, PHPStan, platform requirements, migration, seed, Front HTTP, CMS login, CSRF, settings persistence, cross-App rendering, and persistence after a worker restart must all pass.
+
+`sync-webmedia-skeleton` verifies the temporary candidate through the same acceptance path and publishes it only after success. Failure leaves the existing package unchanged. Temporary containers, networks, volumes, images, and files are removed on exit.
 
 ## Verify `pera/skeleton` with local path repositories
 

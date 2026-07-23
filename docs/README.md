@@ -17,6 +17,8 @@
 
 `packages/skeleton`も`pera/skeleton`として独立公開するproject packageである。FrameworkとSkeletonは別のComposer manifest、license、test、配布責務を持ち、webmedia rootは両packageの開発場所であって配布境界そのものではない。
 
+`packages/webmedia-skeleton`は公開Frameworkとは別のproprietaryな配布用project snapshotである。正本はrootのWebmedia実装に置き、package側を直接編集しない。`tools/webmedia-skeleton`の`check` / `sync`だけが、trackedなallowlistから候補を生成し、隔離Composer install、専用Docker Compose、空DB、migration、HTTP受け入れを通して同期する。
+
 ## 主要資料
 
 - `docs/current_status.md`: 現在地、未完了、次回再開地点。
@@ -30,7 +32,7 @@
 - `docs/application_ports.md`: Application Port の判断基準。
 - `docs/webmedia_technical_stack.md`: 技術スタック。
 - `packages/framework/INSTALLATION.md`: 公開Framework / Skeletonの導入方法、scaffold手順、全App templateの利用者向け正本。
-- `packages/README.md`: 未公開packageをlocal path repositoryから検証するmonorepo開発者向け手順。
+- `packages/README.md`: 未公開packageをlocal path repositoryから検証し、proprietary Webmedia Skeletonを同期するmonorepo開発者向け手順。
 - `docs/webmedia_ui_requirements_final_markdown/`: Front / CMS の UI 要件。
 - `docs/webmedia_html_css_and_screenshots_all/webmedia_html_design/`: 初期デザイン参照。
 

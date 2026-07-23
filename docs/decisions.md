@@ -556,3 +556,28 @@ Framework packageはComposer installer pluginを持たない。install時にKern
 - Kernel scaffoldがDotenvを使うことだけを理由にFramework packageへDotenvをrequireしない。
 - Sharedから`.env`を読み込まない。
 - 現行要件が変わらないままPSR対応方針を再検討しない。
+
+## Proprietary Webmedia Skeleton
+
+### 判断
+
+現在のroot Webmedia実装を高品質なFront / CMS projectの正本とする。`packages/webmedia-skeleton`は別実装ではなく、正本から作るproprietaryな配布snapshotとして扱い、直接編集しない。
+
+同期入口は`tools/webmedia-skeleton check`と`tools/webmedia-skeleton sync`の二つだけとする。`check`は正本とのdriftに加え、コピー型path repositoryからの`create-project`、配布project自身のCompose、空PostgreSQL、migration、seed、PHPUnit、PHPStan、platform requirements、Front / CMSのHTTP受け入れ、worker再起動後の永続化まで検証する。`sync`は一時候補へ同じ検証を行い、全て成功した場合だけpackageを置換する。
+
+配布snapshotはFramework sourceを複製せず`pera/framework`へ依存する。root固有のpath repository、`apps/front-business` POC、`.env`、vendor、uploads、cache、logs、内部docsは配布しない。配布後のKernel / Shared / Front / CMSは利用projectの所有物とし、Framework updateから上書きしない。
+
+### 理由
+
+- rootと配布packageを独立して手編集すると、同じ機能と修正を二重管理することになる。
+- file copyの成功だけでは、依存漏れ、Docker build、空DB migration、Session / CSRF、worker lifecycle、保存系HTTPを保証できない。
+- 現行開発container、既存DB、symlinkを再利用すると、欠けた依存や配布漏れがmonorepoによって隠れる。
+- 候補を検証してから置換すれば、失敗した同期によって最後に成功した配布snapshotを壊さない。
+- 複数App、DB migration、assets、開発環境を一体で提供するWebmediaは、公開Frameworkの単一App scaffoldよりComposer project skeletonの境界が適している。
+
+### 採用しないこと
+
+- 公開Frameworkの`fullpack` templateへWebmedia固有CMS / Frontを含めない。
+- `packages/webmedia-skeleton`を第二の正本として直接修正しない。
+- 同期成功と受け入れ成功を別操作にしない。
+- 任意のOS、PHP構成、Web serverまで無条件に保証しない。配布物自身のDocker Composeをreference environmentとする。

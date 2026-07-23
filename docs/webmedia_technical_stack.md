@@ -124,6 +124,8 @@ webmedia rootは`pera/framework`をpath repository経由でrequireする。root 
 
 `packages/framework`は公開用`pera/framework` package root、`packages/skeleton`は公開用`pera/skeleton` project package rootである。両者は独立したComposer manifest、MIT License、test、公開文書を持つ。webmedia固有のCMS / Frontとmonorepo専用のpath repository検証手順は、公開package内へ入れない。
 
+`packages/webmedia-skeleton`は`pera/webmedia-skeleton`として扱うproprietaryなproject snapshotである。root Webmediaを正本とし、tracked allowlist、配布用Composer変換、Front Business / monorepo参照 / runtime data除外を経て生成する。`check` / `sync`は`symlink:false`の隔離`create-project`と、生成project自身のDocker Compose / PostgreSQL / HTTP受け入れまでを同じ成功条件にする。
+
 ---
 
 ## 6. アプリケーション構成
@@ -181,7 +183,7 @@ project-root/
 │   │   ├── tests/
 │   │   ├── phpunit.xml
 │   │   └── phpstan.neon
-│   └── skeleton/
+│   ├── skeleton/
 │       ├── composer.json
 │       ├── LICENSE
 │       ├── README.md
@@ -193,6 +195,26 @@ project-root/
 │       ├── tests/
 │       ├── .docker/
 │       └── compose.yaml
+│   └── webmedia-skeleton/
+│       ├── composer.json
+│       ├── LICENSE
+│       ├── README.md
+│       ├── apps/
+│       │   ├── kernel/
+│       │   ├── shared/
+│       │   ├── front/
+│       │   └── cms/
+│       ├── database/
+│       ├── public/
+│       ├── resources/
+│       ├── tests/
+│       ├── .docker/
+│       └── docker-compose.yml
+├── tools/
+│   ├── webmedia-skeleton
+│   ├── webmedia-skeleton-command.php
+│   ├── WebmediaSkeletonBuilder.php
+│   └── webmedia-skeleton-http-smoke.php
 ├── public/
 │   ├── index.php
 │   ├── assets/
@@ -215,7 +237,7 @@ project-root/
 └── docker-compose.yml
 ```
 
-rootの`tests/`はwebmedia固有のApplication / Domain / Infrastructure / Presentation、Kernel / Shared、consumer integrationを検証する。Framework runtimeとscaffoldのtestは`packages/framework/tests/`、Skeleton初期構成のtestは`packages/skeleton/tests/`が所有する。
+rootの`tests/`はwebmedia固有のApplication / Domain / Infrastructure / Presentation、Kernel / Shared、consumer integrationを検証する。Framework runtimeとscaffoldのtestは`packages/framework/tests/`、公開Skeleton初期構成のtestは`packages/skeleton/tests/`が所有する。proprietary Webmedia Skeletonのtestはroot正本から配布対象だけを同期する。
 
 ### 6.2 publicディレクトリ
 

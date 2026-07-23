@@ -87,12 +87,27 @@ SESSION_COOKIE_SECURE=false
 make test
 ```
 
+## Webmedia Skeleton
+
+現在のWebmedia本体を正本として、proprietaryな配布用projectを`packages/webmedia-skeleton`へ同期する。
+
+```bash
+make check-webmedia-skeleton
+make sync-webmedia-skeleton
+```
+
+`check-webmedia-skeleton`は正本との差分だけでなく、`symlink:false`のpath repositoryからまっさらなprojectへ`composer create-project`し、そのproject自身のDocker Composeと空PostgreSQLでComposer検証、PHPUnit、PHPStan、platform requirements、migration、seed、FrankenPHP workerのHTTP受け入れまで実行する。
+
+`sync-webmedia-skeleton`は一時候補へ同じ検証を行い、全て成功した場合だけ`packages/webmedia-skeleton`を置換する。Skeleton側を直接編集せず、変更は正本へ入れてから同期する。`apps/front-business`、monorepo用repository設定、秘密情報、runtime生成物は配布対象に含めない。
+
 ## 構成
 
 - `packages/framework`: 独立Composer manifest、scaffold binary、DI、HTTP、Routing、middleware pipeline、runtimeを持つ自己完結したFramework package
 - `packages/framework/INSTALLATION.md`: Framework / Skeletonの導入方法、Kernel / Shared / App scaffold、全templateの利用手順
 - `packages/skeleton`: `composer create-project pera/skeleton`用のKernel、Shared、DBなしMinimal、FrankenPHP開発環境を持つ自己完結したproject skeleton
-- `packages/README.md`: Framework / Skeletonを公開前にpath repositoryから検証するmonorepo開発手順
+- `packages/webmedia-skeleton`: 正本から検証後に同期するproprietaryなFront / CMS project skeleton
+- `packages/README.md`: 各packageを公開前にpath repositoryから検証するmonorepo開発手順
+- `tools/webmedia-skeleton`: 配布候補の生成、隔離受け入れ、同期を所有するroot開発コマンド
 - `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く
 - `apps/shared`: 複数 App で共有する横断関心ごと。セキュリティヘッダ、ログ、キャッシュなど
 - `apps/front`: 読者向けフロント。公開済み記事の Query と Presentation/HTTP 表示を担当
