@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{$title} | CMS</title>
+  <script src="/assets/js/tailwindcss-3.4.17.js"></script>
+  <style>
+    main input.sr-only { width: 1px !important; }
+  </style>
+  {block head}{/block}
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="/assets/js/app.js?v=20260527-media-modal" defer></script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 antialiased">
+<div class="grid min-h-screen grid-cols-[240px_minmax(0,1fr)]">
+  <aside class="bg-slate-800 px-5 py-6 text-slate-100">
+    <h1 class="mb-5 text-xl font-bold tracking-wide">CMS</h1>
+    <nav class="grid gap-1">
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin">ダッシュボード</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/articles">記事管理</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/pages">固定ページ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/categories">カテゴリ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/tags">タグ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/media">メディア</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/inquiries">問い合わせ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/trash">ゴミ箱</a>
+      <span class="my-2 border-t border-slate-700"></span>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/users">管理者</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/security/login-attempts">セキュリティ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/roles">ロール</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/permissions">パーミッション</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/audit-logs">監査ログ</a>
+      <a class="rounded-md px-3 py-2 text-slate-100 hover:bg-slate-700" href="/admin/settings">サイト設定</a>
+    </nav>
+    <form method="post" action="/admin/logout" class="mt-5">
+      <input type="hidden" name="_csrf" value="{$csrf}">
+      <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300" type="submit">ログアウト</button>
+    </form>
+  </aside>
+  <div class="min-w-0">
+    <header class="border-b border-slate-200 bg-white px-6 py-4">
+      <strong class="text-lg font-bold">{$title}</strong>
+    </header>
+    <main class="p-6 [&_input]:mt-1 [&_input:not(.sr-only)]:w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-300 [&_input]:bg-white [&_input]:px-3 [&_input]:py-2 [&_input]:text-slate-900 [&_input]:shadow-sm [&_input]:focus:border-blue-500 [&_input]:focus:outline-none [&_input]:focus:ring-2 [&_input]:focus:ring-blue-200 [&_label]:block [&_label]:text-sm [&_label]:font-bold [&_label]:text-slate-700 [&_select]:mt-1 [&_select]:w-full [&_select]:rounded-lg [&_select]:border [&_select]:border-slate-300 [&_select]:bg-white [&_select]:px-3 [&_select]:py-2 [&_select]:text-slate-900 [&_select]:shadow-sm [&_select]:focus:border-blue-500 [&_select]:focus:outline-none [&_select]:focus:ring-2 [&_select]:focus:ring-blue-200 [&_table]:w-full [&_table]:border-collapse [&_td]:border-b [&_td]:border-slate-200 [&_td]:px-4 [&_td]:py-3 [&_td]:text-left [&_td]:align-top [&_textarea]:mt-1 [&_textarea]:min-h-44 [&_textarea]:w-full [&_textarea]:rounded-lg [&_textarea]:border [&_textarea]:border-slate-300 [&_textarea]:bg-white [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:text-slate-900 [&_textarea]:shadow-sm [&_textarea]:focus:border-blue-500 [&_textarea]:focus:outline-none [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-blue-200 [&_th]:border-b [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:text-sm [&_th]:font-bold [&_th]:text-slate-500">
+      {include content}
+    </main>
+  </div>
+</div>
+{block scripts}{/block}
+</body>
+</html>

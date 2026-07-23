@@ -1,0 +1,13 @@
+<article class="card article-card">
+  {if ($article['eyecatch_path'] ?? '') !== ''}
+    <img class="thumb article-card__media" src="{$article['eyecatch_path']}" alt="{$article['title']}" loading="lazy">
+  {else}
+    <div class="thumb article-card__media" role="img" aria-label="{$article['title']}"></div>
+  {/if}
+  <div class="article-card__body">
+    <span class="label">{$article['category_name'] ?? '未分類'}</span>
+    <h2><a href="/articles/{$article['slug']}">{$article['title']}</a></h2>
+    <p>{$article['excerpt']}</p>
+    <p class="meta">公開 {$article['published_at']} / 更新 {$article['updated_at']}</p>
+  </div>
+</article>

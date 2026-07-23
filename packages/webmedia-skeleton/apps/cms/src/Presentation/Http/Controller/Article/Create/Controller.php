@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Cms\Presentation\Http\Controller\Article\Create;
+
+use App\Cms\Application\Article\Edit\Input;
+use App\Cms\Application\Article\Edit\Interactor;
+use App\Cms\Application\Article\Edit\Output;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Csrf;
+use Pera\Framework\Security\Session;
+use Pera\Framework\View\ITemplateRenderer;
+
+final readonly class Controller
+{
+    public function __construct(
+        private ITemplateRenderer $renderer,
+        private Csrf $csrf,
+        private Session $session,
+        private Interactor $edit,
+    ) {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $formArticle = $this->session->pullFlashValue(key: 'article.form_input');
+        if (!is_array($formArticle)) {
+            $formArticle = null;
+        }
+        /** @var array<string, mixed>|null $formArticle */
+
+        return $this->editForm(
+            output: $this->edit->execute(Input::create(id: null)),
+            action: '/admin/articles',
+            formArticle: $formArticle,
+            error: $this->session->pullFlash(key: 'article.form_error'),
+        );
+    }
+
+    /** @param array<string, mixed>|null $formArticle */
+    private function editForm(Output $output, string $action, ?array $formArticle = null, ?string $error = null): Response
+    {
+        $article = $formArticle ?? $output->article?->toArray();
+        $categories = [];
+        foreach ($output->categories as $category) {
+            $categories[] = $category->toArray();
+        }
+        $media = [];
+        foreach ($output->media as $item) {
+            $media[] = $item->toArray();
+        }
+
+        return new Response(body: $this->renderer->render(template: 'article/edit.latte', params: [
+            'title' => '記事作成',
+            'action' => $action,
+            'csrf' => $this->csrf->token(),
+            'article' => $article ?? ['status' => 'draft'],
+            'categories' => $categories,
+            'media' => $media,
+            'flash' => $this->session->pullFlash(key: 'success'),
+            'error' => $error,
+            'versions' => [],
+            'statuses' => [
+                'draft' => '下書き',
+                'published' => '表示',
+                'private' => '非表示',
+            ],
+        ]));
+    }
+}

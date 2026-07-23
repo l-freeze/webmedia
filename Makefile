@@ -1,6 +1,6 @@
 COMPOSE=docker compose
 
-.PHONY: up down build install migrate seed test shell logs
+.PHONY: up down build install migrate seed test shell logs check-webmedia-skeleton sync-webmedia-skeleton
 
 up:
 	$(COMPOSE) up -d --build
@@ -28,3 +28,9 @@ shell:
 
 logs:
 	$(COMPOSE) logs -f app
+
+check-webmedia-skeleton:
+	tools/webmedia-skeleton check
+
+sync-webmedia-skeleton:
+	tools/webmedia-skeleton sync

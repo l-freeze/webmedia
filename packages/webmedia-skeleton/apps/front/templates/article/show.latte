@@ -1,0 +1,40 @@
+{layout '../layout/default.latte'}
+{block content}
+<div class="article-detail-layout">
+  <div class="article-detail-main">
+    <nav class="meta"><a href="/">トップ</a> / <a href="/categories/{$article['category_slug']}">{$article['category_name']}</a> / {$article['title']}</nav>
+    <article class="prose">
+      <span class="label">{$article['category_name']}</span>
+      <h1>{$article['title']}</h1>
+      <p class="meta">公開 {$article['published_at']} / 更新 {$article['updated_at']} / {$article['author_name']}</p>
+      {if ($article['eyecatch_path'] ?? '') !== ''}
+        <img class="thumb article-eyecatch" src="{$article['eyecatch_path']}" alt="{$article['title']}">
+      {else}
+        <div class="thumb article-eyecatch" role="img" aria-label="{$article['title']}"></div>
+      {/if}
+      <div>{$article['rendered_body_html']|noescape}</div>
+      <hr>
+      <p>タグ:
+        {foreach $article['tags'] as $tag}
+          <a class="label" href="/tags/{$tag['slug']}">{$tag['name']}</a>
+        {/foreach}
+      </p>
+    </article>
+    <section class="article-related">
+      <h2>関連記事</h2>
+      <div class="article-list">
+        {foreach $related as $item}
+          {include '../partials/article-card.latte', article: $item}
+        {/foreach}
+      </div>
+    </section>
+  </div>
+  {* 表示/非表示はテーマ依存だが構造は共通。出し分けは CSS (.article-detail-sidebar) 側で行う。 *}
+  <aside class="card category-panel article-detail-sidebar">
+    <h2>カテゴリ</h2>
+    {foreach $publishedCategories as $category}
+      <p><a href="/categories/{$category['slug']}">{$category['name']}</a><br><span class="muted">{$category['article_count']}件</span></p>
+    {/foreach}
+  </aside>
+</div>
+{/block}

@@ -8,4 +8,5 @@ parameters:
         - packages/framework/src
         - packages/framework/tests
         - tests
+        - tools
     tmpDir: storage/phpstan

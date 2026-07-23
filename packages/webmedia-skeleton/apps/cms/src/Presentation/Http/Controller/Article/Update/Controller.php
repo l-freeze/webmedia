@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Cms\Presentation\Http\Controller\Article\Update;
+
+use App\Cms\Application\Article\Save\Input;
+use App\Cms\Application\Article\Save\Interactor;
+use App\Cms\Domain\Exception\ResourceOperationDeniedException;
+use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Presentation\Audit\AuditReporter;
+use Pera\Framework\Http\Request;
+use Pera\Framework\Http\Response;
+use Pera\Framework\Security\Session;
+
+final readonly class Controller
+{
+    public function __construct(
+        private Session $session,
+        private CmsGuard $guard,
+        private Interactor $save,
+        private AuditReporter $audit,
+    ) {
+    }
+
+    /** @param array<string, string> $vars */
+    public function __invoke(Request $request, array $vars = []): Response
+    {
+        $currentUser = $this->guard->currentUser();
+
+        $id = (int) $vars['id'];
+        try {
+            $output = $this->save->execute(Input::create(
+                id: $id,
+                currentUser: $currentUser,
+                title: $request->bodyInput('title'),
+                slug: $request->bodyInput('slug'),
+                bodyFormat: $request->bodyInput('body_format'),
+                body: $request->bodyInput('body'),
+                excerpt: $request->bodyInput('excerpt'),
+                status: $request->bodyInput('status'),
+                categoryId: $request->bodyInput('category_id'),
+                eyecatchPath: $request->bodyInput('eyecatch_path'),
+                publishedAt: $request->bodyInput('published_at'),
+                publishedEndsAt: $request->bodyInput('published_ends_at'),
+                seoTitle: $request->bodyInput('seo_title'),
+                metaDescription: $request->bodyInput('meta_description'),
+            ));
+        } catch (ResourceOperationDeniedException) {
+            return new Response(body: 'Forbidden', status: Response::HTTP_FORBIDDEN);
+        }
+
+        if ($output->articleId === null) {
+            $this->session->flashValue(key: 'article.form_input', value: $this->articleFormData(data: $request->body, id: $id));
+            $this->session->flash(key: 'article.form_error', value: $output->validation->firstMessage() ?? '入力内容を確認してください。');
+
+            return Response::redirect("/admin/articles/{$id}");
+        }
+
+        $this->session->flash(key: 'success', value: '保存しました');
+        $this->audit->articleSaved(request: $request, articleId: $output->articleId->value, created: false);
+
+        return Response::redirect('/admin/articles/' . $output->articleId->value);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function articleFormData(array $data, ?int $id): array
+    {
+        $status = $data['status'] ?? 'draft';
+        $data['status'] = is_scalar($status) ? (string) $status : 'draft';
+        if ($id !== null) {
+            $data['id'] = $id;
+        }
+
+        return $data;
+    }
+}

@@ -1,0 +1,26 @@
+{layout '../layout/default.latte'}
+{block content}
+{ifset $flash}
+  <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+{/ifset}
+<div class="mb-4 flex flex-wrap gap-3">
+  <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" href="/admin/pages/create">新規固定ページ</a>
+</div>
+<div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <thead><tr><th>表示順</th><th>タイトル</th><th>スラッグ</th><th>状態</th><th>更新日</th><th>操作</th></tr></thead>
+    <tbody>
+    {foreach $pages as $page}
+      <tr>
+        <td>{$page['display_order']}</td>
+        <td><a href="/admin/pages/{$page['id']}">{$page['title']}</a></td>
+        <td>{$page['slug']}</td>
+        <td><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$page['status']}</span></td>
+        <td>{$page['updated_at']}</td>
+        <td><a class="inline-flex min-h-9 items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700" href="/admin/pages/{$page['id']}">編集</a></td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+</div>
+{/block}

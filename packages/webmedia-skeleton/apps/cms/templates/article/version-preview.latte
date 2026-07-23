@@ -1,0 +1,27 @@
+{layout '../layout/default.latte'}
+{block content}
+<nav class="mb-4 text-sm text-slate-500">
+  <a class="font-bold text-blue-600 hover:text-blue-700" href="/admin/articles/{$articleVersion['article_id']}">記事編集</a>
+  <span class="mx-1">/</span>
+  <a class="font-bold text-blue-600 hover:text-blue-700" href="/admin/articles/{$articleVersion['article_id']}/history">更新履歴</a>
+  <span class="mx-1">/</span>
+  版 {$articleVersion['version_no']}
+</nav>
+<article class="max-w-3xl rounded-lg border border-slate-200 bg-white p-8 shadow-sm [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6">
+  <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$articleVersion['status_label']}</span>
+  <h1 class="mt-4 text-3xl font-bold text-slate-900">{$articleVersion['title']}</h1>
+  <p class="mt-2 text-sm text-slate-500">
+    保存日時 {$articleVersion['created_at']} / 版 {$articleVersion['version_no']} /
+    スラッグ {$articleVersion['slug']}
+    {if $articleVersion['published_at'] !== ''} / 公開日時 {$articleVersion['published_at']}{/if}
+    {if $articleVersion['published_ends_at'] !== ''} / 公開終了日時 {$articleVersion['published_ends_at']}{/if}
+  </p>
+  {if $articleVersion['excerpt'] !== ''}
+    <p>{$articleVersion['excerpt']}</p>
+  {/if}
+  {if ($articleVersion['eyecatch_path'] ?? '') !== ''}
+    <img class="my-5 max-h-[420px] rounded-lg border border-slate-200 object-contain" src="{$articleVersion['eyecatch_path']}" alt="{$articleVersion['title']}">
+  {/if}
+  <div>{$articleVersion['rendered_body_html']|noescape}</div>
+</article>
+{/block}

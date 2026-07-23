@@ -1,0 +1,36 @@
+{layout '../layout/default.latte'}
+{block content}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+  <form class="flex items-center gap-2" method="get">
+    <input class="min-w-72" name="q" value="{$query}" placeholder="記事検索">
+    <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">検索</button>
+  </form>
+  <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" href="/admin/articles/create">新規記事</a>
+</div>
+<div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <thead><tr><th>タイトル</th><th>状態</th><th>カテゴリ</th><th>更新日</th><th>操作</th></tr></thead>
+    <tbody>
+    {foreach $articles as $article}
+      <tr>
+        <td><a href="/admin/articles/{$article['id']}">{$article['title']}</a></td>
+        <td><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{$article['status_label']}</span></td>
+        <td>{$article['category_name'] ?? '未分類'}</td>
+        <td>{$article['updated_at']}</td>
+        <td>
+          <div class="flex flex-wrap items-center gap-2">
+            <a class="inline-flex min-h-9 items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700" href="/admin/articles/{$article['id']}">編集</a>
+            <a class="inline-flex min-h-9 items-center justify-center rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-emerald-700" href="/admin/articles/{$article['id']}/preview">プレビュー</a>
+            <a class="inline-flex min-h-9 items-center justify-center rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-amber-700" href="/admin/articles/{$article['id']}/history">履歴</a>
+            <form class="m-0" method="post" action="/admin/articles/{$article['id']}/delete">
+              <input type="hidden" name="_csrf" value="{$csrf}">
+              <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" data-confirm="この記事を削除してゴミ箱へ移動しますか？">削除</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+</div>
+{/block}

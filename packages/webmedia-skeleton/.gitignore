@@ -1,0 +1,15 @@
+/vendor/
+/node_modules/
+/.env
+/storage/cache/*
+/storage/logs/*
+/storage/uploads/*
+/storage/phpstan/
+!/storage/cache/.gitkeep
+!/storage/logs/.gitkeep
+!/storage/uploads/.gitkeep
+.phpunit.result.cache
+*:Zone.Identifier
+/packages/.webmedia-skeleton-backup-*
+/packages/.webmedia-skeleton-candidate.*
+/packages/.webmedia-skeleton-files.*

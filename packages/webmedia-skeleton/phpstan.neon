@@ -1,0 +1,9 @@
+parameters:
+    level: max
+    paths:
+        - apps
+        - database
+        - phinx.php
+        - public
+        - tests
+    tmpDir: storage/phpstan

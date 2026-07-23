@@ -1,0 +1,69 @@
+{layout '../layout/default.latte'}
+{block content}
+{ifset $flash}
+  <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700" role="status" aria-live="polite" data-auto-dismiss>{$flash}</div>
+{/ifset}
+{ifset $error}
+  <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-700" role="alert" data-auto-dismiss>{$error}</div>
+{/ifset}
+
+<section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+  <h1 class="mb-4 text-2xl font-bold">管理者</h1>
+  <form method="post" action="/admin/users" class="grid gap-4 md:grid-cols-2">
+    <input type="hidden" name="_csrf" value="{$csrf}">
+    <label>メールアドレス<input name="email" type="email" value="{$formValues['email'] ?? ''}" autocomplete="off"></label>
+    <label>名前<input name="name" value="{$formValues['name'] ?? ''}" autocomplete="off"></label>
+    <label>ロール
+      <select name="role">
+        {foreach $roles as $role}
+          <option value="{$role}" {if ($formValues['role'] ?? 'writer') === $role}selected{/if}>{$role}</option>
+        {/foreach}
+      </select>
+    </label>
+    <label>初期パスワード<input name="password" type="password" autocomplete="new-password"></label>
+    <div class="md:col-span-2">
+      <button class="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">作成</button>
+    </div>
+  </form>
+</section>
+
+<section class="mt-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+  <h2 class="mb-4 text-lg font-bold">アカウント一覧</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200">
+    <table>
+      <thead><tr><th>ID</th><th>メールアドレス</th><th>名前</th><th>ロール</th><th>作成日</th><th>更新日</th><th>パスワード変更</th><th>操作</th></tr></thead>
+      <tbody>
+      {foreach $users as $user}
+        <tr>
+          <td>{$user['id']}</td>
+          <td><input form="admin-user-update-{$user['id']}" name="email" type="email" value="{$user['email']}" autocomplete="off"></td>
+          <td><input form="admin-user-update-{$user['id']}" name="name" value="{$user['name']}" autocomplete="off"></td>
+          <td>
+            <select form="admin-user-update-{$user['id']}" name="role">
+              {foreach $roles as $role}
+                <option value="{$role}" {if $user['role'] === $role}selected{/if}>{$role}</option>
+              {/foreach}
+            </select>
+          </td>
+          <td>{$user['created_at']}</td>
+          <td>{$user['updated_at']}</td>
+          <td><input form="admin-user-update-{$user['id']}" name="password" type="password" placeholder="変更時のみ入力" autocomplete="new-password"></td>
+          <td>
+            <div class="flex flex-wrap items-center gap-2">
+              <form id="admin-user-update-{$user['id']}" method="post" action="/admin/users/{$user['id']}" class="m-0">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+              </form>
+              <button form="admin-user-update-{$user['id']}" class="inline-flex min-h-9 items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700">更新</button>
+              <form method="post" action="/admin/users/{$user['id']}/delete" class="m-0">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700" data-confirm="この管理者アカウントを削除しますか？">削除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div>
+</section>
+{/block}

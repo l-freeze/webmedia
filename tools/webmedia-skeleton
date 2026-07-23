@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+mode="${1:-}"
+if [[ "$mode" != "check" && "$mode" != "sync" ]]; then
+  echo "Usage: tools/webmedia-skeleton check|sync" >&2
+  exit 1
+fi
+
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repository_root"
+host_user="$(id -u):$(id -g)"
+
+candidate_root="$(mktemp -d "$repository_root/packages/.webmedia-skeleton-candidate.XXXXXX")"
+tracked_manifest="$(mktemp "$repository_root/packages/.webmedia-skeleton-files.XXXXXX")"
+verification_root="$(mktemp -d /tmp/pera-webmedia-skeleton-check.XXXXXX)"
+project_root="$verification_root/project"
+project_name="pera-webmedia-skeleton-$RANDOM-$$"
+generated_compose=()
+
+cleanup() {
+  status=$?
+  if [[ "${#generated_compose[@]}" -gt 0 ]]; then
+    "${generated_compose[@]}" down --rmi local --volumes --remove-orphans >/dev/null 2>&1 || true
+  fi
+  if [[ -d "$verification_root" ]]; then
+    docker compose run --rm --no-deps -T \
+      -v "$verification_root:/verification" \
+      app sh -lc 'rm -rf /verification/* /verification/.[!.]* /verification/..?*' >/dev/null 2>&1 || true
+    rmdir "$verification_root" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$candidate_root"
+  rm -f "$tracked_manifest"
+  exit "$status"
+}
+trap cleanup EXIT
+
+git ls-files > "$tracked_manifest"
+
+container_candidate="/app/${candidate_root#"$repository_root"/}"
+container_manifest="/app/${tracked_manifest#"$repository_root"/}"
+docker compose run --rm --no-deps -T --user "$host_user" app php tools/webmedia-skeleton-command.php \
+  generate /app "$container_candidate" "$container_manifest"
+
+if [[ "$mode" == "check" ]]; then
+  docker compose run --rm --no-deps -T --user "$host_user" app php tools/webmedia-skeleton-command.php \
+    compare "$container_candidate" /app/packages/webmedia-skeleton
+fi
+
+skeleton_repository="$(
+  printf '{"type":"path","url":"%s","options":{"symlink":false,"versions":{"pera/webmedia-skeleton":"0.1.0"}}}' \
+    "$container_candidate"
+)"
+framework_repository='{"type":"path","url":"/app/packages/framework","options":{"symlink":false,"versions":{"pera/framework":"0.1.0"}}}'
+
+docker compose run --rm --no-deps -T \
+  --user "$host_user" \
+  -e COMPOSER_HOME=/tmp/composer-home \
+  -v "$verification_root:/verification" \
+  app composer create-project \
+  "--repository=$skeleton_repository" \
+  --no-install \
+  --no-interaction \
+  --no-progress \
+  pera/webmedia-skeleton \
+  /verification/project \
+  0.1.0
+
+docker compose run --rm --no-deps -T \
+  --user "$host_user" \
+  -e COMPOSER_HOME=/tmp/composer-home \
+  -v "$verification_root:/verification" \
+  app composer config \
+  --working-dir=/verification/project \
+  repositories.framework \
+  "$framework_repository"
+
+docker compose run --rm --no-deps -T \
+  --user "$host_user" \
+  -e COMPOSER_HOME=/tmp/composer-home \
+  -v "$verification_root:/verification" \
+  app composer install \
+  --working-dir=/verification/project \
+  --no-interaction \
+  --no-progress \
+  --prefer-dist
+
+if [[ -L "$project_root/vendor/pera/framework" ]]; then
+  echo "Installed Framework unexpectedly uses a symlink." >&2
+  exit 1
+fi
+if [[ -d "$project_root/packages" ]]; then
+  echo "Installed Webmedia Skeleton unexpectedly contains the monorepo packages directory." >&2
+  exit 1
+fi
+
+cp tools/webmedia-skeleton-http-smoke.php "$project_root/.webmedia-skeleton-http-smoke.php"
+cp "$project_root/.env.example" "$project_root/.env"
+printf '\nFRONT_LAYOUT_CACHE_TTL=0\n' >> "$project_root/.env"
+
+generated_compose=(
+  docker compose
+  --project-name "$project_name"
+  --project-directory "$project_root"
+  --file "$project_root/docker-compose.yml"
+)
+export APP_PORT=0
+export DB_PORT=0
+export CADDY_WORKER_CONFIG=production
+
+"${generated_compose[@]}" build app
+"${generated_compose[@]}" up -d db
+"${generated_compose[@]}" run --rm app composer validate --strict
+"${generated_compose[@]}" run --rm app composer test
+"${generated_compose[@]}" run --rm app composer analyse
+"${generated_compose[@]}" run --rm app composer check-platform-reqs
+"${generated_compose[@]}" run --rm app composer migrate
+"${generated_compose[@]}" run --rm app composer seed
+"${generated_compose[@]}" up -d app
+
+published_port="$("${generated_compose[@]}" port app 80 | tail -n 1 | sed 's/.*://')"
+for _attempt in $(seq 1 60); do
+  if curl --fail --silent --show-error "http://127.0.0.1:${published_port}/" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+curl --fail --silent --show-error "http://127.0.0.1:${published_port}/" >/dev/null
+
+marker="Skeleton-Acceptance-$RANDOM-$$"
+"${generated_compose[@]}" exec -T app php /app/.webmedia-skeleton-http-smoke.php "$marker"
+"${generated_compose[@]}" restart --timeout 1 app
+for _attempt in $(seq 1 60); do
+  if curl --fail --silent --show-error "http://127.0.0.1:${published_port}/" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+"${generated_compose[@]}" exec -T app php /app/.webmedia-skeleton-http-smoke.php "$marker" --verify-only
+
+if [[ "$mode" == "sync" ]]; then
+  docker compose run --rm --no-deps -T --user "$host_user" app php tools/webmedia-skeleton-command.php \
+    publish "$container_candidate" /app/packages/webmedia-skeleton
+fi
+
+echo "Webmedia Skeleton ${mode} completed successfully."

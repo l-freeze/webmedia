@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Cms\Infrastructure\Persistence;
+
+use App\Cms\Application\Article\List;
+use App\Shared\Database\PdoHelper;
+use App\Shared\Database\PdoRow;
+use PDO;
+
+final readonly class PdoArticleQuery implements List\Query\IArticleQuery
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    /** @return array<int, List\Value\Article> */
+    public function list(string $keyword = ''): array
+    {
+        $sql = 'SELECT a.*, c.name AS category_name FROM articles a LEFT JOIN categories c ON c.id = a.category_id WHERE a.status <> :trashed';
+        $params = ['trashed' => 'trashed'];
+        if ($keyword !== '') {
+            $sql .= ' AND a.title LIKE :q';
+            $params['q'] = '%' . $keyword . '%';
+        }
+        $sql .= ' ORDER BY a.updated_at DESC';
+        $stmt = PdoHelper::prepare(pdo: $this->pdo, sql: $sql);
+        PdoHelper::execute(statement: $stmt, params: $params);
+        $articles = [];
+        foreach (PdoHelper::fetchAll(statement: $stmt) as $row) {
+            $articles[] = $this->format(row: $row);
+        }
+
+        return $articles;
+    }
+
+    /** @param array<string, mixed> $row */
+    private function format(array $row): List\Value\Article
+    {
+        $pdoRow = PdoRow::from(values: $row);
+
+        return new List\Value\Article(
+            id: $pdoRow->int(key: 'id'),
+            title: $pdoRow->string(key: 'title'),
+            status: $pdoRow->string(key: 'status'),
+            publishedAt: $pdoRow->string(key: 'published_at'),
+            publishedEndsAt: $pdoRow->string(key: 'published_ends_at'),
+            categoryName: $pdoRow->nullableString(key: 'category_name'),
+            updatedAt: $pdoRow->date(key: 'updated_at', format: 'Y-m-d H:i'),
+        );
+    }
+}

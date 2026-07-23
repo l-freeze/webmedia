@@ -10,3 +10,6 @@
 !/storage/uploads/.gitkeep
 .phpunit.result.cache
 *:Zone.Identifier
+/packages/.webmedia-skeleton-backup-*
+/packages/.webmedia-skeleton-candidate.*
+/packages/.webmedia-skeleton-files.*
