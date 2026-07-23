@@ -11,7 +11,11 @@
 
 本プロジェクトの軽量 PHP Framework は `pera` と呼ぶ。
 
-`pera` は自己完結したComposer packageとして `packages/framework` に置き、production codeはその `src` 配下に置く。HTTP / DI / Routing / View / Security / Process など、アプリケーション都合を持たない薄い実行基盤を担当する。`apps/kernel`、`apps/shared`、`apps/front`、`apps/cms` は `pera` の外側にあるプロジェクト側の層として扱う。
+`pera` は自己完結したComposer packageとして `packages/framework` に置き、production codeはその `src` 配下に置く。HTTP / DI / Routing / View / Security / Process など、アプリケーション都合を持たない薄い実行基盤を担当する。`apps/kernel`、`apps/shared`、`apps/front`、`apps/front-business`、`apps/cms` は `pera` の外側にあるプロジェクト側の層として扱う。
+
+`packages/framework`は公開されるpackage rootであり、その配下はComposer配布物または公開repositoryの内容として読まれる前提で管理する。webmedia固有の構成、非公開Appの知識、monorepoだけで成立するpath repository手順は混ぜない。公開利用者向けの説明はpackage内のREADME群、monorepoでの開発・公開前検証はpackage外の`packages/README.md`が所有する。
+
+`packages/skeleton`も`pera/skeleton`として独立公開するproject packageである。FrameworkとSkeletonは別のComposer manifest、license、test、配布責務を持ち、webmedia rootは両packageの開発場所であって配布境界そのものではない。
 
 ## 主要資料
 
@@ -21,7 +25,7 @@
 - `docs/decisions.md`: なぜやる / やらないの設計判断記録。
 - `docs/site_model_plan.md`: `sites` を中心にした公開面モデルの追加方針。
 - `docs/architecture_boundary_review.md`: 責務・境界・構造の全体精査で抽出した検証待ち候補。
-- `docs/system_architecture_review_20260717.md`: システム全体の品質属性・実行時意味論・運用境界を含む総合レビューと改善候補。トリアージ後は正規文書へ移管する。
+- `docs/system_architecture_review_20260717.md`: 2026-07-17時点の構成と実測に基づく監査スナップショット。現行仕様や現行ディレクトリの正本ではなく、トリアージ後の判断は正規文書へ移管する。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。
 - `docs/webmedia_technical_stack.md`: 技術スタック。

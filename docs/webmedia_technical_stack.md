@@ -50,7 +50,7 @@ AIまたは開発者が実装作業を行う際は、この文書を前提とし
 | 言語 | PHP 8.5 |
 | パッケージ管理 | Composer |
 | アプリケーション基盤 | 自前軽量フレームワーク `pera` |
-| DIコンテナ | 自作PSR-11風DIコンテナ |
+| DIコンテナ | PSR-11準拠の自作DIコンテナ |
 | ルーティング | FastRoute |
 | テンプレートエンジン | Latte |
 | データベース | PostgreSQL |
@@ -122,6 +122,8 @@ Framework package自身のautoload:
 
 webmedia rootは`pera/framework`をpath repository経由でrequireする。root autoloadは`App\\Kernel`、`App\\Shared`、`App\\Front`、`App\\FrontBusiness`、`App\\Cms`だけを所有し、Framework namespaceを重複登録しない。
 
+`packages/framework`は公開用`pera/framework` package root、`packages/skeleton`は公開用`pera/skeleton` project package rootである。両者は独立したComposer manifest、MIT License、test、公開文書を持つ。webmedia固有のCMS / Frontとmonorepo専用のpath repository検証手順は、公開package内へ入れない。
+
 ---
 
 ## 6. アプリケーション構成
@@ -132,6 +134,7 @@ webmedia rootは`pera/framework`をpath repository経由でrequireする。root 
 
 ```text
 project-root/
+├── .docker/
 ├── apps/
 │   ├── kernel/
 │   ├── shared/
@@ -153,22 +156,53 @@ project-root/
 │       │   └── Presentation/
 │       └── templates/
 ├── packages/
-│   └── framework/
+│   ├── README.md
+│   ├── framework/
+│   │   ├── composer.json
+│   │   ├── LICENSE
+│   │   ├── README.md
+│   │   ├── API.md
+│   │   ├── INSTALLATION.md
+│   │   ├── SECURITY.md
+│   │   ├── CHANGELOG.md
+│   │   ├── bin/
+│   │   ├── src/
+│   │   │   ├── Application/
+│   │   │   ├── Bootstrap/
+│   │   │   ├── Container/
+│   │   │   ├── Http/
+│   │   │   ├── Logging/
+│   │   │   ├── Process/
+│   │   │   ├── Routing/
+│   │   │   ├── Runtime/
+│   │   │   ├── Security/
+│   │   │   └── View/
+│   │   ├── templates/
+│   │   ├── tests/
+│   │   ├── phpunit.xml
+│   │   └── phpstan.neon
+│   └── skeleton/
 │       ├── composer.json
-│       ├── bin/
-│       └── src/
-│           ├── Container/
-│           ├── Http/
-│           ├── Routing/
-│           ├── View/
-│           ├── Security/
-│           └── Process/
+│       ├── LICENSE
+│       ├── README.md
+│       ├── apps/
+│       │   ├── kernel/
+│       │   ├── shared/
+│       │   └── minimal/
+│       ├── public/
+│       ├── tests/
+│       ├── .docker/
+│       └── compose.yaml
 ├── public/
 │   ├── index.php
-│   └── assets/
-│       ├── css/
-│       ├── js/
-│       └── images/
+│   ├── assets/
+│   │   ├── css/
+│   │   └── js/
+│   └── uploads/
+│       └── media/
+├── resources/
+│   └── cms/
+│       └── rich-editor/
 ├── database/
 │   ├── migrations/
 │   └── seeds/
@@ -181,6 +215,8 @@ project-root/
 └── docker-compose.yml
 ```
 
+rootの`tests/`はwebmedia固有のApplication / Domain / Infrastructure / Presentation、Kernel / Shared、consumer integrationを検証する。Framework runtimeとscaffoldのtestは`packages/framework/tests/`、Skeleton初期構成のtestは`packages/skeleton/tests/`が所有する。
+
 ### 6.2 publicディレクトリ
 
 Web公開ディレクトリは必ず `public/` に限定する。
@@ -191,6 +227,7 @@ Web公開ディレクトリは必ず `public/` に限定する。
 - 公開用CSS
 - 公開用JavaScript
 - 公開用画像
+- CMSが検証・保存した公開media (`public/uploads/media/`)
 - favicon
 - robots.txt
 - sitemap.xml

@@ -75,7 +75,7 @@
 
 | 項目 | 状態 | 現行実装 | 残作業 |
 |---|---|---|---|
-| DI / HTTP / Routing / Middleware | 完了 | Framework と tests | route match 重複などは必要時に改善 |
+| DI / HTTP / Routing / Middleware | 完了 | `packages/framework/src`と`packages/framework/tests` | route match 重複などは必要時に改善 |
 | CSRF / Session | 完了 | first state accessでのnative Session遅延開始、request-scope Session、CMS差し替えmiddleware。stateful直後のstateless worker request、Front問い合わせ、CMSログインを検証済み | なし |
 | Template rendering | 完了 | Latte renderer、compile cache 方針 | 本番 cache opt-in の運用判断 |
 | Process execution | 完了 | Framework `ProcessRunner` / `ProcessResult`, shell-free array command, startupError, timeout, bounded stdout/stderr | async/background/process group kill は未対応。必要時に専用設計 |
@@ -110,6 +110,12 @@
 | `docs/decisions.md` | なぜやる / やらないの設計判断記録として維持 |
 | `docs/site_model_plan.md` | site model導入に向けた現行方針と判断保留事項として維持 |
 | `docs/webmedia_architecture_rules.md` | 依存方向、配置、命名、middleware 境界の現行規約として維持 |
+
+### 監査スナップショット
+
+| 文書 | 扱い |
+|---|---|
+| `docs/system_architecture_review_20260717.md` | 2026-07-17時点のpath、実測、findingを証拠として保持する。現行仕様や現行ディレクトリ構造には使わない |
 
 ### 整理対象
 

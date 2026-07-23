@@ -147,7 +147,7 @@ Public API and compatibility rules are documented in [`API.md`](API.md). Release
 
 ## Development
 
-The Framework package owns its tests and static-analysis configuration. A checkout of this package can be developed without the `webmedia` project:
+The Framework package owns its tests and static-analysis configuration and can be developed independently:
 
 ```bash
 composer install
@@ -156,27 +156,6 @@ composer analyse
 ```
 
 Framework runtime and scaffold behavior belongs in `tests/` here. Tests that assert integration with a specific consuming project, such as drift against that project's current Kernel or its root Composer wiring, belong to the consuming project instead.
-
-## Monorepo Development
-
-The `webmedia` root consumes this package through a Composer path repository with `symlink: true`. Composer therefore links `vendor/pera/framework` to `packages/framework` instead of copying the package.
-
-- Changes to existing Framework PHP files, README files, and scaffold script contents are visible immediately. Running `composer install` again is unnecessary.
-- Changes to this package's `require`, PSR-4 mapping, or `bin` list require `composer update pera/framework --with-all-dependencies` from the root so that `composer.lock`, autoload metadata, and vendor binary proxies are regenerated.
-- A fresh checkout should use the normal `composer install` from the root lock file.
-- Consumers of a published non-path package receive Framework changes through the normal `composer update pera/framework` flow.
-- The root test suite also loads this package's tests, while project-specific integration tests remain under the root `tests/` directory.
-
-## Examples
-
-The current `webmedia` project contains real applications:
-
-- `apps/front`: public article site
-- `apps/cms`: admin CMS
-
-They are useful as a production-shaped example, but they are larger than a first-read sample.
-
-A smaller `todo` template is available for a first PDO-backed app. A small `blog` template is planned for the future. Their purpose is to make the Framework's application shape understandable in a few minutes.
 
 ## Reading Order
 

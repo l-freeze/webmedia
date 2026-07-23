@@ -309,13 +309,13 @@ php vendor/bin/scaffold-app admin /admin --template=layered
 - `POST /admin/contact`のShared Validation利用例
 - App自身のSQLite connectionとrepository
 
-`todo`より多くの境界を見せますが、CMSやwebmedia固有の高機能architectureは含みません。
+`todo`より多くの境界を見せますが、production CMSや利用project固有の高機能architectureは含みません。
 
 ### Unsupported and reserved templates
 
 - `fullpack`: 将来予約。現時点では指定できない
 - `config-only`: 提供しない
-- CMS / webmedia一式: Framework scaffoldには含めない
+- 完成済みCMSや利用project固有のapplication一式: Framework scaffoldには含めない
 
 ## What Scaffold Changes
 

@@ -21,7 +21,7 @@ Sessionを使うControllerだけ、constructorで `Session` を受け取って�
 
 declare(strict_types=1);
 
-namespace App\Front\Presentation\Http\Controller\SpecialPage;
+namespace App\Site\Presentation\Http\Controller\SpecialPage;
 
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
@@ -37,7 +37,7 @@ final readonly class Controller
     public function __invoke(Request $request, array $vars = []): Response
     {
         $value = $this->session->get(
-            key: 'front.special_page.selected_tab',
+            key: 'site.special_page.selected_tab',
             default: 'overview',
         );
         $selectedTab = is_string($value) ? $value : 'overview';
@@ -51,7 +51,7 @@ POSTなどの更新処理では、同じkeyへ保存してredirectできます�
 
 ```php
 $this->session->set(
-    key: 'front.special_page.selected_tab',
+    key: 'site.special_page.selected_tab',
     value: 'history',
 );
 
@@ -71,13 +71,13 @@ return Response::redirect('/special-page');
 
 declare(strict_types=1);
 
-namespace App\Front\Presentation\Session;
+namespace App\Site\Presentation\Session;
 
 use Pera\Framework\Security\Session;
 
 final readonly class SpecialPageSession
 {
-    private const OPTIONS_KEY = 'front.special_page.options';
+    private const OPTIONS_KEY = 'site.special_page.options';
 
     public function __construct(private Session $session)
     {
@@ -107,7 +107,7 @@ final readonly class SpecialPageSession
 }
 ```
 
-このclassはFrameworkの拡張ではなく、`front.special_page`というapplication stateの所有者です。Session keyをFramework、Kernel、Domainへ移さず、利用するapplicationのPresentationまたは認証adapterの近くに置きます。Domain EntityやApplication Interactorには `Session` を渡さず、必要な値だけをUseCase Inputへ変換します。
+このclassはFrameworkの拡張ではなく、`site.special_page`というapplication stateの所有者です。Session keyをFramework、Kernel、Domainへ移さず、利用するapplicationのPresentationまたは認証adapterの近くに置きます。Domain EntityやApplication Interactorには `Session` を渡さず、必要な値だけをUseCase Inputへ変換します。
 
 Sessionにはscalar、ID、enumのvalue、必要最小限の配列を保存します。Request、service、PDO、Domain Entityのようなobject graphを保存すると、serialization、deploy、変更容易性の境界が崩れるため避けます。
 

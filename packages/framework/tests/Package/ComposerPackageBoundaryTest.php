@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Pera\Framework\Tests\Package;
 
+use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class ComposerPackageBoundaryTest extends TestCase
 {
@@ -89,6 +93,52 @@ final class ComposerPackageBoundaryTest extends TestCase
 
         self::assertStringNotContainsString('"type": "path"', $guide);
         self::assertStringNotContainsString('"symlink":', $guide);
+    }
+
+    public function testPublishedDocumentationDoesNotDependOnPrivateMonorepo(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $documents = glob($root . '/*.md');
+        self::assertIsArray($documents);
+
+        foreach (['bin', 'src', 'templates'] as $directory) {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    $root . '/' . $directory,
+                    FilesystemIterator::SKIP_DOTS,
+                ),
+            );
+            foreach ($iterator as $file) {
+                if (!$file instanceof SplFileInfo || $file->getExtension() !== 'md') {
+                    continue;
+                }
+
+                $documents[] = $file->getPathname();
+            }
+        }
+
+        foreach ($documents as $documentPath) {
+            $contents = file_get_contents($documentPath);
+            self::assertIsString($contents);
+            $normalizedContents = strtolower($contents);
+
+            foreach ([
+                'webmedia',
+                'path repository',
+                'path-repository',
+                'monorepo development',
+                'apps/cms',
+                'apps/front',
+                'app\\cms',
+                'app\\front',
+            ] as $privateReference) {
+                self::assertStringNotContainsString(
+                    $privateReference,
+                    $normalizedContents,
+                    $documentPath,
+                );
+            }
+        }
     }
 
     /** @return array<string, mixed> */

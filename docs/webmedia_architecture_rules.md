@@ -19,7 +19,10 @@
 
 ```text
 apps/
+  kernel/
+  shared/
   front/
+  front-business/
   cms/
 ```
 
@@ -50,25 +53,58 @@ use App\Cms\...;
 
 - `packages/framework`: 独立したComposer manifest、scaffold binary、DI、HTTP、Routingなどを持つ軽量Framework package。production codeは`src`配下
 - `apps/kernel`: 起動、runtime、DB factory など、実行基盤を組み立てる Kernel
-- `apps/shared`: `front` / `cms` の両方から使うアプリケーション側の共有基盤
+- `apps/shared`: `front` / `front-business` / `cms` など複数Appから使うアプリケーション側の共有基盤
 
-`apps/shared` は許可する。ただし、雑多な helper や業務ロジックの避難場所にしてはならない。`front` / `cms` のどちらか一方に閉じる機能は、それぞれのアプリケーション配下に置く。
+`apps/shared` は許可する。ただし、雑多な helper や業務ロジックの避難場所にしてはならない。一つのAppに閉じる機能は、そのアプリケーション配下に置く。
 
 ```text
 packages/
   framework/
     composer.json
+    LICENSE
+    README.md
+    API.md
+    INSTALLATION.md
+    SECURITY.md
+    CHANGELOG.md
     bin/
     src/
+      Application/
+      Bootstrap/
       Container/
       Http/
+      Logging/
+      Process/
       Routing/
+      Runtime/
       View/
       Security/
-      Process/
+    templates/
+      kernel/
+      shared/
+      app/
+    tests/
+    phpunit.xml
+    phpstan.neon
+  skeleton/
+    composer.json
+    LICENSE
+    README.md
+    apps/
+      kernel/
+      shared/
+      minimal/
+    public/
+    tests/
+    .docker/
+    compose.yaml
 ```
 
 `apps/common`、`apps/modules`、`apps/framework` は禁止する。`apps` 直下に追加する共有ディレクトリは、責務が明確な `kernel` / `shared` に限定する。
+
+`packages/framework`は`pera/framework`として公開する配布境界である。Framework runtime、明示scaffold binary、そのtemplate、package自身のtestと公開文書だけを置く。webmedia固有のApp、rootのpath repository検証、非公開のCMS設計を参照してはならない。
+
+`packages/skeleton`は`pera/skeleton`として公開する別の配布境界である。利用者所有になる初期Kernel / Shared / Minimal、public entrypoint、開発環境、project testを置く。Framework production codeを複製せず、Composer dependencyとして`pera/framework`を利用する。
 
 ## 3. 依存ルール
 
@@ -135,19 +171,42 @@ Shared に置く Interface も例外ではない。Shared の Interface は、�
 
 ```text
 webmedia/
+  .docker/
   apps/
     kernel/
     shared/
     front/
+    front-business/
     cms/
-  src/
-    Framework/
+  packages/
+    framework/
+      bin/
+      src/
+      templates/
+      tests/
+    skeleton/
+      apps/
+      public/
+      tests/
   public/
+    assets/
+    uploads/
+      media/
+  resources/
+    cms/
   database/
+    migrations/
+    seeds/
   storage/
+    cache/
+    logs/
+    uploads/
   tests/
   composer.json
+  docker-compose.yml
 ```
+
+rootの`tests/`はwebmediaのApp / Kernel / Sharedと、特定consumerとしてのpackage統合を検証する。Framework runtimeとscaffold自体のtestは`packages/framework/tests/`、Skeleton初期projectのtestは`packages/skeleton/tests/`が所有する。
 
 ### 4.2 Front
 
@@ -155,99 +214,31 @@ webmedia/
 apps/front/
   config/
     container.php
+    middleware.php
     routes.php
   src/
     Application/
       Article/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-          Value/
-            Article.php
-        Show/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-          Value/
-            Article.php
-        Search/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-          Value/
-            Article.php
       Category/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            ICategoryQuery.php
-          Value/
-            Category.php
-        Show/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-            ICategoryQuery.php
-          Value/
-            Article.php
-            CategoryDetail.php
-      Tag/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            ITagQuery.php
-          Value/
-            Tag.php
-        Show/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-            ITagQuery.php
-          Value/
-            Article.php
-            TagDetail.php
-      Page/
-        Show/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IPageQuery.php
+      Home/
       Inquiry/
-        Create/
-          Input.php
-          Interactor.php
-          Output.php
+      Layout/
+      Page/
+      Sitemap/
+      Tag/
     Domain/
+      Entity/
       Repository/
-        IInquiryRepository.php
+      Value/
+    Infrastructure/
+      Persistence/
     Presentation/
       Http/
         Controller/
+      Presenter/
       Seo/
-        CanonicalUrl.php
-    Infrastructure/
-      Persistence/
-        PdoArticleQuery.php
-        PdoCategoryQuery.php
-        PdoTagQuery.php
-        PdoPageQuery.php
-        PdoInquiryRepository.php
+      Sitemap/
+      View/
   templates/
 ```
 
@@ -257,140 +248,49 @@ apps/front/
 apps/cms/
   config/
     container.php
+    middleware.php
     routes.php
   src/
     Application/
-      Dashboard/
-        Show/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IDashboardQuery.php
+      AdminUser/
       Article/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-        Edit/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-        Save/
-          Input.php
-          Interactor.php
-          Output.php
-        Preview/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleQuery.php
-        History/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleHistoryQuery.php
-        Restore/
-          Input.php
-          Interactor.php
-          Output.php
       ArticleVersion/
-        Preview/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IArticleVersionQuery.php
-      Page/
-        List/
-        Edit/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IPageQuery.php
-        Save/
-          Input.php
-          Interactor.php
-          Output.php
-        History/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IPageHistoryQuery.php
-      Taxonomy/
-        List/
-        Save/
-      Media/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IMediaQuery.php
+      Audit/
+      Auth/
+      Category/
+      Dashboard/
       Inquiry/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            IInquiryQuery.php
+      Media/
+      Page/
+      Permission/
+      Role/
       Setting/
-        Edit/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            ISettingQuery.php
-        Save/
-          Input.php
-          Interactor.php
-          Output.php
+      Tag/
       Trash/
-        List/
-          Input.php
-          Interactor.php
-          Output.php
-          Query/
-            ITrashQuery.php
+      Validation/
     Domain/
       Entity/
-      Value/
-        ArticleId.php
-      Repository/
-        IArticleRepository.php
-        IPageRepository.php
-        ITaxonomyRepository.php
       Exception/
-    Auth/
-      Domain/
-      Infrastructure/
+      Policy/
+      Repository/
+      Value/
+    Infrastructure/
+      Auth/
+      Logging/
+      Media/
+      Persistence/
+      Security/
     Presentation/
+      Audit/
       Http/
         Controller/
         Middleware/
-    Infrastructure/
-      Persistence/
-        PdoArticleRepository.php
-        PdoArticleQuery.php
-        PdoDashboardQuery.php
-        PdoInquiryQuery.php
-        PdoMediaQuery.php
-        PdoPageRepository.php
-        PdoSettingQuery.php
-        PdoTaxonomyRepository.php
-        PdoTrashQuery.php
+      Presenter/
+      ViewModel/
   templates/
 ```
 
-`Auth` は認証境界であり、WEB メディアのコンテンツユースケースではないため分離してよい。ただし、それを理由に `Article`、`Tag`、`Page`、`Inquiry` などをトップレベルの小アプリケーションとして分割してはならない。
+`Auth` はCMS Application内の認証Featureとして分離してよい。ただし、それを理由に `Article`、`Tag`、`Page`、`Inquiry` などを`apps`直下の小アプリケーションへ分割してはならない。
 
 ## 5. Application ルール
 
@@ -1573,6 +1473,14 @@ DB row を Query / Repository の戻り値としてそのまま返してはな�
 
 ## 18. Test ルール
 
+testの配置は責務の所有先に合わせる。
+
+- `tests/`: webmediaのApp / Kernel / Shared、webmedia固有のintegration
+- `packages/framework/tests/`: Framework runtime、scaffold、package境界
+- `packages/skeleton/tests/`: 配布される初期project
+
+Framework packageのtestをrootへだけ置いて、公開package単体では検証できない状態にしてはならない。root testからpackage testを併せて実行しても、test sourceの所有権は移らない。
+
 テスト対象:
 
 ```text
@@ -1596,6 +1504,9 @@ PDO test では test database を使ってよい。
 [ ] front が cms に依存していない
 [ ] apps/shared を雑多な helper や業務ロジックの避難場所にしていない
 [ ] apps/common、apps/modules、apps/framework を作っていない
+[ ] packages/framework にwebmedia固有のApp、非公開設計、monorepo専用手順を混ぜていない
+[ ] Framework runtime / scaffoldのtestはpackages/framework/testsが所有している
+[ ] Skeleton固有sourceとtestはpackages/skeletonが所有し、Framework production codeを複製していない
 [ ] Interface は依存制御のためだけに導入している
 [ ] Query interface は Application/<Feature>/<Action>/Query 配下にある
 [ ] Application/<Feature>/ 直下の通常ディレクトリは Action であり、Input / Interactor / Output を持つ

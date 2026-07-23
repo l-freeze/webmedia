@@ -31,7 +31,7 @@
 - scaffoldで生成した `App\Kernel` は全て利用プロジェクトの所有物とし、Framework updateで上書き、差分適用、自動upgradeをしない。
 - PSRに関する採用範囲と独自境界は各Framework READMEとtechnical stackに既に記載しているため、要件が変わらない限り再検討タスクにしない。
 - 新規projectの標準導入はproject skeleton、既存projectへの追加は `composer require` 後の明示的なvendor binary実行を基本とする。
-- Frameworkは`packages/framework`を自己完結したpackage rootとし、webmedia rootはComposer path repositoryから`pera/framework`を利用する。root PSR-4でFramework namespaceを重複autoloadしない。
+- Frameworkは`packages/framework`を自己完結した公開package rootとし、webmedia rootはComposer path repositoryから`pera/framework`を利用する。root PSR-4でFramework namespaceを重複autoloadしない。package内へwebmedia固有知識やmonorepo専用手順を混ぜない。
 - Frameworkとscaffold自体のtest・PHPUnit・PHPStan設定は`packages/framework`が所有する。webmediaの現行Kernelとのdriftやroot Composer wiringなど、特定consumerとの統合だけはwebmedia rootのtestが所有する。
 - Composer installer pluginは持たず、Framework install時にKernelやSharedを暗黙生成しない。
 - Dotenvによる任意の`.env`読み込みは標準Kernel scaffoldに含める。環境初期化はapplication compositionより前に行うKernelの責務とし、Sharedには置かない。`vlucas/phpdotenv`はFramework packageではなく生成物を使うconsumer rootが所有する。

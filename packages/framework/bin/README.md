@@ -9,7 +9,7 @@
 | Command | Description |
 | --- | --- |
 | `php vendor/bin/scaffold-kernel` | Framework を使うプロジェクト側に固定の Kernel 層を生成します。通常はプロジェクトごとに一度だけ実行します。 |
-| `php vendor/bin/scaffold-shared` | CMS / Front / 追加 app から共通利用する `apps/shared` の最小構成を生成します。通常はプロジェクトごとに一度だけ実行します。 |
+| `php vendor/bin/scaffold-shared` | 複数appから共通利用する `apps/shared` の最小構成を生成します。通常はプロジェクトごとに一度だけ実行します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix>` | 新しい HTTP application を `apps/{name}` に生成します。`--template` を省略すると `minimal` template を使います。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix> --template=bare` | Frameworkの`Response`だけでplain textを返すsingle-controller starterを生成します。 |
 | `php vendor/bin/scaffold-app <name> <path-prefix> --template=minimal` | 1つの Controller と view で動く single-controller HTML starter を生成します。 |
@@ -147,7 +147,7 @@ php vendor/bin/scaffold-app site / --template=minimal
 
 ### layered
 
-CMS と同じ方向性の縦割りスターターを生成します。
+Application / Domain / Infrastructure / Presentationを分けた縦割りスターターを生成します。
 
 ```bash
 php vendor/bin/scaffold-app admin /admin --template=layered

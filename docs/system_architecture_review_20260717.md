@@ -4,6 +4,8 @@
 対象: `AGENTS.md`、`docs/` 全体、現行ソース・設定・テスト・DB定義・ローカル実行経路
 状態: 改善候補をトリアージするための監査報告。現行仕様や規約そのものではない。
 
+注記: 本文のpath、file数、test数、実測結果、findingは評価日時点の証拠として保存している。以後、Frameworkは`packages/framework`へ、Framework testは`packages/framework/tests`へ分離され、Skeletonも`packages/skeleton`へ追加された。現在のディレクトリ構造は`docs/webmedia_architecture_rules.md`と`docs/webmedia_technical_stack.md`を正とし、この監査報告の古いpathを現在の配置案として使わない。
+
 ## 1. 結論
 
 このシステムの中心的な意味は「記事を保存するCRUD」ではない。編集者がコンテンツを作り、公開可否と公開期間を決め、読者へ安全に配信し、問い合わせを受け、後から誰が何をしたか説明できる、小規模な編集・公開システムである。

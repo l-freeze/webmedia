@@ -36,7 +36,7 @@ Register it in each app container with that app's template directory:
 $container->singleton(
     id: ITemplateRenderer::class,
     factory: fn (): ITemplateRenderer => new LatteTemplateRenderer(
-        templateDirectory: $root . '/apps/front/templates',
+        templateDirectory: $root . '/apps/site/templates',
     ),
 );
 ```

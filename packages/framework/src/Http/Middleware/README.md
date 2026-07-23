@@ -4,7 +4,7 @@
 
 HTTP リクエストを Controller へ渡す前後に処理を差し込むための最小パイプラインです。
 
-Framework は `Request -> Middleware -> Controller -> Response` の実行順だけを提供します。認証、request id 付与、監査ログなどの具体的な処理は `apps/cms`、`apps/front`、または `apps/shared` に置きます。
+Framework は `Request -> Middleware -> Controller -> Response` の実行順だけを提供します。認証、request ID付与、監査ログなどの具体的な処理は、利用projectの各AppまたはSharedに置きます。
 
 ## Middleware の作り方
 
@@ -38,14 +38,28 @@ final readonly class ExampleMiddleware implements IMiddleware
 
 declare(strict_types=1);
 
-use App\Cms\Presentation\Http\Middleware\RequireAdminSessionMiddleware;
+use App\Site\Presentation\Http\Middleware\RequireSignedInUserMiddleware;
 
 return [
-    RequireAdminSessionMiddleware::class,
+    RequireSignedInUserMiddleware::class,
 ];
 ```
 
-`Application` は `/admin` では `apps/cms/config/middleware.php`、それ以外では `apps/front/config/middleware.php` を読みます。ファイルがない場合は middleware なしとして扱います。
+標準Kernelを使う場合は、Appの`ApplicationDefinition`がそのmiddleware設定fileを指します。
+
+```php
+use App\Kernel\ApplicationDefinition;
+
+new ApplicationDefinition(
+    name: 'site',
+    pathPrefix: '/',
+    routesPath: '/apps/site/config/routes.php',
+    containerPath: '/apps/site/config/container.php',
+    middlewarePath: '/apps/site/config/middleware.php',
+);
+```
+
+生成KernelはAppごとに指定されたfileからmiddleware listを読みます。独自Kernelを使う場合も、Frameworkの`MiddlewarePipeline`へ同じclass-string listを渡せます。FrameworkはApp名やURL prefixから設定fileを推測しません。
 
 ## DI
 
