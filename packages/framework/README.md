@@ -88,39 +88,21 @@ PDO-backed app templates own their connection factory and persistence code. Neit
 
 ## Installation
 
+The complete published-package installation matrix, every scaffold workflow, and all app templates are documented in [`INSTALLATION.md`](INSTALLATION.md).
+
 After the package is published, install the Framework library into an existing project with Composer:
 
 ```bash
 composer require pera/framework
 ```
 
-During local package development, point the consuming project's `composer.json` at the package directory and require its development version:
-
-```json
-{
-  "repositories": [
-    {
-      "type": "path",
-      "url": "../path/to/pera/packages/framework",
-      "options": {
-        "symlink": true,
-        "versions": {
-          "pera/framework": "dev-main"
-        }
-      }
-    }
-  ],
-  "require": {
-    "pera/framework": "dev-main"
-  }
-}
-```
-
-Then run `composer update pera/framework --with-all-dependencies`. The install adds only the Framework library and its explicit vendor binaries. It does not create `apps/kernel`, `apps/shared`, an application, or a public entrypoint.
+The install adds only the Framework library and its explicit vendor binaries. It does not create `apps/kernel`, `apps/shared`, an application, or a public entrypoint.
 
 ## Scaffold
 
 `pera` provides fixed scaffold commands.
+
+For the supported project combinations, command arguments, post-scaffold Composer steps, custom-Kernel fallback, and the complete `bare` / `minimal` / `todo` / `layered` comparison, see [`INSTALLATION.md`](INSTALLATION.md).
 
 ```bash
 php vendor/bin/scaffold-kernel
@@ -201,12 +183,13 @@ A smaller `todo` template is available for a first PDO-backed app. A small `blog
 For a first read, start here:
 
 1. `README.md`
-2. `src/Bootstrap/README.md`
-3. `src/Container/README.md`
-4. `src/Http/Middleware/README.md`
-5. `src/Security/README.md`
-6. `src/Process/README.md`
-7. `bin/README.md`
+2. `INSTALLATION.md`
+3. `src/Bootstrap/README.md`
+4. `src/Container/README.md`
+5. `src/Http/Middleware/README.md`
+6. `src/Security/README.md`
+7. `src/Process/README.md`
+8. `bin/README.md`
 Generated Kernel and Shared directories contain their own project-side README files. This package README describes only the Framework and its scaffold commands.
 
 ## License

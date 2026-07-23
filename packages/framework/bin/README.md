@@ -1,5 +1,7 @@
 # Scaffold Commands
 
+公開packageの導入方法、Framework-only / Kernel-only / Skeletonの手順、全templateの比較、Dockerを含む利用者向けの正規手順は[`../INSTALLATION.md`](../INSTALLATION.md)を参照してください。この文書は各commandの生成契約と実装上の詳細を説明します。
+
 ## Command Summary
 
 プロジェクト root から次のコマンドを実行します。

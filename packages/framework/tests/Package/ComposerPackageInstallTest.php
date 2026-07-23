@@ -37,6 +37,7 @@ final class ComposerPackageInstallTest extends TestCase
             self::assertFalse(is_link($consumerRoot . '/vendor/pera/framework'));
             self::assertFileExists($consumerRoot . '/vendor/autoload.php');
             self::assertFileExists($consumerRoot . '/vendor/pera/framework/LICENSE');
+            self::assertFileExists($consumerRoot . '/vendor/pera/framework/INSTALLATION.md');
             $installedManifestContents = file_get_contents($consumerRoot . '/vendor/pera/framework/composer.json');
             self::assertIsString($installedManifestContents);
             $installedManifest = json_decode($installedManifestContents, true, 512, JSON_THROW_ON_ERROR);

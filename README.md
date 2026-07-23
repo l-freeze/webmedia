@@ -90,6 +90,7 @@ make test
 ## 構成
 
 - `packages/framework`: 独立Composer manifest、scaffold binary、DI、HTTP、Routing、middleware pipeline、runtimeを持つ自己完結したFramework package
+- `packages/framework/INSTALLATION.md`: Framework / Skeletonの導入方法、Kernel / Shared / App scaffold、全templateの利用手順
 - `packages/skeleton`: `composer create-project pera/skeleton`用のKernel、Shared、DBなしMinimal、FrankenPHP開発環境を持つ自己完結したproject skeleton
 - `packages/README.md`: Framework / Skeletonを公開前にpath repositoryから検証するmonorepo開発手順
 - `apps/kernel`: アプリ構成と環境ごとの合成。PDO 接続設定など、このプロジェクト全体の技術選定を置く

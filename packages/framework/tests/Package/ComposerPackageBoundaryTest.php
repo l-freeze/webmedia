@@ -50,7 +50,7 @@ final class ComposerPackageBoundaryTest extends TestCase
         foreach (['kernel', 'shared', 'app/bare', 'app/minimal', 'app/todo', 'app/layered'] as $template) {
             self::assertDirectoryExists($root . '/templates/' . $template);
         }
-        foreach (['API.md', 'CHANGELOG.md', 'LICENSE', 'SECURITY.md'] as $releaseDocument) {
+        foreach (['API.md', 'CHANGELOG.md', 'INSTALLATION.md', 'LICENSE', 'SECURITY.md'] as $releaseDocument) {
             self::assertFileExists($root . '/' . $releaseDocument);
         }
         foreach (['phpunit.xml', 'phpstan.neon'] as $developmentPath) {
@@ -60,6 +60,35 @@ final class ComposerPackageBoundaryTest extends TestCase
 
         self::assertFileDoesNotExist($root . '/src/Installer/Composer/FrameworkInstallerPlugin.php');
         self::assertDirectoryDoesNotExist($root . '/src/Framework');
+    }
+
+    public function testInstallationGuideCoversEverySupportedEntryPathAndAppTemplate(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $guide = file_get_contents($root . '/INSTALLATION.md');
+        self::assertIsString($guide);
+
+        foreach ([
+            'composer create-project pera/skeleton',
+            'composer require pera/framework',
+            'Packagist',
+            'vendor/bin/scaffold-kernel',
+            'vendor/bin/scaffold-shared',
+            '--root=/absolute/path/to/project',
+            '独自Kernel',
+            'composer dump-autoload',
+            'composer update',
+        ] as $installationCase) {
+            self::assertStringContainsString($installationCase, $guide);
+        }
+
+        foreach (['bare', 'minimal', 'todo', 'layered'] as $template) {
+            self::assertStringContainsString("--template={$template}", $guide);
+            self::assertStringContainsString("### `{$template}`", $guide);
+        }
+
+        self::assertStringNotContainsString('"type": "path"', $guide);
+        self::assertStringNotContainsString('"symlink":', $guide);
     }
 
     /** @return array<string, mixed> */

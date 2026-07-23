@@ -7,6 +7,8 @@
 
 This document describes local package verification before the packages are published. These repository declarations are test-only and must not be added to either package's distributed `composer.json`.
 
+End-user installation, every supported Framework / Kernel / Shared combination, and the complete app-template reference are documented in `packages/framework/INSTALLATION.md`. This file owns only monorepo-local package verification.
+
 ## Verify `pera/skeleton` with local path repositories
 
 Run these commands from the `webmedia` repository root. Use a new target directory name when repeating the test because Composer intentionally refuses to overwrite an existing project.

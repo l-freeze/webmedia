@@ -39,6 +39,17 @@ The command adds the generated namespace to root PSR-4 autoload and registers th
 
 When PHP 8.5 is installed locally, the same commands can be run directly as `php vendor/bin/scaffold-app ...`.
 
+Choose a template according to the application boundary you need:
+
+| Template | Shared | View | Database | Initial routes |
+| --- | --- | --- | --- | --- |
+| `bare` | No | Plain-text `Response` | None | `GET <prefix>` |
+| `minimal` | Yes | Latte | None | `GET <prefix>` |
+| `todo` | Yes | Latte | App-owned SQLite | Todo list, create, and complete |
+| `layered` | Yes | Latte | App-owned SQLite | DB health and CSRF-protected contact form |
+
+The installed Framework contains the exhaustive public installation guide at `vendor/pera/framework/INSTALLATION.md`. It covers Framework-only and Kernel-only installation, every template, custom Kernel wiring, and post-scaffold Composer commands.
+
 ## Environment
 
 Kernel loads `.env` when the file exists. No environment file is required for the initial page. To customize session cookies:
