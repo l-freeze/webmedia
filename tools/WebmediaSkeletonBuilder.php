@@ -27,6 +27,7 @@ final class WebmediaSkeletonBuilder
         'public/',
         'resources/',
         'storage/',
+        'tests/Architecture/',
         'tests/Cms/',
         'tests/Front/',
         'tests/Kernel/',

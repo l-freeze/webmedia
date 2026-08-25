@@ -7,6 +7,7 @@ namespace Tests\Shared\Logging;
 use App\Shared\ApplicationLog\Infrastructure\JsonFileApplicationLogger;
 use App\Shared\Audit\Domain\AuditEvent;
 use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
+use App\Shared\Logging\Infrastructure\LogWriteException;
 use App\Shared\SecurityLog\Domain\SecurityLogEvent;
 use App\Shared\SecurityLog\Infrastructure\JsonFileSecurityLogger;
 use PHPUnit\Framework\TestCase;
@@ -46,6 +47,45 @@ final class SeparatedLoggersTest extends TestCase
         self::assertSame('2', $record['actor_user_id']);
     }
 
+    public function testAuditLoggerSubstitutesInvalidUtf8(): void
+    {
+        $path = $this->path(file: 'audit.log');
+        $logger = new JsonFileAuditLogger(path: $path);
+
+        $logger->record(event: new AuditEvent(
+            action: 'article.updated',
+            resourceType: 'article',
+            result: 'success',
+            userAgent: "\xFF",
+            metadata: ['invalid' => "\xFF"],
+        ));
+
+        $record = $this->record(path: $path);
+        $metadata = $record['metadata'] ?? null;
+        self::assertIsArray($metadata);
+        self::assertSame("\u{FFFD}", $record['user_agent']);
+        self::assertSame("\u{FFFD}", $metadata['invalid']);
+    }
+
+    public function testAuditLoggerReportsPersistenceFailureToItsCaller(): void
+    {
+        $blocker = tempnam(sys_get_temp_dir(), 'webmedia-audit-blocker-');
+        self::assertIsString($blocker);
+        $logger = new JsonFileAuditLogger(path: $blocker . '/audit.log');
+
+        try {
+            $this->expectException(LogWriteException::class);
+            $this->expectExceptionMessage('Cannot create log directory');
+
+            $logger->record(event: AuditEvent::success(
+                action: 'article.updated',
+                resourceType: 'article',
+            ));
+        } finally {
+            unlink($blocker);
+        }
+    }
+
     public function testSecurityLoggerWritesAuthSecurityRecord(): void
     {
         $path = $this->path(file: 'security.log');
@@ -64,6 +104,25 @@ final class SeparatedLoggersTest extends TestCase
         self::assertSame('cms.login', $record['event_type']);
         self::assertSame('failure', $record['result']);
         self::assertSame('127.0.0.1', $record['ip_address']);
+    }
+
+    public function testSecurityLoggerSubstitutesInvalidUtf8(): void
+    {
+        $path = $this->path(file: 'security.log');
+        $logger = new JsonFileSecurityLogger(path: $path);
+
+        $logger->record(event: new SecurityLogEvent(
+            eventType: 'cms.login',
+            result: 'failure',
+            userAgent: "\xFF",
+            metadata: ['invalid' => "\xFF"],
+        ));
+
+        $record = $this->record(path: $path);
+        $metadata = $record['metadata'] ?? null;
+        self::assertIsArray($metadata);
+        self::assertSame("\u{FFFD}", $record['user_agent']);
+        self::assertSame("\u{FFFD}", $metadata['invalid']);
     }
 
     private function path(string $file): string

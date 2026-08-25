@@ -34,6 +34,10 @@ storage/logs/security.log
 
 `JsonLineFileWriter` は Audit / SecurityLog / ApplicationLog の共通書き込み処理です。業務側から直接使わず、各 logger 経由で使います。
 
+文字列に不正UTF-8 byteが含まれる場合はUnicode replacement characterへ置換し、parse可能なJSON一行を可能な限り残します。循環参照など置換できないencoding error、directory作成失敗、append失敗は、元の失敗理由をmessageに含む`LogWriteException`として各loggerの呼び出し側へ通知します。共通writerとSharedの各loggerは継続・中断を決めず、例外を握りつぶしません。
+
+requestを失敗させるか、独立したfallbackへ通知して処理を継続するかは、loggerを組み立てるアプリケーションの責務です。CMSは`apps/cms/config/container.php`で`JsonFileAuditLogger`を`NonBlockingAuditLogger`に包み、Audit保存の`LogWriteException`だけをPHPの`error_log()`へ通知して完了済みresponseを維持します。ApplicationLogとSecurityLogや、CMS以外のアプリケーションへ同じ方針が暗黙に適用されることはありません。
+
 ## 差し込み方
 
 `apps/shared/config/container.php` で以下を登録します。
@@ -46,6 +50,8 @@ IEventBus::class => SynchronousEventBus([Audit handler, SecurityLog handler])
 ```
 
 CMSだけ別ログにしたい場合は、`apps/cms/config/container.php` で shared container 読み込み後に同じ `LoggerInterface::class` を再定義します。
+
+同様に、保存失敗時の継続方針も各アプリケーションのcontainerで明示的に構成します。Sharedのlogger自体を変更して全アプリケーションへ同じ方針を強制してはいけません。
 
 CMS の Audit / SecurityLog 発火側は logger を直接呼ばず、`IEventBus::dispatch()` へ event value を渡します。標準 handler が各 logger へ保存します。
 

@@ -41,9 +41,9 @@ RequireCmsSessionMiddleware
 
 `AuditMiddleware` は EventBus / AuditLogger の例外を握りつぶしません。
 
-標準 shared container では `SynchronousEventBus` が `AuditEvent` を `RecordAuditEventHandler` に渡し、`JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
+標準 shared container では `SynchronousEventBus` が `AuditEvent` を `RecordAuditEventHandler` に渡し、`JsonFileAuditLogger` が `storage/logs/audit.log` へ記録します。Sharedの`JsonFileAuditLogger`は保存失敗を`LogWriteException`として呼び出し側へ通知し、継続・中断を決めません。`PlaceholderAuditLogger` は scaffold やテストで未設定検知を明示したい場合の実装として残します。
 
-実運用の AuditLogger 実装では、HTTP 監査ログの保存失敗だけで完了済み CMS 操作の response を壊さないことを標準にします。保存失敗は通常ログや通知経路へ記録します。
+CMSはアプリケーション固有の方針として、containerで`JsonFileAuditLogger`を`NonBlockingAuditLogger`に包みます。このwrapperはAudit保存の`LogWriteException`だけを、同じJSON writerやlog directoryに依存しないPHPの`error_log()`へaction、resource type、result、失敗理由とともに通知し、完了済みCMS操作のresponseを維持します。想定外のlogger例外やfallback通知自体の失敗は伝播させます。`AuditMiddleware`はEventBusや未設定loggerの例外を引き続き握りつぶしません。
 
 監査ログ保存を業務処理と同じ成否条件にしたい場合は、middleware ではなく対象 UseCase / Controller の Business Audit と永続化処理を同じ transaction 境界で設計します。
 

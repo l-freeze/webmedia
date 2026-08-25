@@ -12,7 +12,10 @@ use App\Cms\Domain\Value\MediaUploadResult;
 use App\Cms\Infrastructure\Media\VipsImageVariantGenerator;
 use App\Shared\Database\PdoHelper;
 use App\Shared\Database\PdoRow;
+use ErrorException;
 use PDO;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Throwable;
 
 final readonly class PdoMediaRepository implements IMediaRepository
@@ -42,8 +45,11 @@ final readonly class PdoMediaRepository implements IMediaRepository
         'application/x-troff-msvideo' => 'avi',
     ];
 
-    public function __construct(private PDO $pdo, private VipsImageVariantGenerator $imageVariants)
-    {
+    public function __construct(
+        private PDO $pdo,
+        private VipsImageVariantGenerator $imageVariants,
+        private LoggerInterface $logger,
+    ) {
     }
 
     public function storeUploadedMedia(MediaUpload $upload): MediaUploadResult
@@ -190,9 +196,28 @@ final readonly class PdoMediaRepository implements IMediaRepository
             return [null, null];
         }
 
-        $size = @getimagesize($tmpName);
-        if (!is_array($size)) {
+        set_error_handler(static function (
+            int $severity,
+            string $message,
+            string $file,
+            int $line,
+        ): never {
+            throw new ErrorException($message, 0, $severity, $file, $line);
+        });
+        try {
+            $size = getimagesize($tmpName);
+            if (!is_array($size)) {
+                throw new RuntimeException('getimagesize() returned no dimensions.');
+            }
+        } catch (ErrorException|RuntimeException $exception) {
+            $this->logger->warning('Uploaded image dimensions could not be read.', [
+                'mime_type' => $mimeType,
+                'exception' => $exception,
+            ]);
+
             return [null, null];
+        } finally {
+            restore_error_handler();
         }
 
         $width = $size[0] > 0 ? $size[0] : null;

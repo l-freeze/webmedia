@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Tests\Cms;
 
 use App\Cms\Application\Auth\AuthorizeRoute\Value\PermissionCode;
+use App\Cms\Infrastructure\Logging\NonBlockingAuditLogger;
 use App\Cms\Presentation\Audit\AuditReporter;
 use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsPermissionMiddleware;
 use App\Cms\Presentation\Http\Middleware\RequireCmsSessionMiddleware;
+use App\Shared\Audit\Application\IAuditLogger;
+use Pera\Framework\Container\Container;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -42,6 +45,17 @@ final class CmsConfigTest extends TestCase
         self::assertIsInt($auditIndex);
         self::assertGreaterThan($sessionIndex, $permissionIndex);
         self::assertGreaterThan($permissionIndex, $auditIndex);
+    }
+
+    public function testCmsChoosesNonBlockingAuditPersistencePolicy(): void
+    {
+        $container = require dirname(__DIR__, 2) . '/apps/cms/config/container.php';
+        self::assertInstanceOf(Container::class, $container);
+
+        self::assertInstanceOf(
+            NonBlockingAuditLogger::class,
+            $container->get(id: IAuditLogger::class),
+        );
     }
 
     public function testCmsRoutesUseExpectedPermissionMetadata(): void

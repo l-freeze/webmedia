@@ -7,6 +7,7 @@ namespace Tests\Cms\Http\Middleware;
 use App\Cms\Application\Auth\GetCurrentUser\Query\ICurrentCmsUserQuery;
 use App\Cms\Application\Auth\GetCurrentUser\Value\CurrentCmsUser;
 use App\Cms\Infrastructure\Security\CmsGuard;
+use App\Cms\Infrastructure\Logging\NonBlockingAuditLogger;
 use App\Cms\Presentation\Audit\AuditSummary;
 use App\Cms\Presentation\Audit\AuditTrail;
 use App\Cms\Presentation\Http\Middleware\AuditMiddleware;
@@ -18,6 +19,7 @@ use Pera\Framework\Security\Session;
 use Pera\Framework\Security\SessionState;
 use App\Shared\Audit\Application\RecordAuditEventHandler;
 use App\Shared\Audit\Domain\AuditEvent;
+use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Audit\Infrastructure\PlaceholderAuditLogger;
 use App\Shared\Event\Application\IEventBus;
 use App\Shared\Event\Infrastructure\SynchronousEventBus;
@@ -189,6 +191,50 @@ final class AuditMiddlewareTest extends TestCase
                 return new Response(body: 'ok');
             }),
         );
+    }
+
+    public function testCmsAuditPolicyKeepsCompletedResponseWhenPersistenceFails(): void
+    {
+        $blocker = tempnam(sys_get_temp_dir(), 'webmedia-audit-blocker-');
+        self::assertIsString($blocker);
+        /** @var list<string> $failures */
+        $failures = [];
+        $logger = new NonBlockingAuditLogger(
+            logger: new JsonFileAuditLogger(path: $blocker . '/audit.log'),
+            failureReporter: static function (string $message) use (&$failures): void {
+                $failures[] = $message;
+            },
+        );
+        $middleware = $this->middleware(
+            events: new SynchronousEventBus(handlers: [
+                new RecordAuditEventHandler(logger: $logger),
+            ]),
+        );
+
+        try {
+            $response = $middleware->process(
+                request: $this->request(method: 'POST', path: '/admin/articles/10'),
+                handler: new CallableRequestHandler(handler: static function (Request $request): Response {
+                    $trail = $request->attribute(key: AuditTrail::ATTRIBUTE);
+                    self::assertInstanceOf(AuditTrail::class, $trail);
+                    $trail->describe(summary: new AuditSummary(
+                        action: 'article.updated',
+                        resourceType: 'article',
+                        resourceId: '10',
+                        metadata: [],
+                    ));
+
+                    return Response::redirect(location: '/admin/articles/10');
+                }),
+            );
+
+            self::assertSame(Response::HTTP_FOUND, $response->status);
+            self::assertCount(1, $failures);
+            self::assertStringContainsString('Audit log persistence failed', $failures[0]);
+            self::assertStringContainsString('action=article.updated', $failures[0]);
+        } finally {
+            unlink($blocker);
+        }
     }
 
     public function testRequestBodySecretsAreNotStoredInMetadata(): void

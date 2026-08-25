@@ -2,7 +2,7 @@
 
 ## 更新日時
 
-- 2026-07-24
+- 2026-08-26
 
 ## 現在地
 
@@ -14,6 +14,8 @@
 
 ## 直近作業
 
+- ソース品質レビューの確定所見7件をsource、test、公開文書へ反映した。Frameworkはnative Session失敗の明示化、405の`Allow` header、scaffold予約名の事前拒否、Kernelはenvironment reader統一、application definitionの一意性・canonical prefix検証、scaffold説明修正を行った。SharedのJSONL writerは不正UTF-8を安全化し、native warningの理由を`LogWriteException`で呼び出し側へ通知する。CMSはアプリケーション固有の`NonBlockingAuditLogger`でAudit保存失敗だけを独立fallbackへ記録して継続する方針を明示した。PHPのerror suppression operator `@`は禁止し、CMSの画像寸法取得もwarningを例外化してApplicationLogへ記録する実装へ変更し、token単位のarchitecture testを追加した。Docker DesktopのWSL integrationが無効でPHPUnit、PHPStan、Composer検証、Webmedia Skeleton同期は未実施である。
+- Framework / Kernel / Sharedのソース品質レビューを`docs/source_quality_review_20260825.md`へ追加し、二次レビューを反映して確定所見Medium 4件・Low 3件、検証項目2件、既知改善1件、要判断2件へ再トリアージした。`PdoRow`は現行defectの具体例を確認できないため検証項目とし、trusted proxyはplanで方向が決まった既知改善とした。Application > Shared > Kernelというmiddleware優先方針はApplicationDefinition衝突と分け、未合意の要判断として扱う。Audit保存失敗はSharedが専用例外として通知し、CMSアプリケーションが独立fallbackへ記録して継続する方針を明示的に選ぶ。READMEだけで回避を求めず、現行思想を成立させる不変条件をsourceで保証する方針を明記した。
 - root Webmediaを正本とするproprietary `pera/webmedia-skeleton`を`packages/webmedia-skeleton`へ追加した。`tools/webmedia-skeleton`はtracked allowlistから一時候補を生成し、公開Framework source、Front Business POC、monorepo path repository、秘密情報、vendor、runtime dataを除外して配布用manifestとKernel / worker設定へ変換する。`check`は正本とのbyte-level driftを検査し、`sync`は候補が全受け入れを通過した場合だけ既存packageをrollback可能なrenameで置換する。両commandは`symlink:false`のpath repositoryから別projectへ`composer create-project`し、そのproject自身のDocker image、固有network / volume、空PostgreSQLでComposer strict validation、160 tests / 2779 assertions、PHPStan level max 587 files、platform requirements、migration、seed、FrankenPHP workerのFront 200 / security headers / Session非開始、CMS login / CSRF / 設定保存、Front反映、worker再起動後のDB永続化まで確認し、container / network / volume / local image / 一時fileを終了時に削除する。rootは新しいpackage境界testを含む263 tests / 6372 assertionsとPHPStan level max 753 filesを通過した。
 - trackedな`docs/**/*.md`の構造説明と実ディレクトリを照合し、現行構造の正本である`docs/webmedia_architecture_rules.md`と`docs/webmedia_technical_stack.md`を更新した。旧root `src/Framework`、古いFront / CMS Feature treeを除き、公開packageである`packages/framework`と`packages/skeleton`、package別test、scaffold templates、`resources`、`public/uploads/media`、root integrationの所有境界を現行sourceへ揃えた。日付付き総合レビューは当時の証拠を改変せず、現行ディレクトリの正本ではないことを明記した。公開Framework配下に残っていたwebmedia固有のMonorepo Development、Front / CMS middleware・CSRF・Session例も汎用説明へ変更し、monorepo専用path repository手順はpackage外の`packages/README.md`だけに残した。package内の全Markdownへprivate monorepo参照が再混入しない境界testを追加した。Framework PHPUnit 92 tests / 1847 assertions、PHPStan level max 58 files、root / Framework / Skeletonの`composer validate --strict`、tracked Markdownの相対link・code fence・具体path検査を通過した。
 - `packages/framework/INSTALLATION.md`をFramework配布物に含まれる公開packageの導入・scaffold手順の正本として追加した。PackagistからのSkeleton新規project、既存projectへのFramework-only / Kernel-only / Kernel＋Bare / 標準Shared＋HTML App、Docker / host PHP、`--root`、Composer後処理、標準／独自Kernel、CSRFとstateless APIの分離、所有権とrollbackを網羅した。`bare` / `minimal` / `todo` / `layered`は依存、route、Session / CSRF、DB所有境界まで比較し、未提供の`fullpack` / `config-only` / CMSも明示した。path repositoryによる未公開packageの開発・配布検証は利用者向け正本へ混在させず、monorepo開発者向け`packages/README.md`だけが所有する。Framework / scaffold / Skeleton READMEとdocs索引から利用者向け正本へ誘導し、package境界testとcopy install testで配布漏れを検出する。Framework package PHPUnit 91 tests / 1711 assertions、PHPStan level max 58 files、`composer validate --strict`を通過した。

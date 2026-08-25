@@ -27,6 +27,7 @@
 - `docs/decisions.md`: なぜやる / やらないの設計判断記録。
 - `docs/site_model_plan.md`: `sites` を中心にした公開面モデルの追加方針。
 - `docs/architecture_boundary_review.md`: 責務・境界・構造の全体精査で抽出した検証待ち候補。
+- `docs/source_quality_review_20260825.md`: 2026-08-25時点のFramework / Kernel / Sharedソース品質レビュー。確定所見、検証項目、設計判断を分離したトリアージ資料。
 - `docs/system_architecture_review_20260717.md`: 2026-07-17時点の構成と実測に基づく監査スナップショット。現行仕様や現行ディレクトリの正本ではなく、トリアージ後の判断は正規文書へ移管する。
 - `docs/webmedia_architecture_rules.md`: アーキテクチャ規約。
 - `docs/application_ports.md`: Application Port の判断基準。

@@ -999,6 +999,12 @@ $requestScope->set(Csrf::class, fn (Container $container): Csrf => new Csrf(
 
 ## 13. PHP 呼び出しルール
 
+PHPのerror suppression operator `@`は使用しない。warningを隠すと、失敗理由が失われ、呼び出し側が継続・中断を判断できなくなるためである。
+
+warningを発生させるnative APIを扱う場合は、必要な狭い範囲だけ`set_error_handler()`で`ErrorException`へ変換し、`try` / `catch` / `finally`でhandlerを必ず復元する。低レイヤーのFramework / Sharedは、元のwarning messageを含む明示的な例外または結果として失敗を呼び出し側へ通知し、失敗を無条件に握りつぶさない。処理を失敗させるか、別経路へ記録して継続するかは、その機能を組み立てるアプリケーションが決める。
+
+この規約は`tests/Architecture/ErrorSuppressionOperatorTest.php`でPHP tokenとして検査する。docblockの`@param`等は対象外である。
+
 ### 13.1 Named arguments
 
 プロジェクト内 class の object constructor、method、function 呼び出しでは、引数が2つ以上ある場合は原則として named arguments を使う。

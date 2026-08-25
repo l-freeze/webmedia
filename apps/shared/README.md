@@ -116,6 +116,10 @@ CMS では、GET 以外の状態変更 request はまず横断的に記録対象
 
 標準保存先は `storage/logs/application.log`、`storage/logs/audit.log`、`storage/logs/security.log` です。
 
+JSON Lines出力は不正UTF-8をreplacement characterへ置換してparse可能性を維持します。Sharedの各loggerは保存先の作成・append失敗を、元の失敗理由を含む`LogWriteException`として呼び出し側へ伝えます。Sharedはrequestを失敗させるか継続するかを決めません。
+
+CMSは自身のcontainerで`JsonFileAuditLogger`を`NonBlockingAuditLogger`に包み、Audit保存失敗だけを独立したPHPの`error_log()`へ通知して完了済みresponseを維持する方針を選びます。ほかのアプリケーションやApplicationLog / SecurityLogが同じ継続方針を必要とする場合も、各アプリケーション側で明示的に構成します。
+
 ### PSR-16 cache
 
 `apps/shared` は `Psr\SimpleCache\CacheInterface` を共通 cache contract として登録します。
