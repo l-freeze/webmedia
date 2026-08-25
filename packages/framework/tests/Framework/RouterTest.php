@@ -39,6 +39,22 @@ final class RouterTest extends TestCase
         self::assertSame(404, $response->status);
     }
 
+    public function testReturnsAllowedMethodsWithMethodNotAllowedResponse(): void
+    {
+        $router = new Router(routes: [
+            ['GET', '/articles', InvokableController::class],
+            ['PUT', '/articles', InvokableController::class],
+        ]);
+
+        $response = $router->dispatch(
+            request: new Request(method: 'POST', path: '/articles', query: [], body: [], server: []),
+            container: new Container(),
+        );
+
+        self::assertSame(Response::HTTP_METHOD_NOT_ALLOWED, $response->status);
+        self::assertSame('GET, PUT', $response->headers['Allow'] ?? null);
+    }
+
     public function testAddsMatchedRouteMetadataToRequestAttributes(): void
     {
         $router = new Router(routes: [

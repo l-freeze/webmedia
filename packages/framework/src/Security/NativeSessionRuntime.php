@@ -4,17 +4,42 @@ declare(strict_types=1);
 
 namespace Pera\Framework\Security;
 
+use Closure;
+use RuntimeException;
+
 final class NativeSessionRuntime
 {
     private const EXPIRED_COOKIE_OFFSET_SECONDS = 42000;
 
+    /** @var Closure(): bool */
+    private readonly Closure $startOperation;
+
+    /** @var Closure(bool): bool */
+    private readonly Closure $regenerateOperation;
+
+    /** @var Closure(): bool */
+    private readonly Closure $closeOperation;
+
+    /** @var Closure(): bool */
+    private readonly Closure $destroyOperation;
+
     public function __construct(
         private readonly string $cookieSameSite = 'Lax',
         private readonly bool $forceSecureCookie = false,
+        ?Closure $startOperation = null,
+        ?Closure $regenerateOperation = null,
+        ?Closure $closeOperation = null,
+        ?Closure $destroyOperation = null,
     ) {
         if (!in_array($this->cookieSameSite, ['Lax', 'Strict', 'None'], true)) {
             throw new \InvalidArgumentException('Session cookie SameSite must be Lax, Strict, or None.');
         }
+
+        $this->startOperation = $startOperation ?? static fn (): bool => session_start();
+        $this->regenerateOperation = $regenerateOperation
+            ?? static fn (bool $deleteOldSession): bool => session_regenerate_id($deleteOldSession);
+        $this->closeOperation = $closeOperation ?? static fn (): bool => session_write_close();
+        $this->destroyOperation = $destroyOperation ?? static fn (): bool => session_destroy();
     }
 
     public function start(bool $secure): void
@@ -36,12 +61,16 @@ final class NativeSessionRuntime
             'httponly' => true,
             'samesite' => $this->cookieSameSite,
         ]);
-        session_start();
+        if (!(($this->startOperation)())) {
+            throw new RuntimeException('Failed to start the native PHP session.');
+        }
     }
 
     public function regenerate(): void
     {
-        session_regenerate_id(true);
+        if (!(($this->regenerateOperation)(true))) {
+            throw new RuntimeException('Failed to regenerate the native PHP session ID.');
+        }
     }
 
     public function close(): void
@@ -50,7 +79,9 @@ final class NativeSessionRuntime
             return;
         }
 
-        session_write_close();
+        if (!(($this->closeOperation)())) {
+            throw new RuntimeException('Failed to write and close the native PHP session.');
+        }
     }
 
     public function cookieHeader(): ?string
@@ -88,20 +119,24 @@ final class NativeSessionRuntime
             return;
         }
 
-        $params = session_get_cookie_params();
-        $name = session_name();
-        if ($name !== false) {
-            setcookie($name, '', [
-                'expires' => time() - self::EXPIRED_COOKIE_OFFSET_SECONDS,
-                'path' => $params['path'],
-                'domain' => $params['domain'],
-                'secure' => $params['secure'],
-                'httponly' => $params['httponly'],
-                'samesite' => $params['samesite'],
-            ]);
+        if (!(($this->destroyOperation)())) {
+            throw new RuntimeException('Failed to destroy the native PHP session.');
         }
 
-        session_destroy();
+        $params = session_get_cookie_params();
+        $name = session_name();
+        if ($name === false) {
+            return;
+        }
+
+        setcookie($name, '', [
+            'expires' => time() - self::EXPIRED_COOKIE_OFFSET_SECONDS,
+            'path' => $params['path'],
+            'domain' => $params['domain'],
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        ]);
     }
 
     private function secureCookie(bool $secure): bool

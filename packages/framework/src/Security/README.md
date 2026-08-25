@@ -170,6 +170,8 @@ FrankenPHP worker modeでも、`Session`、`Request`、`Csrf`、現在ユーザ�
 
 Frameworkはfile、Redis、databaseなどのSession backendを列挙しません。backendの選択と接続設定はPHP runtimeが所有し、Frameworkはnative Session lifecycleだけを扱います。
 
+`session_start()`、ID再生成、write close、destroyのいずれかが失敗した場合、Frameworkは`RuntimeException`を送出します。失敗した操作を開始済み、保存済み、破棄済みとして扱わず、Controllerやmiddlewareもこの例外を正常系へ握りつぶさないでください。
+
 ## 認証時のID再生成
 
 ログイン成功後は、認証情報を保存する前にSession IDを再生成します。

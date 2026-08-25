@@ -46,6 +46,10 @@ if (!preg_match('/^[a-z][a-z0-9-]*$/', $name)) {
     fwrite(STDERR, "App name must match /^[a-z][a-z0-9-]*$/.\n");
     exit(1);
 }
+if (in_array($name, ['kernel', 'shared'], true)) {
+    fwrite(STDERR, "App name '{$name}' is reserved.\n");
+    exit(1);
+}
 if ($pathPrefix === '' || $pathPrefix[0] !== '/') {
     fwrite(STDERR, "Path prefix must start with \"/\".\n");
     exit(1);

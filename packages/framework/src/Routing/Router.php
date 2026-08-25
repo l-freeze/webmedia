@@ -48,7 +48,17 @@ final class Router
         }
 
         if ($result[0] === Dispatcher::METHOD_NOT_ALLOWED) {
-            return new Response(body: 'Method Not Allowed', status: Response::HTTP_METHOD_NOT_ALLOWED);
+            /** @var array<int, string> $allowedMethods */
+            $allowedMethods = $result[1];
+
+            return new Response(
+                body: 'Method Not Allowed',
+                status: Response::HTTP_METHOD_NOT_ALLOWED,
+                headers: [
+                    'Content-Type' => 'text/html; charset=utf-8',
+                    'Allow' => implode(', ', $allowedMethods),
+                ],
+            );
         }
 
         /** @var array{controller: class-string|array{0:class-string,1:string}, metadata: array<string, mixed>} $route */

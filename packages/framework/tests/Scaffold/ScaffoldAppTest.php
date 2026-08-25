@@ -350,6 +350,42 @@ final class ScaffoldAppTest extends TestCase
         }
     }
 
+    public function testReservedAppNamesFailBeforeWritingProjectFiles(): void
+    {
+        foreach (['kernel', 'shared'] as $name) {
+            $root = $this->temporaryRoot();
+
+            try {
+                $composerBefore = $this->read(path: $root . '/composer.json');
+                $kernelBefore = $this->kernelApplicationConfig(root: $root);
+                $sharedContainerBefore = $this->read(path: $root . '/apps/shared/config/container.php');
+                $sharedMiddlewareBefore = $this->read(path: $root . '/apps/shared/config/middleware.php');
+
+                $result = $this->executeScaffold(
+                    root: $root,
+                    name: $name,
+                    pathPrefix: '/' . $name,
+                    template: 'bare',
+                );
+
+                self::assertSame(1, $result['status']);
+                self::assertStringContainsString("App name '{$name}' is reserved.", $result['output']);
+                self::assertSame($composerBefore, $this->read(path: $root . '/composer.json'));
+                self::assertSame($kernelBefore, $this->kernelApplicationConfig(root: $root));
+                self::assertSame(
+                    $sharedContainerBefore,
+                    $this->read(path: $root . '/apps/shared/config/container.php'),
+                );
+                self::assertSame(
+                    $sharedMiddlewareBefore,
+                    $this->read(path: $root . '/apps/shared/config/middleware.php'),
+                );
+            } finally {
+                $this->removeDirectory(path: $root);
+            }
+        }
+    }
+
     private function temporaryRoot(): string
     {
         $root = sys_get_temp_dir() . '/webmedia-scaffold-app-test-' . bin2hex(random_bytes(4));

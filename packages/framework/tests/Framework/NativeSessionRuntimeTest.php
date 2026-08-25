@@ -7,6 +7,7 @@ namespace Pera\Framework\Tests\Framework;
 use Pera\Framework\Security\NativeSessionRuntime;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class NativeSessionRuntimeTest extends TestCase
 {
@@ -36,5 +37,48 @@ final class NativeSessionRuntimeTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new NativeSessionRuntime(cookieSameSite: 'Invalid');
+    }
+
+    public function testThrowsWhenNativeSessionCannotStart(): void
+    {
+        $runtime = new NativeSessionRuntime(startOperation: static fn (): bool => false);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to start the native PHP session.');
+
+        $runtime->start(secure: false);
+    }
+
+    public function testThrowsWhenNativeSessionIdCannotBeRegenerated(): void
+    {
+        $runtime = new NativeSessionRuntime(regenerateOperation: static fn (bool $deleteOldSession): bool => false);
+        $runtime->start(secure: false);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to regenerate the native PHP session ID.');
+
+        $runtime->regenerate();
+    }
+
+    public function testThrowsWhenNativeSessionCannotBeClosed(): void
+    {
+        $runtime = new NativeSessionRuntime(closeOperation: static fn (): bool => false);
+        $runtime->start(secure: false);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to write and close the native PHP session.');
+
+        $runtime->close();
+    }
+
+    public function testThrowsWhenNativeSessionCannotBeDestroyed(): void
+    {
+        $runtime = new NativeSessionRuntime(destroyOperation: static fn (): bool => false);
+        $runtime->start(secure: false);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to destroy the native PHP session.');
+
+        $runtime->destroy();
     }
 }

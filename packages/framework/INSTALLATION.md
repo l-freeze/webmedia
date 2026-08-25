@@ -224,6 +224,7 @@ php vendor/bin/scaffold-app <name> <path-prefix> --template=bare --root=/absolut
 `name`の規則:
 
 - `/^[a-z][a-z0-9-]*$/`
+- `kernel`と`shared`は固定用途の予約名なので指定不可
 - 生成先は`apps/{name}`
 - `admin-api`のnamespaceは`App\AdminApi`
 

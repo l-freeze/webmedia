@@ -29,6 +29,10 @@ final readonly class ExampleMiddleware implements IMiddleware
 
 後続の Controller を呼ばずに `Response` を返すと、そこで処理を終了できます。
 
+listの先頭にあるmiddlewareからrequest側へ入り、Controllerが返したresponseは逆順に戻ります。たとえば`[Outer::class, Inner::class]`なら、`Outer request -> Inner request -> Controller -> Inner response -> Outer response`の順です。先頭側が後続handlerを呼ばずにresponseを返した場合、それより内側のmiddlewareとControllerは実行されません。
+
+Frameworkはこのstack順と短絡だけを保証し、Application / Shared / Kernelのようなproject固有layerの優先順位や、同じheaderを複数middlewareが変更する場合の所有方針は決めません。利用projectが完成したclass-string listの順序と競合方針を所有します。
+
 ## 差し込み方
 
 アプリケーションごとに `config/middleware.php` を作り、実行したい順に class-string を返します。
