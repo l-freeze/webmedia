@@ -513,6 +513,8 @@ Framework packageの依存はFramework production codeが直接使うものに�
 
 標準Kernel scaffoldは`.env`が存在する場合にDotenvで任意ロードする起動処理を持つ。環境変数の読み込みはcontainer構築や各appの起動より前に一度行うapplication compositionの責務なので、Sharedには置かない。`vlucas/phpdotenv`は生成Kernelを使うconsumer rootまたはproject skeletonの依存であり、Framework runtime packageの依存にはしない。
 
+Kernel内の環境値は一つの`Environment` readerを正本とし、process environment、Dotenvが設定する`$_ENV`、`$_SERVER`の順に解決する。上位sourceの空文字は明示値として保持し、下位sourceや既定値へfall throughしない。これによりdeploy時のprocess設定を`.env`より優先しつつ、Session設定とwebmedia固有DB設定で異なる解決規則を持たせない。
+
 正式なscaffold support対象はKernel、Shared、Appの`bare` / `minimal` / `todo` / `layered`全種とする。特定templateだけをpackage導入経路から外さず、packaged artifactからのconsumer E2Eで各生成契約を検証する。予約名の`fullpack`は実装されるまでsupport対象ではない。
 
 新規project用の`pera/skeleton`は`packages/skeleton`を自己完結したMIT LicenseのComposer project packageとして持つ。Skeletonは利用者所有のKernel、Shared、DBなしの`minimal` app、public entrypoint、Dotenv、Latte、PHPUnit / PHPStan、汎用FrankenPHP worker開発設定を含める。PDO、DB driver、migration tool、webmedia固有CMS / Front / infrastructureは含めない。
@@ -542,6 +544,7 @@ Framework packageはComposer installer pluginを持たない。install時にKern
 - 利用者所有の生成codeをdependency updateが書き換えると、利用者の変更とのownership conflictが起きる。
 - scaffoldの具象実装を理由にFrameworkへDotenv、Latte、DB関連を持たせると、runtime coreの依存境界がstarter都合で膨らむ。
 - 環境読み込みをSharedへ置くと、複数appが利用する共有サービス層がprocess全体の初期化順序まで所有してしまう。Kernelなら起動時の一回だけに限定できる。
+- process environmentを`.env`より優先すればdeploy設定をlocal fileが上書きせず、空文字を明示値として扱えばpassword等で空を許す場合と未設定時既定値を区別できる。
 - 生成sourceとroot依存を同じ機能レシピで扱えば、Latteを使わない利用者へ不要なpackageを課さず、Latteを生成した利用者のmanifest不足も防げる。
 - scaffold内からComposerを再帰実行しなければ、network、lock全体の再解決、plugin/script実行を暗黙の副作用にせず、利用者が明示的に確認できる。
 - PSR-4と標準Kernel登録まで定型化すれば、生成しただけでは起動できないstarterや、手作業を前提にしたE2Eの見落としを防げる。管理markerの外側を変更しないことで利用者所有のcomposition境界は維持する。

@@ -29,6 +29,7 @@ final class ScaffoldProjectRootTest extends TestCase
             self::assertStringContainsString('Created kernel scaffold: apps/kernel', $output);
             self::assertFileExists($root . '/apps/kernel/config/application.php');
             self::assertFileExists($root . '/apps/kernel/src/Application.php');
+            self::assertFileExists($root . '/apps/kernel/src/Environment.php');
             $composer = json_decode($this->read(path: $root . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
             self::assertIsArray($composer);
             $requirements = $composer['require'] ?? [];

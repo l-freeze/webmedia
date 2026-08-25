@@ -22,5 +22,9 @@ final readonly class ApplicationDefinition
         if ($pathPrefix === '' || !str_starts_with($pathPrefix, '/')) {
             throw new InvalidArgumentException('Application path prefix must start with "/".');
         }
+
+        if ($pathPrefix !== '/' && (str_ends_with($pathPrefix, '/') || str_contains($pathPrefix, '//'))) {
+            throw new InvalidArgumentException('Application path prefix must be canonical, without empty segments or a trailing "/".');
+        }
     }
 }

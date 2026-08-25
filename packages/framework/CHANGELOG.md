@@ -35,3 +35,5 @@ The project follows Semantic Versioning after `1.0.0`. Before `1.0.0`, public AP
 - Native Session start, ID regeneration, close, and destroy failures now raise an explicit `RuntimeException` instead of being treated as successful lifecycle operations.
 - 405 responses now include the FastRoute-provided allowed methods in the `Allow` header.
 - `scaffold-app` now rejects the fixed infrastructure names `kernel` and `shared` before modifying project files.
+- Generated Kernel source now resolves process environment and Dotenv values through one reader with explicit precedence and empty-value semantics. Existing generated Kernels can adopt `src/Environment.php` and replace local environment reads when needed.
+- Generated Kernel source now rejects duplicate application names, duplicate path prefixes, and non-canonical prefixes before loading app configuration files. Existing generated Kernels remain consumer-owned and require the same validation to adopt this fix.

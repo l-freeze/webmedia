@@ -20,6 +20,10 @@ final class KernelScaffoldDriftTest extends TestCase
             $this->read(path: $projectRoot . '/apps/kernel/src/ApplicationDefinition.php'),
             $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/ApplicationDefinition.php'),
         );
+        self::assertSame(
+            $this->read(path: $projectRoot . '/apps/kernel/src/Environment.php'),
+            $this->read(path: $projectRoot . '/packages/framework/templates/kernel/src/Environment.php'),
+        );
     }
 
     private function read(string $path): string

@@ -58,6 +58,8 @@ Kernel loads `.env` when the file exists. No environment file is required for th
 cp .env.example .env
 ```
 
+Process environment values override values loaded from `.env`. An explicitly empty value is preserved instead of falling through to `.env` or a default.
+
 Native PHP session storage starts lazily when application code first accesses `Pera\Framework\Security\Session`; the initial page remains stateless.
 
 Shared middleware enables security headers and CSRF protection by default. Safe requests such as the initial `GET /` do not start Session storage. If the project later adds a stateless API, comment out or remove `CsrfMiddleware::class` from `apps/shared/config/middleware.php` and add it explicitly to each browser/session app's `config/middleware.php`. The Todo scaffold renders the required `_csrf` form fields.

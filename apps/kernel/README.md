@@ -10,6 +10,8 @@ Framework は `Request`、`Response`、`Router`、`Container`、middleware pipel
 
 この config は先頭で `.env` を任意ロードします。Framework は dotenv を直接読みません。環境変数の読み込み方法は Kernel 側の起動構成として扱います。
 
+Kernelの`Environment`は、process environment、Dotenvが設定する`$_ENV`、`$_SERVER`の順に値を解決します。上位sourceに空文字が明示されている場合もその値を採用し、下位sourceや既定値へはfall throughしません。既定値を使うのは、どのsourceにもscalar値がない場合だけです。
+
 ```php
 new ApplicationDefinition(
     name: 'api',
@@ -22,6 +24,8 @@ new ApplicationDefinition(
 
 `pathPrefix` が長い定義から優先して選択されます。たとえば `/api` は `/` より先に判定されます。
 
+definitionの`name`と`pathPrefix`はそれぞれ一意でなければなりません。`pathPrefix`は`/`から始め、rootの`/`を除いて末尾slashや空segmentを持たないcanonical形式にします。不正なdefinitionはroutes / middleware設定を読み込む前のKernel起動時に拒否されます。
+
 各アプリは次の config を持ちます。
 
 - `routes.php`
@@ -32,7 +36,9 @@ new ApplicationDefinition(
 
 `apps/kernel/config/container.php` は `PDO::class` を登録します。Framework と Shared は DB エンジンや接続方式を決めません。
 
-`apps/kernel/src/Database/Infrastructure/ConnectionFactory.php` は `DB_DSN` が指定されていればそれを使います。未指定の場合は、従来の PostgreSQL 向け DSN を `DB_HOST`、`DB_PORT`、`DB_DATABASE` から組み立てます。
+`apps/kernel/src/Database/Infrastructure/ConnectionFactory.php` は `DB_DSN` が空でなければそれを使います。未指定または空の場合は、PostgreSQL向けDSNを`DB_HOST`、`DB_PORT`、`DB_DATABASE`から組み立てます。各component自体に明示された空文字は既定値へ置換せず、接続設定エラーとして表面化させます。
+
+未設定時の既定値は`db:5432`、database / username / passwordは`webmedia`です。process environmentと`.env`が競合する場合はprocess environmentを優先します。
 
 ```text
 DB_DSN=mysql:host=127.0.0.1;port=3306;dbname=webmedia;charset=utf8mb4
@@ -78,7 +84,7 @@ config only の極薄構成だけが必要な場合は `bare` を使います。
 php vendor/bin/scaffold-app api /api --template=bare
 ```
 
-このコマンドは `apps/kernel/config/application.php` は自動編集しません。生成後に追加する `ApplicationDefinition` を表示するので、内容を確認して Kernel config へ追加します。
+標準Kernelの管理markerが残っている場合、このコマンドは生成した`ApplicationDefinition`を`apps/kernel/config/application.php`へ自動登録します。markerを削除したcustom Kernelは変更せず、手動追加するdefinitionを表示します。詳細なscaffold contractは`packages/framework/INSTALLATION.md`を正とします。
 
 縦割りのスターターも生成できます。
 
