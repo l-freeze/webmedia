@@ -63,12 +63,15 @@ use App\Cms\Infrastructure\Auth\Authorization\CodeDefinedRolePermissionQuery;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordVerifier;
 use App\Cms\Infrastructure\Auth\Password\NativePasswordHasher;
 use App\Cms\Infrastructure\Logging\JsonFileAuditLogQuery;
+use App\Cms\Infrastructure\Logging\NonBlockingAuditLogger;
 use App\Cms\Presentation\Http\Middleware\CsrfSecurityLogMiddleware;
 use Pera\Framework\Container\Container;
 use Pera\Framework\Security\Csrf;
 use Pera\Framework\Security\CsrfMiddleware;
 use Pera\Framework\View\ITemplateRenderer;
 use App\Shared\Cors\Infrastructure\Http\CorsMiddleware;
+use App\Shared\Audit\Application\IAuditLogger;
+use App\Shared\Audit\Infrastructure\JsonFileAuditLogger;
 use App\Shared\Event\Application\IEventBus;
 use App\Shared\View\Infrastructure\LatteTemplateRenderer;
 
@@ -86,6 +89,35 @@ if (!is_callable($sharedContainer)) {
     throw new \RuntimeException('Shared container configuration is invalid.');
 }
 $sharedContainer($container, $root);
+
+$container->singleton(
+    id: IAuditLogger::class,
+    factory: static fn (): IAuditLogger => new NonBlockingAuditLogger(
+        logger: new JsonFileAuditLogger(path: $root . '/storage/logs/audit.log'),
+        failureReporter: static function (string $message): void {
+            set_error_handler(static function (
+                int $severity,
+                string $errorMessage,
+                string $file,
+                int $line,
+            ): never {
+                throw new \ErrorException($errorMessage, 0, $severity, $file, $line);
+            });
+            try {
+                if (!error_log($message)) {
+                    throw new \RuntimeException('Cannot write audit failure to the PHP error log.');
+                }
+            } catch (\ErrorException $exception) {
+                throw new \RuntimeException(
+                    "Cannot write audit failure to the PHP error log: {$exception->getMessage()}",
+                    previous: $exception,
+                );
+            } finally {
+                restore_error_handler();
+            }
+        },
+    ),
+);
 
 $envString = static function (string $key, string $default = ''): string {
     $value = $_ENV[$key] ?? $default;

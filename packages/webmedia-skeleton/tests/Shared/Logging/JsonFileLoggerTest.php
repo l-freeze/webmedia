@@ -43,6 +43,20 @@ final class JsonFileLoggerTest extends TestCase
         self::assertSame('broken', $exception['message']);
     }
 
+    public function testSubstitutesInvalidUtf8AndKeepsJsonLineParseable(): void
+    {
+        $path = sys_get_temp_dir() . '/webmedia-json-log-' . bin2hex(random_bytes(4)) . '/app.log';
+        $logger = new JsonFileLogger(path: $path);
+
+        $logger->info("\xFF", ['invalid' => "\xFF"]);
+
+        $record = $this->record(path: $path);
+        $context = $record['context'] ?? null;
+        self::assertIsArray($context);
+        self::assertSame("\u{FFFD}", $record['message']);
+        self::assertSame("\u{FFFD}", $context['invalid']);
+    }
+
     /** @return array<string, mixed> */
     private function record(string $path): array
     {

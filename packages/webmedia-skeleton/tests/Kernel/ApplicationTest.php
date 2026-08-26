@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Kernel;
 
+use InvalidArgumentException;
 use Pera\Framework\Http\Request;
 use Pera\Framework\Http\Response;
 use Pera\Framework\Security\NativeSessionRuntime;
@@ -150,6 +151,50 @@ final class ApplicationTest extends TestCase
         }
     }
 
+    public function testRejectsDuplicateApplicationNamesBeforeLoadingRouteFiles(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Application name must be unique: duplicate');
+
+        new Application(
+            root: '/path-that-must-not-be-read',
+            definitions: [
+                $this->definition(name: 'duplicate', pathPrefix: '/first'),
+                $this->definition(name: 'duplicate', pathPrefix: '/second'),
+            ],
+        );
+    }
+
+    public function testRejectsDuplicateApplicationPathPrefixesBeforeLoadingRouteFiles(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Application path prefix must be unique: /duplicate');
+
+        new Application(
+            root: '/path-that-must-not-be-read',
+            definitions: [
+                $this->definition(name: 'first', pathPrefix: '/duplicate'),
+                $this->definition(name: 'second', pathPrefix: '/duplicate'),
+            ],
+        );
+    }
+
+    public function testRejectsNonCanonicalApplicationPathPrefix(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Application path prefix must be canonical');
+
+        $this->definition(name: 'admin', pathPrefix: '/admin/');
+    }
+
+    public function testRejectsApplicationPathPrefixWithEmptySegment(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Application path prefix must be canonical');
+
+        $this->definition(name: 'admin', pathPrefix: '/admin//users');
+    }
+
     /**
      * @param class-string $controller
      */
@@ -179,6 +224,17 @@ PHP);
         $data = [];
 
         return new Session(state: new SessionState(data: $data), runtime: new NativeSessionRuntime());
+    }
+
+    private function definition(string $name, string $pathPrefix): ApplicationDefinition
+    {
+        return new ApplicationDefinition(
+            name: $name,
+            pathPrefix: $pathPrefix,
+            routesPath: '/routes-that-must-not-be-read.php',
+            containerPath: '/container-that-must-not-be-read.php',
+            middlewarePath: '/middleware-that-must-not-be-read.php',
+        );
     }
 
     private function resetNativeSession(): void

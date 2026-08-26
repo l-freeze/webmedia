@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Kernel;
 
+use InvalidArgumentException;
 use Pera\Framework\Application\IApplication;
 use Pera\Framework\Container\Container;
 use Pera\Framework\Http\Exception\MalformedRequestException;
@@ -41,7 +42,7 @@ final class Application implements IApplication
         private readonly IExceptionHandler $exceptionHandler = new RethrowingExceptionHandler(),
         array $definitions = [],
     ) {
-        $this->definitions = $this->sortDefinitions(definitions: $definitions);
+        $this->definitions = $this->validateAndSortDefinitions(definitions: $definitions);
         foreach ($this->definitions as $definition) {
             $this->routers[$definition->name] = new Router(routes: $this->loadRoutes(path: $definition->routesPath));
             $this->middleware[$definition->name] = $this->loadMiddleware(path: $definition->middlewarePath);
@@ -167,8 +168,22 @@ final class Application implements IApplication
      * @param list<ApplicationDefinition> $definitions
      * @return list<ApplicationDefinition>
      */
-    private function sortDefinitions(array $definitions): array
+    private function validateAndSortDefinitions(array $definitions): array
     {
+        $names = [];
+        $pathPrefixes = [];
+        foreach ($definitions as $definition) {
+            if (isset($names[$definition->name])) {
+                throw new InvalidArgumentException("Application name must be unique: {$definition->name}");
+            }
+            if (isset($pathPrefixes[$definition->pathPrefix])) {
+                throw new InvalidArgumentException("Application path prefix must be unique: {$definition->pathPrefix}");
+            }
+
+            $names[$definition->name] = true;
+            $pathPrefixes[$definition->pathPrefix] = true;
+        }
+
         usort(
             $definitions,
             static fn (ApplicationDefinition $a, ApplicationDefinition $b): int => strlen($b->pathPrefix) <=> strlen($a->pathPrefix),

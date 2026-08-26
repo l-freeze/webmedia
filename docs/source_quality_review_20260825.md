@@ -290,4 +290,4 @@ helperの変換仕様と利用範囲はsource上で確認できた。しかし�
 - Shared: root Shared test、CMS middleware test、JSONL parse test、対象 persistence integration test
 - 全体: root PHPUnit、PHPStan、`composer validate --strict`、`tools/webmedia-skeleton check`
 
-今回の環境では上記commandを実行できていないため、本書は修正完了記録ではない。2026-08-25時点のsourceレビューを、2026-08-26に二次レビューとsource再確認に基づいて再トリアージした結果である。
+本書の作成・再トリアージ時点では上記commandを実行しておらず、本書自体は修正完了記録ではない。2026-08-25時点のsourceレビューを、2026-08-26に二次レビューとsource再確認に基づいて再トリアージした結果である。後続の修正・検証結果は`docs/current_status.md`を正本とする。
